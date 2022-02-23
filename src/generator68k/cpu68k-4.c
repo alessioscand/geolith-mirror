@@ -6,6 +6,8 @@
 /*                                                                           */
 /*****************************************************************************/
 
+#include <stdlib.h>
+
 #include "cpu68k-inline.h"
 
 void cpu_op_535a(t_ipc *ipc) /* NEGX */ {

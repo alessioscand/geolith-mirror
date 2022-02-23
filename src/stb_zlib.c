@@ -17,6 +17,7 @@
 #include <stdio.h>
 #endif
 #include <stdlib.h>
+#include <string.h>
 #include <memory.h>
 #include <assert.h>
 #include <stdarg.h>
