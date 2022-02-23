@@ -80,5 +80,6 @@ char* cf_parse_cmd_line(int argc, char *argv[]);
 void cf_print_help(void);
 void cf_reset_to_default(void);
 void cf_item_has_been_changed(CONF_ITEM * item);
+void cf_cache_conf(void);
 
 #endif

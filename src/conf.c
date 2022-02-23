@@ -352,7 +352,7 @@ void cf_init(void) {
 	cf_create_bool_item("dump", "Create a gno dump in the current dir and exit", 0, GN_FALSE);
 
 	cf_create_bool_item("interpolation", "Merge the last frame and the current", 'I', GN_FALSE);
-	cf_create_bool_item("raster", "Enable the raster interrupt", 'r', GN_FALSE);
+	cf_create_bool_item("raster", "Enable the raster interrupt", 'r', GN_TRUE);
 	cf_create_bool_item("sound", "Enable sound", 0, GN_TRUE);
 	cf_create_bool_item("showfps", "Show FPS at startup", 0, GN_FALSE);
 
@@ -366,7 +366,7 @@ void cf_init(void) {
 	cf_create_bool_item("pal", "Use PAL timing (buggy)", 'P', GN_FALSE);
 	cf_create_bool_item("screen320", "Use 320x224 output screen (instead 304x224)", 0, GN_FALSE);
 	cf_create_bool_item("bench", "Draw x frames, then quit and show average fps", 0, GN_FALSE);
-	cf_create_string_item("country", "Set the contry to japan, asia, usa or europe", "...", 0, "europe");
+	cf_create_string_item("country", "Set the contry to japan, asia, usa or europe", "...", 0, "japan");
 	cf_create_string_item("system", "Set the system to home, arcade or unibios", "...", 0, "arcade");
 	cf_create_string_item("biospath", "Tell gngeo where your neogeo bios is", "PATH", 'B', BUILD_ABS_PATH(DATA_DIRECTORY));
 	cf_create_string_item("shaderpath", "Tell gngeo where your shaders are", "PATH", 'S', BUILD_ABS_PATH(DATA_DIRECTORY));

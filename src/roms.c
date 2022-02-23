@@ -12,6 +12,7 @@
 #include <libgen.h>
 #endif
 
+#include "conf.h"
 #include "roms.h"
 #include "emu.h"
 #include "memory.h"
@@ -1974,13 +1975,11 @@ int close_game(void) {
 int load_game_config(char *rom_name) {
 	char *gpath;
 	char *drconf;
-#ifdef EMBEDDED_FS
-    gpath=ROOTPATH"conf/";
-#else
+
     gpath=get_gngeo_dir();
-#endif
-	cf_reset_to_default();
-	cf_open_file(NULL); /* Reset possible previous setting */
+
+	cf_cache_conf();
+
 	if (rom_name) {
 #if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 		if (strstr(rom_name,".gno")!=NULL) {
@@ -2000,7 +1999,6 @@ int load_game_config(char *rom_name) {
 #if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 		}
 #endif
-		cf_open_file(drconf);
 	}
 	return GN_TRUE;
 }
