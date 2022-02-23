@@ -16,9 +16,10 @@ SHARED := $(PIC)
 
 NAME := gngeo
 PREFIX ?= /usr/local
-LIBDIR ?= $(PREFIX)/lib
 DATAROOTDIR ?= $(PREFIX)/share
+DATADIR ?= $(DATAROOTDIR)
 DOCDIR ?= $(DATAROOTDIR)/doc/$(NAME)
+LIBDIR ?= $(PREFIX)/lib
 
 UNAME := $(shell uname -s)
 ifeq ($(UNAME), Darwin)
