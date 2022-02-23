@@ -120,22 +120,24 @@ $(OBJDIR)/.tag:
 $(NAME)/$(TARGET): $(OBJS)
 	@mkdir -p $(NAME)
 	$(CC) $^ $(LDFLAGS) $(LIBS) $(SHARED) -o $@
-	@cp $(SOURCEDIR)/gngeo_data.zip $(NAME)/
+	@cp $(SOURCEDIR)/$(NAME)_data.zip $(NAME)/
 
 clean:
 	rm -rf $(OBJDIR)/ $(NAME)/
 
 install: all
+	@mkdir -p $(DESTDIR)$(DATADIR)/jollygood/$(NAME)
 	@mkdir -p $(DESTDIR)$(DOCDIR)
 	@mkdir -p $(DESTDIR)$(LIBDIR)/jollygood
 	cp $(NAME)/$(TARGET) $(DESTDIR)$(LIBDIR)/jollygood/
-	cp $(NAME)/gngeo_data.zip $(DESTDIR)$(DATADIR)/jollygood/$(NAME)/
-	cp $(SOURCEDIR)/LICENSE $(DESTDIR)$(DOCDIR)
+	cp $(NAME)/$(NAME)_data.zip $(DESTDIR)$(DATADIR)/jollygood/$(NAME)/
+	cp $(SOURCEDIR)/COPYING $(DESTDIR)$(DOCDIR)
 	cp $(SOURCEDIR)/README $(DESTDIR)$(DOCDIR)
 
 install-strip: install
 	strip $(DESTDIR)$(LIBDIR)/jollygood/$(TARGET)
 
 uninstall:
+	rm -rf $(DESTDIR)$(DATADIR)/jollygood/$(NAME)
 	rm -rf $(DESTDIR)$(DOCDIR)
 	rm -f $(DESTDIR)$(LIBDIR)/jollygood/$(TARGET)
