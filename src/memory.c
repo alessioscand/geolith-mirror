@@ -98,13 +98,13 @@ static __inline__ uint16_t read_neo_control(void) {
     }
 }
 
-__inline__ void write_neo_control(uint16_t data) {
+static __inline__ void write_neo_control(uint16_t data) {
     neogeo_frame_counter_speed = (((data >> 8) & 0xff) + 1);
     memory.vid.irq2control = data & 0xff;
     return;
 }
 
-__inline__ void write_irq2pos(uint32_t data) {
+static __inline__ void write_irq2pos(uint32_t data) {
     memory.vid.irq2pos = data;
     if (memory.vid.irq2control & 0x20) {
         int line = (memory.vid.irq2pos + 0x3b) / 0x180; /* turfmast goes as low as 0x145 */
