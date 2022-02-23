@@ -10,6 +10,10 @@ SRCDIR := $(SOURCEDIR)/src
 PKGCONF ?= pkg-config
 CFLAGS_JG := $(shell $(PKGCONF) --cflags jg)
 
+LIBS_ZLIB := $(shell $(PKGCONF) --libs zlib)
+
+LIBS := $(LIBS_ZLIB)
+
 INCLUDES := -I$(SRCDIR) -I$(SRCDIR)/generator68k -I$(SRCDIR)/mamez80
 PIC := -fPIC
 SHARED := $(PIC)
@@ -29,8 +33,13 @@ else ifeq ($(OS), Windows_NT)
 	SHARED += -shared
 	TARGET := $(NAME).dll
 else
+	LIBS += -lm
 	SHARED += -shared
 	TARGET := $(NAME).so
+endif
+
+ifeq ($(UNAME), Linux)
+	LIBS += -Wl,--no-undefined
 endif
 
 CSRCS := generator68k/cpu68k.c \
