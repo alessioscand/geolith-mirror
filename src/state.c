@@ -1,0 +1,269 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <alloca.h>
+
+#include "memory.h"
+#include "state.h"
+#include "emu.h"
+#include "gnutil.h"
+
+static int m68k_flag=0x2;
+
+static int z80_flag=0x8;
+
+#ifdef WORDS_BIGENDIAN
+static int endian_flag=0x10;
+#else
+static int endian_flag=0x0;
+#endif
+
+#define ROOTPATH ""
+
+uint8_t state_version;
+
+void cpu_68k_mkstate(gzFile gzf,int mode);
+void cpu_z80_mkstate(gzFile gzf,int mode);
+void ym2610_mkstate(gzFile gzf,int mode);
+#if 0
+void create_state_register(ST_MODULE_TYPE module,const char *reg_name,
+			   uint8_t num,void *data,int size,ST_DATA_TYPE type) {
+    ST_REG *t=(ST_REG*)calloc(1,sizeof(ST_REG));
+    t->next=st_mod[module].reglist;
+    st_mod[module].reglist=t;
+    t->reg_name=strdup(reg_name);
+    t->data=data;
+    t->size=size;
+    t->type=type;
+    t->num=num;
+}
+
+void set_pre_save_function(ST_MODULE_TYPE module,void (*func)(void)) {
+    st_mod[module].pre_save_state=func;
+}
+
+void set_post_load_function(ST_MODULE_TYPE module,void (*func)(void)) {
+    st_mod[module].post_load_state=func;
+}
+
+static void *find_data_by_name(ST_MODULE_TYPE module,uint8_t num,char *name) {
+    ST_REG *t=st_mod[module].reglist;
+    while(t) {
+	if ((!strcmp(name,t->reg_name)) && (t->num==num)) {
+	    /*
+	     *len=t->size;
+	     *type=t->type;
+	     */
+	    return t->data;
+	}
+	t=t->next;
+    }
+    return NULL;
+}
+
+static int sizeof_st_type(ST_DATA_TYPE type) {
+    switch (type) {
+    case REG_UINT8:
+    case REG_INT8:
+	return 1;
+    case REG_UINT16:
+    case REG_INT16:
+	return 2;
+    case REG_UINT32:
+    case REG_INT32:
+	return 4;
+    }
+    return 0; /* never go here */
+}
+
+void swap_buf16_if_need(uint8_t src_endian,uint16_t* buf,uint32_t size)
+{
+    int i;
+#ifdef WORDS_BIGENDIAN
+    uint8_t  my_endian=1;
+#else
+    uint8_t  my_endian=0;
+#endif
+    if (my_endian!=src_endian) {
+	for (i=0;i<size;i++)
+	    SDL_Swap16(buf[i]);
+    }
+}
+
+void swap_buf32_if_need(uint8_t src_endian,uint32_t* buf,uint32_t size)
+{
+    int i;
+#ifdef WORDS_BIGENDIAN
+    uint8_t  my_endian=1;
+#else
+    uint8_t  my_endian=0;
+#endif
+    if (my_endian!=src_endian) {
+	for (i=0;i<size;i++)
+	    buf[i]=SDL_Swap32(buf[i]);
+    }
+}
+#endif
+uint32_t how_many_slot(char *game) {
+	char *st_name;
+	FILE *f;
+//    char *st_name_len;
+#ifdef EMBEDDED_FS
+	char *gngeo_dir=ROOTPATH"save/";
+#else
+	char *gngeo_dir=get_gngeo_dir();
+#endif
+	uint32_t slot=0;
+	st_name=(char*)alloca(strlen(gngeo_dir)+strlen(game)+5);
+	while (1) {
+		sprintf(st_name,"%s%s.%03d",gngeo_dir,game,slot);
+		if (st_name && (f=fopen(st_name,"rb"))) {
+			fclose(f);
+			slot++;
+		} else
+		    return slot;
+	}
+	return 0;
+}
+
+static gzFile open_state(char *game,int slot,int mode) {
+	char *st_name;
+//    char *st_name_len;
+#ifdef EMBEDDED_FS
+	char *gngeo_dir=ROOTPATH"save/";
+#else
+	char *gngeo_dir=get_gngeo_dir();
+#endif
+	char string[20];
+	char *m=(mode==STWRITE?"wb":"rb");
+	gzFile gzf;
+	int  flags;
+	uint32_t rate;
+
+    st_name=(char*)alloca(strlen(gngeo_dir)+strlen(game)+5);
+    sprintf(st_name,"%s%s.%03d",gngeo_dir,game,slot);
+
+	if ((gzf = gzopen(st_name, m)) == NULL) {
+		printf("%s not found\n", st_name);
+		return NULL;
+    }
+
+	if(mode==STREAD) {
+
+		memset(string, 0, 20);
+		gzread(gzf, string, 6);
+
+		if (strcmp(string, "GNGST3")!=0 && strcmp(string, "GNGST2")!=0) {
+			printf("%s is not a valid gngeo st file\n", st_name);
+			gzclose(gzf);
+			return NULL;
+		}
+
+		if (strcmp(string, "GNGST2")==0) state_version=ST_VER2;
+		if (strcmp(string, "GNGST3")==0) state_version=ST_VER3;
+
+
+		gzread(gzf, &flags, sizeof (int));
+
+		if (flags != (m68k_flag | z80_flag | endian_flag)) {
+			printf("This save state comme from a different endian architecture.\n"
+					"This is not currently supported :(\n");
+			gzclose(gzf);
+			return NULL;
+		}
+	} else {
+		int flags=m68k_flag | z80_flag | endian_flag;
+		gzwrite(gzf, "GNGST3", 6);
+		gzwrite(gzf, &flags, sizeof(int));
+	}
+	return gzf;
+}
+
+int mkstate_data(gzFile gzf,void *data,int size,int mode) {
+	if (mode==STREAD)
+		return gzread(gzf,data,size);
+	return gzwrite(gzf,data,size);
+}
+
+static void neogeo_mkstate(gzFile gzf,int mode) {
+	GAME_ROMS r;
+	memcpy(&r,&memory.rom,sizeof(GAME_ROMS));
+	mkstate_data(gzf, &memory, sizeof (memory), mode);
+
+	/* Roms info are needed (at least) for z80 bankswitch, so we need to restore
+	 * it asap */
+	if (mode==STREAD) memcpy(&memory.rom,&r,sizeof(GAME_ROMS));
+
+
+	mkstate_data(gzf, &bankaddress, sizeof (uint32_t), mode);
+	mkstate_data(gzf, &sram_lock, sizeof (uint8_t), mode);
+	cpu_68k_mkstate(gzf, mode);
+	mkstate_data(gzf, z80_bank,sizeof(uint16_t)*4, mode);
+	cpu_z80_mkstate(gzf, mode);
+	ym2610_mkstate(gzf, mode);
+}
+
+int save_state(char *game,int slot) {
+	gzFile gzf;
+
+	if ((gzf = open_state(game, slot, STWRITE)) == NULL)
+		return GN_FALSE;
+
+	neogeo_mkstate(gzf,STWRITE);
+
+	gzclose(gzf);
+	return GN_TRUE;
+}
+int load_state(char *game,int slot) {
+	gzFile gzf;
+	/* Save pointers */
+	uint8_t *ng_lo = memory.ng_lo;
+	uint8_t *fix_game_usage=memory.fix_game_usage;
+	uint8_t *bksw_unscramble = memory.bksw_unscramble;
+	int *bksw_offset=memory.bksw_offset;
+
+	if ((gzf = open_state(game, slot, STREAD))==NULL)
+		return GN_FALSE;
+
+	neogeo_mkstate(gzf,STREAD);
+
+	/* Restore them */
+	memory.ng_lo=ng_lo;
+	memory.fix_game_usage=fix_game_usage;
+	memory.bksw_unscramble=bksw_unscramble;
+	memory.bksw_offset=bksw_offset;
+
+	cpu_68k_bankswitch(bankaddress);
+
+	if (memory.current_vector==0)
+		memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
+	else
+		memcpy(memory.rom.cpu_m68k.p, memory.game_vector, 0x80);
+
+	if (memory.vid.currentpal) {
+		current_pal = memory.vid.pal_neo[1];
+		current_pc_pal = (uint32_t *) memory.vid.pal_host[1];
+	} else {
+		current_pal = memory.vid.pal_neo[0];
+		current_pc_pal = (uint32_t *) memory.vid.pal_host[0];
+	}
+
+	if (memory.vid.currentfix) {
+		current_fix = memory.rom.game_sfix.p;
+		fix_usage = memory.fix_game_usage;
+	} else {
+		current_fix = memory.rom.bios_sfix.p;
+		fix_usage = memory.fix_board_usage;
+	}
+
+	gzclose(gzf);
+	return GN_TRUE;
+}
+
+
+void neogeo_init_save_state(void) {
+}
