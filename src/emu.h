@@ -22,8 +22,6 @@
 #include <string.h>
 #include <stdint.h>
 
-#define Uintptr long
-
 typedef enum SYSTEM {
     SYS_ARCADE=0,
     SYS_HOME,
@@ -107,14 +105,5 @@ void neogeo_reset(void);
 void gn_log_set_callback(void (*)(int, const char *, ...));
 
 extern void (*gn_log)(int, const char *, ...);
-
-#ifdef ENABLE_PROFILER
-#define PROFILER_START profiler_start
-#define PROFILER_STOP profiler_stop
-
-#else
-#define PROFILER_START(a)
-#define PROFILER_STOP(a)
-#endif
 
 #endif

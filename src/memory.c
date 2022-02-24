@@ -59,30 +59,13 @@ static __inline__ uint16_t read_neo_control(void) {
     unsigned int scan;
 
     if (!conf.raster) {
-
-#ifdef PROCESSOR_ARM
-#ifdef USE_CYCLONE
-        scan = current_line;
-        /*
-          printf("%d %d %d\n",current_line,
-          (cpu_68k_getcycle()/3)>>7,
-          (int)(cpu_68k_getcycle() / 766.28));
-        */
-#else
-        scan = cpu_68k_getcycle()/3;
-        scan = scan>>7;
-#endif
-#else
         scan = cpu_68k_getcycle() / 766.28; /* current scanline */
-#endif
-
         //	scan+=0x100;
         //	if (scan >=0x200) scan=scan-0x108;
         scan += 0xF8;
-
         return (scan << 7) | (conf.pal << 3) | (neogeo_frame_counter & 0x0007); /* frame counter */
-
-    } else {
+    }
+    else {
         scan = current_line /*+ 22*/; /* current scanline */
         //scan+=0x110;
         //if (scan >=0x200) scan=scan-0x108;
@@ -506,15 +489,11 @@ LONG_STORE(mem68k_store_sram)
     b = ((npal << 1) & 0x1e) | ((npal >> 12) & 0x01);
     dark = ((npal >> 15) & 0x01) ^ 1;
 
-#if !defined(I386_ASM) && !defined(PROCESSOR_ARM)
     /* 2^6 bits components (neogeo) -> 2^8 bits components (RGB24) */
     r = (r << 1 | dark) << 2;
     g = (g << 1 | dark) << 2;
     b = (b << 1 | dark) << 2;
     return (r << 16) + (g << 8) + b;
-#else
-    return (r << 11) + (g << 6) + b;
-#endif
 }
 
 void update_all_pal(void) {
