@@ -67,7 +67,6 @@ CSRCS := generator68k/cpu68k.c \
 	ym2610/ym2610.c \
 	ym2610/2610intf.c \
 	conf.c \
-	debug.c \
 	emu.c \
 	generator68k_interf.c \
 	gnutil.c \

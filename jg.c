@@ -29,7 +29,6 @@
 #include "video.h"
 #include "emu.h"
 #include "memory.h"
-#include "debug.h"
 #include "conf.h"
 #include "gnutil.h"
 #include "roms.h"

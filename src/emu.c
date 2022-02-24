@@ -23,20 +23,11 @@
 #include "emu.h"
 #include "memory.h"
 #include "pd4990a.h"
-#include "debug.h"
-
 #include "timer.h"
 
 #include "ym2610/2610intf.h"
 #include "neocrypt.h"
 #include "conf.h"
-
-#ifdef HAVE_EMUDBG_H
-#include <emudbg.h>
-#include "generator68k/generator.h"
-#include "generator68k/mem68k.h"
-#include "generator68k/cpu68k.h"
-#endif
 
 struct _conf_t conf;
 
@@ -187,10 +178,6 @@ void main_loop(void) {
 	if (conf.test_switch == 1)
 		conf.test_switch = 0;
 
-	/*if (handle_event()) {
-		reset_event();
-    }*/
-
 	for (int i = 0; i < nb_interlace; ++i) {
 		cpu_z80_run(cpu_z80_timeslice_interlace);
 		my_timer();
@@ -228,39 +215,6 @@ void main_loop(void) {
 
 		if (a) {
 			cpu_68k_interrupt(a);
-		}
-	}
-}
-
-void cpu_68k_dpg_step(void) {
-	static uint32_t nb_cycle;
-	static uint32_t line_cycle;
-	uint32_t cpu_68k_timeslice = 200000;
-	uint32_t cpu_68k_timeslice_scanline = 200000 / (float) 262;
-	uint32_t cycle;
-	if (nb_cycle == 0) {
-		main_loop(); /* update event etc. */
-	}
-	cycle = cpu_68k_run_step();
-	add_bt(cpu_68k_getpc());
-	line_cycle += cycle;
-	nb_cycle += cycle;
-	if (nb_cycle >= cpu_68k_timeslice) {
-		nb_cycle = line_cycle = 0;
-		if (conf.raster) {
-			update_screen();
-		} else {
-			neo_interrupt();
-		}
-		//state_handling(pending_save_state, pending_load_state);
-		cpu_68k_interrupt(1);
-	} else {
-		if (line_cycle >= cpu_68k_timeslice_scanline) {
-			line_cycle = 0;
-			if (conf.raster) {
-				if (update_scanline())
-					cpu_68k_interrupt(2);
-			}
 		}
 	}
 }
