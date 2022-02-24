@@ -25,16 +25,16 @@
 #include <stdint.h>
 #include <libgen.h>
 
-#include "ym2610/2610intf.h"
-#include "video.h"
-#include "emu.h"
-#include "memory.h"
-#include "conf.h"
-#include "gnutil.h"
-#include "roms.h"
-
 #include <jg/jg.h>
 #include <jg/jg_neogeo.h>
+
+#include "conf.h"
+#include "emu.h"
+#include "gnutil.h"
+#include "memory.h"
+#include "roms.h"
+#include "video.h"
+#include "ym2610/2610intf.h"
 
 #define SAMPLERATE 44100
 #define FRAMERATE 60
