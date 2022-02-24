@@ -1462,10 +1462,6 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 	}
 
 	memory.fix_game_usage = r->gfix_usage.p; //malloc(r->game_sfix.size >> 5);
-	/*	memory.pen_usage = malloc((r->tiles.size >> 11) * sizeof(uint32_t));
-	CHECK_ALLOC(memory.pen_usage);
-	memset(memory.pen_usage, 0, (r->tiles.size >> 11) * sizeof(uint32_t));
-	 */
 	memory.nb_of_tiles = r->tiles.size >> 7;
 
 	free(iloadbuf);
@@ -1784,9 +1780,6 @@ int dr_open_gno(char *filename) {
 	//fclose(gno);
 
 	memory.fix_game_usage = r->gfix_usage.p;
-	/*	memory.pen_usage = malloc((r->tiles.size >> 11) * sizeof(uint32_t));
-	CHECK_ALLOC(memory.pen_usage);
-	memset(memory.pen_usage, 0, (r->tiles.size >> 11) * sizeof(uint32_t));*/
 	memory.nb_of_tiles = r->tiles.size >> 7;
 
 	/* Init rom and bios */
