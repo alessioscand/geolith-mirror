@@ -108,6 +108,4 @@ void neogeo_reset(void);
 #define PROFILER_STOP(a)
 #endif
 
-
-
 #endif

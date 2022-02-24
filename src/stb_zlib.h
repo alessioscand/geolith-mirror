@@ -11,7 +11,6 @@ typedef unsigned int   uint32;
 typedef   signed int    int32;
 typedef unsigned int   uint;
 
-
 // fast-way is faster to check than jpeg huffman, but slow way is slower
 #define ZFAST_BITS  9 // accelerate all cases in default tables
 #define ZFAST_MASK  ((1 << ZFAST_BITS) - 1)
@@ -48,14 +47,9 @@ typedef struct
 	zhuffman z_length, z_distance;
 } zbuf;
 
-
-
-
 char *stbi_zlib_decode_malloc(const char *buffer, int len, int *outlen);
 
 zbuf *stbi_zlib_create_zbuf(const char *ibuffer,FILE *f, int ilen);
 int   stbi_zlib_decode_noheader_stream(zbuf *a,char *obuffer, int olen);
-
-
 
 #endif

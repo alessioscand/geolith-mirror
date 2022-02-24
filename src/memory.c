@@ -43,8 +43,6 @@ uint16_t z80_bank[4];
 uint32_t bankaddress = 0;
 extern int current_line;
 
-
-
 void neogeo_sound_irq(int irq) {
     //printf("neogeo_sound_irq %d\n",irq);
 #ifndef ENABLE_940T
@@ -615,7 +613,6 @@ void mem68k_store_video_word(uint32_t addr, uint16_t data) {
 }
 LONG_STORE(mem68k_store_video)
 ;
-
 
 /**** PD4990 ****/
 void mem68k_store_pd4990_byte(uint32_t addr, uint8_t data) {

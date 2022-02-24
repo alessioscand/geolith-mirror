@@ -21,8 +21,6 @@
 #ifndef __ccg_asm_cache_h
 #define __ccg_asm_cache_h
 
-
-
 #if defined(__i386__)					  /**** i386  ****/
 
 # define iflush(first,last)
@@ -82,8 +80,6 @@
 
 #endif
 
-
-
 #ifdef _ASM_NOCOMP
 # error: please reimplement iflush() for your compiler,
 # error: and EMAIL THE CODE to: ian.piumarta@inria.fr
@@ -93,7 +89,5 @@
 # error: please implement iflush() for your architecture,
 # error: and EMAIL THE CODE to: ian.piumarta@inria.fr
 #endif
-
-
 
 #endif /* __ccg_asm_cache_h */

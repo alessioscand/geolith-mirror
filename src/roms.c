@@ -1010,7 +1010,6 @@ static int load_region(PKZIP *pz, GAME_ROMS *r, int region, uint32_t src,
 	int badcrc = 0;
 	ZFILE *gz;
 
-
 	gz = gn_unzip_fopen(pz, filename, crc);
 	if (gz == NULL) {
 		DEBUG_LOG("KO\n");
@@ -1626,7 +1625,6 @@ int dr_save_gno(GAME_ROMS *r, char *filename) {
 		nb_sec++;
 	}
 
-
 	/* Header information */
 	fwrite(fid, 8, 1, gno);
 	snprintf(fname, 9, "%-8s", r->info.name);
@@ -1652,7 +1650,6 @@ int dr_save_gno(GAME_ROMS *r, char *filename) {
 	/* TODO, there is a bug in the loading routine, only one compressed (type 1)
 	 * region can be present at the end of the file */
 	dump_region(gno, &r->tiles, REGION_SPRITES, 1, 4096);
-
 
 	fclose(gno);
 	return 1;
@@ -1720,7 +1717,6 @@ int read_region(FILE *gno, GAME_ROMS *roms) {
 
 		printf("Region size=%08X\n", size);
 		r->size = size;
-
 
 		memory.vid.spr_cache.offset = malloc(sizeof (uint32_t) * nb_block);
 		totread += fread(memory.vid.spr_cache.offset, sizeof (uint32_t), nb_block, gno);
@@ -1829,7 +1825,6 @@ char *dr_gno_romname(char *filename) {
 	return strdup(name);
 }
 
-
 #else
 
 static int dump_region(FILE *gno, ROM_REGION *rom, uint8_t id, uint8_t type, uint32_t block_size) {
@@ -1878,7 +1873,6 @@ void dr_free_roms(GAME_ROMS *r) {
 
 	conf.game = NULL;
 }
-
 
 void open_nvram(char *name) {
     char filename[256];
@@ -1985,7 +1979,6 @@ int init_game(char *rom_name) {
 
 	memory.vid.currentpal=0;
 	memory.vid.currentfix=0;
-
 
     return 1;
 }

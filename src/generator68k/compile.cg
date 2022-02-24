@@ -6,7 +6,6 @@
 #include "mem68k.h"
 #include "compile.h"
 
-
 /* TODO: use 2 files. One for processor specific stuff, and one for generic */
 /*#ifdef PROCESSOR_SPARC*/
 #if ((defined PROCESSOR_SPARC) && (defined GENERATOR_JIT))
@@ -34,7 +33,6 @@ static uint32 mask_c,nmask_c;
 #define ZMASK 0x04
 #define NMASK 0x08
 #define XMASK 0x10
-
 
 /* helper/debug func */
 static void gen68k_dumpreg(void)
@@ -129,7 +127,6 @@ static void jit_storelong(uint32 addr,uint32 data) {
 static int srcreg,dstreg;
 static uint32 srcaddr,dstaddr;
 static uint32 srcdata,dstdata,outdata;
-
 
 #define CLEAR_SR_FLAG(a) 
 
@@ -384,7 +381,6 @@ add %l5,%l6,%l5
     }
     return 0;
 }
-
 
 static int generate_eaval(t_ipc *ipc, t_iib *iib, t_type type,unsigned char sigext)
 {
@@ -729,14 +725,11 @@ lduh [%l6],%l7
 ]#;
 }
 
-
-
 void compile_ipc(struct _t_ipc *ipc) {
     t_iib * iib = cpu68k_iibtable[ipc->opcode];
     uint32 clmask;
     insn *fref;
     instr_stat[iib->mnemonic]++;
-
 
     switch (iib->mnemonic) {
     case i_BTST:
@@ -965,7 +958,6 @@ sub %o0,4,%o0
 call jit_storelong
 add %l3,pc_incr,%o1
 
-
 st %o0,[%l0 + ((8+7)*4)]
 st %l4,[%l1]
     ]#;
@@ -1110,6 +1102,4 @@ end:
 }
 
 #endif
-
-
 

@@ -45,7 +45,6 @@ uint8_t mame_z80_readport16(uint16_t port) {
     return z80_port_read(port);
 }
 
-
 /* cpu interface implementation */
 void cpu_z80_switchbank(uint8_t bank, uint16_t PortNo) {
     if (bank<=3)

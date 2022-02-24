@@ -87,8 +87,6 @@
 #include "z80_msx.h"
 #endif
 
-
-
 #define VERBOSE 0
 
 #if VERBOSE
@@ -627,7 +625,6 @@ INLINE void BURNODD(int cycles, int opcodes, int cyclesum)
 #else
 #define EXEC_INLINE EXEC
 #endif
-
 
 /***************************************************************
  * Enter HALT state; write 1 to fake port on first execution
@@ -1458,7 +1455,6 @@ INLINE UINT8 DEC(UINT8 value)
 	WM16( _SPD, &Z80.DR );										\
 	Z80.DR = tmp;												\
 }
-
 
 /***************************************************************
  * ADD16
@@ -2366,7 +2362,6 @@ OP(cb,fc) { _H = SET(7,_H); 										} /* SET  7,H		  */
 OP(cb,fd) { _L = SET(7,_L); 										} /* SET  7,L		  */
 OP(cb,fe) { WM( _HL, SET(7,RM(_HL)) );								} /* SET  7,(HL)	  */
 OP(cb,ff) { _A = SET(7,_A); 										} /* SET  7,A		  */
-
 
 /**********************************************************
 * opcodes with DD/FD CB prefix
@@ -3978,7 +3973,6 @@ OP(op,fc) { CALL_COND( _F & SF, 0xfc ); 							} /* CALL M,a		  */
 OP(op,fd) { _R++; EXEC(fd,ROP());									} /* **** FD xx 	  */
 OP(op,fe) { CP(ARG());												} /* CP   n 		  */
 OP(op,ff) { RST(0x38);												} /* RST  7 		  */
-
 
 static void take_interrupt(void)
 {

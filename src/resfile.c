@@ -9,7 +9,6 @@
 #include "conf.h"
 #include "gnutil.h"
 
-
 void zread_char(ZFILE *gz, char *c, int len) {
 	int rc;
 	rc = gn_unzip_fread(gz, (uint8_t*)c, len);
@@ -28,7 +27,6 @@ void zread_uint32le(ZFILE *gz, uint32_t *c) {
 #endif
 	//printf("H32  %08x %d\n",*c,rc);
 }
-
 
 int res_verify_datafile(char *file) {
 	struct stat sb;
@@ -61,7 +59,6 @@ int res_verify_datafile(char *file) {
 	gn_set_error_msg("%s not a valid file",file);
 	return 0;
 #endif
-
 
 }
 

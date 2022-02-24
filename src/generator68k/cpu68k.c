@@ -354,7 +354,6 @@ t_ipclist *cpu68k_makeipclist(uint32 pc)
   else
        list->bank = 0;
 
-
   do {
     instrs++;
     if (instrs > size) {

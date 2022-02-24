@@ -76,7 +76,6 @@ typedef unsigned int insn;
 #define eq	2
 #define so	3
 
-
 #define _suiP16(I)	((((int)(I)) >= -32768) && (((int)(I)) < 65536))
 
 #define _UL(X)		((unsigned long)(X))
@@ -470,7 +469,6 @@ typedef unsigned int insn;
 #define BUNCTRL()			BUNCTRLi(0)
 #define BNUCTRL()			BNUCTRLi(0)
 
-
 #define BLTii(C,D)			BCiii(12, ((C)<<2)+0, D)	/* [1, Table F-11] */
 #define BLEii(C,D)			BCiii( 4, ((C)<<2)+1, D)
 #define BEQii(C,D)			BCiii(12, ((C)<<2)+2, D)
@@ -569,7 +567,6 @@ typedef unsigned int insn;
 #define STWrx(RS,RA,RB)			STWXrrr(RS,RA,RB)
 #define LArx(RD,RB,RA)			LArrr(RD,RB,RA)	
 
-
 /* +++ postfix operators for literal operands */
 
 #define _LO(I)          (_UL(I) & _MASK(16))
@@ -578,12 +575,9 @@ typedef unsigned int insn;
 #define _L(V)		((long)((short)(&V)))
 #define _HA(V)		( (((long)&V) >> 16) + ((((long)&V) >> 15) & 1) )
 
-
-
 /*** References:
  *
  * [1] "PowerPC Microprocessor Family: The Programming Environments For 32-Bit Microprocessors", Motorola, 1997.
  */
-
 
 #endif /* __ccg_asm_ppc_h */

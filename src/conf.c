@@ -79,7 +79,6 @@ static CONF_ITEM * create_conf_item(const char *name, const char *help, char sho
 		t->action = action;
 	}
 
-
 	if (cf_hash[a].size <= cf_hash[a].nb_item) {
 		cf_hash[a].size += 10;
 		cf_hash[a].conf = (CONF_ITEM**) realloc(cf_hash[a].conf, cf_hash[a].size * sizeof (CONF_ITEM*));

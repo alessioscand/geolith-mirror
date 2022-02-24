@@ -231,9 +231,6 @@ static void pd4990a_readbit(void)
   }
 }
 
-
-
-
 static void pd4990a_resetbitstream(void)
 {
   shiftlo=0;
@@ -309,7 +306,6 @@ static void pd4990a_process_command(void)
 	    break;
   }
 }
-
 
 void pd4990a_serial_control(unsigned char data)
 {

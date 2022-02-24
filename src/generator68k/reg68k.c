@@ -7,12 +7,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-
 #include "reg68k.h"
 #include "cpu68k.h"
 #include "mem68k.h"
 #include "compile.h"
-
 
 /*** global variables ***/
 /*
@@ -22,7 +20,6 @@
 */
 
 //#endif
-
 
 //extern uint8 current_cpu_bank;
 extern uint32 bankaddress;
@@ -41,10 +38,7 @@ void reg68k_printstat(void) {
     }
 }	
 
-
-
 /*** reg68k_external_step - execute one instruction ***/
-
 
 unsigned int reg68k_external_step(void)
 {
@@ -86,7 +80,6 @@ unsigned int reg68k_external_execute(unsigned int clocks)
   static t_ipc step_ipc;
   static t_iib *step_piib;
   static int clks;
-
 
   clks = clocks;
 

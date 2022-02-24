@@ -26,7 +26,6 @@
   #endif
 #endif
 
-
 // should produce compiler error if size is wrong
 typedef unsigned char validate_uint32[sizeof(uint32)==4];
 // this is not threadsafe
@@ -55,8 +54,6 @@ static int e(char *str)
 
 #define epf(x,y)   ((float *) (e(x,y)?NULL:NULL))
 #define epuc(x,y)  ((unsigned char *) (e(x,y)?NULL:NULL))
-
-
 
 __forceinline static int bitreverse16(int n)
 {
@@ -125,7 +122,6 @@ static int zbuild_huffman(zhuffman *z, uint8 *sizelist, int num)
 //    and it's annoying structurally to have PNG call ZLIB call PNG,
 //    we require PNG read all the IDATs and combine them into a single
 //    memory buffer
-
 
 __forceinline static int zget8(zbuf *z)
 {

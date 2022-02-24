@@ -653,7 +653,6 @@ rewriter rewrite= rewrite_null;
 # define localRewrite rewrite_null
 #endif
 
-
 /*
  *	assembler statement parsing
  */

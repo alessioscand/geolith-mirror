@@ -56,8 +56,6 @@
 #define GFX_MAPPED 1
 #define GZX_MAPPED 2
 
-
-
 typedef struct neo_mem {
 	GAME_ROMS rom;
 	uint8_t ram[0x10000];
@@ -109,7 +107,6 @@ extern uint8_t sound_code;
 extern uint8_t pending_command;
 extern uint8_t result_code;
 
-
 /* 68k cpu Banking control */
 extern uint32_t bankaddress;		/* current bank */
 //uint8_t current_cpu_bank;
@@ -132,7 +129,6 @@ int cpu_68k_run_step(void);
 uint32_t cpu_68k_getpc(void);
 int cpu_68k_debuger(void (*execstep)(void),void (*dump)(void));
 
-
 /* cpu z80 interface */
 void cpu_z80_run(int nbcycle);
 void cpu_z80_nmi(void);
@@ -145,7 +141,6 @@ void z80_port_write(uint16_t PortNb, uint8_t Value);
 
 /* memory handler prototype */
 void neogeo_sound_irq(int irq);
-
 
 #define LONG_FETCH(fetchname) uint32_t fetchname ## _long(uint32_t addr) { \
       return (fetchname ## _word(addr) << 16) |	fetchname ## _word(addr+2); \

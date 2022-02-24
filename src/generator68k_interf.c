@@ -218,7 +218,6 @@ uint8_t *mem68k_memptr_ram(uint32_t addr) {
     return (memory.ram + addr);
 }
 
-
 void cpu_68k_bankswitch(uint32_t address) {
     bankaddress = address;
 };
@@ -256,7 +255,6 @@ void cpu_68k_init(void)
 	cpu_68k_bankswitch(0);
     }
 }
-
 
 int cpu_68k_run(uint32_t nb_cycle)
 {
