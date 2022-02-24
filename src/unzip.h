@@ -9,24 +9,16 @@
 #ifndef UNZIP_H_
 #define UNZIP_H_
 
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
-#include "zlib.h"
-#else
-#include "stb_zlib.h"
-#endif
-
 #include <stdio.h>
 #include <stdint.h>
+
+#include <zlib.h>
 
 typedef struct ZFILE {
 	//char *name;
 	int pos;
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 	z_streamp zb;
 	uint8_t *inbuf;
-#else
-	zbuf *zb;
-#endif
 	FILE *f;
 	int csize,uncsize;
 	int cmeth; /* compression method */

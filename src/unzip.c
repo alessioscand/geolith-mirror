@@ -7,21 +7,15 @@
  */
 
 #include <sys/stat.h>
-
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
-#include <zlib.h>
-//#define ZLIB_IN_CHUNK 128*1024
-#include <unistd.h>
 #include <sys/mman.h>
 #include <assert.h>
-#else
-#include "stb_zlib.h"
-#endif
-
+#include <errno.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
+#include <unistd.h>
+
+#include <zlib.h>
 
 #include "emu.h"
 #include "unzip.h"
@@ -258,7 +252,6 @@ ZFILE *gn_unzip_fopen(PKZIP *zf, const char *filename, uint32_t file_crc) {
 		z->csize = csize;
 		z->uncsize = uncsize;
 		if (cmeth == 8) {
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 			z->zb = malloc(sizeof(z_stream));
 			z->inbuf = zf->map+z->pos;
 			//printf("inbuf=%p %d\n",z->inbuf,fileno(zf->file));
@@ -268,9 +261,6 @@ ZFILE *gn_unzip_fopen(PKZIP *zf, const char *filename, uint32_t file_crc) {
 			z->zb->avail_in=csize;
 			z->zb->next_in=z->inbuf;
 			inflateInit2(z->zb, -MAX_WBITS);
-#else
-			z->zb=stbi_zlib_create_zbuf(NULL,zf->file,csize);
-#endif
 		}
 		z->cmeth = cmeth;
 		z->readed = 0;
@@ -292,25 +282,22 @@ int gn_unzip_fread(ZFILE *z, uint8_t *data, unsigned int size) {
 	//if (z->pos!=ftell(z->f))
 	//fseek(z->f,z->pos,SEEK_SET);
 	if (z->cmeth == 8) {
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
-				z->zb->next_out = data;
-				z->zb->avail_out = size;
-				ret = inflate(z->zb, Z_NO_FLUSH);
-				//printf("ret=%d\n",ret);
-				assert(ret != Z_STREAM_ERROR); /* state not clobbered */
-				switch (ret) {
-				case Z_NEED_DICT:
-					ret = Z_DATA_ERROR; /* and fall through */
-				case Z_DATA_ERROR:
-				case Z_MEM_ERROR:
-					(void) inflateEnd(z->zb);
-					return ret;
-				}
-				readed = size - z->zb->avail_out;
-#else
-		readed=stbi_zlib_decode_noheader_stream(z->zb,data,size);
-#endif
-	} else { /* Stored */
+		z->zb->next_out = data;
+		z->zb->avail_out = size;
+		ret = inflate(z->zb, Z_NO_FLUSH);
+		//printf("ret=%d\n",ret);
+		assert(ret != Z_STREAM_ERROR); /* state not clobbered */
+		switch (ret) {
+			case Z_NEED_DICT:
+				ret = Z_DATA_ERROR; /* and fall through */
+			case Z_DATA_ERROR:
+			case Z_MEM_ERROR:
+				(void) inflateEnd(z->zb);
+				return ret;
+		}
+		readed = size - z->zb->avail_out;
+	}
+	else { /* Stored */
 		todo = z->readed - z->uncsize;
 		if (todo < size)
 			todo = size;
@@ -348,14 +335,10 @@ uint8_t *gn_unzip_file_malloc(PKZIP *zf, const char *filename, uint32_t file_crc
 void gn_unzip_fclose(ZFILE *z) {
 	if (!z)
 		return;
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 	if (z->cmeth==8) {
 		inflateEnd(z->zb);
 		free(z->zb);
 	}
-#else
-	if (z->cmeth==8) free(z->zb->cbuf);
-#endif
 	free(z);
 }
 
@@ -366,7 +349,6 @@ PKZIP *gn_open_zip(char *file) {
 	struct stat sb;
 //printf("CWR %s\n",get_current_dir_name());
 
-#if !defined(MINGW) && !defined(__MINGW32__) && !defined(__MINGW64__)
 	if (lstat(file,&sb)==-1) {
 		printf("Couldn't open %s\n", file);
 		free(zf);
@@ -378,7 +360,6 @@ PKZIP *gn_open_zip(char *file) {
 		free(zf);
 		return NULL;
 	}
-#endif
 
 	zf->file = fopen(file, "rb");
 	if (zf->file == NULL) {
@@ -386,12 +367,11 @@ PKZIP *gn_open_zip(char *file) {
 		free(zf);
 		return NULL;
 	}
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
+
 	fseek(zf->file,0,SEEK_END);
 	size=ftell(zf->file);
 	zf->map=mmap(0,size,PROT_READ,MAP_SHARED,fileno(zf->file),0);
 
-#endif
 	e = search_central_dir(zf);
 	if (e) {
 		printf("Strange %d %s\n", e, file);
@@ -402,12 +382,9 @@ PKZIP *gn_open_zip(char *file) {
 	return zf;
 }
 void gn_close_zip(PKZIP *zf) {
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 	fseek(zf->file,0,SEEK_END);
 	int size=ftell(zf->file);
 	munmap(zf->map, size);
-#endif
 	fclose(zf->file);
 	free(zf);
 }
-
