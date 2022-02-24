@@ -657,13 +657,13 @@ void mem68k_store_setting_byte(uint32_t addr, uint8_t data) {
     //printf("mem68k_store_setting_byte %08x\n",addr);
     addr &= 0xFFFF;
     if (addr == 0x0003) {
-        printf("Selecting Bios Vector\n");
+        gn_log(GN_LOG_DBG, "Selected BIOS vector\n");
         memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
         memory.current_vector=0;
     }
 
     if (addr == 0x0013) {
-        printf("Selecting Game Vector\n");
+        gn_log(GN_LOG_DBG, "Selected game vector\n");
         memcpy(memory.rom.cpu_m68k.p, memory.game_vector, 0x80);
         memory.current_vector=1;
     }

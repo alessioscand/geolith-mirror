@@ -204,7 +204,7 @@ void main_loop(void) {
 		update_screen();
 		++memory.watchdog;
 		if (memory.watchdog > 7) {
-            printf("WATCHDOG RESET\n");
+            gn_log(GN_LOG_DBG, "Watchdog reset\n");
 			cpu_68k_reset();
         }
 		cpu_68k_interrupt(1);
@@ -218,7 +218,7 @@ void main_loop(void) {
 		++memory.watchdog;
 
 		if (memory.watchdog > 7) { // Watchdog reset after ~0.13 == ~7.8 frames
-            printf("WATCHDOG RESET %d\n",memory.watchdog);
+            gn_log(GN_LOG_DBG, "Watchdog reset\n");
 			cpu_68k_reset();
         }
 

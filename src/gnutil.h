@@ -11,8 +11,6 @@
 int check_dir(char *dir_name);
 void gn_set_error_msg(char *fmt,...);
 
-#define DEBUG_LOG printf
-
 #define GNERROR_SIZE 1024
 extern char gnerror[GNERROR_SIZE];
 

@@ -21,7 +21,6 @@
 #include "video.h"
 #include "conf.h"
 #include "resfile.h"
-#include "gnutil.h"
 
 /* Prototype */
 void kof98_decrypt_68k(GAME_ROMS *r);
@@ -216,7 +215,7 @@ int init_garou(GAME_ROMS *r) {
 	memory.bksw_unscramble = scramblecode_garou;
 	memory.sma_rng_addr = 0xCCF0;
 	//garou_install_protection(machine);
-	DEBUG_LOG("I HAS INITIALIZD GAROU\n");
+	gn_log(GN_LOG_DBG, "I HAS INITIALIZD GAROU\n");
 	return 0;
 }
 
@@ -864,7 +863,7 @@ struct roms_init_func {
 };
 
 static int allocate_region(ROM_REGION *r, uint32_t size, int region) {
-	DEBUG_LOG("Allocating 0x%08x byte for Region %d\n", size, region);
+	gn_log(GN_LOG_DBG, "Allocating 0x%08x byte for Region %d\n", size, region);
 	if (size != 0) {
 #ifdef GP2X
 		switch (region) {
@@ -915,7 +914,7 @@ static int allocate_region(ROM_REGION *r, uint32_t size, int region) {
 }
 
 static void free_region(ROM_REGION *r) {
-	DEBUG_LOG("Free Region %p %p %d\n", r, r->p, r->size);
+	gn_log(GN_LOG_DBG, "Free Region %p %p %d\n", r, r->p, r->size);
 	if (r->p)
 		free(r->p);
 	r->size = 0;
@@ -1012,8 +1011,8 @@ static int load_region(PKZIP *pz, GAME_ROMS *r, int region, uint32_t src,
 
 	gz = gn_unzip_fopen(pz, filename, crc);
 	if (gz == NULL) {
-		DEBUG_LOG("KO\n");
-		DEBUG_LOG("Load file %-17s in region %d: KO\n", filename, region);
+		gn_log(GN_LOG_DBG, "KO\n");
+		gn_log(GN_LOG_DBG, "Load file %-17s in region %d: KO\n", filename, region);
 		return 1;
 	}
 
@@ -1023,10 +1022,10 @@ static int load_region(PKZIP *pz, GAME_ROMS *r, int region, uint32_t src,
 			rc = zip_seek_current_file(gz, src / 2);
 		else
 			rc = zip_seek_current_file(gz, src);
-		DEBUG_LOG("setoffset: %d %08x %08x %08x\n", rc, src, dest, size);
+		gn_log(GN_LOG_DBG, "setoffset: %d %08x %08x %08x\n", rc, src, dest, size);
 	}
 
-	DEBUG_LOG("Trying to load file %-17s in region %d\n", filename, region);
+	gn_log(GN_LOG_DBG, "Trying to load file %-17s in region %d\n", filename, region);
 
 	switch (region) {
 		case REGION_SPRITES: /* Special interleaved loading  */
@@ -1061,11 +1060,11 @@ static int load_region(PKZIP *pz, GAME_ROMS *r, int region, uint32_t src,
 			break;
 
 		default:
-			DEBUG_LOG("Unhandled region %d\n", region);
+			gn_log(GN_LOG_DBG, "Unhandled region %d\n", region);
 			break;
 
 	}
-	DEBUG_LOG("Load file %-17s in region %d: OK %s\n", filename, region,
+	gn_log(GN_LOG_DBG, "Load file %-17s in region %d: OK %s\n", filename, region,
 			(badcrc ? "(Bad CRC)" : ""));
 	//unzCloseCurrentFile(gz);
 	gn_unzip_fclose(gz);
@@ -1197,12 +1196,12 @@ static int init_roms(GAME_ROMS *r) {
 		//printf("INIT ROM ? %s %s\n",init_func_table[i].name,r->info.name);
 		if (strcmp(init_func_table[i].name, r->info.name) == 0
 				&& init_func_table[i].init != NULL) {
-			DEBUG_LOG("Special init func\n");
+			gn_log(GN_LOG_DBG, "Special init func\n");
 			return init_func_table[i].init(r);
 		}
 		i++;
 	}
-	DEBUG_LOG("Default roms init\n");
+	gn_log(GN_LOG_DBG, "Default roms init\n");
 	return 0;
 }
 
@@ -1214,38 +1213,31 @@ int dr_load_bios(GAME_ROMS *r) {
 	size_t totread = 0;
 	unsigned int size;
 	char *rpath = CF_STR(cf_get_item_by_name("rompath"));
-	char *fpath;
+	char fpath[256];
 	const char *romfile;
-	fpath = malloc(strlen(rpath) + strlen("neogeo.zip") + 2);
-	sprintf(fpath, "%s/neogeo.zip", rpath);
+
+	snprintf(fpath, sizeof(fpath), "%s/neogeo.zip", rpath);
 
 	pz = gn_open_zip(fpath);
 	if (pz == NULL) {
-		gn_set_error_msg( "Can't open BIOS\n%s\n", fpath);
-		free(fpath);
+		gn_log(GN_LOG_ERR, "Failed to open BIOS: %s\n", fpath);
 		return 0;
 	}
 
 	memory.ng_lo = gn_unzip_file_malloc(pz, "000-lo.lo", 0x0, &size);
 	if (memory.ng_lo == NULL) {
-		gn_set_error_msg("Couldn't find 000-lo.lo\nPlease check your bios\n");
+		gn_log(GN_LOG_ERR, "Failed to load 000-lo.lo from BIOS archive!\n");
 		return 0;
 	}
 
 	if (!(r->info.flags & HAS_CUSTOM_SFIX_BIOS)) {
-		printf("Load Sfix\n");
-		r->bios_sfix.p = gn_unzip_file_malloc(pz, "sfix.sfx", 0x0,
-				&r->bios_sfix.size);
+		r->bios_sfix.p = gn_unzip_file_malloc(pz, "sfix.sfix", 0x0, &r->bios_sfix.size);
 		if (r->bios_sfix.p == NULL) {
-			printf("Couldn't find sfix.sfx, try sfix.sfix\n");
-			r->bios_sfix.p = gn_unzip_file_malloc(pz, "sfix.sfix", 0x0,
-					&r->bios_sfix.size);
-			if (r->bios_sfix.p == NULL) {
-				gn_set_error_msg("Couldn't find sfix.sfx nor sfix.sfix\nPlease check your bios\n");
-				return 0;
-			}
+			gn_log(GN_LOG_ERR, "Failed to load sfix.sfix from BIOS archive!\n");
+			return 0;
 		}
 	}
+
 	/* convert bios fix char */
 	convert_all_char(memory.rom.bios_sfix.p, 0x20000, memory.fix_board_usage);
 
@@ -1261,8 +1253,7 @@ int dr_load_bios(GAME_ROMS *r) {
 				sprintf(unipath, "%s/uni-bios.rom", rpath);
 				f = fopen(unipath, "rb");
 				if (!f) { /* TODO: Fallback to arcade mode */
-					gn_set_error_msg( "Can't open Universal BIOS\n%s\n", unipath);
-					free(fpath);
+					gn_log(GN_LOG_ERR, "Failed to load Universal BIOS from BIOS archive!\n");
 					free(unipath);
 					return 0;
 				}
@@ -1291,23 +1282,21 @@ int dr_load_bios(GAME_ROMS *r) {
 						break;
 				}
 			}
-			DEBUG_LOG("Loading %s\n", romfile);
+			gn_log(GN_LOG_DBG, "Loading %s\n", romfile);
 			r->bios_m68k.p = gn_unzip_file_malloc(pz, romfile, 0x0,
 					&r->bios_m68k.size);
 			if (r->bios_m68k.p == NULL) {
-				gn_set_error_msg("Couldn't load bios\n%s\n", romfile);
+				gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n", romfile);
 				goto error;
 			}
 		}
 	}
 
 	gn_close_zip(pz);
-	free(fpath);
 	return 1;
 
 error:
 	gn_close_zip(pz);
-	free(fpath);
 	return 0;
 }
 
@@ -1347,14 +1336,14 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 
 	drv = res_load_drv(name);
 	if (!drv) {
-		gn_set_error_msg("Can't find rom driver for %s\n", name);
+		gn_log(GN_LOG_ERR, "Failed to find ROM driver for: %s\n", name);
 
 		return 0;
 	}
 
 	gz = open_rom_zip(rom_path, name);
 	if (gz == NULL) {
-		gn_set_error_msg("Rom %s/%s.zip not found\n", rom_path, name);
+		gn_log(GN_LOG_ERR, "Failed to find ROM: %s/%s.zip\n", rom_path, name);
 		return 0;
 	}
 
@@ -1363,7 +1352,7 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 	 */
 	gzp = open_rom_zip(rom_path, drv->parent);
 	if (gzp == NULL) {
-		gn_set_error_msg("Parent %s/%s.zip not found\n", rom_path, name);
+		gn_log(GN_LOG_ERR, "Failed to find parent: %s/%s.zip\n", rom_path, name);
 		return 0;
 	}
 
@@ -1398,7 +1387,7 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 			REGION_AUDIO_DATA_2);
 
 	/* Allocate bios if necessary */
-	DEBUG_LOG("BIOS SIZE %08x %08x %08x\n", drv->romsize[REGION_MAIN_CPU_BIOS],
+	gn_log(GN_LOG_DBG, "BIOS SIZE %08x %08x %08x\n", drv->romsize[REGION_MAIN_CPU_BIOS],
 			drv->romsize[REGION_AUDIO_CPU_BIOS],
 			drv->romsize[REGION_FIXED_LAYER_BIOS]);
 	if (drv->romsize[REGION_MAIN_CPU_BIOS] != 0) {
@@ -1437,17 +1426,15 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 				pi = load_region(gzp, r, drv->rom[i].region, drv->rom[i].src,
 						drv->rom[i].dest, drv->rom[i].size, drv->rom[i].crc,
 						drv->rom[i].filename);
-				DEBUG_LOG("From parent %d\n", pi);
+				gn_log(GN_LOG_DBG, "From parent %d\n", pi);
 				if (pi && (region != 5 && region != 0 && region != 7)) {
-					gn_set_error_msg("ERROR: File %s not found\n",
-							drv->rom[i].filename);
+					gn_log(GN_LOG_ERR, "File not found: %s\n", drv->rom[i].filename);
 					goto error1;
 				}
 			} else {
 				int region = drv->rom[i].region;
 				if (region != 5 && region != 0 && region != 7) {
-					gn_set_error_msg("ERROR: File %s not found\n",
-							drv->rom[i].filename);
+					gn_log(GN_LOG_ERR, "File not found: %s\n", drv->rom[i].filename);
 					goto error1;
 				}
 
@@ -1491,7 +1478,7 @@ int dr_load_game(char *name) {
 	//GAME_ROMS rom;
 	char *rpath = CF_STR(cf_get_item_by_name("rompath"));
 	int rc;
-	printf("Loading %s/%s.zip\n", rpath, name);
+
 	memory.bksw_handler = 0;
 	memory.bksw_unscramble = NULL;
 	memory.bksw_offset = NULL;
@@ -1841,7 +1828,7 @@ void dr_free_roms(GAME_ROMS *r) {
 	free_region(&r->cpu_z80c);
 
 	if (!memory.vid.spr_cache.data) {
-		printf("Free tiles\n");
+		gn_log(GN_LOG_DBG, "Free tiles\n");
 		free_region(&r->tiles);
 	} else {
 		fclose(memory.vid.spr_cache.gno);

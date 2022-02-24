@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+
+#include "emu.h"
 #include "unzip.h"
 
 static int fget8(FILE *f) {
@@ -332,16 +334,12 @@ uint8_t *gn_unzip_file_malloc(PKZIP *zf, const char *filename, uint32_t file_crc
 	if (!data)
 		return NULL;
 	if (z->cmeth == 8) {
-//#if !defined(HAVE_LIBZ) || !defined (HAVE_MMAP)
-//		readed = stbi_zlib_decode_noheader_stream(z->zb, data, z->uncsize);
-//#else
 		readed=gn_unzip_fread(z,data,z->uncsize);
-		printf("Readed=%d \n",readed);
-//#endif
+		gn_log(GN_LOG_DBG, "ZIP: Read %d\n", readed);
 	} else
 		readed = fread(data, 1, z->uncsize, z->f);
 	if (readed != z->uncsize)
-		printf("GNZIP: Readed data size different from uncompressed size %d!=%d \n", readed, z->uncsize);
+		gn_log(GN_LOG_DBG, "ZIP: Read data size different from uncompressed size %d!=%d \n", readed, z->uncsize);
 	*outlen = z->uncsize;
 	gn_unzip_fclose(z);
 	return data;
