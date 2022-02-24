@@ -1,9 +1,9 @@
 /*  gngeo a neogeo emulator
  *  Copyright (C) 2001 Peponas Mathieu
- * 
- *  This program is free software; you can redistribute it and/or modify  
- *  it under the terms of the GNU General Public License as published by   
- *  the Free Software Foundation; either version 2 of the License, or    
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -13,7 +13,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
 #include <string.h>
@@ -291,7 +291,6 @@ void draw_screen(void) {
 		if (t1 & 0x40) {
 			sx += rzx; /* new x */
 
-
 			//            if ( sx >= 0x1F0 )    /* x>496 => x-=512 */
 			//                sx -= 0x200;
 
@@ -314,8 +313,6 @@ void draw_screen(void) {
 			/* Number of tiles in this strip */
 			my = t1 & 0x3f;
 
-
-
 			if (my == 0x20) fullmode = 1;
 			else if (my >= 0x21) fullmode = 2; /* most games use 0x21, but */
 				/* Alpha Mission II uses 0x3f */
@@ -330,7 +327,6 @@ void draw_screen(void) {
 			}
 
 			oy = sy; /* on se souvient de la position y */
-
 
 			if (rzy < 0xff && my < 0x10 && my) {
 				//my = (my<<8)/(rzy+1);
@@ -372,11 +368,9 @@ void draw_screen(void) {
 			tileatr = READ_WORD(&vidram[offs]);
 			offs += 2;
 
-
 			if (memory.nb_of_tiles > 0x10000 && (tileatr & 0x10)) tileno += 0x10000;
 			if (memory.nb_of_tiles > 0x20000 && (tileatr & 0x20)) tileno += 0x20000;
 			if (memory.nb_of_tiles > 0x40000 && (tileatr & 0x40)) tileno += 0x40000;
-
 
 			/* animation automatique */
 			/*if (tileatr&0x80) printf("PLOP\n");*/
@@ -393,7 +387,6 @@ void draw_screen(void) {
 				continue;
 			}
 
-
 			if (fullmode == 2 || (fullmode == 1 && rzy == 0xff)) {
 
 				if (sy >= 248) sy -= ((rzy + 1) << 1);
@@ -401,8 +394,6 @@ void draw_screen(void) {
 
 				if (y == 0x10) sy -= ((rzy + 1) << 1);
 			} else if (sy > 0x110) sy -= 0x200; // NS990105 mslug2 fix
-
-
 
 			if (rzy != 255) {
 				yskip = 0;
@@ -424,8 +415,6 @@ void draw_screen(void) {
 
 			}
 
-
-
 			if (sx >= -16 && sx + 15 < 336 && sy >= 0 && sy + 15 < 256) {
 
 				if (memory.vid.spr_cache.data) {
@@ -433,11 +422,9 @@ void draw_screen(void) {
 					tileno = (tileno & ((memory.vid.spr_cache.slot_size >> 7) - 1));
 				}
 
-
 				draw_tile(tileno, sx + 16, sy, rzx, yskip, tileatr >> 8,
 					tileatr & 0x01, tileatr & 0x02, (unsigned char*)vbuf);
 			}
-
 
 			sy += yskip;
 		} /* for y */
@@ -465,7 +452,6 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
 	/* Draw sprites */
 	for (count = 0; count < 0x300; count += 2) {
 
-
 		tctl3 = READ_WORD(&vidram[0x10000 + count]);
 		tctl1 = READ_WORD(&vidram[0x10400 + count]);
 		tctl2 = READ_WORD(&vidram[0x10800 + count]);
@@ -473,7 +459,6 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
 		/* If this bit is set this new column is placed next to last one */
 		if (tctl1 & 0x40) {
 			sx += zx + 1; /* new x */
-
 
 			/* Get new zoom for this column */
 			zx = (tctl3 >> 8) & 0x0f;
@@ -484,7 +469,6 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
 
 			sx = (tctl2 >> 7); /* x pos 0 - 512  */
 
-
 			/* Number of tiles in this strip */
 			my = tctl1 & 0x3f;
 
@@ -492,7 +476,6 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
 
 			if (my > 0x20) my = 0x20;
 		}
-
 
 		/* No point doing anything if tile strip is 0 */
 		if (my == 0) continue;
@@ -515,8 +498,6 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
 		if (zx != 16) {
 			dda_x_skip = ddaxskip[zx];
 		} else zx = 16;
-
-
 
 		offs = count << 6;
 		zoomy_rom = memory.ng_lo + (zy << 8);

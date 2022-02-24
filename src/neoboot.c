@@ -16,9 +16,7 @@
 //#include "neogeo.h"
 #include "mame_layer.h"
 
-
 /* General Bootleg Functions - used by more than 1 game */
-
 
 void neogeo_bootleg_cx_decrypt( running_machine *machine )
 {
@@ -35,7 +33,6 @@ void neogeo_bootleg_cx_decrypt( running_machine *machine )
 
 	free( buf );
 }
-
 
 void neogeo_bootleg_sx_decrypt( running_machine *machine, int value )
 {
@@ -62,9 +59,7 @@ void neogeo_bootleg_sx_decrypt( running_machine *machine, int value )
 	}
 }
 
-
 /* The King of Gladiator (The King of Fighters '97 bootleg) */
-
 
 /* The protection patching here may be incomplete
    Thanks to Razoola for the info */
@@ -130,9 +125,7 @@ void kog_px_decrypt( running_machine *machine )
 
 }
 
-
 /* The King of Fighters 10th Anniversary (The King of Fighters 2002 bootleg) */
-
 
 /* this uses RAM based tiles for the text layer, however the implementation
   is incomplete, at the moment the S data is copied from the program rom on
@@ -209,9 +202,7 @@ void decrypt_kof10th(running_machine *machine)
 	((UINT16*)src)[0x8bf8/2] = 0xf980;
 }
 
-
 /* The King of Fighters 10th Anniversary Extra Plus (The King of Fighters 2002 bootleg) */
-
 
 void decrypt_kf10thep(running_machine *machine)
 {
@@ -250,9 +241,7 @@ void decrypt_kf10thep(running_machine *machine)
 	free(sbuf);
 }
 
-
 /* The King of Fighters 10th Anniversary 2005 Unique (The King of Fighters 2002 bootleg) */
-
 
 static void kf2k5uni_px_decrypt( running_machine *machine )
 {
@@ -299,9 +288,7 @@ void decrypt_kf2k5uni( running_machine *machine )
 	kf2k5uni_mx_decrypt(machine);
 }
 
-
 /* The King of Fighters 2002 (bootleg) */
-
 
 // Thanks to IQ_132 for the info
 void kof2002b_gfx_decrypt(running_machine *machine, UINT8 *src, int size)
@@ -336,9 +323,7 @@ void kof2002b_gfx_decrypt(running_machine *machine, UINT8 *src, int size)
 	free( dst );
 }
 
-
 /* The King of Fighters 2002 Magic Plus (bootleg) */
-
 
 void kf2k2mp_decrypt( running_machine *machine )
 {
@@ -361,9 +346,7 @@ void kf2k2mp_decrypt( running_machine *machine )
 	free(dst);
 }
 
-
 /* The King of Fighters 2002 Magic Plus II (bootleg) */
-
 
 void kf2k2mp2_px_decrypt( running_machine *machine )
 {
@@ -378,9 +361,7 @@ void kf2k2mp2_px_decrypt( running_machine *machine )
 	free (dst);
 }
 
-
 /* Crouching Tiger Hidden Dragon 2003 (bootleg of King of Fighters 2001) */
-
 
 /* descrambling information from razoola */
 static void cthd2003_neogeo_gfx_address_fix_do(running_machine *machine, int start, int end, int bit3shift, int bit2shift, int bit1shift, int bit0shift)
@@ -479,14 +460,13 @@ static WRITE16_HANDLER ( cthd2003_bankswitch_w )
 	}
 }
 
-
 void patch_cthd2003( running_machine *machine )
 {
 	// patches thanks to razoola
 	int i;
 	UINT16 *mem16 = (UINT16 *)memory_region(machine, "maincpu");
 
-	// special ROM banking handler 
+	// special ROM banking handler
 	memory_install_write16_handler(cputag_get_address_space(machine, "maincpu", ADDRESS_SPACE_PROGRAM), 0x2ffff0, 0x2fffff, 0, 0, cthd2003_bankswitch_w);
 
 	// theres still a problem on the character select screen but it seems to be related to cpu core timing issues,
@@ -523,7 +503,6 @@ void patch_cthd2003( running_machine *machine )
 */
 
 /* Crouching Tiger Hidden Dragon 2003 Super Plus (bootleg of King of Fighters 2001) */
-
 
 static void ct2k3sp_sx_decrypt( running_machine *machine )
 {
@@ -571,9 +550,7 @@ void decrypt_ct2k3sp( running_machine *machine )
 	cthd2003_c(machine, 0);
 }
 
-
 /* Crouching Tiger Hidden Dragon 2003 Super Plus alternate (bootleg of King of Fighters 2001) */
-
 
 void decrypt_ct2k3sa( running_machine *machine )
 {
@@ -629,9 +606,7 @@ void patch_ct2k3sa( running_machine *machine )
  	mem16[0x9943e/2] = 0xdd03;
 }
 
-
 /* King of Fighters Special Edition 2004 (bootleg of King of Fighters 2002) */
-
 
 void decrypt_kof2k4se_68k( running_machine *machine )
 {
@@ -648,9 +623,7 @@ void decrypt_kof2k4se_68k( running_machine *machine )
 			free(dst);
 }
 
-
 /* Lansquenet 2004 (Shock Troopers - 2nd Squad bootleg) */
-
 
 void lans2004_vx_decrypt( running_machine *machine )
 {
@@ -698,7 +671,6 @@ void lans2004_decrypt_68k( running_machine *machine )
 	rom[0xBBE42/2] = 0x6002;
 }
 
-
 /* Metal Slug 5 Plus (bootleg) */
 
 /* TODO
@@ -728,7 +700,6 @@ static WRITE16_HANDLER ( ms5plus_bankswitch_w )
 	}
 }
 
-
 void install_ms5plus_protection(running_machine *machine)
 {
 	// special ROM banking handler / additional protection
@@ -737,7 +708,6 @@ void install_ms5plus_protection(running_machine *machine)
 */
 
 /* SNK vs. CAPCOM SVC CHAOS (bootleg) */
-
 
 void svcboot_px_decrypt( running_machine *machine )
 {
@@ -792,9 +762,7 @@ void svcboot_cx_decrypt( running_machine *machine )
 	free( dst );
 }
 
-
 /* SNK vs. CAPCOM SVC CHAOS Plus (bootleg set 1) */
-
 
 void svcplus_px_decrypt( running_machine *machine )
 {
@@ -836,9 +804,7 @@ void svcplus_px_hack( running_machine *machine )
 	src[ 0x0f802c ] = 0x16;
 }
 
-
 /* SNK vs. CAPCOM SVC CHAOS Plus (bootleg set 2) */
-
 
 void svcplusa_px_decrypt( running_machine *machine )
 {
@@ -856,9 +822,7 @@ void svcplusa_px_decrypt( running_machine *machine )
 	free( dst );
 }
 
-
 /* SNK vs. CAPCOM SVC CHAOS Super Plus (bootleg) */
-
 
 void svcsplus_px_decrypt( running_machine *machine )
 {
@@ -908,7 +872,6 @@ static WRITE16_HANDLER( mv0_bankswitch_w )
     neogeo_set_main_cpu_bank_address( space, bankaddress );
 }
 #endif
-
 
 /* The King of Fighters 2003 (bootleg set 1) */
 
@@ -981,7 +944,6 @@ void kf2k3bl_install_protection(running_machine *machine)
 
 /* The King of Fighters 2004 Plus / Hero (The King of Fighters 2003 bootleg) */
 
-
 void kf2k3pl_px_decrypt( running_machine *machine )
 {
 	UINT16*tmp = alloc_array_or_die(UINT16, 0x100000/2);
@@ -1008,7 +970,6 @@ void kf2k3pl_install_protection(running_machine *machine)
 */
 
 /* The King of Fighters 2004 Ultra Plus (The King of Fighters 2003 bootleg) */
-
 
 void kf2k3upl_px_decrypt( running_machine *machine )
 {
@@ -1040,7 +1001,6 @@ void kf2k3upl_install_protection(running_machine *machine)
 
 /* Samurai Shodown V / Samurai Spirits Zero (bootleg) */
 
-
 void samsho5b_px_decrypt( running_machine *machine )
 {
 	int px_size = memory_region_length( machine, "maincpu" );
@@ -1067,7 +1027,6 @@ void samsho5b_px_decrypt( running_machine *machine )
 	free( buf );
 }
 
-
 void samsho5b_vx_decrypt( running_machine *machine )
 {
 	int vx_size = memory_region_length( machine, "ym" );
@@ -1078,9 +1037,7 @@ void samsho5b_vx_decrypt( running_machine *machine )
 		rom[ i ] = BITSWAP8( rom[ i ], 0, 1, 5, 4, 3, 2, 6, 7 );
 }
 
-
 /* Matrimelee / Shin Gouketsuji Ichizoku Toukon (bootleg) */
-
 
 #define MATRIMBLZ80( i ) ( i^(BITSWAP8(i&0x3,4,3,1,2,0,7,6,5)<<8) )
 

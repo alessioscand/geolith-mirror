@@ -140,7 +140,7 @@ void generate(FILE *output, int topnibble)
 	    case i_OR:
 	    case i_AND:
 	    case i_EOR:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 1);
@@ -177,7 +177,7 @@ void generate(FILE *output, int topnibble)
 	    case i_ORSR:
 	    case i_ANDSR:
 	    case i_EORSR:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		OUT("  unsigned int sr = regs.sr.sr_struct.s;\n");
@@ -219,7 +219,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_SUB:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 1);
@@ -254,7 +254,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_SUBA:
-		
+
 		if (iib->dtype != dt_Areg)
 		    OUT("Error\n");
 		generate_ea(output, iib, tp_src, 1);
@@ -280,7 +280,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_SUBX:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 1);
@@ -316,9 +316,9 @@ void generate(FILE *output, int topnibble)
 		if (flags && iib->flags.set & IIB_FLAG_Z)
 		    generate_stdxflag_z(output, iib);
 		break;
-	
+
 	    case i_ADD:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 1);
@@ -353,7 +353,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_ADDA:
-		
+
 		if (iib->dtype != dt_Areg)
 		    OUT("Error\n");
 		generate_ea(output, iib, tp_src, 1);
@@ -379,7 +379,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_ADDX:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 1);
@@ -417,7 +417,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_MULU:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 1);
@@ -440,7 +440,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_MULS:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 1);
@@ -464,7 +464,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_CMP:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 1);
@@ -496,7 +496,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_CMPA:
-		
+
 		if (iib->dtype != dt_Areg || iib->size != sz_word)
 		    OUT("Error\n");
 		generate_ea(output, iib, tp_src, 1);
@@ -522,7 +522,7 @@ void generate(FILE *output, int topnibble)
 	    case i_BCHG:
 	    case i_BCLR:
 	    case i_BSET:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 1);
@@ -563,7 +563,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_MOVE:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 1);
@@ -583,7 +583,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_MOVEA:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 1);
@@ -594,7 +594,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_MOVEPMR:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_ea(output, iib, tp_dst, 1);
 		generate_eaval(output, iib, tp_dst);
@@ -618,7 +618,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_MOVEPRM:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 1);
@@ -641,7 +641,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_MOVEFSR:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_outdata(output, iib, NULL);
 		OUT("\n");
@@ -650,7 +650,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_MOVETSR:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		OUT("  unsigned int sr = regs.sr.sr_struct.s;\n");
@@ -683,7 +683,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_MOVEMRM:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 0);
@@ -763,7 +763,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_MOVEMMR:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		generate_ea(output, iib, tp_dst, 0);
@@ -810,7 +810,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_MOVETUSP:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		OUT("\n");
@@ -822,7 +822,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_MOVEFUSP:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		OUT("  uint32 outdata;\n");
 		OUT("\n");
@@ -835,7 +835,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_NEG:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		switch (iib->size) {
@@ -868,7 +868,7 @@ void generate(FILE *output, int topnibble)
 		break;
 
 	    case i_NEGX:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src);
 		switch (iib->size) {
@@ -899,9 +899,9 @@ void generate(FILE *output, int topnibble)
 		if (flags && iib->flags.set & IIB_FLAG_Z)
 		    generate_stdxflag_z(output, iib);
 		break;
-	
+
 	    case i_CLR:
-		
+
 		generate_ea(output, iib, tp_src, 1);
 		generate_eaval(output, iib, tp_src); /* read before write */
 		generate_outdata(output, iib, "0");
@@ -1342,7 +1342,7 @@ void generate(FILE *output, int topnibble)
 		    fputs("  printf(\"JMP: ->0x%X\\n\", PC);\n", output);
 		pcinc = 0;
 		break;
-	
+
 	    case i_Scc:
 		generate_ea(output, iib, tp_src, 1);
 		generate_cc(output, iib);
@@ -1490,7 +1490,7 @@ void generate(FILE *output, int topnibble)
 		OUT("  remainder = dstdata % (sint16)srcdata;\n");
 		OUT("  if (((quotient & 0xffff8000) == 0) ||\n");
 		OUT("      ((quotient & 0xffff8000) == 0xffff8000)) {\n");
-		
+
 		/*
 		  PEPONE: remainder sign depend on dstdata
 		  OUT("    if ((quotient < 0) != (remainder < 0))\n");

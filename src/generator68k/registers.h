@@ -38,5 +38,4 @@
          extern t_sr reg68k_sr;
 #endif
 
-
 #endif

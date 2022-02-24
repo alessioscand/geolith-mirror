@@ -51,7 +51,7 @@ static void TimerHandler(int c, int count, double stepTime)
 	} else {			/* Start FM Timer */
 		double timeSec = (double) count * stepTime;
 		//uint32_t timeSec = count * (uint32_t)(stepTime*(1<<TIMER_SH));
-		
+
 		if (Timer[c] == 0) {
 			Timer[c] =
 				(timer_struct *) insert_timer(timeSec, c,
@@ -99,7 +99,6 @@ int YM2610_sh_start(void) {
 	return 0;
 }
 
-
 /************************************************/
 /* Sound Hardware Stop				*/
 /************************************************/
@@ -134,7 +133,6 @@ uint32_t YM2610_read_port_r(uint32_t offset)
 {
     return YM2610Read(1);
 }
-
 
 /************************************************/
 /* Control Write for YM2610 - Chip 0		*/

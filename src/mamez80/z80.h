@@ -89,7 +89,6 @@ enum
         REG_SP_CONTENTS = -4
 };
 
-
 #define change_pc16(pc) Z80.PC.w.l=pc;
 
 /* ---- END of mame extract ----- */
@@ -140,7 +139,6 @@ extern void z80_set_irq_line(int irqline, int state);
 extern void z80_set_irq_callback(int (*irq_callback)(int));
 extern const char *z80_info(void *context, int regnum);
 extern unsigned z80_dasm(char *buffer, unsigned pc);
-
 
 /* interface */
 extern void mame_z80_writemem16(UINT16 addr,UINT8 val);

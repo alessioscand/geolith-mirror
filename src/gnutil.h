@@ -16,6 +16,4 @@ void gn_set_error_msg(char *fmt,...);
 #define GNERROR_SIZE 1024
 extern char gnerror[GNERROR_SIZE];
 
-
-
 #endif /* GNUTIL_H_ */

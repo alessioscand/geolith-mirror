@@ -141,8 +141,6 @@
 		 (BIT(val, B1) <<  1) | \
 		 (BIT(val, B0) <<  0))
 
-
-
 #define running_machine GAME_ROMS
 
 //#define malloc_or_die(b) malloc(b)

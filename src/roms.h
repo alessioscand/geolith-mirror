@@ -48,7 +48,6 @@ typedef struct ROM_REGION {
 	uint32_t size;
 }ROM_REGION;
 
-
 typedef struct GAME_ROMS {
 	GAME_INFO info;
 	ROM_REGION cpu_m68k;
@@ -66,7 +65,6 @@ typedef struct GAME_ROMS {
 	ROM_REGION bfix_usage;  /* Bios fix char usage */
 	ROM_REGION cpu_z80c; /* Crypted z80 program rom */
 }GAME_ROMS;
-
 
 void gn_set_savedir(const char *dir);
 int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name);

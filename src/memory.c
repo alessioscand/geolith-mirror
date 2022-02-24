@@ -1,9 +1,9 @@
 /*  gngeo a neogeo emulator
  *  Copyright (C) 2001 Peponas Mathieu
- * 
- *  This program is free software; you can redistribute it and/or modify  
- *  it under the terms of the GNU General Public License as published by   
- *  the Free Software Foundation; either version 2 of the License, or    
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -13,7 +13,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
 #include "emu.h"
@@ -43,8 +43,6 @@ uint16_t z80_bank[4];
 uint32_t bankaddress = 0;
 extern int current_line;
 
-
-
 void neogeo_sound_irq(int irq) {
     //printf("neogeo_sound_irq %d\n",irq);
 #ifndef ENABLE_940T
@@ -57,7 +55,7 @@ void neogeo_sound_irq(int irq) {
 }
 
 static __inline__ uint16_t read_neo_control(void) {
-  
+
     unsigned int scan;
 
     if (!conf.raster) {
@@ -419,7 +417,7 @@ uint32_t mem68k_fetch_coin_long(uint32_t addr) {
 }
 
 /**** MEMCARD ****/
-/* Even byte are FF 
+/* Even byte are FF
    Odd  byte are data;
 */
 uint8_t mem68k_fetch_memcrd_byte(uint32_t addr) {
@@ -616,7 +614,6 @@ void mem68k_store_video_word(uint32_t addr, uint16_t data) {
 LONG_STORE(mem68k_store_video)
 ;
 
-
 /**** PD4990 ****/
 void mem68k_store_pd4990_byte(uint32_t addr, uint8_t data) {
     write_4990_control_w(addr, data);
@@ -791,7 +788,7 @@ uint8_t mem68k_fetch_bk_normal_byte(uint32_t addr) {
             return (addr&0x1?0x9a:0x37);
         }
         if (memory.sma_rng_addr && addr>=0x2fff00 &&
-            (((a & 0xFF) == (memory.sma_rng_addr & 0xFF)) || 
+            (((a & 0xFF) == (memory.sma_rng_addr & 0xFF)) ||
              ((a & 0xFF) == memory.sma_rng_addr >> 8))) {
             //printf("SMA_Random B %08x\n",addr);
             return (addr&0x1?sma_random()>>8:sma_random()&0xFF);
@@ -808,7 +805,7 @@ uint16_t mem68k_fetch_bk_normal_word(uint32_t addr) {
             return 0x9a37;
         }
         if (memory.sma_rng_addr && addr>=0x2fff00 &&
-            (((addr & 0xFF) == (memory.sma_rng_addr & 0xFF)) || 
+            (((addr & 0xFF) == (memory.sma_rng_addr & 0xFF)) ||
              ((addr & 0xFF) == memory.sma_rng_addr >> 8))) {
             //printf("SMA_Random W %08x\n",addr);
             return sma_random();
@@ -844,16 +841,16 @@ void mem68k_store_bk_normal_byte(uint32_t addr, uint8_t data) {
 }
 
 void mem68k_store_bk_normal_word(uint32_t addr, uint16_t data) {
-    //if (addr<0x2FFFF0) 
+    //if (addr<0x2FFFF0)
     //printf("bankswitch_w %x %x\n",addr,data);
     if (memory.bksw_unscramble && (addr & 0xFF) == memory.bksw_unscramble[0]) {
         /* unscramble bank number */
-        data = 
-            (((data >> memory.bksw_unscramble[1]) & 1) << 0) + 
-            (((data	>> memory.bksw_unscramble[2]) & 1) << 1) + 
-            (((data	>> memory.bksw_unscramble[3]) & 1) << 2) + 
-            (((data	>> memory.bksw_unscramble[4]) & 1) << 3) + 
-            (((data	>> memory.bksw_unscramble[5]) & 1) << 4) + 
+        data =
+            (((data >> memory.bksw_unscramble[1]) & 1) << 0) +
+            (((data	>> memory.bksw_unscramble[2]) & 1) << 1) +
+            (((data	>> memory.bksw_unscramble[3]) & 1) << 2) +
+            (((data	>> memory.bksw_unscramble[4]) & 1) << 3) +
+            (((data	>> memory.bksw_unscramble[5]) & 1) << 4) +
             (((data	>> memory.bksw_unscramble[6]) & 1) << 5);
 
         bankaddress = 0x100000 + memory.bksw_offset[data];

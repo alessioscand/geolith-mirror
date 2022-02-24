@@ -24,24 +24,24 @@
 /*** a brief NOTE about halfwords and "shifted" operands
  *
  * this file extends the intrinsic assembler syntax with pseudo-ops for...
- * 
+ *
  *	exp@lo	= the LS 16 bits of exp, unsigned and unextended
- * 
+ *
  *	exp@hi	= the MS 16 bits of exp, unsigned and unextended
- * 
+ *
  *	var@l	= the LS 16 bits of &var, sign-extended to 32 bits
- * 
+ *
  *	var@ha	= the MS 16 bits of &var, sign-extended to 32 bits
  *		  and IN EXCESS by the sign bit of var@l
  *
  * LOGICAL insns require UNSIGNED args in 0..65535, whether or not shifted
  *
  * ARITHMETIC insns require SIGNED args in -32768..32767, even when shifted
- * 
+ *
  * as a special case: "lis/addis" also accepts UNSIGNED arguments in
  * 0..65535 since it is often used immediately before "ori" to load a 32-bit
  * constant (this is consistent with the GNU rs/6000 and PowerPC assemblers)
- * 
+ *
  * thus:	lis	rD, expression@hi
  *		ori	rD, rD, expression@lo	; load 32-bit constant
  *
@@ -76,7 +76,6 @@ typedef unsigned int insn;
 #define eq	2
 #define so	3
 
-
 #define _suiP16(I)	((((int)(I)) >= -32768) && (((int)(I)) < 65536))
 
 #define _UL(X)		((unsigned long)(X))
@@ -93,7 +92,7 @@ typedef unsigned int insn;
 #define _s16(I)         _ck_s(16,I)
 
 #define _su16(I)	_ck_su16(I)
-				
+
 #define _u1(I)          _ck_u( 1,I)
 #define _u5(I)          _ck_u( 5,I)
 #define _u6(I)          _ck_u( 6,I)
@@ -357,13 +356,13 @@ typedef unsigned int insn;
 #define BDZi(D)				BC(18, 0, D)
 #define BDZTii(C,D)			BC(10, C, D)
 #define BDZFii(C,D)			BC( 2, C, D)
-		
+
 #define BCTR()				BCCTRii(20, 0)		/* [1, Table F-6] */
 #define BCTRL()				BCCTRLii(20, 0)
-		
+
 #define BLR()				BCLRii(20, 0)		/* [1, Table F-6] */
 #define BLRL()				BCLRLii(20, 0)
-		
+
 
 #define BLTLRi(CR)			BCLRii(12, ((CR)<<2)+0)	/* [1, Table F-10] */
 #define BLELRi(CR)			BCLRii( 4  ((CR)<<2)+1)
@@ -377,7 +376,7 @@ typedef unsigned int insn;
 #define BNSLRi(CR)			BCLRii( 4, ((CR)<<2)+3)
 #define BUNLRi(CR)			BCLRii(12, ((CR)<<2)+3)
 #define BNULRi(CR)			BCLRii( 4, ((CR)<<2)+3)
-		
+
 #define BLTLRLi(CR)			BCLRLii(12, ((CR)<<2)+0)	/* [1, Table F-10] */
 #define BLELRLi(CR)			BCLRLii( 4, ((CR)<<2)+1)
 #define BEQLRLi(CR)			BCLRLii(12, ((CR)<<2)+2)
@@ -390,7 +389,7 @@ typedef unsigned int insn;
 #define BNSLRLi(CR)			BCLRLii( 4, ((CR)<<2)+3)
 #define BUNLRLi(CR)			BCLRLii(12, ((CR)<<2)+3)
 #define BNULRLi(CR)			BCLRLii( 4, ((CR)<<2)+3)
-		
+
 #define BLTCTRi(CR)			BCCTRii(12, ((CR)<<2)+0)	/* [1, Table F-10] */
 #define BLECTRi(CR)			BCCTRii( 4  ((CR)<<2)+1)
 #define BEQCTRi(CR)			BCCTRii(12, ((CR)<<2)+2)
@@ -403,7 +402,7 @@ typedef unsigned int insn;
 #define BNSCTRi(CR)			BCCTRii( 4, ((CR)<<2)+3)
 #define BUNCTRi(CR)			BCCTRii(12, ((CR)<<2)+3)
 #define BNUCTRi(CR)			BCCTRii( 4, ((CR)<<2)+3)
-		
+
 #define BLTCTRLi(CR)			BCCTRLii(12, ((CR)<<2)+0)	/* [1, Table F-10] */
 #define BLECTRLi(CR)			BCCTRLii( 4, ((CR)<<2)+1)
 #define BEQCTRLi(CR)			BCCTRLii(12, ((CR)<<2)+2)
@@ -416,47 +415,47 @@ typedef unsigned int insn;
 #define BNSCTRLi(CR)			BCCTRLii( 4, ((CR)<<2)+3)
 #define BUNCTRLi(CR)			BCCTRLii(12, ((CR)<<2)+3)
 #define BNUCTRLi(CR)			BCCTRLii( 4, ((CR)<<2)+3)
-		
+
 
 #define BLTLR()				BLTLRi(0)  	/* with implicit cr0 */
-#define BLELR()				BLELRi(0)  
-#define BEQLR()				BEQLRi(0)  
-#define BGELR()				BGELRi(0)  
-#define BGTLR()				BGTLRi(0)  
-#define BNLLR()				BNLLRi(0)  
-#define BNELR()				BNELRi(0)  
-#define BNGLR()				BNGLRi(0)  
-#define BSOLR()				BSOLRi(0)  
-#define BNSLR()				BNSLRi(0)  
-#define BUNLR()				BUNLRi(0)  
-#define BNULR()				BNULRi(0)  
-					            
-#define BLTLRL()			BLTLRLi(0) 
-#define BLELRL()			BLELRLi(0) 
-#define BEQLRL()			BEQLRLi(0) 
-#define BGELRL()			BGELRLi(0) 
-#define BGTLRL()			BGTLRLi(0) 
-#define BNLLRL()			BNLLRLi(0) 
-#define BNELRL()			BNELRLi(0) 
-#define BNGLRL()			BNGLRLi(0) 
-#define BSOLRL()			BSOLRLi(0) 
-#define BNSLRL()			BNSLRLi(0) 
-#define BUNLRL()			BUNLRLi(0) 
-#define BNULRL()			BNULRLi(0) 
-					            
-#define BLTCTR()			BLTCTRi(0) 
-#define BLECTR()			BLECTRi(0) 
-#define BEQCTR()			BEQCTRi(0) 
-#define BGECTR()			BGECTRi(0) 
-#define BGTCTR()			BGTCTRi(0) 
-#define BNLCTR()			BNLCTRi(0) 
-#define BNECTR()			BNECTRi(0) 
-#define BNGCTR()			BNGCTRi(0) 
-#define BSOCTR()			BSOCTRi(0) 
-#define BNSCTR()			BNSCTRi(0) 
-#define BUNCTR()			BUNCTRi(0) 
-#define BNUCTR()			BNUCTRi(0) 
-					            
+#define BLELR()				BLELRi(0)
+#define BEQLR()				BEQLRi(0)
+#define BGELR()				BGELRi(0)
+#define BGTLR()				BGTLRi(0)
+#define BNLLR()				BNLLRi(0)
+#define BNELR()				BNELRi(0)
+#define BNGLR()				BNGLRi(0)
+#define BSOLR()				BSOLRi(0)
+#define BNSLR()				BNSLRi(0)
+#define BUNLR()				BUNLRi(0)
+#define BNULR()				BNULRi(0)
+
+#define BLTLRL()			BLTLRLi(0)
+#define BLELRL()			BLELRLi(0)
+#define BEQLRL()			BEQLRLi(0)
+#define BGELRL()			BGELRLi(0)
+#define BGTLRL()			BGTLRLi(0)
+#define BNLLRL()			BNLLRLi(0)
+#define BNELRL()			BNELRLi(0)
+#define BNGLRL()			BNGLRLi(0)
+#define BSOLRL()			BSOLRLi(0)
+#define BNSLRL()			BNSLRLi(0)
+#define BUNLRL()			BUNLRLi(0)
+#define BNULRL()			BNULRLi(0)
+
+#define BLTCTR()			BLTCTRi(0)
+#define BLECTR()			BLECTRi(0)
+#define BEQCTR()			BEQCTRi(0)
+#define BGECTR()			BGECTRi(0)
+#define BGTCTR()			BGTCTRi(0)
+#define BNLCTR()			BNLCTRi(0)
+#define BNECTR()			BNECTRi(0)
+#define BNGCTR()			BNGCTRi(0)
+#define BSOCTR()			BSOCTRi(0)
+#define BNSCTR()			BNSCTRi(0)
+#define BUNCTR()			BUNCTRi(0)
+#define BNUCTR()			BNUCTRi(0)
+
 #define BLTCTRL()			BLTCTRLi(0)
 #define BLECTRL()			BLECTRLi(0)
 #define BEQCTRL()			BEQCTRLi(0)
@@ -469,7 +468,6 @@ typedef unsigned int insn;
 #define BNSCTRL()			BNSCTRLi(0)
 #define BUNCTRL()			BUNCTRLi(0)
 #define BNUCTRL()			BNUCTRLi(0)
-
 
 #define BLTii(C,D)			BCiii(12, ((C)<<2)+0, D)	/* [1, Table F-11] */
 #define BLEii(C,D)			BCiii( 4, ((C)<<2)+1, D)
@@ -529,14 +527,14 @@ typedef unsigned int insn;
 #define CRCLRi(BX)			CRXORiii(BX, BX, BX)
 #define CRMOVEii(BX,BY)			CRORiii(BX, BY, BY)
 #define CRNOTii(BX,BY)			CRNORiii(BX, BY, BY)
-		
+
 #define MTLRr(RS)			MTSPRir(8, RS)		/* [1, Table F-20] */
 #define MFLRr(RD)			MFSPRri(RD, 8)
 #define MTCTRr(RS)			MTSPRir(9, RS)
 #define MFCTRr(RD)			MFSPRri(RD, 9)
 #define MTXERr(RS)			MTSPRir(1, RS)
 #define MFXERr(RD)			MFSPRri(RD, 1)
-		
+
 #define NOP()				ORIrri(0, 0, 0)		/* [1, Section F.9] */
 #define LIri(RD,IM)			ADDIrri(RD, 0, IM)
 #define LISri(RD,IM)			ADDISrri(RD, 0, IM)
@@ -567,8 +565,7 @@ typedef unsigned int insn;
 #define STWCX_rx(RS,RA,RB)		STWCX_rrr(RS,RA,RB)
 #define STWUrx(RS,RA,RB)		STWUXrrr(RS,RA,RB)
 #define STWrx(RS,RA,RB)			STWXrrr(RS,RA,RB)
-#define LArx(RD,RB,RA)			LArrr(RD,RB,RA)	
-
+#define LArx(RD,RB,RA)			LArrr(RD,RB,RA)
 
 /* +++ postfix operators for literal operands */
 
@@ -578,12 +575,9 @@ typedef unsigned int insn;
 #define _L(V)		((long)((short)(&V)))
 #define _HA(V)		( (((long)&V) >> 16) + ((((long)&V) >> 15) & 1) )
 
-
-
 /*** References:
  *
  * [1] "PowerPC Microprocessor Family: The Programming Environments For 32-Bit Microprocessors", Motorola, 1997.
  */
-
 
 #endif /* __ccg_asm_ppc_h */

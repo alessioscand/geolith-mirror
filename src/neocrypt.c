@@ -90,7 +90,6 @@ by step 2).
 [Note: the table used in step 1) is currently incomplete due to lack of data to
 analyze]
 
-
 There are two major weaknesses in this encryption algorithm, that exposed it to
 a known plaintext attack.
 
@@ -141,7 +140,6 @@ static const uint8_t kof99_type0_t03[256] =
 	0xc6, 0xce, 0x18, 0x36, 0xdf, 0xa9, 0x8c, 0xd8, 0xa4, 0xf0, 0x3b, 0x51, 0x4a, 0x02, 0x3e, 0x53,
 };
 
-
 static const uint8_t kof99_type0_t12[256] =
 {
 	0x1f, 0xac, 0x4d, 0xcd, 0xca, 0x70, 0x02, 0x6b, 0x18, 0x40, 0x62, 0xb2, 0x3f, 0x9b, 0x5b, 0xef,
@@ -161,7 +159,6 @@ static const uint8_t kof99_type0_t12[256] =
 	0xce, 0xaf, 0xa6, 0x9f, 0x7b, 0x99, 0xb9, 0xb4, 0xe3, 0xfb, 0xf6, 0x27, 0xf2, 0x93, 0xfe, 0x08,
 	0x67, 0xae, 0x09, 0x89, 0xdc, 0x4e, 0xc6, 0xc0, 0x8a, 0xb1, 0x59, 0x8b, 0x41, 0x56, 0x8d, 0xba,
 };
-
 
 static const uint8_t kof99_type1_t03[256] =
 {
@@ -183,7 +180,6 @@ static const uint8_t kof99_type1_t03[256] =
 	0x63, 0x40, 0x2d, 0xe8, 0xb2, 0xe6, 0x39, 0x03, 0xeb, 0x8e, 0xe1, 0x0c, 0xe4, 0xe2, 0xf8, 0xac,
 };
 
-
 static const uint8_t kof99_type1_t12[256] =
 {
 	0xea, 0xe6, 0x5e, 0xa7, 0x8e, 0xac, 0x34, 0x03, 0x30, 0x97, 0x52, 0x53, 0x76, 0xf2, 0x62, 0x0b,
@@ -203,7 +199,6 @@ static const uint8_t kof99_type1_t12[256] =
 	0xc9, 0xd9, 0xc7, 0xb1, 0xff, 0x99, 0xd4, 0x5d, 0xb5, 0xa1, 0x87, 0x0d, 0x69, 0x92, 0x13, 0x80,
 	0xd2, 0xd3, 0xfd, 0x1d, 0xf5, 0x3b, 0xa5, 0x7f, 0xef, 0x9a, 0xb6, 0x42, 0xfb, 0x3c, 0xf7, 0x41,
 };
-
 
 /* underlined values are wrong (not enough evidence, FF fill in kof99 and garou) */
 /* they correspond to tiles 7d000-7efff */
@@ -228,7 +223,6 @@ static const uint8_t kof99_address_8_15_xor1[256] =
 //                                                              ^^^^  ^^^^  ^^^^  ^^^^
 };
 
-
 static const uint8_t kof99_address_8_15_xor2[256] =
 {
 	0x9b, 0x9d, 0xc1, 0x3d, 0xa9, 0xb8, 0xf4, 0x6f, 0xf6, 0x25, 0xc7, 0x47, 0xd5, 0x97, 0xdf, 0x6b,
@@ -248,7 +242,6 @@ static const uint8_t kof99_address_8_15_xor2[256] =
 	0x0a, 0x02, 0x0d, 0x36, 0x11, 0x22, 0x84, 0x40, 0x34, 0x3e, 0x2d, 0x68, 0x5a, 0xa7, 0x67, 0xae,
 	0x87, 0x07, 0x10, 0x60, 0x14, 0x73, 0x3c, 0x51, 0x19, 0xa3, 0xb5, 0xcf, 0x13, 0xf0, 0x15, 0x4e,
 };
-
 
 static const uint8_t kof99_address_16_23_xor1[256] =
 {
@@ -270,7 +263,6 @@ static const uint8_t kof99_address_16_23_xor1[256] =
 	0x65, 0xf4, 0x42, 0xa0, 0x8d, 0xa7, 0x48, 0x55, 0x21, 0x93, 0x24, 0xd2, 0xa6, 0xa5, 0xa8, 0x82,
 };
 
-
 static const uint8_t kof99_address_16_23_xor2[256] =
 {
 	0x29, 0x97, 0x1a, 0x2c, 0x0b, 0x94, 0x3e, 0x75, 0x01, 0x0d, 0x1b, 0xe1, 0x4d, 0x38, 0x39, 0x8f,
@@ -290,7 +282,6 @@ static const uint8_t kof99_address_16_23_xor2[256] =
 	0x30, 0xef, 0x83, 0x13, 0xa6, 0x78, 0xcc, 0x81, 0x9e, 0xda, 0xca, 0xd3, 0x7e, 0x9d, 0x6f, 0xcd,
 	0xb7, 0xb3, 0xd8, 0xcf, 0x3b, 0x00, 0x92, 0xb8, 0x86, 0xac, 0x49, 0x7c, 0xf1, 0xd5, 0xcb, 0x7d,
 };
-
 
 static const uint8_t kof99_address_0_7_xor[256] =
 {
@@ -312,7 +303,6 @@ static const uint8_t kof99_address_0_7_xor[256] =
 	0x48, 0xac, 0x7f, 0x3f, 0x95, 0xdc, 0x98, 0x9b, 0xbe, 0x23, 0x57, 0x3e, 0x5b, 0xd0, 0x3d, 0xa6,
 };
 
-
 static const uint8_t kof2000_type0_t03[256] =
 {
 	0x10, 0x61, 0xf1, 0x78, 0x85, 0x52, 0x68, 0xe3, 0x12, 0x0d, 0xfa, 0xf0, 0xc9, 0x36, 0x5e, 0x3d,
@@ -332,7 +322,6 @@ static const uint8_t kof2000_type0_t03[256] =
 	0x96, 0xad, 0x13, 0x0e, 0x58, 0x99, 0x60, 0x4d, 0x17, 0x26, 0xce, 0xe8, 0xdb, 0xef, 0x24, 0xa3,
 	0x6e, 0x7f, 0x54, 0x3f, 0x02, 0xd1, 0x5b, 0x50, 0x56, 0x48, 0xf4, 0xbd, 0x62, 0x47, 0x04, 0xcd,
 };
-
 
 static const uint8_t kof2000_type0_t12[256] =
 {
@@ -354,7 +343,6 @@ static const uint8_t kof2000_type0_t12[256] =
 	0xdc, 0xc4, 0x32, 0xe7, 0x84, 0x3e, 0x30, 0xa1, 0x1e, 0xb5, 0x6e, 0x65, 0xe9, 0xad, 0xa7, 0x96,
 };
 
-
 static const uint8_t kof2000_type1_t03[256] =
 {
 	0x9a, 0x2f, 0xcc, 0x4e, 0x40, 0x69, 0xac, 0xca, 0xa5, 0x7b, 0x0a, 0x61, 0x91, 0x0d, 0x55, 0x74,
@@ -374,7 +362,6 @@ static const uint8_t kof2000_type1_t03[256] =
 	0xb6, 0xbc, 0xd3, 0xea, 0x3d, 0x26, 0xb3, 0xc9, 0x44, 0xdc, 0xf3, 0x32, 0x30, 0xef, 0x96, 0x4c,
 	0xaf, 0x17, 0xf8, 0xfb, 0x60, 0x50, 0xeb, 0x4b, 0x99, 0x63, 0xba, 0xb2, 0x71, 0xcf, 0x10, 0xbe,
 };
-
 
 static const uint8_t kof2000_type1_t12[256] =
 {
@@ -396,7 +383,6 @@ static const uint8_t kof2000_type1_t12[256] =
 	0x1f, 0x49, 0x8f, 0x4c, 0xc1, 0x44, 0x17, 0x12, 0x6f, 0x32, 0xb7, 0x3e, 0x74, 0x1e, 0x21, 0x6a,
 };
 
-
 static const uint8_t kof2000_address_8_15_xor1[256] =
 {
 	0xfc, 0x9b, 0x1c, 0x35, 0x72, 0x53, 0xd6, 0x7d, 0x84, 0xa4, 0xc5, 0x93, 0x7b, 0xe7, 0x47, 0xd5,
@@ -416,7 +402,6 @@ static const uint8_t kof2000_address_8_15_xor1[256] =
 	0x4e, 0x61, 0x90, 0x0d, 0xc3, 0x39, 0x15, 0x83, 0xb5, 0x62, 0x3f, 0x70, 0x7c, 0xad, 0x20, 0xbf,
 	0x2e, 0x08, 0x1d, 0xf9, 0xb6, 0xa6, 0x64, 0x07, 0x82, 0x38, 0x98, 0x3a, 0x9f, 0xde, 0xbc, 0xd9,
 };
-
 
 static const uint8_t kof2000_address_8_15_xor2[256] =
 {
@@ -438,7 +423,6 @@ static const uint8_t kof2000_address_8_15_xor2[256] =
 	0xe2, 0xc9, 0xaa, 0x4b, 0x8d, 0x4f, 0xe6, 0x64, 0xda, 0x74, 0xb6, 0x72, 0x57, 0x62, 0xfd, 0x58,
 };
 
-
 static const uint8_t kof2000_address_16_23_xor1[256] =
 {
 	0x45, 0x9f, 0x6e, 0x2f, 0x28, 0xbc, 0x5e, 0x6d, 0xda, 0xb5, 0x0d, 0xb8, 0xc0, 0x8e, 0xa2, 0x32,
@@ -459,7 +443,6 @@ static const uint8_t kof2000_address_16_23_xor1[256] =
 	0xdf, 0x83, 0x74, 0xf5, 0x38, 0x20, 0xfd, 0xad, 0xc4, 0xb9, 0x55, 0x51, 0xb0, 0xef, 0x00, 0x57,
 };
 
-
 static const uint8_t kof2000_address_16_23_xor2[256] =
 {
 	0x00, 0xb8, 0xf0, 0x34, 0xca, 0x21, 0x3c, 0xf9, 0x01, 0x8e, 0x75, 0x70, 0xec, 0x13, 0x27, 0x96,
@@ -479,7 +462,6 @@ static const uint8_t kof2000_address_16_23_xor2[256] =
 	0x43, 0xde, 0x81, 0x0f, 0x24, 0xc4, 0x38, 0xae, 0x83, 0x1b, 0x6f, 0x7c, 0xe5, 0xff, 0x1a, 0xd9,
 	0x3f, 0xb7, 0x22, 0x97, 0x09, 0xe0, 0xa5, 0x20, 0x23, 0x2c, 0x72, 0xd6, 0x39, 0xab, 0x0a, 0xee,
 };
-
 
 static const uint8_t kof2000_address_0_7_xor[256] =
 {
@@ -529,7 +511,6 @@ static void decrypt(uint8_t *r0, uint8_t *r1,
 	}
 }
 
-
 static void neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 {
 	int rom_size;
@@ -571,7 +552,6 @@ static void neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 		baser ^= address_16_23_xor2[(baser >> 8) & 0xff] << 16;
 		baser ^= address_0_7_xor[(baser >> 8) & 0xff];
 
-
 		if (rom_size == 0x3000000) /* special handling for preisle2 */
 		{
 			if (rpos < 0x2000000/4)
@@ -597,7 +577,6 @@ static void neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 
 	free(buf);
 }
-
 
 /* the S data comes from the end of the C data */
 void neogeo_sfix_decrypt(running_machine *machine)
@@ -672,7 +651,6 @@ void kof99_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 	free(type0_t03);
 }
 
-
 /* CMC50 protection chip */
 void kof2000_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 {
@@ -693,7 +671,6 @@ void kof2000_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 	free(type0_t03);
 }
 
-
 /* CMC42 protection chip */
 void cmc42_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 {
@@ -713,7 +690,6 @@ void cmc42_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 	free(type0_t03);
 }
 
-
 /* CMC50 protection chip */
 void cmc50_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 {
@@ -732,7 +708,6 @@ void cmc50_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
 	neogeo_gfx_decrypt(machine, extra_xor);
 	free(type0_t03);
 }
-
 
 /* ms5pcb and svcpcb have an additional scramble on top of the standard CMC scrambling */
 void svcpcb_gfx_decrypt(running_machine *machine)
@@ -768,7 +743,6 @@ void svcpcb_gfx_decrypt(running_machine *machine)
 	free( buf );
 }
 
-
 /* and a further swap on the s1 data */
 void svcpcb_s1data_decrypt(running_machine *machine)
 {
@@ -781,7 +755,6 @@ void svcpcb_s1data_decrypt(running_machine *machine)
 		s1[ i ] = BITSWAP8( s1[ i ] ^ 0xd2, 4, 0, 7, 2, 5, 1, 6, 3 );
 	}
 }
-
 
 /* kf2k3pcb has an additional scramble on top of the standard CMC scrambling */
 /* Thanks to Razoola & Halrin for the info */
@@ -813,7 +786,6 @@ void kf2k3pcb_gfx_decrypt(running_machine *machine)
 	}
 	free( buf );
 }
-
 
 /* and a further swap on the s1 data */
 void kf2k3pcb_decrypt_s1data(running_machine *machine)
@@ -847,7 +819,6 @@ void kf2k3pcb_decrypt_s1data(running_machine *machine)
 		dst[ i ] = BITSWAP8( dst[ i ] ^ 0xd2, 4, 0, 7, 2, 5, 1, 6, 3 );
 	}
 }
-
 
 /***************************************************************************
 
@@ -914,7 +885,6 @@ static uint16_t generate_cs16(uint8_t *rom, int size)
     return cs16&0xFFFF;
 }
 
-
 static int m1_address_scramble(int address, uint16_t key)
 {
 	int block;
@@ -946,7 +916,6 @@ static int m1_address_scramble(int address, uint16_t key)
 
 	return (block<<16)|aux;
 }
-
 
 void neogeo_cmc50_m1_decrypt(running_machine *machine)
 {
@@ -991,7 +960,6 @@ void neogeo_cmc50_m1_decrypt(running_machine *machine)
 	}
 	#endif
 
-
 	#if 0
 	{
 		FILE *fp;
@@ -1012,13 +980,11 @@ void neogeo_cmc50_m1_decrypt(running_machine *machine)
 	free(type0_t03);
 }
 
-
 /***************************************************************************
 
 NeoGeo 'P' ROM encryption
 
 ***************************************************************************/
-
 
 /* Kof98 uses an early encryption, quite different from the others */
 void kof98_decrypt_68k(running_machine *machine)
@@ -1066,7 +1032,6 @@ void kof98_decrypt_68k(running_machine *machine)
 	free(dst);
 }
 
-
 /* kof99, garou, garouo, mslug3 and kof2000 have and SMA chip which contains program code and decrypts the 68k roms */
 void kof99_decrypt_68k(running_machine *machine)
 {
@@ -1098,7 +1063,6 @@ void kof99_decrypt_68k(running_machine *machine)
 		rom[i] = rom[0x700000/2 + BITSWAP24(i,23,22,21,20,19,18,11,6,14,17,16,5,8,10,12,0,4,3,2,7,9,15,13,1)];
 	}
 }
-
 
 void garou_decrypt_68k(running_machine *machine)
 {
@@ -1133,7 +1097,6 @@ void garou_decrypt_68k(running_machine *machine)
 	}
 }
 
-
 void garouo_decrypt_68k(running_machine *machine)
 {
 	uint16_t *rom;
@@ -1166,7 +1129,6 @@ void garouo_decrypt_68k(running_machine *machine)
 		}
 	}
 }
-
 
 void mslug3_decrypt_68k(running_machine *machine)
 {
@@ -1201,7 +1163,6 @@ void mslug3_decrypt_68k(running_machine *machine)
 	}
 }
 
-
 void kof2000_decrypt_68k(running_machine *machine)
 {
 	uint16_t *rom;
@@ -1234,7 +1195,6 @@ void kof2000_decrypt_68k(running_machine *machine)
 	}
 }
 
-
 /* kof2002, matrim, samsho5, samsh5sp have some simple block swapping */
 void kof2002_decrypt_68k(running_machine *machine)
 {
@@ -1250,7 +1210,6 @@ void kof2002_decrypt_68k(running_machine *machine)
 	free(dst);
 }
 
-
 void matrim_decrypt_68k(running_machine *machine)
 {
 	int i;
@@ -1264,7 +1223,6 @@ void matrim_decrypt_68k(running_machine *machine)
 		}
 	free(dst);
 }
-
 
 void samsho5_decrypt_68k(running_machine *machine)
 {
@@ -1281,7 +1239,6 @@ void samsho5_decrypt_68k(running_machine *machine)
 	free(dst);
 }
 
-
 void samsh5sp_decrypt_68k(running_machine *machine)
 {
 	int i;
@@ -1296,7 +1253,6 @@ void samsh5sp_decrypt_68k(running_machine *machine)
 		}
 	free(dst);
 }
-
 
 /* kf2k3pcb, kof2003, kof2003h, mslug5 and svc have updated P rom scramble */
 void mslug5_decrypt_68k(running_machine *machine)
@@ -1343,7 +1299,6 @@ void mslug5_decrypt_68k(running_machine *machine)
 	free( buf );
 }
 
-
 void svc_px_decrypt(running_machine *machine)
 {
 	static const uint8_t xor1[ 0x20 ] = { 0x3b, 0x6a, 0xf7, 0xb7, 0xe8, 0xa9, 0x20, 0x99, 0x9f, 0x39, 0x34, 0x0c, 0xc3, 0x9a, 0xa5, 0xc8, 0xb8, 0x18, 0xce, 0x56, 0x94, 0x44, 0xe3, 0x7a, 0xf7, 0xdd, 0x42, 0xf0, 0x18, 0x60, 0x92, 0x9f };
@@ -1388,7 +1343,6 @@ void svc_px_decrypt(running_machine *machine)
 	free( buf );
 }
 
-
 void kf2k3pcb_decrypt_68k(running_machine *machine)
 {
 	static const uint8_t xor2[ 0x20 ] = { 0xb4, 0x0f, 0x40, 0x6c, 0x38, 0x07, 0xd0, 0x3f, 0x53, 0x08, 0x80, 0xaa, 0xbe, 0x07, 0xc0, 0xfa, 0xd0, 0x08, 0x10, 0xd2, 0xf1, 0x03, 0x70, 0x7e, 0x87, 0x0b, 0x40, 0xf6, 0x2a, 0x0a, 0xe0, 0xf9 };
@@ -1429,7 +1383,6 @@ void kf2k3pcb_decrypt_68k(running_machine *machine)
 	memcpy (&rom[0x200000], &buf[0x100000], 0x700000);
 	free( buf );
 }
-
 
 void kof2003_decrypt_68k(running_machine *machine)
 {
@@ -1476,7 +1429,6 @@ void kof2003_decrypt_68k(running_machine *machine)
 	memcpy (&rom[0x200000], &buf[0x100000], 0x700000);
 	free( buf );
 }
-
 
 // Thanks to IQ_132 for the info
 void kof2003h_decrypt_68k(running_machine *machine)
@@ -1525,7 +1477,6 @@ void kof2003h_decrypt_68k(running_machine *machine)
 	free( buf );
 }
 
-
 /***************************************************************************
 
 NeoGeo 'V' (PCM) ROM encryption
@@ -1555,7 +1506,6 @@ void neo_pcm2_snk_1999(running_machine *machine, int value)
 		free(buffer);
 	}
 }
-
 
 /* the later PCM2 games have additional scrambling */
 void neo_pcm2_swap(running_machine *machine, int value)
@@ -1591,13 +1541,11 @@ void neo_pcm2_swap(running_machine *machine, int value)
 	free(buf);
 }
 
-
 /***************************************************************************
 
 NeoGeo 'SP1' (BIOS) ROM encryption
 
 ***************************************************************************/
-
 
 /* only found on kf2k3pcb */
 void kof2003biosdecode(running_machine *machine)
@@ -1643,5 +1591,4 @@ void kof2003biosdecode(running_machine *machine)
 		memcpy(src,buf,0x80000);
 		free(buf);
 }
-
 
