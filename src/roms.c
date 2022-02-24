@@ -8,7 +8,6 @@
 #include <libgen.h>
 #endif
 
-#include "conf.h"
 #include "roms.h"
 #include "emu.h"
 #include "memory.h"
@@ -19,7 +18,6 @@
 #include "unzip.h"
 
 #include "video.h"
-#include "conf.h"
 #include "resfile.h"
 
 /* Prototype */
@@ -52,6 +50,7 @@ void neogeo_cmc50_m1_decrypt(GAME_ROMS *r);
 static int need_decrypt = 1;
 
 static const char *gngeo_dir;
+static const char *rpath;
 
 int neogeo_fix_bank_type = 0;
 
@@ -157,6 +156,10 @@ static uint8_t* iloadbuf = NULL;
 
 void gn_set_savedir(const char *dir) {
 	gngeo_dir = dir;
+}
+
+void gn_set_romdir(const char *dir) {
+	rpath = dir;
 }
 
 int init_mslugx(GAME_ROMS *r) {
@@ -1212,7 +1215,6 @@ int dr_load_bios(GAME_ROMS *r) {
 	ZFILE *z;
 	size_t totread = 0;
 	unsigned int size;
-	char *rpath = CF_STR(cf_get_item_by_name("rompath"));
 	char fpath[256];
 	const char *romfile;
 
@@ -1476,7 +1478,6 @@ error1:
 
 int dr_load_game(char *name) {
 	//GAME_ROMS rom;
-	char *rpath = CF_STR(cf_get_item_by_name("rompath"));
 	int rc;
 
 	memory.bksw_handler = 0;
@@ -1928,30 +1929,11 @@ int close_game(void) {
     return 1;
 }
 
-int load_game_config(char *rom_name) {
-	cf_cache_conf();
-	return 1;
-}
-
 int init_game(char *rom_name) {
-	load_game_config(rom_name);
-
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
-    if (strstr(rom_name, ".gno") != NULL) {
-        if (dr_open_gno(rom_name)==0)
-        	return 0;
-    } else {
-#endif
-
-        //open_rom(rom_name);
 	if (dr_load_game(rom_name) == 0) {
 		printf("Can't load %s\n", rom_name);
 		return 0;
     }
-
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
-    }
-#endif
 
     open_nvram(conf.game);
     open_memcard(conf.game);

@@ -32,6 +32,7 @@
 #include "emu.h"
 #include "memory.h"
 #include "roms.h"
+#include "resfile.h"
 #include "video.h"
 #include "ym2610/2610intf.h"
 
@@ -75,6 +76,8 @@ static jg_pathinfo_t pathinfo;
 static jg_fileinfo_t gameinfo;
 static jg_inputinfo_t inputinfo[NUMINPUTS];
 static jg_inputstate_t *input_device[NUMINPUTS];
+
+static char dfilepath[256];
 
 static void gn_input_refresh(void) {
     // Coin slots
@@ -164,6 +167,16 @@ void jg_set_cb_settings_read(jg_cb_settings_read_t func) {
 int jg_init(void) {
     gn_log_set_callback(jg_cb_log);
     cf_init();
+    conf.sample_rate = SAMPLERATE;
+    conf.raster = 1;
+    conf.pal = 0;
+    //conf.system = SYS_UNIBIOS;
+    //conf.system = SYS_HOME;
+    conf.system = SYS_ARCADE;
+    conf.country = CTY_JAPAN;
+    //conf.country = CTY_USA;
+    //conf.country = CTY_ASIA;
+    //conf.country = CTY_EUROPE;
     return 1;
 }
 
@@ -181,14 +194,10 @@ void jg_exec_frame(void) {
 }
 
 int jg_game_load(void) {
-    char *rompath = dirname((char*)gameinfo.path);
-    char dfilepath[256];
     snprintf(dfilepath, sizeof(dfilepath), "%s/gngeo_data.zip", pathinfo.core);
-    cf_create_string_item("rompath", "", "PATH", 'i', rompath);
-    cf_create_string_item("datafile", "", "PATH", 'd', dfilepath);
-    cf_get_item_by_name("rompath")->flags|=CF_SYSTEMOPT;
-    cf_get_item_by_name("datafile")->flags|=CF_SYSTEMOPT;
+    gn_set_datafile(dfilepath);
     gn_set_savedir(pathinfo.save);
+    gn_set_romdir(dirname((char*)gameinfo.path));
 
     init_game((char*)gameinfo.name);
 

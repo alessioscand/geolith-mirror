@@ -6,7 +6,11 @@
 #include "resfile.h"
 #include "unzip.h"
 
-#include "conf.h"
+static const char *gngeo_dat;
+
+void gn_set_datafile(const char *f) {
+	gngeo_dat = f;
+}
 
 void zread_char(ZFILE *gz, char *c, int len) {
 	int rc;
@@ -30,27 +34,13 @@ void zread_uint32le(ZFILE *gz, uint32_t *c) {
 int res_verify_datafile(char *file) {
 	struct stat sb;
 
-	if (!file) file=CF_STR(cf_get_item_by_name("datafile"));
+	if (!file) file = gngeo_dat;
 
 	if (lstat(file,&sb)==-1) {
 		gn_log(GN_LOG_ERR, "File not found: %s\n", file);
 		return 0;
 	}
 
-	/* if it's a dir, try to append gngeo_data.zip, and recheck */
-	if (S_ISDIR(sb.st_mode)) {
-		char *buf=malloc(strlen(file)+strlen("/gngeo_data.zip")+1);
-		snprintf(buf,254,"%s/%s",file,"gngeo_data.zip");
-		if(res_verify_datafile(buf)==1) {
-			strncpy(CF_STR(cf_get_item_by_name("datafile")), buf, 254);
-			free(buf);
-			return 1;
-		} else {
-			gn_log(GN_LOG_ERR, "File not found: %s\n", buf);
-			free(buf);
-			return 0;
-		}
-	}
 	if (S_ISREG(sb.st_mode)) return 1;
 	gn_log(GN_LOG_ERR, "Invalid file: %s\n", file);
 	return 0;
@@ -61,7 +51,6 @@ int res_verify_datafile(char *file) {
  * return ROM_DEF*, NULL on error
  */
 ROM_DEF *res_load_drv(char *name) {
-	char *gngeo_dat = CF_STR(cf_get_item_by_name("datafile"));
 	ROM_DEF *drv;
 	char drvfname[32];
 	PKZIP *pz;
@@ -112,7 +101,7 @@ void *res_load_data(char *name) {
 	uint8_t * buffer;
 	unsigned int size;
 
-	pz = gn_open_zip(CF_STR(cf_get_item_by_name("datafile")));
+	pz = gn_open_zip(gngeo_dat);
 	if (!pz)
 		return NULL;
 	buffer = gn_unzip_file_malloc(pz, name, 0x0, &size);

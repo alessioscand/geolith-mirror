@@ -67,6 +67,8 @@ typedef struct GAME_ROMS {
 }GAME_ROMS;
 
 void gn_set_savedir(const char *dir);
+void gn_set_romdir(const char *dir);
+
 int dr_load_roms(GAME_ROMS *r,char *rom_path,char *name);
 void dr_free_roms(GAME_ROMS *r);
 int dr_save_gno(GAME_ROMS *r,char *filename);

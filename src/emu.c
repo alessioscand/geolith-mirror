@@ -29,7 +29,6 @@
 
 #include "ym2610/2610intf.h"
 #include "neocrypt.h"
-#include "conf.h"
 
 // Log callback
 void (*gn_log)(int, const char *, ...);

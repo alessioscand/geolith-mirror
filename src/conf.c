@@ -29,33 +29,6 @@ static struct {
 } cf_hash[128];
 
 void cf_cache_conf(void) {
-	char *country;
-	char *system;
-	/* cache some frequently used conf item */
-	conf.sample_rate = CF_VAL(cf_get_item_by_name("samplerate"));
-	conf.raster = CF_BOOL(cf_get_item_by_name("raster"));
-	conf.pal = CF_BOOL(cf_get_item_by_name("pal"));
-
-	country = CF_STR(cf_get_item_by_name("country"));
-	system = CF_STR(cf_get_item_by_name("system"));
-	if (!strcmp(system, "unibios")) {
-		conf.system = SYS_UNIBIOS;
-	} else {
-		if (!strcmp(system, "home")) {
-			conf.system = SYS_HOME;
-		} else {
-			conf.system = SYS_ARCADE;
-		}
-	}
-	if (!strcmp(country, "japan")) {
-		conf.country = CTY_JAPAN;
-	} else if (!strcmp(country, "usa")) {
-		conf.country = CTY_USA;
-	} else if (!strcmp(country, "asia")) {
-		conf.country = CTY_ASIA;
-	} else {
-		conf.country = CTY_EUROPE;
-	}
 }
 
 static CONF_ITEM * create_conf_item(const char *name, const char *help, char short_opt, int (*action)(struct CONF_ITEM *self)) {
@@ -142,9 +115,4 @@ CONF_ITEM* cf_get_item_by_val(int val) {
 }
 
 void cf_init(void) {
-	cf_create_bool_item("raster", "Enable the raster interrupt", 'r', 1);
-	cf_create_bool_item("pal", "Use PAL timing (buggy)", 'P', 0);
-	cf_create_string_item("country", "Set the contry to japan, asia, usa or europe", "...", 0, "japan");
-	cf_create_string_item("system", "Set the system to home, arcade or unibios", "...", 0, "arcade");
-	cf_create_int_item("samplerate", "Set the sample rate to RATE", "RATE", 0, 44100);
 }
