@@ -7,7 +7,6 @@
 #include "unzip.h"
 
 #include "conf.h"
-#include "gnutil.h"
 
 void zread_char(ZFILE *gz, char *c, int len) {
 	int rc;
@@ -33,11 +32,8 @@ int res_verify_datafile(char *file) {
 
 	if (!file) file=CF_STR(cf_get_item_by_name("datafile"));
 
-#if defined(MINGW) || defined(__MINGW32__) || defined(__MINGW64__)
-	return 1;
-#else
 	if (lstat(file,&sb)==-1) {
-		gn_set_error_msg("%s not found",file);
+		gn_log(GN_LOG_ERR, "File not found: %s\n", file);
 		return 0;
 	}
 
@@ -50,16 +46,14 @@ int res_verify_datafile(char *file) {
 			free(buf);
 			return 1;
 		} else {
-			gn_set_error_msg("%s not found",buf);
+			gn_log(GN_LOG_ERR, "File not found: %s\n", buf);
 			free(buf);
 			return 0;
 		}
 	}
 	if (S_ISREG(sb.st_mode)) return 1;
-	gn_set_error_msg("%s not a valid file",file);
+	gn_log(GN_LOG_ERR, "Invalid file: %s\n", file);
 	return 0;
-#endif
-
 }
 
 /*

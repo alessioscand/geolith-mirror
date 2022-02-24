@@ -27,7 +27,6 @@
 #include "generator68k/mem68k.h"
 #include "memory.h"
 #include "emu.h"
-#include "gnutil.h"
 
 extern unsigned int cpu68k_clocks;
 extern uint8_t *cpu68k_rom;

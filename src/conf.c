@@ -22,7 +22,6 @@
 
 #include "conf.h"
 #include "emu.h"
-#include "gnutil.h"
 
 static struct {
 	CONF_ITEM **conf;
