@@ -16,10 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "emu.h"
 #include "video.h"
 #include "memory.h"
@@ -406,14 +402,9 @@ uint8_t mem68k_fetch_coin_byte(uint32_t addr) {
     }
     if (addr == 0x0) {
         int res = 0;
-        if (conf.sound) {
-            //printf("fetch coin byte, rescoe= %x\n",result_code);
-            res |= result_code;
-            if (pending_command)
-                res &= 0x7f;
-        } else {
-            res |= 0x01;
-        }
+        res |= result_code;
+        if (pending_command)
+            res &= 0x7f;
         return res;
     }
     return 0;
@@ -645,10 +636,8 @@ void mem68k_store_z80_byte(uint32_t addr, uint8_t data) {
         sound_code = data & 0xff;
         pending_command = 1;
         //printf("B Pending command. Sound_code=%02x\n",sound_code);
-        if (conf.sound) {
-            cpu_z80_nmi();
-            cpu_z80_run(300);
-        }
+        cpu_z80_nmi();
+        cpu_z80_run(300);
     }
 }
 void mem68k_store_z80_word(uint32_t addr, uint16_t data) {
@@ -657,10 +646,8 @@ void mem68k_store_z80_word(uint32_t addr, uint16_t data) {
         sound_code = data >> 8;
         pending_command = 1;
         //printf("W Pending command. Sound_code=%02x\n",sound_code);
-        if (conf.sound) {
-            cpu_z80_nmi();
-            cpu_z80_run(300);
-        }
+        cpu_z80_nmi();
+        cpu_z80_run(300);
     }
 }
 void mem68k_store_z80_long(uint32_t addr, uint32_t data) {

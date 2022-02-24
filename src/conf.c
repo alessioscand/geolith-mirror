@@ -33,7 +33,6 @@ void cf_cache_conf(void) {
 	char *country;
 	char *system;
 	/* cache some frequently used conf item */
-	conf.sound = CF_BOOL(cf_get_item_by_name("sound"));
 	conf.sample_rate = CF_VAL(cf_get_item_by_name("samplerate"));
 	conf.raster = CF_BOOL(cf_get_item_by_name("raster"));
 	conf.pal = CF_BOOL(cf_get_item_by_name("pal"));
@@ -146,7 +145,6 @@ CONF_ITEM* cf_get_item_by_val(int val) {
 
 void cf_init(void) {
 	cf_create_bool_item("raster", "Enable the raster interrupt", 'r', GN_TRUE);
-	cf_create_bool_item("sound", "Enable sound", 0, GN_TRUE);
 	cf_create_bool_item("pal", "Use PAL timing (buggy)", 'P', GN_FALSE);
 	cf_create_string_item("country", "Set the contry to japan, asia, usa or europe", "...", 0, "japan");
 	cf_create_string_item("system", "Set the system to home, arcade or unibios", "...", 0, "arcade");

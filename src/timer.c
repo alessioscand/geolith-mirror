@@ -16,10 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <stdint.h>
 #include <stdlib.h>
 #include "emu.h"
@@ -66,11 +62,7 @@ void free_all_timer(void) {
     }
 }
 
-#ifdef ENABLE_940T
-void timer_callback_2610(int param){}
-#else
 void timer_callback_2610(int param);
-#endif
 
 void del_timer(timer_struct * ts)
 {
@@ -86,15 +78,12 @@ void my_timer(void)
     int i;
 
     if (init) {
-	//timer_init_save_state();
 	init = 0;
 
 	if (conf.pal) {
 		inc = ((double) (0.02) / nb_interlace);/* *(1<<TIMER_SH);*/
-			  //(conf.sound ? (double) nb_interlace : 1.0);
 	} else {
 		inc = ((double) (0.01666) / nb_interlace); /* *(1<<TIMER_SH); */
-		//(conf.sound ? (double) nb_interlace : 1.0);
 	}
 	for (i = 0; i < MAX_TIMER; i++)
 	    timers[i].del_it = 1;

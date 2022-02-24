@@ -19,10 +19,6 @@
 #ifndef _EMU_H_
 #define _EMU_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <string.h>
 #include <stdint.h>
 
@@ -51,41 +47,13 @@ struct _conf_t {
     uint16_t res_y;
     uint16_t sample_rate;
     uint16_t test_switch;
-
-    uint8_t sound;
-    uint8_t vsync;
-    //uint8_t snd_st_reg_create;
-    uint8_t do_message;
-    uint8_t nb_joy;
     uint8_t raster;
-    uint8_t debug;
     uint8_t rom_type;
     uint8_t special_bios;
     uint8_t extra_xor;
     uint8_t pal;
-    uint8_t accurate940;
     SYSTEM system;
     COUNTRY country;
-
-    uint8_t autoframeskip;
-    uint8_t show_fps;
-    uint8_t sleep_idle;
-    uint8_t screen320;
-
-    char message[128];
-    char fps[4];
-
-    int *p1_key;
-    int *p2_key;
-
-    int *p1_joy;
-    int *p2_joy;
-
-    int *p1_hotkey0, *p1_hotkey1, *p1_hotkey2, *p1_hotkey3;
-    int *p2_hotkey0, *p2_hotkey1, *p2_hotkey2, *p2_hotkey3;
-
-    int p1_hotkey[4];
-    int p2_hotkey[4];
 };
 extern struct _conf_t conf;
 
