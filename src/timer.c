@@ -16,11 +16,12 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
  */
 
-#include <stdint.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
+
 #include "emu.h"
 #include "timer.h"
-#include "state.h"
 #include "ym2610/ym2610.h"
 
 double timer_count;

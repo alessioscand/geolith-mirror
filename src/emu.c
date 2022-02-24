@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <zlib.h>
+
 #include "emu.h"
 #include "memory.h"
 #include "pd4990a.h"
@@ -101,7 +103,6 @@ void init_sound(void) {
 }
 
 void init_neo(void) {
-	neogeo_init_save_state();
 	cpu_68k_init();
 	pd4990a_init();
 	init_sound();

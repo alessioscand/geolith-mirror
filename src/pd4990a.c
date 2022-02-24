@@ -8,7 +8,6 @@
 #include <time.h>
 
 #include "pd4990a.h"
-#include "state.h"
 
 /* Set the data in the chip to Monday 09/09/73 00:00:00     */
 /* If you ever read this Leejanne, you know what I mean :-) */

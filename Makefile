@@ -78,7 +78,6 @@ CSRCS := generator68k/cpu68k.c \
 	pd4990a.c \
 	resfile.c \
 	roms.c \
-	state.c \
 	stb_zlib.c \
 	timer.c \
 	unzip.c \

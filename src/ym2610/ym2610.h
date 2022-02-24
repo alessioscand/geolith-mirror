@@ -43,9 +43,4 @@ void YM2610Update_stream(int length);
 void YM2610Update_SoundTest(int p);
 #endif
 
-#ifdef SAVE_STATE
-STATE_SAVE( ym2610 );
-STATE_LOAD( ym2610 );
-#endif
-
 #endif /* _YM2610_H_ */

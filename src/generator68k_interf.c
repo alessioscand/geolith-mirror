@@ -230,13 +230,6 @@ void cpu_68k_reset(void)
 
 static uint32_t pc;
 
-
-void cpu_68k_mkstate(gzFile gzf,int mode) {
-
-	mkstate_data(gzf, &regs, sizeof(t_regs), mode);
-
-}
-
 void cpu_68k_init(void)
 {
     cpu68k_clearcache();

@@ -19,7 +19,8 @@
 #include "emu.h"
 #include "memory.h"
 #include "mamez80/z80.h"
-#include "state.h"
+
+#include <zlib.h>
 
 static uint8_t *z80map1, *z80map2, *z80map3, *z80map4;
 
@@ -34,22 +35,19 @@ uint8_t mame_z80mem[0x10000];
 //}Z80_STATE;
 //static Z80_STATE z80_st;
 
-void mame_z80_writeport16(uint16_t port, uint8_t value)
-{
+void mame_z80_writeport16(uint16_t port, uint8_t value) {
     //printf("Write port %d=%d\n",port,value);
     z80_port_write(port, value);
 }
 
-uint8_t mame_z80_readport16(uint16_t port)
-{
+uint8_t mame_z80_readport16(uint16_t port) {
     //printf("Read port %d\n",port);
     return z80_port_read(port);
 }
 
 
 /* cpu interface implementation */
-void cpu_z80_switchbank(uint8_t bank, uint16_t PortNo)
-{
+void cpu_z80_switchbank(uint8_t bank, uint16_t PortNo) {
     if (bank<=3)
 	z80_bank[bank]=PortNo;
 
@@ -77,34 +75,11 @@ void cpu_z80_switchbank(uint8_t bank, uint16_t PortNo)
     }
 }
 
-int mame_z80_irq_callback(int a)
-{
+int mame_z80_irq_callback(int a) {
     return 0;
 }
 
-
-void cpu_z80_mkstate(gzFile gzf,int mode) {
-
-/* Old save state version was completly buggy, tried to load it anyway
- * the size of the old struct was 2088
- * */
-	if (state_version==ST_VER2 && mode==STREAD) {
-		uint8_t z80_st_dummy[2088];
-		mkstate_data(gzf, &z80_st_dummy, 2088, mode);
-	} else
-		mkstate_data(gzf, z80_stateData(), z80_stateDataSize, mode);
-	mkstate_data(gzf, mame_z80mem, 0x10000, mode);
-	if (mode==STREAD) {
-		int i;
-		for (i = 0; i < 4; i++) {
-			cpu_z80_switchbank(i, z80_bank[i]);
-		}
-//		memcpy(mame_z80mem + 0xf800, memory.z80_ram, 0x800);
-	}
-}
-
-void cpu_z80_init(void)
-{
+void cpu_z80_init(void) {
     //  init_mamez80_mem();
     z80_init();
     //printf("Sizeof Z80_STATE %d\n",sizeof(z80_st));
@@ -125,27 +100,22 @@ void cpu_z80_init(void)
     //z80_init_save_state();
 }
 
-void cpu_z80_run(int nbcycle)
-{
+void cpu_z80_run(int nbcycle) {
     //printf("%x\n",z80_get_reg(Z80_PC));
     z80_execute(nbcycle);
 }
-void cpu_z80_nmi(void)
-{
+void cpu_z80_nmi(void) {
     //z80_set_irq_line(IRQ_LINE_NMI, 1/*PULSE_LINE- INTERNAL_CLEAR_LINE*/);
     z80_set_irq_line(IRQ_LINE_NMI, ASSERT_LINE);
     z80_set_irq_line(IRQ_LINE_NMI, CLEAR_LINE);
 }
-void cpu_z80_raise_irq(int l)
-{
+void cpu_z80_raise_irq(int l) {
     z80_set_irq_line(l, ASSERT_LINE);
 }
-void cpu_z80_lower_irq(void)
-{
+void cpu_z80_lower_irq(void) {
     z80_set_irq_line(0, CLEAR_LINE);
 }
 
-uint16_t cpu_z80_get_pc(void)
-{
+uint16_t cpu_z80_get_pc(void) {
     return 0;
 }
