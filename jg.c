@@ -28,7 +28,6 @@
 #include <jg/jg.h>
 #include <jg/jg_neogeo.h>
 
-#include "conf.h"
 #include "emu.h"
 #include "memory.h"
 #include "roms.h"
@@ -166,7 +165,6 @@ void jg_set_cb_settings_read(jg_cb_settings_read_t func) {
 
 int jg_init(void) {
     gn_log_set_callback(jg_cb_log);
-    cf_init();
     conf.sample_rate = SAMPLERATE;
     conf.raster = 1;
     conf.pal = 0;

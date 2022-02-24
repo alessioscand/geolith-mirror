@@ -66,7 +66,6 @@ CSRCS := generator68k/cpu68k.c \
 	mamez80/z80.c \
 	ym2610/ym2610.c \
 	ym2610/2610intf.c \
-	conf.c \
 	emu.c \
 	generator68k_interf.c \
 	mamez80_interf.c \
