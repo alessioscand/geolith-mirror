@@ -172,8 +172,11 @@ static inline int update_scanline(void) {
 	}
 
 	if (memory.vid.irq2taken) {
-		if ((last_line >= 21) && (current_line >= 20))
-			draw_screen_scanline(last_line - 21, current_line - 20, 0);
+		if (last_line < 21)
+			last_line = 21;
+		if (current_line < 20)
+			current_line = 20;
+		draw_screen_scanline(last_line - 21, current_line - 20, 0);
 		last_line = current_line;
 	}
 	++current_line;
