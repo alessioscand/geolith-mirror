@@ -70,7 +70,6 @@ CSRCS := generator68k/cpu68k.c \
 	emu.c \
 	generator68k_interf.c \
 	gnutil.c \
-	list.c \
 	mamez80_interf.c \
 	mame_layer.c \
 	memory.c \
