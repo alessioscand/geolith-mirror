@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <string.h>
-#include <alloca.h>
+
 #if defined(HAVE_LIBGEN_H)
 #include <libgen.h>
 #endif
@@ -51,6 +51,8 @@ void neo_pcm2_snk_1999(GAME_ROMS *r, int value);
 void neogeo_cmc50_m1_decrypt(GAME_ROMS *r);
 
 static int need_decrypt = 1;
+
+static const char *gngeo_dir;
 
 int neogeo_fix_bank_type = 0;
 
@@ -153,6 +155,10 @@ static uint8_t* iloadbuf = NULL;
  }
 
  */
+
+void gn_set_savedir(const char *dir) {
+	gngeo_dir = dir;
+}
 
 int init_mslugx(GAME_ROMS *r) {
 	unsigned int i;
@@ -1875,15 +1881,11 @@ void dr_free_roms(GAME_ROMS *r) {
 
 
 void open_nvram(char *name) {
-    char *filename;
+    char filename[256];
     size_t totread = 0;
-    const char *gngeo_dir = get_gngeo_dir();
-
     FILE *f;
-    int len = strlen(name) + strlen(gngeo_dir) + 4; /* ".nv\0" => 4 */
 
-    filename = (char *) alloca(len);
-    sprintf(filename, "%s%s.nv", gngeo_dir, name);
+    sprintf(filename, "%s/%s.nv", gngeo_dir, name);
 
     if ((f = fopen(filename, "rb")) == 0)
         return;
@@ -1894,15 +1896,11 @@ void open_nvram(char *name) {
 
 /* TODO: multiple memcard */
 void open_memcard(char *name) {
-    char *filename;
+    char filename[256];
     size_t totread = 0;
-    const char *gngeo_dir = get_gngeo_dir();
-
     FILE *f;
-    int len = strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
 
-    filename = (char *) alloca(len);
-    sprintf(filename, "%s%s", gngeo_dir, "memcard");
+    sprintf(filename, "%s/%s", gngeo_dir, "memcard");
 
     if ((f = fopen(filename, "rb")) == 0)
         return;
@@ -1911,23 +1909,15 @@ void open_memcard(char *name) {
 }
 
 void save_nvram(char *name) {
-    char *filename;
-    const char *gngeo_dir = get_gngeo_dir();
-
+    char filename[256];
     FILE *f;
-    int len = strlen(name) + strlen(gngeo_dir) + 4; /* ".nv\0" => 4 */
 
-    //strlen(name) + strlen(getenv("HOME")) + strlen("/.gngeo/") + 4;
-    int i;
-    //    printf("Save nvram %s\n",name);
-    for (i = 0xffff; i >= 0; i--) {
+    for (int i = 0xffff; i >= 0; i--) {
         if (memory.sram[i] != 0)
             break;
     }
 
-    filename = (char *) alloca(len);
-
-    sprintf(filename, "%s%s.nv", gngeo_dir, name);
+    sprintf(filename, "%s/%s.nv", gngeo_dir, name);
 
     if ((f = fopen(filename, "wb")) != NULL) {
         fwrite(memory.sram, 1, 0x10000, f);
@@ -1936,14 +1926,10 @@ void save_nvram(char *name) {
 }
 
 void save_memcard(char *name) {
-    char *filename;
-    const char *gngeo_dir = get_gngeo_dir();
-
+    char filename[256];
     FILE *f;
-    int len = strlen("memcard") + strlen(gngeo_dir) + 1; /* ".nv\0" => 4 */
 
-    filename = (char *) alloca(len);
-    sprintf(filename, "%s%s", gngeo_dir, "memcard");
+    sprintf(filename, "%s/%s", gngeo_dir, "memcard");
 
     if ((f = fopen(filename, "wb")) != NULL) {
         fwrite(memory.memcard, 1, 0x800, f);
@@ -1962,33 +1948,7 @@ int close_game(void) {
 }
 
 int load_game_config(char *rom_name) {
-	char *gpath;
-	char *drconf;
-
-    gpath=get_gngeo_dir();
-
 	cf_cache_conf();
-
-	if (rom_name) {
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
-		if (strstr(rom_name,".gno")!=NULL) {
-			char *name=dr_gno_romname(rom_name);
-			if (name) {
-				printf("Tring to load a gno file %s %s\n",rom_name,name);
-				drconf=alloca(strlen(gpath)+strlen(name)+strlen(".cf")+1);
-				sprintf(drconf,"%s%s.cf",gpath,name);
-			} else {
-				printf("Error while loading %s\n",rom_name);
-				return 0;
-			}
-		} else {
-#endif
-			drconf=alloca(strlen(gpath)+strlen(rom_name)+strlen(".cf")+1);
-			sprintf(drconf,"%s%s.cf",gpath,rom_name);
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
-		}
-#endif
-	}
 	return 1;
 }
 

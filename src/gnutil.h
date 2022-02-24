@@ -8,7 +8,6 @@
 
 #include <stdio.h>
 
-char *get_gngeo_dir(void);
 int check_dir(char *dir_name);
 void gn_set_error_msg(char *fmt,...);
 

@@ -18,32 +18,6 @@
 
 char gnerror[1024];
 
-/* check if dir_name exist. Create it if not */
-int check_dir(char *dir_name) {
-    DIR *d;
-
-    if (!(d = opendir(dir_name)) && (errno == ENOENT)) {
-        mkdir(dir_name, 0755);
-        return 0;
-    }
-    if(d)
-    	closedir(d);
-    return 1;
-}
-
-char *get_gngeo_dir(void) {
-    static char *filename = NULL;
-    int len = strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
-
-    if (!filename) {
-        filename = malloc(len * sizeof (char));
-        sprintf(filename, "%s/.gngeo/", getenv("HOME"));
-    }
-    check_dir(filename);
-    //printf("get_gngeo_dir %s\n",filename);
-    return filename;
-}
-
 void gn_set_error_msg(char *fmt,...) {
 	va_list pvar;
 	va_start(pvar, fmt);

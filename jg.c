@@ -47,7 +47,7 @@ static jg_cb_rumble_t jg_cb_rumble;
 static jg_cb_settings_read_t jg_cb_settings_read;
 
 static jg_coreinfo_t coreinfo = {
-    "name", "Gngeo JG", "0.8.1", "neogeo", NUMINPUTS, JG_HINT_MEDIA_ARCHIVED
+    "gngeo", "Gngeo JG", "0.8.1", "neogeo", NUMINPUTS, JG_HINT_MEDIA_ARCHIVED
 };
 
 static jg_videoinfo_t vidinfo = {
@@ -187,6 +187,7 @@ int jg_game_load(void) {
     cf_create_string_item("datafile", "", "PATH", 'd', dfilepath);
     cf_get_item_by_name("rompath")->flags|=CF_SYSTEMOPT;
     cf_get_item_by_name("datafile")->flags|=CF_SYSTEMOPT;
+    gn_set_savedir(pathinfo.save);
 
     init_game((char*)gameinfo.name);
 
