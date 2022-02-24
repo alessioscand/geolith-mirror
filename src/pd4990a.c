@@ -4,9 +4,6 @@
  *	The PD4990A is a serial I/O Calendar & Clock IC used in the
  *      NEO GEO and probably a couple of other machines.
  */
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include <time.h>
 

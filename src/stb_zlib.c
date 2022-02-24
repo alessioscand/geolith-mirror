@@ -6,10 +6,6 @@
 //      - fast huffman
 // implementation:
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #if !defined(HAVE_LIBZ) || !defined(HAVE_MMAP)
 
 #include "stb_zlib.h"

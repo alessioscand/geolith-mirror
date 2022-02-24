@@ -19,10 +19,6 @@
 #ifndef _MEMORY_H_
 #define _MEMORY_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "video.h"
 #include "ym2610/2610intf.h"
 #include "state.h"

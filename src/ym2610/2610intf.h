@@ -1,10 +1,6 @@
 #ifndef __2610INTF_H__
 #define __2610INTF_H__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "ym2610.h"
 
 #define YM2610UpdateRequest()

@@ -9,10 +9,6 @@
 #ifndef UNZIP_H_
 #define UNZIP_H_
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 #include "zlib.h"
 #else

@@ -6,11 +6,6 @@
  *      Author: Mathieu Peponas
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-
 #include <sys/stat.h>
 
 #if defined(HAVE_LIBZ) && defined (HAVE_MMAP)

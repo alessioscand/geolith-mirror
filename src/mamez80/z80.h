@@ -1,10 +1,6 @@
 #ifndef Z80_H
 #define Z80_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WORDS_BIGENDIAN
 #define LSB_FIRST
 #endif
