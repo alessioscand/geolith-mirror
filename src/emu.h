@@ -87,7 +87,13 @@ enum {
     AXE_Y_DIR
 };
 
-//config conf;
+enum gn_loglevel {
+    GN_LOG_DBG,
+    GN_LOG_INF,
+    GN_LOG_WRN,
+    GN_LOG_ERR,
+    GN_LOG_SCR
+};
 
 extern uint8_t *joy_button[2];
 extern int32_t *joy_axe[2];
@@ -98,6 +104,9 @@ void init_neo(void);
 void cpu_68k_dpg_step(void);
 void setup_misc_patch(char *name);
 void neogeo_reset(void);
+void gn_log_set_callback(void (*)(int, const char *, ...));
+
+extern void (*gn_log)(int, const char *, ...);
 
 #ifdef ENABLE_PROFILER
 #define PROFILER_START profiler_start

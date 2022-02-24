@@ -162,6 +162,7 @@ void jg_set_cb_settings_read(jg_cb_settings_read_t func) {
 }
 
 int jg_init(void) {
+    gn_log_set_callback(jg_cb_log);
     cf_init();
     return 1;
 }

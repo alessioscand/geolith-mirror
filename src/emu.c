@@ -31,6 +31,9 @@
 #include "neocrypt.h"
 #include "conf.h"
 
+// Log callback
+void (*gn_log)(int, const char *, ...);
+
 struct _conf_t conf;
 
 uint8_t *joy_button[2];
@@ -49,6 +52,11 @@ static uint32_t cpu_68k_timeslice_scanline = 200000 / 264.0;
 static uint32_t cpu_z80_timeslice = 73333;
 static uint32_t tm_cycle = 0;
 static uint32_t cpu_z80_timeslice_interlace = 200000 / 256.0;
+
+// Set the log callback
+void gn_log_set_callback(void (*cb)(int, const char *, ...)) {
+    gn_log = cb;
+}
 
 void setup_misc_patch(char *name) {
 	if (!strcmp(name, "ssideki")) {
