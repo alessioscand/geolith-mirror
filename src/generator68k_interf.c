@@ -18,12 +18,6 @@
 
 /* genrator68k interface */
 
-
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -33,9 +27,7 @@
 #include "generator68k/mem68k.h"
 #include "memory.h"
 #include "emu.h"
-#include "state.h"
 #include "debug.h"
-#include "conf.h"
 #include "gnutil.h"
 
 extern unsigned int cpu68k_clocks;
@@ -178,8 +170,7 @@ void bankswitcher_init() {
     mem68k_def[2].store_long=mem68k_store_bk_normal_long;
 }
 
-int mem68k_init(void)
-{
+int mem68k_init(void) {
     int i = 0;
     int j;
     bankswitcher_init();
@@ -201,13 +192,11 @@ int mem68k_init(void)
 
 /*** memptr routines - called for IPC generation so speed is not vital ***/
 
-uint8_t *mem68k_memptr_bad(uint32_t addr)
-{
+uint8_t *mem68k_memptr_bad(uint32_t addr) {
     return memory.rom.cpu_m68k.p;
 }
 
-uint8_t *mem68k_memptr_cpu(uint32_t addr)
-{
+uint8_t *mem68k_memptr_cpu(uint32_t addr) {
     if (addr < cpu68k_romlen) {
 	return (memory.rom.cpu_m68k.p + addr);
     }
@@ -215,31 +204,24 @@ uint8_t *mem68k_memptr_cpu(uint32_t addr)
     return memory.rom.cpu_m68k.p;
 }
 
-uint8_t *mem68k_memptr_bios(uint32_t addr)
-{
+uint8_t *mem68k_memptr_bios(uint32_t addr) {
     addr &= 0x1FFFF;
     return (memory.rom.bios_m68k.p + addr);
 }
 
-uint8_t *mem68k_memptr_cpu_bk(uint32_t addr)
-{
+uint8_t *mem68k_memptr_cpu_bk(uint32_t addr) {
     addr &= 0xFFFFF;
-    //printf("mem68k_memptr_cpu_bk %x %x %d\n",addr,bankaddress,current_cpu_bank);
     return (memory.rom.cpu_m68k.p + addr + bankaddress);
 }
 
-uint8_t *mem68k_memptr_ram(uint32_t addr)
-{
+uint8_t *mem68k_memptr_ram(uint32_t addr) {
     addr &= 0xffff;
     return (memory.ram + addr);
 }
 
 
-void cpu_68k_bankswitch(uint32_t address)
-{
-
+void cpu_68k_bankswitch(uint32_t address) {
     bankaddress = address;
-//    current_cpu_bank = data + 1;
 };
 
 void cpu_68k_reset(void)
@@ -258,33 +240,29 @@ void cpu_68k_mkstate(gzFile gzf,int mode) {
 
 void cpu_68k_init(void)
 {
-    printf("GEN68k CPU INIT\n");
-    //#ifdef WORDS_BIGENDIAN
-    
-	cpu68k_clearcache();
+    cpu68k_clearcache();
 
-    if (!CF_BOOL(cf_get_item_by_name("dump"))) {
-		swap_memory(memory.rom.cpu_m68k.p, memory.rom.cpu_m68k.size);
-		if (memory.rom.bios_m68k.p[0]==0x10) {
-			printf("BIOS BYTE1=%08x\n",memory.rom.bios_m68k.p[0]);
-			swap_memory(memory.rom.bios_m68k.p, memory.rom.bios_m68k.size);
-		}
-		swap_memory(memory.game_vector, 0x80);
+    swap_memory(memory.rom.cpu_m68k.p, memory.rom.cpu_m68k.size);
+    if (memory.rom.bios_m68k.p[0]==0x10) {
+	printf("BIOS BYTE1=%08x\n",memory.rom.bios_m68k.p[0]);
+	swap_memory(memory.rom.bios_m68k.p, memory.rom.bios_m68k.size);
     }
-    //#endif
+    swap_memory(memory.game_vector, 0x80);
 
     cpu68k_ram = memory.ram;
     cpu68k_rom = memory.rom.cpu_m68k.p;
+
     if (memory.rom.cpu_m68k.size < 0x100000)
 	cpu68k_romlen = memory.rom.cpu_m68k.size;
     else
 	cpu68k_romlen = 0x100000;
+
     mem68k_init();
     cpu68k_init();
+
     if (memory.rom.cpu_m68k.size > 0x100000) {
 	cpu_68k_bankswitch(0);
     }
-    //cpu_68k_init_save_state();
 }
 
 
@@ -292,13 +270,6 @@ int cpu_68k_run(uint32_t nb_cycle)
 {
     static int n;
     n = reg68k_external_execute(nb_cycle);
-    //printf("pc=%x\n",regs.pc);
-    /*
-    pc=regs.pc;
-    sr=regs.sr.sr_int;
-    asp=regs.sp;
-    memcpy(mregs,regs.regs,16*sizeof(uint32_t));
-    */
     cpu68k_endfield();
     return n;
 }
@@ -516,16 +487,10 @@ int cpu_68k_debuger(void (*execstep)(void),void (*dump)(void)) {
     return -1;
 }
 
-
-
-
-void cpu_68k_interrupt(int a)
-{
-    //  printf("Interrupt %d\n",a);
+void cpu_68k_interrupt(int a) {
     reg68k_external_autovector(a);
 }
 
-int cpu_68k_getcycle(void)
-{
+int cpu_68k_getcycle(void) {
     return cpu68k_clocks;
 }

@@ -145,7 +145,6 @@ CONF_ITEM* cf_get_item_by_val(int val) {
 }
 
 void cf_init(void) {
-	cf_create_bool_item("dump", "Create a gno dump in the current dir and exit", 0, GN_FALSE);
 	cf_create_bool_item("raster", "Enable the raster interrupt", 'r', GN_TRUE);
 	cf_create_bool_item("sound", "Enable sound", 0, GN_TRUE);
 	cf_create_bool_item("pal", "Use PAL timing (buggy)", 'P', GN_FALSE);
