@@ -24,11 +24,11 @@ int check_dir(char *dir_name) {
 
     if (!(d = opendir(dir_name)) && (errno == ENOENT)) {
         mkdir(dir_name, 0755);
-        return GN_FALSE;
+        return 0;
     }
     if(d)
     	closedir(d);
-    return GN_TRUE;
+    return 1;
 }
 
 char *get_gngeo_dir(void) {

@@ -1218,13 +1218,13 @@ int dr_load_bios(GAME_ROMS *r) {
 	if (pz == NULL) {
 		gn_set_error_msg( "Can't open BIOS\n%s\n", fpath);
 		free(fpath);
-		return GN_FALSE;
+		return 0;
 	}
 
 	memory.ng_lo = gn_unzip_file_malloc(pz, "000-lo.lo", 0x0, &size);
 	if (memory.ng_lo == NULL) {
 		gn_set_error_msg("Couldn't find 000-lo.lo\nPlease check your bios\n");
-		return GN_FALSE;
+		return 0;
 	}
 
 	if (!(r->info.flags & HAS_CUSTOM_SFIX_BIOS)) {
@@ -1237,7 +1237,7 @@ int dr_load_bios(GAME_ROMS *r) {
 					&r->bios_sfix.size);
 			if (r->bios_sfix.p == NULL) {
 				gn_set_error_msg("Couldn't find sfix.sfx nor sfix.sfix\nPlease check your bios\n");
-				return GN_FALSE;
+				return 0;
 			}
 		}
 	}
@@ -1259,7 +1259,7 @@ int dr_load_bios(GAME_ROMS *r) {
 					gn_set_error_msg( "Can't open Universal BIOS\n%s\n", unipath);
 					free(fpath);
 					free(unipath);
-					return GN_FALSE;
+					return 0;
 				}
 				r->bios_m68k.p = malloc(0x20000);
 				totread = fread(r->bios_m68k.p, 0x20000, 1, f);
@@ -1298,12 +1298,12 @@ int dr_load_bios(GAME_ROMS *r) {
 
 	gn_close_zip(pz);
 	free(fpath);
-	return GN_TRUE;
+	return 1;
 
 error:
 	gn_close_zip(pz);
 	free(fpath);
-	return GN_FALSE;
+	return 0;
 }
 
 ROM_DEF *dr_check_zip(char *filename) {
@@ -1344,13 +1344,13 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 	if (!drv) {
 		gn_set_error_msg("Can't find rom driver for %s\n", name);
 
-		return GN_FALSE;
+		return 0;
 	}
 
 	gz = open_rom_zip(rom_path, name);
 	if (gz == NULL) {
 		gn_set_error_msg("Rom %s/%s.zip not found\n", rom_path, name);
-		return GN_FALSE;
+		return 0;
 	}
 
 	/* Open Parent.
@@ -1359,7 +1359,7 @@ int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
 	gzp = open_rom_zip(rom_path, drv->parent);
 	if (gzp == NULL) {
 		gn_set_error_msg("Parent %s/%s.zip not found\n", rom_path, name);
-		return GN_FALSE;
+		return 0;
 	}
 
 	//printf("year %d\n",drv->year);
@@ -1479,7 +1479,7 @@ error1:
 		gn_close_zip(gzp);
 
 	free(drv);
-	return GN_FALSE;
+	return 0;
 }
 
 int dr_load_game(char *name) {
@@ -1492,8 +1492,8 @@ int dr_load_game(char *name) {
 	memory.bksw_offset = NULL;
 
 	rc = dr_load_roms(&memory.rom, rpath, name);
-	if (rc == GN_FALSE) {
-		return GN_FALSE;
+	if (rc == 0) {
+		return 0;
 	}
 	conf.game = memory.rom.info.name;
 	/* TODO *///neogeo_fix_bank_type =0;
@@ -1509,7 +1509,7 @@ int dr_load_game(char *name) {
 	/* TODO: Move this somewhere else. */
 	init_video();
 
-	return GN_TRUE;
+	return 1;
 
 }
 
@@ -1518,7 +1518,7 @@ int dr_load_game(char *name) {
 static int dump_region(FILE *gno, const ROM_REGION *rom, uint8_t id, uint8_t type,
 		uint32_t block_size) {
 	if (rom->p == NULL)
-		return GN_FALSE;
+		return 0;
 	fwrite(&rom->size, sizeof (uint32_t), 1, gno);
 	fwrite(&id, sizeof (uint8_t), 1, gno);
 	fwrite(&type, sizeof (uint8_t), 1, gno);
@@ -1578,7 +1578,7 @@ static int dump_region(FILE *gno, const ROM_REGION *rom, uint8_t id, uint8_t typ
 		offset_pos = ftell(gno);
 		printf("currpos=%li\n", offset_pos);
 	}
-	return GN_TRUE;
+	return 1;
 }
 
 int dr_save_gno(GAME_ROMS *r, char *filename) {
@@ -1590,7 +1590,7 @@ int dr_save_gno(GAME_ROMS *r, char *filename) {
 
 	gno = fopen(filename, "wb");
 	if (!gno)
-		return GN_FALSE;
+		return 0;
 
 	/* restore game vector */
 	memcpy(memory.rom.cpu_m68k.p, memory.game_vector, 0x80);
@@ -1649,7 +1649,7 @@ int dr_save_gno(GAME_ROMS *r, char *filename) {
 
 
 	fclose(gno);
-	return GN_TRUE;
+	return 1;
 }
 
 int read_region(FILE *gno, GAME_ROMS *roms) {
@@ -1697,7 +1697,7 @@ int read_region(FILE *gno, GAME_ROMS *roms) {
 			r = &roms->bios_m68k;
 			break;
 		default:
-			return GN_FALSE;
+			return 0;
 	}
 
 	printf("Read region %d %08X type %d\n", lid, size, type);
@@ -1726,13 +1726,13 @@ int read_region(FILE *gno, GAME_ROMS *roms) {
 
 		/* TODO: Find the best cache size dynamically! */
 		for (i = 0; cache_size[i] != 0; i++) {
-			if (init_sprite_cache(cache_size[i]*1024 * 1024, block_size) == GN_TRUE) {
+			if (init_sprite_cache(cache_size[i]*1024 * 1024, block_size) == 1) {
 				printf("Cache size=%dMB\n", cache_size[i]);
 				break;
 			}
 		}
 	}
-	return GN_TRUE;
+	return 1;
 }
 
 int dr_open_gno(char *filename) {
@@ -1753,13 +1753,13 @@ int dr_open_gno(char *filename) {
 
 	gno = fopen(filename, "rb");
 	if (!gno)
-		return GN_FALSE;
+		return 0;
 
 	totread += fread(fid, 8, 1, gno);
 	if (strncmp(fid, "gnodmpv1", 8) != 0) {
 		fclose(gno);
 		printf("Invalid GNO file\n");
-		return GN_FALSE;
+		return 0;
 	}
 	totread += fread(name, 8, 1, gno);
 	a = strchr(name, ' ');
@@ -1785,8 +1785,8 @@ int dr_open_gno(char *filename) {
 	/* Init rom and bios */
 	init_roms(r);
 	//convert_all_tile(r);
-	if (dr_load_bios(r)==GN_FALSE)
-		return GN_FALSE;
+	if (dr_load_bios(r)==0)
+		return 0;
 
 	conf.game = memory.rom.info.name;
 
@@ -1794,7 +1794,7 @@ int dr_open_gno(char *filename) {
 	memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
 	init_video();
 
-	return GN_TRUE;
+	return 1;
 }
 
 char *dr_gno_romname(char *filename) {
@@ -1827,11 +1827,11 @@ char *dr_gno_romname(char *filename) {
 #else
 
 static int dump_region(FILE *gno, ROM_REGION *rom, uint8_t id, uint8_t type, uint32_t block_size) {
-	return GN_TRUE;
+	return 1;
 }
 
 int dr_save_gno(GAME_ROMS *r, char *filename) {
-	return GN_TRUE;
+	return 1;
 }
 #endif
 
@@ -1952,13 +1952,13 @@ void save_memcard(char *name) {
 }
 
 int close_game(void) {
-    if (conf.game == NULL) return GN_FALSE;
+    if (conf.game == NULL) return 0;
     save_nvram(conf.game);
     save_memcard(conf.game);
 
     dr_free_roms(&memory.rom);
 
-    return GN_TRUE;
+    return 1;
 }
 
 int load_game_config(char *rom_name) {
@@ -1979,7 +1979,7 @@ int load_game_config(char *rom_name) {
 				sprintf(drconf,"%s%s.cf",gpath,name);
 			} else {
 				printf("Error while loading %s\n",rom_name);
-				return GN_FALSE;
+				return 0;
 			}
 		} else {
 #endif
@@ -1989,7 +1989,7 @@ int load_game_config(char *rom_name) {
 		}
 #endif
 	}
-	return GN_TRUE;
+	return 1;
 }
 
 int init_game(char *rom_name) {
@@ -1997,15 +1997,15 @@ int init_game(char *rom_name) {
 
 #if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
     if (strstr(rom_name, ".gno") != NULL) {
-        if (dr_open_gno(rom_name)==GN_FALSE)
-        	return GN_FALSE;
+        if (dr_open_gno(rom_name)==0)
+        	return 0;
     } else {
 #endif
 
         //open_rom(rom_name);
-	if (dr_load_game(rom_name) == GN_FALSE) {
+	if (dr_load_game(rom_name) == 0) {
 		printf("Can't load %s\n", rom_name);
-		return GN_FALSE;
+		return 0;
     }
 
 #if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
@@ -2027,5 +2027,5 @@ int init_game(char *rom_name) {
 	memory.vid.currentfix=0;
 
 
-    return GN_TRUE;
+    return 1;
 }

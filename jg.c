@@ -30,7 +30,6 @@
 
 #include "conf.h"
 #include "emu.h"
-#include "gnutil.h"
 #include "memory.h"
 #include "roms.h"
 #include "video.h"

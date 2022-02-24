@@ -14,9 +14,6 @@ void gn_set_error_msg(char *fmt,...);
 
 #define DEBUG_LOG printf
 
-#define GN_TRUE 1
-#define GN_FALSE 0
-
 #define GNERROR_SIZE 1024
 extern char gnerror[GNERROR_SIZE];
 

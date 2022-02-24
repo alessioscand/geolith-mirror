@@ -83,7 +83,7 @@ int init_sprite_cache(uint32_t size, uint32_t bsize) {
 	gcache->total_bank = memory.rom.tiles.size / gcache->slot_size;
 	gcache->ptr = malloc(gcache->total_bank * sizeof (uint8_t*));
 	if (gcache->ptr == NULL)
-		return GN_FALSE;
+		return 0;
 	//gcache->z_pos=malloc(gcache->total_bank*sizeof(unz_file_pos ));
 	memset(gcache->ptr, 0, gcache->total_bank * sizeof (uint8_t*));
 
@@ -91,7 +91,7 @@ int init_sprite_cache(uint32_t size, uint32_t bsize) {
 	gcache->data = malloc(gcache->size);
 	if (gcache->data == NULL) {
 		free(gcache->ptr);
-		return GN_FALSE;
+		return 0;
 	}
 	printf("INIT CACHE %p\n", gcache->data);
 
@@ -107,7 +107,7 @@ int init_sprite_cache(uint32_t size, uint32_t bsize) {
 
 	gcache->in_buf = malloc(compressBound(bsize));
 
-	return GN_TRUE;
+	return 1;
 }
 
 void free_sprite_cache(void) {

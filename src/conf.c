@@ -144,8 +144,8 @@ CONF_ITEM* cf_get_item_by_val(int val) {
 }
 
 void cf_init(void) {
-	cf_create_bool_item("raster", "Enable the raster interrupt", 'r', GN_TRUE);
-	cf_create_bool_item("pal", "Use PAL timing (buggy)", 'P', GN_FALSE);
+	cf_create_bool_item("raster", "Enable the raster interrupt", 'r', 1);
+	cf_create_bool_item("pal", "Use PAL timing (buggy)", 'P', 0);
 	cf_create_string_item("country", "Set the contry to japan, asia, usa or europe", "...", 0, "japan");
 	cf_create_string_item("system", "Set the system to home, arcade or unibios", "...", 0, "arcade");
 	cf_create_int_item("samplerate", "Set the sample rate to RATE", "RATE", 0, 44100);

@@ -36,30 +36,30 @@ int res_verify_datafile(char *file) {
 	if (!file) file=CF_STR(cf_get_item_by_name("datafile"));
 
 #if defined(MINGW) || defined(__MINGW32__) || defined(__MINGW64__)
-	return GN_TRUE;
+	return 1;
 #else
 	if (lstat(file,&sb)==-1) {
 		gn_set_error_msg("%s not found",file);
-		return GN_FALSE;
+		return 0;
 	}
 
 	/* if it's a dir, try to append gngeo_data.zip, and recheck */
 	if (S_ISDIR(sb.st_mode)) {
 		char *buf=malloc(strlen(file)+strlen("/gngeo_data.zip")+1);
 		snprintf(buf,254,"%s/%s",file,"gngeo_data.zip");
-		if(res_verify_datafile(buf)==GN_TRUE) {
+		if(res_verify_datafile(buf)==1) {
 			strncpy(CF_STR(cf_get_item_by_name("datafile")), buf, 254);
 			free(buf);
-			return GN_TRUE;
+			return 1;
 		} else {
 			gn_set_error_msg("%s not found",buf);
 			free(buf);
-			return GN_FALSE;
+			return 0;
 		}
 	}
-	if (S_ISREG(sb.st_mode)) return GN_TRUE;
+	if (S_ISREG(sb.st_mode)) return 1;
 	gn_set_error_msg("%s not a valid file",file);
-	return GN_FALSE;
+	return 0;
 #endif
 
 
