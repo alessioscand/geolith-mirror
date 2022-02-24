@@ -51,7 +51,7 @@ static void TimerHandler(int c, int count, double stepTime)
 	} else {			/* Start FM Timer */
 		double timeSec = (double) count * stepTime;
 		//uint32_t timeSec = count * (uint32_t)(stepTime*(1<<TIMER_SH));
-		
+
 		if (Timer[c] == 0) {
 			Timer[c] =
 				(timer_struct *) insert_timer(timeSec, c,

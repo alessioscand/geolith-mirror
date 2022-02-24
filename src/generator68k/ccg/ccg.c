@@ -889,7 +889,7 @@ void process(char *line, FILE *out)
     }
   }
   for (;;) {
-    if (!inAsm) { 
+    if (!inAsm) {
       char *delim= 0, save= 0;
       if ((delim= strstr(line, REG_OPEN)) != 0) {
 	char *delim2= 0;

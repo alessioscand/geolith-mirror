@@ -28,7 +28,7 @@ UINT8 *memory_region( GAME_ROMS *r, char *region ) {
 	if (strcmp(region,"sprites")==0) return r->tiles.p;
 	if (strcmp(region,"ym")==0) return r->adpcma.p;
 	printf("memory_region %s not found",region);
-	
+
 	return NULL;
 }
 UINT32 memory_region_length( GAME_ROMS *r, char *region ) {
@@ -40,7 +40,7 @@ UINT32 memory_region_length( GAME_ROMS *r, char *region ) {
 	if (strcmp(region,"sprites")==0) return r->tiles.size;
 	if (strcmp(region,"ym")==0) return r->adpcma.size;
 	printf("memory_region_length %s not found",region);
-	
+
 	return 0;
 }
 

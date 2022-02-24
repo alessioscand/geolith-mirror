@@ -24,7 +24,7 @@ typedef struct
    int maxcode[17];
    uint16 firstsymbol[16];
    uint8  size[288];
-   uint16 value[288]; 
+   uint16 value[288];
 } zhuffman;
 
 typedef struct
@@ -34,12 +34,12 @@ typedef struct
 	int totread,totsize;
 	int num_bits;
 	uint32 code_buffer;
-	
+
 	char *zout;
 	char *zout_start;
 	char *zout_end;
 	int   z_expandable;
-	
+
 	uint8 *cbuf;
 	uint32 cb_pos;
 	int final,left,type,dist;

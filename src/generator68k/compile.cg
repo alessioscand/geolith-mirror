@@ -55,8 +55,8 @@ static void gen68k_dumpreg(void)
 }
 
 void jit_dump68kreg(void) {
-#[ 
-call gen68k_dumpreg 
+#[
+call gen68k_dumpreg
 nop
 ]#;
 }
@@ -128,7 +128,7 @@ static int srcreg,dstreg;
 static uint32 srcaddr,dstaddr;
 static uint32 srcdata,dstdata,outdata;
 
-#define CLEAR_SR_FLAG(a) 
+#define CLEAR_SR_FLAG(a)
 
 /*
 #define CLEAR_SR_FLAG(a) \
@@ -234,7 +234,7 @@ static __inline__ void jit_idxval_src(t_ipc *ipc, t_iib *iib) {
 
 static int generate_ea(t_ipc *ipc, t_iib *iib, t_type type, int update) {
     t_datatype datatype = type ? iib->dtype : iib->stype;
-    
+
     switch(datatype) {
     case dt_Dreg:
 	if (type == tp_src) {
@@ -258,7 +258,7 @@ static int generate_ea(t_ipc *ipc, t_iib *iib, t_type type, int update) {
     default:
 	break;
     }
-    
+
     if (datatype == dt_Ainc && update) {
 	uint8 incr=0;
 	switch(iib->size) {
@@ -668,7 +668,7 @@ mov %r(outdatareg),%o1 # delayslot
 void generate_cc(t_ipc *ipc, t_iib *iib) {
     switch(iib->cc) {
     case 6:
-#[ 
+#[
 and %l7,ZMASK,%l6
 orn %g0,%l6,%l6
 andcc %l6,ZMASK,%g0
@@ -680,7 +680,7 @@ andcc %l6,ZMASK,%g0
 }
 
 void end_func(void) {
-  
+
   /*jit_dump68kreg();
     sparc_dump_localreg();*/
 #[
@@ -774,7 +774,7 @@ void compile_ipc(struct _t_ipc *ipc) {
 	    break;
 	}
 	//cast_outdata(ipc,iib);
-	
+
 	generate_eastore(ipc, iib, tp_dst,#(%l3)# );
 	pc_incr+=((iib->wordlen)*2);
 	break;
@@ -786,7 +786,7 @@ void compile_ipc(struct _t_ipc *ipc) {
 	generate_eaval(ipc, iib, tp_dst,0);
 
 	#[ sub %l2,%l1,%l3 ]#;
-	
+
 	generate_eastore(ipc, iib, tp_dst,#(%l3)# );
 	pc_incr+=((iib->wordlen)*2);
 	break;
@@ -799,23 +799,23 @@ void compile_ipc(struct _t_ipc *ipc) {
 	generate_eaval(ipc, iib, tp_dst,0);
 
 	#[ add %l2,%l1,%l3 ]#;
-	
+
 	generate_eastore(ipc, iib, tp_dst,#(%l3)# );
 	pc_incr+=((iib->wordlen)*2);
 	break;
     case i_ADDA:
 	generate_ea(ipc, iib, tp_src, 1);
 	generate_ea(ipc, iib, tp_dst, 1);
-	
+
 	generate_eaval(ipc, iib, tp_src,1);
 	//generate_eaval(ipc, iib, tp_dst);
 
-#[ 
+#[
 ld [%l0+dstreg],%l2
- add %l2,%l1,%l3 
+ add %l2,%l1,%l3
  st %l3,[%l0+dstreg]
     ]#;
-	
+
 	//generate_eastore(ipc, iib, tp_dst,#(%l3)# );
 	pc_incr+=((iib->wordlen)*2);
 	break;
@@ -827,7 +827,7 @@ ld [%l0+dstreg],%l2
 	generate_ea(ipc, iib, tp_dst, 1);
 	generate_eaval(ipc, iib, tp_src,0);
 	generate_eaval(ipc, iib, tp_dst,0);
- 
+
 	/* %l1 = 1<<(bitpos&(7 or 31)) */
 #[ mov 1,%l6 ]#;
 	switch (iib->size) {
@@ -838,7 +838,7 @@ ld [%l0+dstreg],%l2
 	default:
 	    break;
 	}
-#[ sll %l6,%l1,%l1 
+#[ sll %l6,%l1,%l1
 ]#;
 	switch(iib->mnemonic) {
 	case i_BTST:
@@ -860,7 +860,7 @@ ld [%l0+dstreg],%l2
 	}
 
 	//OUT("  ZFLAG = !(dstdata & bitpos);\n");
-	
+
 #{
 andcc %l2,%l1,%g0
 be fref
@@ -870,7 +870,7 @@ andn %l7,0x04,%l7
 fref:
 	}#;
 	if (iib->mnemonic!=i_BTST) generate_eastore(ipc, iib, tp_dst,#(%l3)# );
-	
+
 	pc_incr+=((iib->wordlen)*2);
 	break;
     case i_MOVE:
@@ -908,7 +908,7 @@ or %l5,%lo(0xFFFF),%l5
 
 	    orn %l1,0xFF,%l1  # ;
 	fref:
-	    
+
     }#;
 	    break;
 	case sz_long:
@@ -974,14 +974,14 @@ st %l4,[%l1]
 	    break;
 	default:
 	    //printf("YOOYOYOOY\n");
-#[ 
-set (ipc->src),%l1 
+#[
+set (ipc->src),%l1
 set &PC,%l2
 ld [%l2],%l3
 ]#;
 	if (iib->cc==0) {
-#[ 
-mov %l1,%l3 
+#[
+mov %l1,%l3
 st %l3,[%l2]
     ]#;
 	} else if (iib->cc==1) {
@@ -994,10 +994,10 @@ st %l3,[%l2]
 #{
     be fref # ;
     add %l3,(pc_incr+(iib->wordlen)*2),%l3 # ;
-    
+
     mov %l1,%l3
 	fref:
-    
+
     st %l3,[%l2] #;
 	    }#;
 	}
@@ -1070,9 +1070,9 @@ lduh [%l6], %l7
 	    compile_ipc(ipc);
 
 	    if (buf_size+(unsigned int)(asm_pc-start)>(CODE_BUF_MAX-CODE_BUF_MARGE)) {
-		
+
 		printf("Warning %d %d\n",buf_size,(unsigned int)(asm_pc-start));
-		
+
 		need_more=1;
 		break;
 	    }

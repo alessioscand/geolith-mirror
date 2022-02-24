@@ -466,7 +466,7 @@ void patch_cthd2003( running_machine *machine )
 	int i;
 	UINT16 *mem16 = (UINT16 *)memory_region(machine, "maincpu");
 
-	// special ROM banking handler 
+	// special ROM banking handler
 	memory_install_write16_handler(cputag_get_address_space(machine, "maincpu", ADDRESS_SPACE_PROGRAM), 0x2ffff0, 0x2fffff, 0, 0, cthd2003_bankswitch_w);
 
 	// theres still a problem on the character select screen but it seems to be related to cpu core timing issues,

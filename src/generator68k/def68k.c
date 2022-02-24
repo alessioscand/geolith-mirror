@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
   fflush(stdout);
 
   return(0);
-}  
+}
 
 /* process a line */
 
@@ -316,7 +316,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
     fprintf(stderr, "%d: Tab not found at end of set flags\n", lineno);
     exit(1);
   }
-      
+
   /* mnemonic */
 
   m = mnemonic;
@@ -431,7 +431,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 		lineno);
 	  exit(1);
 	}
-	sbitpos = start[biti]; 
+	sbitpos = start[biti];
 	break;
       case 'I':
 	imm_notzero = 1;
@@ -444,11 +444,11 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 		lineno);
 	  exit(1);
 	}
-	sbitpos = start[biti]; 
+	sbitpos = start[biti];
 	break;
       case 'V':
 	stype = dt_ImmV;
-	sbitpos = start[bitv]; 
+	sbitpos = start[bitv];
 	break;
       default:
 	p--;
@@ -668,14 +668,14 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
       fprintf(stderr, "%d: Immediate data not allowed as dest\n", lineno);
       exit(1);
     }
-  } 
+  }
 
   if (expand_d_ea_f) {
     if (f[ea_Imm]) {
       fprintf(stderr, "%d: Immediate data not allowed as dest\n", lineno);
       exit(1);
     }
-  } 
+  }
 
   if ((num[bite] && !num[bitE]) || (num[bitE] && !num[bite])) {
     fprintf(stderr, "%d: There must be both eee and EEE\n", lineno);
@@ -775,9 +775,9 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 	      /* set correct value into where cccc is */
 	      bits |= cc<<start[bitc];
 	    }
-	    
+
 	    /* deal with EA 'e' when used as source */
-	    
+
 	    if (num[bite] && expand_s_ea_e) {
 	      if (!e[ea_e]) {
 		/* this has been disabled using -Axyz */
@@ -824,9 +824,9 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 		}
 	      }
 	    }
-	    
+
 	    /* deal with EA 'e' when used as destination */
-	    
+
 	    if (num[bite] && expand_d_ea_e) {
 	      if (!e[ea_e]) {
 		/* this has been disabled using -Axyz */
@@ -873,9 +873,9 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 		}
 	      }
 	    }
-	    
+
 	    /* deal with EA 'f' when used as destination */
-	    
+
 	    if (num[bitf] && expand_d_ea_f) {
 	      if (!f[ea_f]) {
 		/* this has been disabled using -Axyz */
@@ -1287,7 +1287,7 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 	    }
 
 	    /* write output lines */
-	    
+
 	    fprintf(outiibs, "  { 0x%x, 0x%x, %d, { %d, %d, %d, %d, %d }, ",
 		    mask, bits, mnemonic_num, priv, endblk, imm_notzero, used,
 		    set);
@@ -1309,9 +1309,9 @@ void procline(char *line, int lineno, FILE *outiibs, FILE *outfuncs,
 		      "t_ipc *ipc); /* %s */\n", total, mnemonic);
 	      fprintf(outproto, "extern void cpu_op_%ib("
 		      "t_ipc *ipc); /* %s */\n", total, mnemonic);
-	      
+
 	    }
-	    
+
 	    total++;
 
 	  } /* cc */

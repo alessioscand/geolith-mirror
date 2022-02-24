@@ -5235,7 +5235,7 @@ void cpu_op_185a(t_ipc *ipc) /* MOVEPMR */ {
   uint32 srcaddr = (sint32)ADDRREG(srcreg) + (sint32)(sint16)ipc->src;
   int dstreg = (ipc->opcode >> 9) & 7;
   uint32 dstdata = DATAREG(dstreg);
-  uint32 outdata = (fetchbyte(srcaddr) << 24) | (fetchbyte(srcaddr+2) << 16) | 
+  uint32 outdata = (fetchbyte(srcaddr) << 24) | (fetchbyte(srcaddr+2) << 16) |
     (fetchbyte(srcaddr+4) << 8) | fetchbyte(srcaddr+6);
 
   DATAREG(dstreg) = outdata;

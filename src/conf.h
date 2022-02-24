@@ -23,7 +23,7 @@ typedef struct CONF_ITEM {
 	int short_opt;
 	char *help;
 	char *help_arg; /* used for print usage */
-	int (*action)(struct CONF_ITEM *self); /* if defined, the option is 
+	int (*action)(struct CONF_ITEM *self); /* if defined, the option is
 						  available only on the command line */
 	int flags;
 	int modified;

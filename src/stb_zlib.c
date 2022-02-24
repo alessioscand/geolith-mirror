@@ -80,7 +80,7 @@ static int zbuild_huffman(zhuffman *z, uint8 *sizelist, int num)
    // DEFLATE spec for generating codes
    memset(sizes, 0, sizeof(sizes));
    memset(z->fast, 255, sizeof(z->fast));
-   for (i=0; i < num; ++i) 
+   for (i=0; i < num; ++i)
       ++sizes[sizelist[i]];
    sizes[0] = 0;
    for (i=1; i < 16; ++i)
@@ -154,7 +154,7 @@ __forceinline static unsigned int zreceive(zbuf *z, int n)
    k = z->code_buffer & ((1 << n) - 1);
    z->code_buffer >>= n;
    z->num_bits -= n;
-   return k;   
+   return k;
 }
 
 __forceinline static int zhuffman_decode(zbuf *a, zhuffman *z)
@@ -189,7 +189,7 @@ static int length_base[31] = {
    15,17,19,23,27,31,35,43,51,59,
    67,83,99,115,131,163,195,227,258,0,0 };
 
-static int length_extra[31]= 
+static int length_extra[31]=
 { 0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0,0,0 };
 
 static int dist_base[32] = { 1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,
@@ -304,7 +304,7 @@ static int parse_huffman_block(zbuf *a,int maxlen)
 			push_cbuf(a,o);
 			*a->zout++ = o;
 			totdec++;
-						
+
 			if (totdec==maxlen) {
 				//printf("  Dyn block max read reach %d %d %d\n",a->type,a->left,a->dist);
 				return maxlen;
@@ -391,7 +391,7 @@ static int parse_header(zbuf *a) {
 	uint8 header[4];
 	int len,nlen,k;
 	switch(a->type) {
-	case 0: 
+	case 0:
 		//printf("CCCCCCCCCCCcccccc\n");
 /* Read uncompressed block header */
 		if (a->num_bits & 7)
@@ -421,7 +421,7 @@ static int parse_header(zbuf *a) {
 		if (!zbuild_huffman(&a->z_length  , default_length  , 288)) return 0;
 		if (!zbuild_huffman(&a->z_distance, default_distance,  32)) return 0;
 		//printf("Fixed code length\n");
-		
+
 		break;
 	case 2:
 		// Dynamic huffman code lenght
@@ -433,9 +433,9 @@ static int parse_header(zbuf *a) {
 	}
 }
 
-/* Create a zbuf struct, suitable to decode a zlib stream 
+/* Create a zbuf struct, suitable to decode a zlib stream
    The stream come from ibuffer if not null, f otherwise.
-   ilen is the size of the stream 
+   ilen is the size of the stream
    return a zbuf struct, NULL on error
 */
 zbuf *stbi_zlib_create_zbuf(const char *ibuffer,FILE *f,int ilen) {
@@ -451,7 +451,7 @@ zbuf *stbi_zlib_create_zbuf(const char *ibuffer,FILE *f,int ilen) {
 
 	/* How many left since last call */
 	a->left=0;
-	
+
 	if (!ibuffer && !f) return NULL;
 	a->zbuffer = (uint8 *) ibuffer;
 	a->zf=f;
@@ -486,12 +486,12 @@ int stbi_zlib_decode_noheader_stream(zbuf *a,char *obuffer, int olen) {
 			//printf("Begining of a block type %d\n",a->type);
 			parse_header(a);
 		}
-	
+
 		switch(a->type) {
 		case 0: /* Uncompressed block */
 			readed=copy_uncompressed_block(a,todo);
 			totread+=readed;
-			
+
 			break;
 		case 1: /* Huffman block (fixed) */
 		case 2: /* Huffman block (dyn, calculated in parse_header() ) */
