@@ -55,36 +55,6 @@ struct _conf_t {
 };
 extern struct _conf_t conf;
 
-enum {
-    HOTKEY_MASK_A = 0x1,
-    HOTKEY_MASK_B = 0x2,
-    HOTKEY_MASK_C = 0x4,
-    HOTKEY_MASK_D = 0x8,
-};
-
-enum {
-    BUT_A = 0,
-    BUT_B,
-    BUT_C,
-    BUT_D,
-    BUT_START,
-    BUT_COIN,
-    KB_UP,
-    KB_DOWN,
-    KB_LEFT,
-    KB_RIGHT,
-    BUT_HOTKEY0,
-    BUT_HOTKEY1,
-    BUT_HOTKEY2,
-    BUT_HOTKEY3
-};
-enum {
-    AXE_X = 6,
-    AXE_Y,
-    AXE_X_DIR,
-    AXE_Y_DIR
-};
-
 enum gn_loglevel {
     GN_LOG_DBG,
     GN_LOG_INF,
