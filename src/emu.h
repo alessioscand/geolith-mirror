@@ -39,14 +39,8 @@ typedef enum COUNTRY {
 
 struct _conf_t {
     char *game;
-    uint16_t x_start;
-    uint16_t y_start;
-    uint16_t res_x;
-    uint16_t res_y;
     uint16_t sample_rate;
     uint16_t test_switch;
-    uint8_t rom_type;
-    uint8_t special_bios;
     uint8_t extra_xor;
     uint8_t pal;
     SYSTEM system;
