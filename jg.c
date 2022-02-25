@@ -76,7 +76,23 @@ static jg_fileinfo_t gameinfo;
 static jg_inputinfo_t inputinfo[NUMINPUTS];
 static jg_inputstate_t *input_device[NUMINPUTS];
 
+// Emulator settings
+static jg_setting_t settings_gn[] = {   // name, desc, default, min, max
+    { "system", "", 0, 0, 2 }, // 0 = Universe BIOS, 1 = Arcade, 2 = Home
+    { "region", "", 3, 0, 3 }, // 0 = US, 1 = JP, 2 = AS, 3 = EU
+};
+
+enum {
+    SYS,
+    REGION,
+};
+
 static char dfilepath[256];
+
+static void gn_settings_read(void) {
+    jg_cb_settings_read(settings_gn,
+        sizeof(settings_gn) / sizeof(jg_setting_t));
+}
 
 static void gn_input_refresh(void) {
     // Coin slots
@@ -164,17 +180,13 @@ void jg_set_cb_settings_read(jg_cb_settings_read_t func) {
 }
 
 int jg_init(void) {
+    gn_settings_read();
     gn_log_set_callback(jg_cb_log);
     conf.sample_rate = SAMPLERATE;
     conf.raster = 1;
-    conf.pal = 0;
-    //conf.system = SYS_UNIBIOS;
-    //conf.system = SYS_HOME;
-    conf.system = SYS_ARCADE;
-    conf.country = CTY_JAPAN;
-    //conf.country = CTY_USA;
-    //conf.country = CTY_ASIA;
-    //conf.country = CTY_EUROPE;
+    conf.pal = 0; // Not currently supported
+    conf.system = settings_gn[SYS].value;
+    conf.country = settings_gn[REGION].value;
     return 1;
 }
 

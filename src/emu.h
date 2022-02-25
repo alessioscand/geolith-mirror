@@ -23,17 +23,17 @@
 #include <stdint.h>
 
 typedef enum SYSTEM {
-    SYS_ARCADE=0,
-    SYS_HOME,
     SYS_UNIBIOS,
+    SYS_ARCADE,
+    SYS_HOME,
     SYS_MAX
 } SYSTEM;
 
 typedef enum COUNTRY {
-    CTY_JAPAN=0,
-    CTY_EUROPE,
     CTY_USA,
+    CTY_JAPAN,
     CTY_ASIA,
+    CTY_EUROPE,
     CTY_MAX
 } COUNTRY;
 

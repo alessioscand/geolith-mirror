@@ -1184,7 +1184,7 @@ int dr_load_bios(GAME_ROMS *r) {
 
 	pz = gn_open_zip(fpath);
 	if (pz == NULL) {
-		gn_log(GN_LOG_ERR, "Failed to open BIOS: %s\n", fpath);
+		gn_log(GN_LOG_ERR, "Failed to open BIOS archive: %s\n", fpath);
 		return 0;
 	}
 
@@ -1207,61 +1207,42 @@ int dr_load_bios(GAME_ROMS *r) {
 
 	if (!(r->info.flags & HAS_CUSTOM_CPU_BIOS)) {
 		if (conf.system == SYS_UNIBIOS) {
-			char *unipath;
-
-			/* First check in neogeo.zip */
-			r->bios_m68k.p = gn_unzip_file_malloc(pz, "uni-bios.rom", 0x0, &r->bios_m68k.size);
-			if (r->bios_m68k.p == NULL) {
-				unipath = malloc(strlen(rpath) + strlen("uni-bios.rom") + 2);
-
-				sprintf(unipath, "%s/uni-bios.rom", rpath);
-				f = fopen(unipath, "rb");
-				if (!f) { /* TODO: Fallback to arcade mode */
-					gn_log(GN_LOG_ERR, "Failed to load Universal BIOS from BIOS archive!\n");
-					free(unipath);
-					return 0;
-				}
-				r->bios_m68k.p = malloc(0x20000);
-				totread = fread(r->bios_m68k.p, 0x20000, 1, f);
-				r->bios_m68k.size = 0x20000;
-				fclose(f);
-				free(unipath);
-			}
-		} else {
-			if (conf.system == SYS_HOME) {
-				romfile = "aes-bios.bin";
-			} else {
+			r->bios_m68k.p = gn_unzip_file_malloc(pz, "uni-bios_4_0.rom", 0x0, &r->bios_m68k.size);
+		}
+		else {
+			/*if (conf.system == SYS_HOME) { // Currently broken
+				romfile = "neo-epo.bin";
+			}*/
+			//else {
 				switch (conf.country) {
+					case CTY_USA: // Winners don't use drugs
+						romfile = "sp-u2.sp1";
+						break;
 					case CTY_JAPAN:
 						romfile = "vs-bios.rom";
 						break;
-					case CTY_USA:
-						romfile = "usa_2slt.bin";
-						break;
 					case CTY_ASIA:
-						romfile = "asia-s3.rom";
+						romfile = "sp-s3.sp1";
 						break;
-					default:
+					case CTY_EUROPE:
 						romfile = "sp-s2.sp1";
 						break;
 				}
-			}
+			//}
+
 			gn_log(GN_LOG_DBG, "Loading %s\n", romfile);
-			r->bios_m68k.p = gn_unzip_file_malloc(pz, romfile, 0x0,
-					&r->bios_m68k.size);
+			r->bios_m68k.p = gn_unzip_file_malloc(pz, romfile, 0x0, &r->bios_m68k.size);
+
 			if (r->bios_m68k.p == NULL) {
 				gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n", romfile);
-				goto error;
+				gn_close_zip(pz);
+				return 0;
 			}
 		}
 	}
 
 	gn_close_zip(pz);
 	return 1;
-
-error:
-	gn_close_zip(pz);
-	return 0;
 }
 
 ROM_DEF *dr_check_zip(char *filename) {
