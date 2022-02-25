@@ -185,7 +185,6 @@ int jg_init(void) {
     gn_settings_read();
     gn_log_set_callback(jg_cb_log);
     conf.sample_rate = SAMPLERATE;
-    conf.raster = 1;
     conf.pal = 0; // Not currently supported
     conf.system = settings_gn[SYS].value;
     conf.country = settings_gn[REGION].value;

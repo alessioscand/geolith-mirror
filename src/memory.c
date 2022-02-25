@@ -55,24 +55,14 @@ void neogeo_sound_irq(int irq) {
 }
 
 static __inline__ uint16_t read_neo_control(void) {
-
     unsigned int scan;
+    scan = current_line /*+ 22*/; /* current scanline */
+    //scan+=0x110;
+    //if (scan >=0x200) scan=scan-0x108;
+    scan += 0xF8;
 
-    if (!conf.raster) {
-        scan = cpu_68k_getcycle() / 766.28; /* current scanline */
-        //	scan+=0x100;
-        //	if (scan >=0x200) scan=scan-0x108;
-        scan += 0xF8;
-        return (scan << 7) | (conf.pal << 3) | (neogeo_frame_counter & 0x0007); /* frame counter */
-    }
-    else {
-        scan = current_line /*+ 22*/; /* current scanline */
-        //scan+=0x110;
-        //if (scan >=0x200) scan=scan-0x108;
-        scan += 0xF8;
-
-        return (scan << 7) | (conf.pal << 3) | (neogeo_frame_counter & 0x0007); /* frame counter */
-    }
+    // frame counter
+    return (scan << 7) | (conf.pal << 3) | (neogeo_frame_counter & 0x0007);
 }
 
 static __inline__ void write_neo_control(uint16_t data) {

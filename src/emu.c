@@ -186,38 +186,19 @@ void main_loop(void) {
 		my_timer();
 	}
 
-	if (conf.raster) {
-		current_line = 0;
-		for (int i = 0; i < 264; ++i) {
-			tm_cycle = cpu_68k_run(cpu_68k_timeslice_scanline - tm_cycle);
-			if (update_scanline())
-				cpu_68k_interrupt(2);
-		}
+	current_line = 0;
+	for (int i = 0; i < 264; ++i) {
 		tm_cycle = cpu_68k_run(cpu_68k_timeslice_scanline - tm_cycle);
-
-		update_screen();
-		++memory.watchdog;
-		if (memory.watchdog > 7) {
-            gn_log(GN_LOG_DBG, "Watchdog reset\n");
-			cpu_68k_reset();
-        }
-		cpu_68k_interrupt(1);
+		if (update_scanline())
+			cpu_68k_interrupt(2);
 	}
-	else {
-		tm_cycle = cpu_68k_run(cpu_68k_timeslice - tm_cycle);
-		int a = neo_interrupt();
-		/* state handling (we save/load before interrupt) */
-		//state_handling(pending_save_state, pending_load_state);
+	tm_cycle = cpu_68k_run(cpu_68k_timeslice_scanline - tm_cycle);
 
-		++memory.watchdog;
-
-		if (memory.watchdog > 7) { // Watchdog reset after ~0.13 == ~7.8 frames
-            gn_log(GN_LOG_DBG, "Watchdog reset\n");
-			cpu_68k_reset();
-        }
-
-		if (a) {
-			cpu_68k_interrupt(a);
-		}
+	update_screen();
+	++memory.watchdog;
+	if (memory.watchdog > 7) {
+		gn_log(GN_LOG_DBG, "Watchdog reset\n");
+		cpu_68k_reset();
 	}
+	cpu_68k_interrupt(1);
 }

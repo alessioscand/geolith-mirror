@@ -45,7 +45,6 @@ struct _conf_t {
     uint16_t res_y;
     uint16_t sample_rate;
     uint16_t test_switch;
-    uint8_t raster;
     uint8_t rom_type;
     uint8_t special_bios;
     uint8_t extra_xor;
