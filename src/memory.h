@@ -28,7 +28,7 @@
 #define READ_BYTE(a)          (*(uint8_t *)(a))
 #define WRITE_BYTE(a,d)       (*(uint8_t *)(a) = (d))
 #define SWAP_BYTE_ADDRESS(a)  ((Uintptr)(a)^1)
-#define SWAP16(y) (y << 8) | (y >> 8)
+#define SWAP16(y) ((y & 0xff) << 8) | ((y >> 8) & 0xff)
 
 #define USE_GENERATOR68K 1
 

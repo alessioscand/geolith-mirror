@@ -82,7 +82,6 @@ void setup_misc_patch(char *name) {
 		WRITE_WORD_ROM(&RAM[0x3c36], 0x4e71);
 		WRITE_WORD_ROM(&RAM[0x3c38], 0x4e71);
 	}
-
 }
 
 void neogeo_reset(void) {
