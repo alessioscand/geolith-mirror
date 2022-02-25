@@ -93,10 +93,6 @@ enum gn_loglevel {
     GN_LOG_SCR
 };
 
-extern uint8_t *joy_button[2];
-extern int32_t *joy_axe[2];
-extern uint32_t joy_numaxes[2];
-
 void main_loop(void);
 void init_neo(void);
 void cpu_68k_dpg_step(void);

@@ -35,10 +35,6 @@ void (*gn_log)(int, const char *, ...);
 
 struct _conf_t conf;
 
-uint8_t *joy_button[2];
-int32_t *joy_axe[2];
-uint32_t joy_numaxes[2];
-
 int frame;
 int nb_interlace = 256;
 int current_line;
