@@ -1208,6 +1208,11 @@ int dr_load_bios(GAME_ROMS *r) {
 	if (!(r->info.flags & HAS_CUSTOM_CPU_BIOS)) {
 		if (conf.system == SYS_UNIBIOS) {
 			r->bios_m68k.p = gn_unzip_file_malloc(pz, "uni-bios_4_0.rom", 0x0, &r->bios_m68k.size);
+			if (r->bios_m68k.p == NULL) {
+				gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n", "uni-bios_4_0.rom");
+				gn_close_zip(pz);
+				return 0;
+			}
 		}
 		else {
 			/*if (conf.system == SYS_HOME) { // Currently broken
