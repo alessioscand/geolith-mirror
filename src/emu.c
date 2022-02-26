@@ -42,9 +42,7 @@ int current_line;
 static int fc;
 static int last_line;
 
-static uint32_t cpu_68k_timeslice = 200000;
 static uint32_t cpu_68k_timeslice_scanline = 200000 / 264.0;
-static uint32_t cpu_z80_timeslice = 73333;
 static uint32_t tm_cycle = 0;
 static uint32_t cpu_z80_timeslice_interlace = 200000 / 256.0;
 
@@ -112,8 +110,6 @@ void init_neo(void) {
 }
 
 static inline int neo_interrupt(void) {
-    static int frames;
-
 	pd4990a_addretrace();
 	// printf("neogeo_frame_counter_speed %d\n",neogeo_frame_counter_speed);
 	if (!(memory.vid.irq2control & 0x8)) {
