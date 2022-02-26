@@ -97,12 +97,12 @@ static void gn_z80_mem_wr(void *userdata, uint16_t addr, uint8_t data) {
  * |      0x18 | Address 0x08 (?)              | Disable NMIs   | 0x1c |
  * ---------------------------------------------------------------------
  */
-static uint8_t gn_z80_port_rd(void *userdata, uint16_t port) {
+static uint8_t gn_z80_port_rd(z80 *userdata, uint16_t port) {
     if (userdata) { } // Unused
     return z80_port_read(port);
 }
 
-static void gn_z80_port_wr(void *userdata, uint16_t port, uint8_t value) {
+static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
     if (userdata) { } // Unused
     z80_port_write(port, value);
 }

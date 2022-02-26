@@ -3,7 +3,7 @@ SOURCEDIR := $(abspath $(patsubst %/,%,$(dir $(abspath $(lastword \
 
 CC ?= cc
 CFLAGS ?= -O2
-FLAGS := -Wno-incompatible-pointer-types #-Wall -Wextra -Wshadow -Wmissing-prototypes -pedantic
+FLAGS := -std=c11
 DEPDIR := $(SOURCEDIR)/deps
 SRCDIR := $(SOURCEDIR)/src
 
