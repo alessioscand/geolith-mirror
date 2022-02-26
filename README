@@ -7,3 +7,23 @@ Gngeo JG
 Gngeo JG is an emulator for the Neo Geo.
 
 This repository lives at https://gitlab.com/jgemu/gngeo
+
+Copyright
+---------
+Gngeo JG
+  Copyright (c) 2001-2015 Peponas Mathieu (GPL-2.0-or-later)
+  Copyright (c) 2022, Rupert Carmichael (MIT)
+  See COPYING, and individual license headers in source files
+
+Generator 68K (GPL-2.0-only)
+  Copyright (c) 1997-2001 James Ponder
+  See source files in src/generator68k
+
+YM2610 Emulator (XMAME)
+  Copyright (c) 1998 Tatsuyuki Satoh
+  Copyright (c) 2001-2003 Jarek Burczynski
+  See source files in src/ym2610
+
+Z80 CPU Core (MIT)
+  Copyright (c) 2019 Nicolas Allemand
+  See src/z80/LICENSE
