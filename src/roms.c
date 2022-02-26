@@ -1,3 +1,4 @@
+#include <libgen.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1231,6 +1232,8 @@ int dr_load_bios(GAME_ROMS *r) {
 						break;
 					case CTY_EUROPE:
 						romfile = "sp-s2.sp1";
+						break;
+					default:
 						break;
 				}
 			//}
