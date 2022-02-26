@@ -11,13 +11,16 @@ This repository lives at https://gitlab.com/jgemu/gngeo
 Copyright
 ---------
 Gngeo JG
-  Copyright (c) 2001-2015 Peponas Mathieu (GPL-2.0-or-later)
+  Copyright (c) 2001-2015 Mathieu Peponas (GPL-2.0-or-later)
   Copyright (c) 2022 Rupert Carmichael (MIT)
   See COPYING, and individual license headers in source files
 
 Generator 68K (GPL-2.0-only)
   Copyright (c) 1997-2001 James Ponder
   See source files in src/generator68k
+
+Neoboot/Neocrypt (XMAME)
+  Copyright (c) 2001 MAME Contributors
 
 Jolly Good Z80 (MIT)
   Copyright (c) 2019 Nicolas Allemand
