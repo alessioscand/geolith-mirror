@@ -42,7 +42,7 @@ uint8_t pending_command;
 uint8_t result_code;
 
 uint32_t bankaddress = 0;
-extern int current_line;
+extern unsigned current_line;
 
 void neogeo_sound_irq(int irq) {
     //printf("neogeo_sound_irq %d\n",irq);

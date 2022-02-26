@@ -35,12 +35,12 @@ void (*gn_log)(int, const char *, ...);
 
 struct _conf_t conf;
 
-int frame;
 int nb_interlace = 256;
-int current_line;
+unsigned current_line;
 
-static int fc;
 static int last_line;
+static int frame;
+static unsigned fc;
 
 static uint32_t cpu_68k_timeslice_scanline = 200000 / 264.0;
 static uint32_t tm_cycle = 0;
@@ -58,9 +58,8 @@ void setup_misc_patch(char *name) {
 
 	if (!strcmp(name, "mslugx")) {
 		/* patch out protection checks */
-		int i;
 		uint8_t *RAM = memory.rom.cpu_m68k.p;
-		for (i = 0; i < memory.rom.cpu_m68k.size; i += 2) {
+		for (unsigned i = 0; i < memory.rom.cpu_m68k.size; i += 2) {
 			if ((READ_WORD_ROM(&RAM[i + 0]) == 0x0243)
 					&& (READ_WORD_ROM(&RAM[i + 2]) == 0x0001) && /* andi.w  #$1, D3 */
 			(READ_WORD_ROM(&RAM[i + 4]) == 0x6600)) { /* bne xxxx */
