@@ -3,7 +3,7 @@ SOURCEDIR := $(abspath $(patsubst %/,%,$(dir $(abspath $(lastword \
 
 CC ?= cc
 CFLAGS ?= -O2
-FLAGS := -std=c11 -Wall
+FLAGS := -std=c11 -Wall -Wno-unused-variable
 DEPDIR := $(SOURCEDIR)/deps
 SRCDIR := $(SOURCEDIR)/src
 
@@ -43,7 +43,6 @@ ifeq ($(UNAME), Linux)
 endif
 
 CSRCS := generator68k/cpu68k.c \
-	generator68k/def68k.c \
 	generator68k/diss68k.c \
 	generator68k/reg68k.c \
 	generator68k/tab68k2.c \
