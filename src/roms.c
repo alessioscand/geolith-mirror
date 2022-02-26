@@ -1274,7 +1274,6 @@ int dr_load_roms(GAME_ROMS *r, const char *rom_path, char *name) {
 	//unzFile *gz,*gzp=NULL,*rdefz;
 	PKZIP *gz, *gzp = NULL;
 	ROM_DEF *drv;
-	int i;
 	int romsize;
 
 	memset(r, 0, sizeof (GAME_ROMS));
@@ -1356,10 +1355,10 @@ int dr_load_roms(GAME_ROMS *r, const char *rom_path, char *name) {
 	/* Now, load the roms */
 	read_counter = 0;
 	romsize = 0;
-	for (i = 0; i < drv->nb_romfile; i++)
+	for (unsigned i = 0; i < drv->nb_romfile; i++)
 		romsize += drv->rom[i].size;
 
-	for (i = 0; i < drv->nb_romfile; i++) {
+	for (unsigned i = 0; i < drv->nb_romfile; i++) {
 		//		gn_update_pbar(i, drv->nb_romfile);
 		if (load_region(gz, r, drv->rom[i].region, drv->rom[i].src,
 				drv->rom[i].dest, drv->rom[i].size, drv->rom[i].crc,
@@ -1449,10 +1448,6 @@ int dr_load_game(char *name) {
 
 }
 
-int dr_save_gno(GAME_ROMS *r, char *filename) {
-	return 1;
-}
-
 void dr_free_roms(GAME_ROMS *r) {
 	free_region(&r->cpu_m68k);
 	free_region(&r->cpu_z80c);
@@ -1510,6 +1505,7 @@ void open_memcard(char *name) {
     FILE *f;
 
     sprintf(filename, "%s/%s", gngeo_dir, "memcard");
+    if (name) { } // FIXME: Per-game memcards
 
     if ((f = fopen(filename, "rb")) == 0)
         return;
@@ -1539,6 +1535,7 @@ void save_memcard(char *name) {
     FILE *f;
 
     sprintf(filename, "%s/%s", gngeo_dir, "memcard");
+    if (name) { } // FIXME: Per-game memcards
 
     if ((f = fopen(filename, "wb")) != NULL) {
         fwrite(memory.memcard, 1, 0x800, f);
