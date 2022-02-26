@@ -20,7 +20,7 @@
 #define _TIMER_H_
 
 typedef struct timer_struct {
-    double time;		// when
+    double time;        // when
     uint32_t odo_debut;
     uint32_t nb_cycle;
     int param;

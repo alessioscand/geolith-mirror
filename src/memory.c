@@ -284,9 +284,9 @@ uint8_t mem68k_fetch_video_byte(uint32_t addr) {
             break;
         }
     }
-    //	addr &= 0xFFFF;
-    //	if (addr == 0xe)
-    //		return 0xff;
+    //  addr &= 0xFFFF;
+    //  if (addr == 0xe)
+    //      return 0xff;
     return 0xFF;
 }
 
@@ -829,11 +829,11 @@ void mem68k_store_bk_normal_word(uint32_t addr, uint16_t data) {
         /* unscramble bank number */
         data =
             (((data >> memory.bksw_unscramble[1]) & 1) << 0) +
-            (((data	>> memory.bksw_unscramble[2]) & 1) << 1) +
-            (((data	>> memory.bksw_unscramble[3]) & 1) << 2) +
-            (((data	>> memory.bksw_unscramble[4]) & 1) << 3) +
-            (((data	>> memory.bksw_unscramble[5]) & 1) << 4) +
-            (((data	>> memory.bksw_unscramble[6]) & 1) << 5);
+            (((data >> memory.bksw_unscramble[2]) & 1) << 1) +
+            (((data >> memory.bksw_unscramble[3]) & 1) << 2) +
+            (((data >> memory.bksw_unscramble[4]) & 1) << 3) +
+            (((data >> memory.bksw_unscramble[5]) & 1) << 4) +
+            (((data >> memory.bksw_unscramble[6]) & 1) << 5);
 
         bankaddress = 0x100000 + memory.bksw_offset[data];
         cpu_68k_bankswitch(bankaddress);

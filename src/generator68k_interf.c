@@ -149,9 +149,9 @@ static void swap_memory(uint8_t * mem, uint32_t length)
 {
     /* swap bytes in each word */
     for (unsigned i = 0; i < length; i += 2) {
-	uint8_t j = mem[i];
-	mem[i] = mem[i + 1];
-	mem[i + 1] = j;
+        uint8_t j = mem[i];
+        mem[i] = mem[i + 1];
+        mem[i + 1] = j;
     }
 }
 
@@ -171,16 +171,16 @@ int mem68k_init(void) {
     int j;
     bankswitcher_init();
     do {
-	for (j = mem68k_def[i].start; j <= mem68k_def[i].end; j++) {
-	    mem68k_memptr[j] = mem68k_def[i].memptr;
-	    mem68k_fetch_byte[j] = mem68k_def[i].fetch_byte;
-	    mem68k_fetch_word[j] = mem68k_def[i].fetch_word;
-	    mem68k_fetch_long[j] = mem68k_def[i].fetch_long;
-	    mem68k_store_byte[j] = mem68k_def[i].store_byte;
-	    mem68k_store_word[j] = mem68k_def[i].store_word;
-	    mem68k_store_long[j] = mem68k_def[i].store_long;
-	}
-	i++;
+        for (j = mem68k_def[i].start; j <= mem68k_def[i].end; j++) {
+            mem68k_memptr[j] = mem68k_def[i].memptr;
+            mem68k_fetch_byte[j] = mem68k_def[i].fetch_byte;
+            mem68k_fetch_word[j] = mem68k_def[i].fetch_word;
+            mem68k_fetch_long[j] = mem68k_def[i].fetch_long;
+            mem68k_store_byte[j] = mem68k_def[i].store_byte;
+            mem68k_store_word[j] = mem68k_def[i].store_word;
+            mem68k_store_long[j] = mem68k_def[i].store_long;
+        }
+        i++;
     }
     while ((mem68k_def[i].start != 0) || (mem68k_def[i].end != 0));
     return 0;
@@ -195,7 +195,7 @@ uint8_t *mem68k_memptr_bad(uint32_t addr) {
 
 uint8_t *mem68k_memptr_cpu(uint32_t addr) {
     if (addr < cpu68k_romlen) {
-	return (memory.rom.cpu_m68k.p + addr);
+        return (memory.rom.cpu_m68k.p + addr);
     }
     /* We should never reach this point */
     return memory.rom.cpu_m68k.p;
@@ -231,8 +231,8 @@ void cpu_68k_init(void)
 
     swap_memory(memory.rom.cpu_m68k.p, memory.rom.cpu_m68k.size);
     if (memory.rom.bios_m68k.p[0]==0x10) {
-	gn_log(GN_LOG_DBG, "BIOS byte 0 = %08x\n",memory.rom.bios_m68k.p[0]);
-	swap_memory(memory.rom.bios_m68k.p, memory.rom.bios_m68k.size);
+        gn_log(GN_LOG_DBG, "BIOS byte 0 = %08x\n",memory.rom.bios_m68k.p[0]);
+        swap_memory(memory.rom.bios_m68k.p, memory.rom.bios_m68k.size);
     }
     swap_memory(memory.game_vector, 0x80);
 
@@ -240,15 +240,15 @@ void cpu_68k_init(void)
     cpu68k_rom = memory.rom.cpu_m68k.p;
 
     if (memory.rom.cpu_m68k.size < 0x100000)
-	cpu68k_romlen = memory.rom.cpu_m68k.size;
+        cpu68k_romlen = memory.rom.cpu_m68k.size;
     else
-	cpu68k_romlen = 0x100000;
+        cpu68k_romlen = 0x100000;
 
     mem68k_init();
     cpu68k_init();
 
     if (memory.rom.cpu_m68k.size > 0x100000) {
-	cpu_68k_bankswitch(0);
+        cpu_68k_bankswitch(0);
     }
 }
 

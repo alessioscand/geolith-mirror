@@ -15,23 +15,23 @@
 #include <zlib.h>
 
 typedef struct ZFILE {
-	//char *name;
-	int pos;
-	z_streamp zb;
-	uint8_t *inbuf;
-	FILE *f;
-	int csize,uncsize;
-	int cmeth; /* compression method */
-	int readed;
+    //char *name;
+    int pos;
+    z_streamp zb;
+    uint8_t *inbuf;
+    FILE *f;
+    int csize,uncsize;
+    int cmeth; /* compression method */
+    int readed;
 }ZFILE;
 
 typedef struct PKZIP {
-	FILE *file;
-	int cd_offset; /* Central dir offset */
-	int cd_size;
-	int cde_offset;
-	uint16_t nb_item;
-	uint8_t *map;
+    FILE *file;
+    int cd_offset; /* Central dir offset */
+    int cd_size;
+    int cde_offset;
+    uint16_t nb_item;
+    uint8_t *map;
 }PKZIP;
 
 void gn_unzip_fclose(ZFILE *z);

@@ -57,35 +57,35 @@
 #define GZX_MAPPED 2
 
 typedef struct neo_mem {
-	GAME_ROMS rom;
-	uint8_t ram[0x10000];
-	VIDEO vid;
-	uint8_t *ng_lo;                          /* Put it in memory.vid? use zoom table in rom */
+        GAME_ROMS rom;
+        uint8_t ram[0x10000];
+        VIDEO vid;
+        uint8_t *ng_lo;                          /* Put it in memory.vid? use zoom table in rom */
 
-	uint32_t nb_of_tiles;
+        uint32_t nb_of_tiles;
 
-	uint8_t sram[0x10000];
+        uint8_t sram[0x10000];
 
-    //	uint32_t *pen_usage;                      /* TODO: it's also in rom  */
-	uint8_t fix_board_usage[4096];
-	uint8_t *fix_game_usage;
+    //  uint32_t *pen_usage;                      /* TODO: it's also in rom  */
+        uint8_t fix_board_usage[4096];
+        uint8_t *fix_game_usage;
 
-	uint8_t z80_ram[0x800];
-	uint8_t game_vector[0x80];
+        uint8_t z80_ram[0x800];
+        uint8_t game_vector[0x80];
         int   current_vector;
-	/* internal representation of joystick */
-	uint8_t intern_p1, intern_p2, intern_coin, intern_start;
+        /* internal representation of joystick */
+        uint8_t intern_p1, intern_p2, intern_coin, intern_start;
 
-	/* crypted rom bankswitch system */
+        /* crypted rom bankswitch system */
 
-	uint32_t bksw_handler;
+        uint32_t bksw_handler;
 
-	uint8_t *bksw_unscramble;
-	int *bksw_offset;
-	uint16_t sma_rng_addr;
-	uint8_t memcard[0x800];
+        uint8_t *bksw_unscramble;
+        int *bksw_offset;
+        uint16_t sma_rng_addr;
+        uint8_t memcard[0x800];
 
-	uint32_t watchdog;
+        uint32_t watchdog;
 } neo_mem;
 
 extern neo_mem memory;
@@ -108,7 +108,7 @@ extern uint8_t pending_command;
 extern uint8_t result_code;
 
 /* 68k cpu Banking control */
-extern uint32_t bankaddress;		/* current bank */
+extern uint32_t bankaddress;            /* current bank */
 //uint8_t current_cpu_bank;
 
 /* misc utility func */
@@ -142,7 +142,7 @@ void z80_port_write(uint16_t PortNb, uint8_t Value);
 void neogeo_sound_irq(int irq);
 
 #define LONG_FETCH(fetchname) uint32_t fetchname ## _long(uint32_t addr) { \
-      return (fetchname ## _word(addr) << 16) |	fetchname ## _word(addr+2); \
+      return (fetchname ## _word(addr) << 16) | fetchname ## _word(addr+2); \
 }
 
 #define LONG_STORE(storename) void storename ## _long(uint32_t addr, uint32_t data) { \

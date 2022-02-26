@@ -1,7 +1,7 @@
 /*
- *	Emulation for the NEC PD4990A.
+ *  Emulation for the NEC PD4990A.
  *
- *	The PD4990A is a serial I/O Calendar & Clock IC used in the
+ *  The PD4990A is a serial I/O Calendar & Clock IC used in the
  *      NEO GEO and probably a couple of other machines.
  */
 
@@ -13,66 +13,66 @@
 /* If you ever read this Leejanne, you know what I mean :-) */
 struct pd4990a_s pd4990a =
 {
-  0x00,	/* seconds BCD */
-  0x00,	/* minutes BCD */
-  0x00,	/* hours   BCD */
-  0x09,	/* days    BCD */
-  9,		/* month   Hexadecimal form */
-  0x73,	/* year    BCD */
-  1		/* weekday BCD */
+  0x00, /* seconds BCD */
+  0x00, /* minutes BCD */
+  0x00, /* hours   BCD */
+  0x09, /* days    BCD */
+  9,        /* month   Hexadecimal form */
+  0x73, /* year    BCD */
+  1     /* weekday BCD */
 };
 
 static uint32_t shiftlo,shifthi;
-static int retraces = 0;		/* Assumes 60 retraces a second */
+static int retraces = 0;        /* Assumes 60 retraces a second */
 static int testwaits = 0;
 static int maxwaits = 1;
-static int testbit = 0;		/* Pulses a bit in order to simulate */
-					/* test output */
+static int testbit = 0;     /* Pulses a bit in order to simulate */
+                    /* test output */
 static int outputbit = 0;
 static int bitno = 0;
 
 static char reading=0;
 static char writing=0;
 
-#define DATA_BIT	0x1
-#define CLOCK_BIT	0x2
-#define END_BIT		0x4
+#define DATA_BIT    0x1
+#define CLOCK_BIT   0x2
+#define END_BIT     0x4
 
 void pd4990a_addretrace()
 {
   ++testwaits;
   if(testwaits>=maxwaits)
   {
-	testbit ^= 1;
-	testwaits=0;
+    testbit ^= 1;
+    testwaits=0;
   }
   retraces++;
   if (retraces < 60)
-	return;
+    return;
   retraces = 0;
   pd4990a.seconds++;
   if ( (pd4990a.seconds & 0x0f) < 10 )
-	return;
+    return;
   pd4990a.seconds &= 0xf0;
   pd4990a.seconds += 0x10;
   if (pd4990a.seconds < 0x60)
-	return;
+    return;
   pd4990a.seconds = 0;
   pd4990a.minutes++;
   if ( (pd4990a.minutes & 0x0f) < 10 )
-	return;
+    return;
   pd4990a.minutes &= 0xf0;
   pd4990a.minutes += 0x10;
   if (pd4990a.minutes < 0x60)
-	return;
+    return;
   pd4990a.minutes = 0;
   pd4990a.hours++;
   if ( (pd4990a.hours & 0x0f) < 10 )
-	return;
+    return;
   pd4990a.hours &= 0xf0;
   pd4990a.hours += 0x10;
   if (pd4990a.hours < 0x24)
-	return;
+    return;
   pd4990a.hours = 0;
   pd4990a_increment_day();
 }
@@ -83,16 +83,16 @@ void pd4990a_init(void) {
 
 //    printf("pd4990a_init\n");
 
-    pd4990a.seconds = 0x00;		/* BCD */
-    pd4990a.minutes = 0x00;		/* BCD */
-    pd4990a.hours = 0x00;		/* BCD */
-    pd4990a.days = 0x09;		/* BCD */
-    pd4990a.month = 9;			/* Hexadecimal form */
-    pd4990a.year = 0x73;		/* BCD */
-    pd4990a.weekday = 1;		/* BCD */
+    pd4990a.seconds = 0x00;     /* BCD */
+    pd4990a.minutes = 0x00;     /* BCD */
+    pd4990a.hours = 0x00;       /* BCD */
+    pd4990a.days = 0x09;        /* BCD */
+    pd4990a.month = 9;          /* Hexadecimal form */
+    pd4990a.year = 0x73;        /* BCD */
+    pd4990a.weekday = 1;        /* BCD */
 
-    retraces = 0;		/* Assumes 60 retraces a second */
-    testbit = 0;		/* Pulses a bit in order to simulate */
+    retraces = 0;       /* Assumes 60 retraces a second */
+    testbit = 0;        /* Pulses a bit in order to simulate */
     reading=0;
     writing=0;
     shiftlo=0;
@@ -135,34 +135,34 @@ void pd4990a_increment_day(void)
     case 1: case 3: case 5: case 7: case 8: case 10: case 12:
       if (pd4990a.days == 0x32)
       {
-	pd4990a.days = 1;
-	pd4990a_increment_month();
+    pd4990a.days = 1;
+    pd4990a_increment_month();
       }
       break;
     case 2:
       real_year = (pd4990a.year>>4)*10 + (pd4990a.year&0xf);
       if ((real_year % 4) && (!(real_year % 100) || (real_year % 400)))
       {
-	if (pd4990a.days == 0x29)
-	{
-	  pd4990a.days = 1;
-	  pd4990a_increment_month();
-	}
+    if (pd4990a.days == 0x29)
+    {
+      pd4990a.days = 1;
+      pd4990a_increment_month();
+    }
       }
       else
       {
-	if (pd4990a.days == 0x30)
-	{
-	  pd4990a.days = 1;
-	  pd4990a_increment_month();
-	}
+    if (pd4990a.days == 0x30)
+    {
+      pd4990a.days = 1;
+      pd4990a_increment_month();
+    }
       }
       break;
     case 4: case 6: case 9: case 11:
       if (pd4990a.days == 0x31)
       {
-	pd4990a.days = 1;
-	pd4990a_increment_month();
+    pd4990a.days = 1;
+    pd4990a_increment_month();
       }
       break;
   }
@@ -240,9 +240,9 @@ static void pd4990a_resetbitstream(void)
 
 static void pd4990a_writebit(uint8_t bit)
 {
-  if(bitno<=31)	/*low part */
+  if(bitno<=31) /*low part */
     shiftlo|=bit<<bitno;
-  else	/*high part */
+  else  /*high part */
     shifthi|=bit<<(bitno-32);
 }
 
@@ -284,33 +284,33 @@ static void pd4990a_process_command(void)
 {
   switch(pd4990a_getcommand())
   {
-    case 0x1:	/*load output register */
+    case 0x1:   /*load output register */
       bitno=0;
       if(reading)
-	pd4990a_readbit();	/*prepare first bit */
+    pd4990a_readbit();  /*prepare first bit */
       shiftlo=0;
       shifthi=0;
       break;
     case 0x2:
-      writing=0;	/*store register to current date */
+      writing=0;    /*store register to current date */
       pd4990a_update_date();
       break;
-      case 0x3:	/*start reading */
-	reading=1;
-	break;
-	case 0x7:	/*switch testbit every frame */
-	  maxwaits=1;
-	  break;
-	  case 0x8:	/*switch testbit every half-second */
-	    maxwaits=30;
-	    break;
+      case 0x3: /*start reading */
+    reading=1;
+    break;
+    case 0x7:   /*switch testbit every frame */
+      maxwaits=1;
+      break;
+      case 0x8: /*switch testbit every half-second */
+        maxwaits=30;
+        break;
   }
 }
 
 void pd4990a_serial_control(unsigned char data)
 {
   static int clock_line=0;
-  static int command_line=0;	/*?? */
+  static int command_line=0;    /*?? */
 
   /*Check for command end */
   if(command_line && !(data&END_BIT)) /*end of command */
@@ -320,7 +320,7 @@ void pd4990a_serial_control(unsigned char data)
   }
   command_line=data&END_BIT;
 
-  if(clock_line && !(data&CLOCK_BIT))	/*clock lower edge */
+  if(clock_line && !(data&CLOCK_BIT))   /*clock lower edge */
   {
     pd4990a_writebit(data&DATA_BIT);
     pd4990a_nextbit();
