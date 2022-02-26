@@ -36,6 +36,7 @@ SOFTWARE.
 #include "resfile.h"
 #include "video.h"
 #include "ym2610/2610intf.h"
+#include "ym2610/ym2610.h"
 
 #define SAMPLERATE 44100
 #define FRAMERATE 60
@@ -154,10 +155,6 @@ extern uint16_t play_buffer[16384];
 
 static void gn_audio(void) {
     YM2610Update_stream(audinfo.spf / CHANNELS);
-    int16_t *pbuf = (int16_t*)play_buffer;
-    int16_t *abuf = (int16_t*)audinfo.buf;
-    for (unsigned i = 0; i < audinfo.spf; ++i)
-    abuf[i] = pbuf[i];
     jg_cb_audio(audinfo.spf);
 }
 
@@ -264,6 +261,7 @@ void jg_setup_video(void) {
 }
 
 void jg_setup_audio(void) {
+    YM2610SetBuffer(audinfo.buf);
 }
 
 void jg_set_inputstate(jg_inputstate_t *ptr, int port) {

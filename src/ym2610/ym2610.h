@@ -39,6 +39,8 @@ int  YM2610TimerOver(int channel);
 void YM2610Update(int *p);
 void YM2610Update_stream(int length);
 
+void YM2610SetBuffer(int16_t *buf);
+
 #ifdef SOUND_TEST
 void YM2610Update_SoundTest(int p);
 #endif

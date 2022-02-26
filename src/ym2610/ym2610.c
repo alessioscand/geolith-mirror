@@ -2837,7 +2837,11 @@ int YM2610TimerOver(int ch) {
 	return ST->irq;
 }
 s16 mixing_buffer[2][16384];
-uint16_t play_buffer[16384];
+int16_t *play_buffer;
+
+void YM2610SetBuffer(int16_t *buf) {
+	play_buffer = buf;
+}
 
 /* Generate samples for one of the YM2610s */
 void YM2610Update_stream(int length) {
