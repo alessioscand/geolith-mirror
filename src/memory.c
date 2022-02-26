@@ -59,7 +59,7 @@ void neogeo_sound_irq(int irq) {
     //printf("neogeo_sound_end %d\n",irq);
 }
 
-static __inline__ uint16_t read_neo_control(void) {
+static inline uint16_t read_neo_control(void) {
     unsigned int scan;
     scan = current_line /*+ 22*/; /* current scanline */
     //scan+=0x110;
@@ -70,13 +70,13 @@ static __inline__ uint16_t read_neo_control(void) {
     return (scan << 7) | (conf.pal << 3) | (neogeo_frame_counter & 0x0007);
 }
 
-static __inline__ void write_neo_control(uint16_t data) {
+static inline void write_neo_control(uint16_t data) {
     neogeo_frame_counter_speed = (((data >> 8) & 0xff) + 1);
     memory.vid.irq2control = data & 0xff;
     return;
 }
 
-static __inline__ void write_irq2pos(uint32_t data) {
+static inline void write_irq2pos(uint32_t data) {
     memory.vid.irq2pos = data;
     if (memory.vid.irq2control & 0x20) {
         int line = (memory.vid.irq2pos + 0x3b) / 0x180; /* turfmast goes as low as 0x145 */
@@ -487,7 +487,7 @@ LONG_STORE(mem68k_store_sram)
 ;
 
 /**** PALETTE ****/
-/*static __inline__ */uint32_t convert_pal(uint16_t npal) {
+/*static inline */uint32_t convert_pal(uint16_t npal) {
     int r = 0, g = 0, b = 0, dark = 0;
     r = ((npal >> 7) & 0x1e) | ((npal >> 14) & 0x01);
     g = ((npal >> 3) & 0x1e) | ((npal >> 13) & 0x01);
