@@ -226,8 +226,6 @@ void cpu_68k_reset(void)
     cpu68k_reset();
 }
 
-static uint32_t pc;
-
 void cpu_68k_init(void)
 {
     cpu68k_clearcache();
