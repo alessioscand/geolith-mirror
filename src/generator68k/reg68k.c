@@ -183,7 +183,6 @@ void reg68k_external_autovector(int avno)
 void reg68k_internal_autovector(int avno)
 {
   int curlevel = (regs.sr.sr_int >> 8) & 7;
-  uint32 tmpaddr;
 
   if ((curlevel < avno || avno == 7) && !cpu68k_frozen) {
     if (regs.stop) {
@@ -205,7 +204,6 @@ void reg68k_internal_autovector(int avno)
     regs.sr.sr_struct.t = 0;
     regs.sr.sr_int &= ~0x0700;
     regs.sr.sr_int |= avno << 8;
-    tmpaddr = regs.pc;
     regs.pc = fetchlong((V_AUTO + avno - 1) * 4);
     LOG_USER(("AUTOVECTOR %d: %X -> %X", avno, tmpaddr, regs.pc));
     regs.pending = 0;
