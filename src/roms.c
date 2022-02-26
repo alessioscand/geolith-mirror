@@ -1232,6 +1232,8 @@ int dr_load_bios(GAME_ROMS *r) {
 					case CTY_EUROPE:
 						romfile = "sp-s2.sp1";
 						break;
+					default:
+						break;
 				}
 			//}
 
