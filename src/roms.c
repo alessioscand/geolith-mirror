@@ -1,8 +1,9 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include <libgen.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
 #include <string.h>
 
 #include "roms.h"
@@ -1037,7 +1038,7 @@ static int load_region(PKZIP *pz, GAME_ROMS *r, int region, uint32_t src,
 	return 0;
 }
 
-static PKZIP *open_rom_zip(char *rom_path, char *name) {
+static PKZIP *open_rom_zip(const char *rom_path, char *name) {
 	char *buf;
 	int size = strlen(rom_path) + strlen(name) + 6;
 	PKZIP *gz;
@@ -1275,7 +1276,7 @@ ROM_DEF *dr_check_zip(char *filename) {
 	return drv;
 }
 
-int dr_load_roms(GAME_ROMS *r, char *rom_path, char *name) {
+int dr_load_roms(GAME_ROMS *r, const char *rom_path, char *name) {
 	//unzFile *gz,*gzp=NULL,*rdefz;
 	PKZIP *gz, *gzp = NULL;
 	ROM_DEF *drv;
