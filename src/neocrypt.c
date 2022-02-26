@@ -746,11 +746,10 @@ void svcpcb_gfx_decrypt(running_machine *machine)
 /* and a further swap on the s1 data */
 void svcpcb_s1data_decrypt(running_machine *machine)
 {
-	int i;
 	uint8_t *s1 = memory_region( machine, "fixed" );
 	size_t s1_size = memory_region_length( machine, "fixed" );
 
-	for( i = 0; i < s1_size; i++ ) // Decrypt S
+	for( unsigned i = 0; i < s1_size; i++ ) // Decrypt S
 	{
 		s1[ i ] = BITSWAP8( s1[ i ] ^ 0xd2, 4, 0, 7, 2, 5, 1, 6, 3 );
 	}
