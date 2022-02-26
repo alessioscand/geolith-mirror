@@ -6,7 +6,7 @@
  *      Author: Mathieu Peponas
  */
 
-#define _POSIX_SOURCE
+#define _XOPEN_SOURCE 700
 
 #include <sys/stat.h>
 #include <sys/mman.h>
