@@ -21,14 +21,14 @@ Generator 68K (GPL-2.0-only)
   Copyright (c) 1997-2001 James Ponder
   See source files in src/generator68k
 
-Neoboot/Neocrypt (XMAME)
-  Copyright (c) 2001 MAME Contributors
-
 Jolly Good Z80 (MIT)
   Copyright (c) 2019 Nicolas Allemand
   Copyright (c) 2020-2022 Rupert Carmichael
   Copyright (c) 2022 rofl0r
   See src/z80/LICENSE
+
+Neoboot/Neocrypt (XMAME)
+  Copyright (c) 2001 MAME Contributors
 
 YM2610 Emulator (XMAME)
   Copyright (c) 1998 Tatsuyuki Satoh
