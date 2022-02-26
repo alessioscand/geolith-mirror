@@ -156,7 +156,7 @@ static void gn_audio(void) {
     YM2610Update_stream(audinfo.spf / CHANNELS);
     int16_t *pbuf = (int16_t*)play_buffer;
     int16_t *abuf = (int16_t*)audinfo.buf;
-    for (int i = 0; i < audinfo.spf; ++i)
+    for (unsigned i = 0; i < audinfo.spf; ++i)
     abuf[i] = pbuf[i];
     jg_cb_audio(audinfo.spf);
 }
@@ -196,6 +196,7 @@ void jg_deinit(void) {
 }
 
 void jg_reset(int hard) {
+    if (hard) { }
 }
 
 void jg_exec_frame(void) {
@@ -226,10 +227,12 @@ int jg_game_unload(void) {
 }
 
 int jg_state_load(const char *filename) {
+    if (filename) { }
     return 0;
 }
 
 int jg_state_save(const char *filename) {
+    if (filename) { }
     return 0;
 }
 
@@ -240,6 +243,7 @@ void jg_media_insert(void) {
 }
 
 jg_coreinfo_t* jg_get_coreinfo(const char *sys) {
+    if (sys) { }
     return &coreinfo;
 }
 
@@ -271,6 +275,7 @@ void jg_set_gameinfo(jg_fileinfo_t info) {
 }
 
 void jg_set_auxinfo(jg_fileinfo_t info, int index) {
+    if (info.data || index) { }
 }
 
 void jg_set_paths(jg_pathinfo_t paths) {
