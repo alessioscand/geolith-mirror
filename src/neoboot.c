@@ -293,6 +293,7 @@ void decrypt_kf2k5uni( running_machine *machine )
 // Thanks to IQ_132 for the info
 void kof2002b_gfx_decrypt(running_machine *machine, UINT8 *src, int size)
 {
+	if (machine) { }
 	int i, j;
 	int t[ 8 ][ 10 ] =
 	{
@@ -400,6 +401,7 @@ static void cthd2003_neogeo_gfx_address_fix(running_machine *machine, int start,
 
 static void cthd2003_c(running_machine *machine, int pow)
 {
+	if (pow) { }
 	int i;
 
 	for (i=0; i<=192; i+=8)
