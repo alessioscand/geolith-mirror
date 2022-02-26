@@ -38,7 +38,6 @@ uint8_t sram_lock;
 uint8_t sound_code;
 uint8_t pending_command;
 uint8_t result_code;
-uint16_t z80_bank[4];
 
 uint32_t bankaddress = 0;
 extern int current_line;

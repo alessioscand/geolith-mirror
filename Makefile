@@ -14,7 +14,7 @@ LIBS_ZLIB := $(shell $(PKGCONF) --libs zlib)
 
 LIBS := $(LIBS_ZLIB)
 
-INCLUDES := -I$(SRCDIR) -I$(SRCDIR)/generator68k -I$(SRCDIR)/mamez80
+INCLUDES := -I$(SRCDIR) -I$(SRCDIR)/generator68k -I$(SRCDIR)/z80
 PIC := -fPIC
 SHARED := $(PIC)
 
@@ -63,12 +63,12 @@ CSRCS := generator68k/cpu68k.c \
 	generator68k/cpu68k-d.c \
 	generator68k/cpu68k-e.c \
 	generator68k/cpu68k-f.c \
-	mamez80/z80.c \
 	ym2610/ym2610.c \
 	ym2610/2610intf.c \
+	z80/z80.c \
 	emu.c \
 	generator68k_interf.c \
-	mamez80_interf.c \
+	gngeo_z80.c \
 	mame_layer.c \
 	memory.c \
 	neoboot.c \
@@ -82,7 +82,7 @@ CSRCS := generator68k/cpu68k.c \
 	jg.c
 
 # Object dirs
-MKDIRS := generator68k mamez80 ym2610
+MKDIRS := generator68k ym2610 z80
 
 OBJDIR := objs
 

@@ -110,7 +110,6 @@ extern uint8_t result_code;
 /* 68k cpu Banking control */
 extern uint32_t bankaddress;		/* current bank */
 //uint8_t current_cpu_bank;
-extern uint16_t z80_bank[4];
 
 /* misc utility func */
 void update_all_pal(void);
@@ -135,7 +134,7 @@ void cpu_z80_nmi(void);
 void cpu_z80_raise_irq(int l);
 void cpu_z80_lower_irq(void);
 void cpu_z80_init(void);
-void cpu_z80_switchbank(uint8_t bank, uint16_t PortNo);
+void cpu_z80_switchbank(uint8_t bank, uint16_t port);
 uint8_t z80_port_read(uint16_t PortNo);
 void z80_port_write(uint16_t PortNb, uint8_t Value);
 
