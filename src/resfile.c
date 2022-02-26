@@ -51,7 +51,6 @@ ROM_DEF *res_load_drv(char *name) {
 	char drvfname[32];
 	PKZIP *pz;
 	ZFILE *z;
-	int i;
 
 	drv = calloc(sizeof(ROM_DEF), 1);
 
@@ -76,10 +75,10 @@ ROM_DEF *res_load_drv(char *name) {
 	zread_char(z, drv->parent, 32);
 	zread_char(z, drv->longname, 128);
 	zread_uint32le(z, &drv->year);
-	for (i = 0; i < 10; i++)
+	for (unsigned i = 0; i < 10; i++)
 		zread_uint32le(z, &drv->romsize[i]);
 	zread_uint32le(z, &drv->nb_romfile);
-	for (i = 0; i < drv->nb_romfile; i++) {
+	for (unsigned i = 0; i < drv->nb_romfile; i++) {
 		zread_char(z, drv->rom[i].filename, 32);
 		zread_uint8(z, &drv->rom[i].region);
 		zread_uint32le(z, &drv->rom[i].src);
