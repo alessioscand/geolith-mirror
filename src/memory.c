@@ -16,6 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+// FIXME: Take a look at many functions with unused parameters
+
 #include "emu.h"
 #include "video.h"
 #include "memory.h"
@@ -164,20 +166,24 @@ void z80_port_write(uint16_t PortNb, uint8_t Value)
 
 /* Protection hack */
 uint16_t protection_9a37(uint32_t addr) {
+    if (addr) { }
     return 0x9a37;
 }
 
 /* fetching function */
 /**** INVALID FETCHING ****/
 uint8_t mem68k_fetch_invalid_byte(uint32_t addr) {
+    if (addr) { }
     return 0xF0;
 }
 
 uint16_t mem68k_fetch_invalid_word(uint32_t addr) {
+    if (addr) { }
     return 0xF0F0;
 }
 
 uint32_t mem68k_fetch_invalid_long(uint32_t addr) {
+    if (addr) { }
     return 0xF0F0F0F0;
 }
 
@@ -318,12 +324,12 @@ uint8_t mem68k_fetch_ctl1_byte(uint32_t addr) {
 }
 
 uint16_t mem68k_fetch_ctl1_word(uint32_t addr) {
-    //  printf("mem68k_fetch_ctl1_word\n");
+    if (addr) { }
     return 0;
 }
 
 uint32_t mem68k_fetch_ctl1_long(uint32_t addr) {
-    //  printf("mem68k_fetch_ctl1_long\n");
+    if (addr) { }
     return 0;
 }
 
@@ -336,10 +342,12 @@ uint8_t mem68k_fetch_ctl2_byte(uint32_t addr) {
 }
 
 uint16_t mem68k_fetch_ctl2_word(uint32_t addr) {
+    if (addr) { }
     return 0;
 }
 
 uint32_t mem68k_fetch_ctl2_long(uint32_t addr) {
+    if (addr) { }
     return 0;
 }
 
@@ -356,10 +364,12 @@ uint16_t mem68k_fetch_ctl3_word(uint32_t addr) {
       if ((addr & 0xFFFF) == 0x0)
       return memory.intern_start | 0xFF00;
     */
+    if (addr) { }
     return 0;
 }
 
 uint32_t mem68k_fetch_ctl3_long(uint32_t addr) {
+    if (addr) { }
     return 0;
 }
 
@@ -381,10 +391,12 @@ uint8_t mem68k_fetch_coin_byte(uint32_t addr) {
 }
 
 uint16_t mem68k_fetch_coin_word(uint32_t addr) {
+    if (addr) { }
     return 0;
 }
 
 uint32_t mem68k_fetch_coin_long(uint32_t addr) {
+    if (addr) { }
     return 0;
 }
 
@@ -406,6 +418,7 @@ uint16_t mem68k_fetch_memcrd_word(uint32_t addr) {
 }
 
 uint32_t mem68k_fetch_memcrd_long(uint32_t addr) {
+    if (addr) { }
     return 0;
 }
 
@@ -616,12 +629,12 @@ void mem68k_store_z80_word(uint32_t addr, uint16_t data) {
     }
 }
 void mem68k_store_z80_long(uint32_t addr, uint32_t data) {
-    /* I don't think any game will use long store for sound.... */
-    printf("Z80L %x %04x\n", addr, data);
+    gn_log(GN_LOG_WRN, "Z80L %x %04x\n", addr, data);
 }
 
 /**** SETTINGS ****/
 void mem68k_store_setting_byte(uint32_t addr, uint8_t data) {
+    if (data) { } // FIXME: Reduce number of parameters?
     //printf("mem68k_store_setting_byte %08x\n",addr);
     addr &= 0xFFFF;
     if (addr == 0x0003) {
@@ -717,7 +730,7 @@ void mem68k_store_setting_word(uint32_t addr, uint16_t data) {
 }
 
 void mem68k_store_setting_long(uint32_t addr, uint32_t data) {
-    //printf("setting long\n");
+    if (addr || data) { } // FIXME: Actually use this
 }
 
 /**** MEMCARD ****/
@@ -730,6 +743,7 @@ void mem68k_store_memcrd_word(uint32_t addr, uint16_t data) {
     memory.memcard[addr >> 1] = data & 0xff;
 }
 void mem68k_store_memcrd_long(uint32_t addr, uint32_t data) {
+    if (addr || data) { } // FIXME: Actually use this
 }
 
 /**** bankswitchers ****/
