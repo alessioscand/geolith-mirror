@@ -329,5 +329,6 @@ void pd4990a_serial_control(unsigned char data)
 }
 
 void write_4990_control_w(uint32_t address, uint32_t data) {
+  if (address) { } // FIXME: From m68k functions, easier to fix warning here
   pd4990a_serial_control(data&0x7);
 }
