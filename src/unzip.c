@@ -345,7 +345,7 @@ void gn_unzip_fclose(ZFILE *z) {
 	free(z);
 }
 
-PKZIP *gn_open_zip(char *file) {
+PKZIP *gn_open_zip(const char *file) {
 	PKZIP *zf = malloc(sizeof(PKZIP));
 	int size;
 	int e;

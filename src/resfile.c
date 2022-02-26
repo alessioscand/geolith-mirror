@@ -31,7 +31,7 @@ void zread_uint32le(ZFILE *gz, uint32_t *c) {
 	//printf("H32  %08x %d\n",*c,rc);
 }
 
-int res_verify_datafile(char *file) {
+int res_verify_datafile(const char *file) {
 	struct stat sb;
 
 	if (!file) file = gngeo_dat;
