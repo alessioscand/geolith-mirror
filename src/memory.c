@@ -45,12 +45,12 @@ extern int current_line;
 
 void neogeo_sound_irq(int irq) {
     //printf("neogeo_sound_irq %d\n",irq);
-#ifndef ENABLE_940T
     if (irq) {
         cpu_z80_raise_irq(0);
-    } else
+    }
+    else {
         cpu_z80_lower_irq();
-#endif
+    }
     //printf("neogeo_sound_end %d\n",irq);
 }
 
