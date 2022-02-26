@@ -26,6 +26,14 @@
 #include <string.h>
 #include <stdint.h>
 
+#define SIZE_1K     0x000400
+#define SIZE_2K     0x000800
+#define SIZE_4K     0x001000
+#define SIZE_8K     0x002000
+#define SIZE_16K    0x004000
+#define SIZE_32K    0x008000
+#define SIZE_64K    0x010000
+
 typedef enum SYSTEM {
     SYS_UNIBIOS,
     SYS_ARCADE,

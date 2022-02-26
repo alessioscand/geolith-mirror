@@ -111,16 +111,16 @@ static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
 void cpu_z80_switchbank(uint8_t bank, uint16_t port) {
     switch (bank) {
         case 0:
-            zbank[bank] = ((port >> 8) & 0x0f) * 0x4000;
+            zbank[bank] = ((port >> 8) & 0x0f) * SIZE_16K;
             break;
         case 1:
-            zbank[bank] = ((port >> 8) & 0x1f) * 0x2000;
+            zbank[bank] = ((port >> 8) & 0x1f) * SIZE_8K;
             break;
         case 2:
-            zbank[bank] = ((port >> 8) & 0x3f) * 0x1000;
+            zbank[bank] = ((port >> 8) & 0x3f) * SIZE_4K;
             break;
         case 3:
-            zbank[bank] = ((port >> 8) & 0x7f) * 0x0800;
+            zbank[bank] = ((port >> 8) & 0x7f) * SIZE_2K;
             break;
     }
 }
@@ -137,7 +137,6 @@ void cpu_z80_init(void) {
     z80ctx.write_byte = &gn_z80_mem_wr;
     z80ctx.port_in = &gn_z80_port_rd;
     z80ctx.port_out = &gn_z80_port_wr;
-
 }
 
 void cpu_z80_run(int nbcycle) {
