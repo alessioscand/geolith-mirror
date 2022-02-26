@@ -1173,11 +1173,7 @@ static int init_roms(GAME_ROMS *r) {
 }
 
 int dr_load_bios(GAME_ROMS *r) {
-	FILE *f;
-	int i;
 	PKZIP *pz;
-	ZFILE *z;
-	size_t totread = 0;
 	unsigned int size;
 	char fpath[256];
 	const char *romfile;
@@ -1222,7 +1218,7 @@ int dr_load_bios(GAME_ROMS *r) {
 			}*/
 			//else {
 				switch (conf.country) {
-					case CTY_USA: // Winners don't use drugs
+					default: case CTY_USA: // Winners don't use drugs
 						romfile = "sp-u2.sp1";
 						break;
 					case CTY_JAPAN:
@@ -1233,8 +1229,6 @@ int dr_load_bios(GAME_ROMS *r) {
 						break;
 					case CTY_EUROPE:
 						romfile = "sp-s2.sp1";
-						break;
-					default:
 						break;
 				}
 			//}
@@ -1455,10 +1449,6 @@ int dr_load_game(char *name) {
 
 }
 
-static int dump_region(FILE *gno, ROM_REGION *rom, uint8_t id, uint8_t type, uint32_t block_size) {
-	return 1;
-}
-
 int dr_save_gno(GAME_ROMS *r, char *filename) {
 	return 1;
 }
@@ -1503,14 +1493,13 @@ void dr_free_roms(GAME_ROMS *r) {
 
 void open_nvram(char *name) {
     char filename[256];
-    size_t totread = 0;
     FILE *f;
 
     sprintf(filename, "%s/%s.nv", gngeo_dir, name);
 
     if ((f = fopen(filename, "rb")) == 0)
         return;
-    totread = fread(memory.sram, 1, 0x10000, f);
+    fread(memory.sram, 1, 0x10000, f);
     fclose(f);
 
 }
@@ -1518,14 +1507,13 @@ void open_nvram(char *name) {
 /* TODO: multiple memcard */
 void open_memcard(char *name) {
     char filename[256];
-    size_t totread = 0;
     FILE *f;
 
     sprintf(filename, "%s/%s", gngeo_dir, "memcard");
 
     if ((f = fopen(filename, "rb")) == 0)
         return;
-    totread = fread(memory.memcard, 1, 0x800, f);
+    fread(memory.memcard, 1, 0x800, f);
     fclose(f);
 }
 
