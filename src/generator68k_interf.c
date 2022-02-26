@@ -147,11 +147,9 @@ void (*mem68k_store_long[0x1000]) (uint32_t addr, uint32_t data);
 
 static void swap_memory(uint8_t * mem, uint32_t length)
 {
-    int i, j;
-
     /* swap bytes in each word */
-    for (i = 0; i < length; i += 2) {
-	j = mem[i];
+    for (unsigned i = 0; i < length; i += 2) {
+	uint8_t j = mem[i];
 	mem[i] = mem[i + 1];
 	mem[i + 1] = j;
     }
@@ -191,6 +189,7 @@ int mem68k_init(void) {
 /*** memptr routines - called for IPC generation so speed is not vital ***/
 
 uint8_t *mem68k_memptr_bad(uint32_t addr) {
+    if (addr) { }
     return memory.rom.cpu_m68k.p;
 }
 
