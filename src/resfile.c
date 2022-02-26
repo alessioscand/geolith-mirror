@@ -13,22 +13,16 @@ void gn_set_datafile(const char *f) {
 }
 
 void zread_char(ZFILE *gz, char *c, int len) {
-	int rc;
-	rc = gn_unzip_fread(gz, (uint8_t*)c, len);
-	//printf("HS  %s %d\n",c,rc);
+	gn_unzip_fread(gz, (uint8_t*)c, len);
 }
 void zread_uint8(ZFILE *gz, uint8_t *c) {
-	int rc;
-	rc = gn_unzip_fread(gz, c, 1);
-	//printf("H8  %02x %d\n",*c,rc);
+	gn_unzip_fread(gz, c, 1);
 }
 void zread_uint32le(ZFILE *gz, uint32_t *c) {
-	int rc;
-	rc = gn_unzip_fread(gz, (uint8_t*)c, sizeof(uint32_t));
+	gn_unzip_fread(gz, (uint8_t*)c, sizeof(uint32_t));
 #ifdef WORDS_BIGENDIAN
-	*c=SDL_Swap32(*c);
+	*c=SDL_Swap32(*c); // FIXME
 #endif
-	//printf("H32  %08x %d\n",*c,rc);
 }
 
 int res_verify_datafile(const char *file) {
