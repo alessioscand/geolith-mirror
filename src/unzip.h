@@ -27,9 +27,9 @@ typedef struct ZFILE {
 
 typedef struct PKZIP {
 	FILE *file;
-	unsigned int cd_offset; /* Central dir offset */
-	unsigned int cd_size;
-	unsigned int cde_offset;
+	int cd_offset; /* Central dir offset */
+	int cd_size;
+	int cde_offset;
 	uint16_t nb_item;
 	uint8_t *map;
 }PKZIP;

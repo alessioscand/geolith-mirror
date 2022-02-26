@@ -264,8 +264,8 @@ ZFILE *gn_unzip_fopen(PKZIP *zf, const char *filename, uint32_t file_crc) {
 }
 
 int gn_unzip_fread(ZFILE *z, uint8_t *data, unsigned int size) {
-	int readed;
-	int todo;
+	unsigned readed;
+	unsigned todo;
 	int ret;
 
 	if (!z)
@@ -280,7 +280,8 @@ int gn_unzip_fread(ZFILE *z, uint8_t *data, unsigned int size) {
 		assert(ret != Z_STREAM_ERROR); /* state not clobbered */
 		switch (ret) {
 			case Z_NEED_DICT:
-				ret = Z_DATA_ERROR; /* and fall through */
+				ret = Z_DATA_ERROR;
+				// fallthrough
 			case Z_DATA_ERROR:
 			case Z_MEM_ERROR:
 				(void) inflateEnd(z->zb);
