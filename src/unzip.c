@@ -30,25 +30,14 @@ static int fget8(FILE *f) {
 	}
 	return 0;
 }
-static uint8_t fget8u(FILE *f) {
-	return (uint8_t) fget8(f);
-}
+
 static void fskip(FILE *f, int n) {
 	uint8_t a, i;
-    size_t tr;
+
 	if (!f)
 		return;//fseek(f,n,SEEK_CUR);
 	for (i = 0; i < n; i++)
-		tr=fread(&a, 1, 1, f);
-}
-static uint16_t fget16(FILE *f) {
-	int z = fget8(f);
-	return (z << 8) + fget8(f);
-}
-
-static uint32_t fget32(FILE *f) {
-	uint32_t z = fget16(f);
-	return (z << 16) + fget16(f);
+		fread(&a, 1, 1, f);
 }
 
 static uint16_t fget16le(FILE *f) {
@@ -178,7 +167,6 @@ static int search_central_dir(PKZIP *zf) {
 }
 
 static int unzip_locate_file(PKZIP *zf, const char *filename, uint32_t file_crc) {
-	int pos;
 	uint32_t crc, offset;
 	uint16_t xf_len, fcomment_len, fname_len;
 	uint32_t sig;
@@ -186,7 +174,7 @@ static int unzip_locate_file(PKZIP *zf, const char *filename, uint32_t file_crc)
     size_t tr=0;
 
 	fseek(zf->file, zf->cd_offset, SEEK_SET);
-	pos = ftell(zf->file);
+
 	if (file_crc == 0)
 		file_crc = (uint32_t) -1; /* because crc=0=dir */
 	while (1) {
@@ -279,7 +267,7 @@ int gn_unzip_fread(ZFILE *z, uint8_t *data, unsigned int size) {
 	int readed;
 	int todo;
 	int ret;
-    size_t tr=0;
+
 	if (!z)
 		return -1;
 	//if (z->pos!=ftell(z->f))
