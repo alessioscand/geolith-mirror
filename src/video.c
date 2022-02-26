@@ -132,7 +132,6 @@ void free_sprite_cache(void) {
 uint8_t *get_cached_sprite_ptr(uint32_t tileno) {
 	GFX_CACHE *gcache = &memory.vid.spr_cache;
 	static int pos = 0;
-	static int init = 1;
 	int tile_sh = ~((gcache->slot_size >> 7) - 1);
 
 	int bank = ((tileno & tile_sh) / (gcache->slot_size >> 7));
@@ -156,6 +155,7 @@ uint8_t *get_cached_sprite_ptr(uint32_t tileno) {
 	r = fread(gcache->in_buf, cmp_size, 1, gcache->gno);
 	dst_size = gcache->slot_size;
 	r = uncompress(gcache->data + a * gcache->slot_size, &dst_size, gcache->in_buf, cmp_size);
+	if (r) { }
 
 	gcache->ptr[bank] = gcache->data + a * gcache->slot_size;
 
@@ -272,7 +272,7 @@ void draw_screen(void) {
 	unsigned int offs, i, count, y;
 	unsigned int tileno, tileatr, t1, t2, t3;
 	char fullmode = 0;
-	int ddax = 0, dday = 0, rzx = 15, yskip = 0;
+	int dday = 0, rzx = 15, yskip = 0;
 	uint8_t *vidram = memory.vid.ram;
 
 	uint32_t *pix = (uint32_t*)vbuf;
@@ -334,8 +334,6 @@ void draw_screen(void) {
 			}
 
 			if (my > 0x20) my = 0x20;
-
-			ddax = 0; /* =16; NS990110 neodrift fix */ /* setup x zoom */
 		}
 
 		/* No point doing anything if tile strip is 0 */
@@ -440,7 +438,7 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
 	unsigned char *vidram = memory.vid.ram;
 
 	int yy;
-	int otile, tile, yoffs;
+	int tile, yoffs;
 	int zoom_line;
 	int invert;
 	uint8_t *zoomy_rom;
@@ -501,7 +499,6 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
 		offs = count << 6;
 		zoomy_rom = memory.ng_lo + (zy << 8);
 
-		otile = -1;
 		for (yy = start_line; yy <= end_line; yy++) {
 			y = yy - sy; /* y: 0 -> my*16 */
 
