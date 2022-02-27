@@ -30,6 +30,8 @@ SOFTWARE.
 
 static z80 z80ctx;
 static int extracycs = 0;
+
+static uint8_t zram[SIZE_2K];
 static uint32_t zbank[4];
 
 /* Z80 Memory Map
@@ -58,20 +60,20 @@ static uint8_t gn_z80_mem_rd(void *userdata, uint16_t addr) {
         return memory.rom.cpu_z80.p[zbank[0] + (addr & 0x3fff)];
     else if (addr < 0xe000) // Switchable Bank 1
         return memory.rom.cpu_z80.p[zbank[1] + (addr & 0x1fff)];
-    else if (addr < 0xe000) // Switchable Bank 2
+    else if (addr < 0xf000) // Switchable Bank 2
         return memory.rom.cpu_z80.p[zbank[2] + (addr & 0x0fff)];
-    else if (addr < 0xe000) // Switchable Bank 3
+    else if (addr < 0xf800) // Switchable Bank 3
         return memory.rom.cpu_z80.p[zbank[3] + (addr & 0x07ff)];
 
     // Work RAM
-    return memory.z80_ram[addr & 0x07ff];
+    return zram[addr & 0x07ff];
 }
 
 static void gn_z80_mem_wr(void *userdata, uint16_t addr, uint8_t data) {
     if (userdata) { } // Unused
 
     if (addr > 0xf7ff)
-        memory.z80_ram[addr & 0x07ff] = data;
+        zram[addr & 0x07ff] = data;
     else
         gn_log(GN_LOG_WRN, "Z80 write outside RAM: %04x %02x\n", addr, data);
 }

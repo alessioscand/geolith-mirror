@@ -74,7 +74,6 @@ typedef struct neo_mem {
         uint8_t fix_board_usage[4096];
         uint8_t *fix_game_usage;
 
-        uint8_t z80_ram[0x800];
         uint8_t game_vector[0x80];
         int   current_vector;
         /* internal representation of joystick */
