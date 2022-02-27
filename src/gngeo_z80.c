@@ -50,6 +50,9 @@ static uint32_t zbank[4];
  * ---------------------------------------------------------------------
  * | 0xf800 - 0xffff |   2K | Work RAM                                 |
  * ---------------------------------------------------------------------
+ *
+ * The NEO-ZMC (Z80 Memory Controller) is a chip on the cartridge which
+ * handles memory mapping.
  */
 static uint8_t gn_z80_mem_rd(void *userdata, uint16_t addr) {
     if (userdata) { } // Unused
@@ -109,8 +112,11 @@ static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
     z80_port_write(port, value);
 }
 
-// Switch banks
 void cpu_z80_switchbank(uint8_t bank, uint16_t port) {
+    /* The NEO-ZMC switches ROM banks through Z80 IO Port reads. The 8 most
+       significant bits of the port address are used to determine the ROM bank
+       to swap in.
+    */
     switch (bank) {
         case 0:
             zbank[bank] = ((port >> 8) & 0x0f) * SIZE_16K;
@@ -130,10 +136,8 @@ void cpu_z80_switchbank(uint8_t bank, uint16_t port) {
 void cpu_z80_init(void) {
     z80_init(&z80ctx);
 
-    zbank[0] = 0x8000;
-    zbank[1] = 0xc000;
-    zbank[2] = 0xe000;
-    zbank[3] = 0xf000;
+    // The NEO-ZMC initializes all banks to 0 (verified on hardware)
+    zbank[0] = zbank[1] = zbank[2] = zbank[3] = 0x0000;
 
     z80ctx.read_byte = &gn_z80_mem_rd;
     z80ctx.write_byte = &gn_z80_mem_wr;
