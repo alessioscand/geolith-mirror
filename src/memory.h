@@ -34,27 +34,17 @@
 #define SWAP_BYTE_ADDRESS(a)  ((Uintptr)(a)^1)
 #define SWAP16(y) ((y & 0xff) << 8) | ((y >> 8) & 0xff)
 
-#define USE_GENERATOR68K 1
-
-#if defined(USE_GENERATOR68K) // || defined(USE_CYCLONE)
 /* Programs are stored as BIGENDIAN */
-#  ifdef WORDS_BIGENDIAN
-#    define WRITE_WORD_ROM WRITE_WORD
-#    define READ_WORD_ROM READ_WORD
-#    define WRITE_BYTE_ROM WRITE_BYTE
-#    define READ_BYTE_ROM READ_BYTE
-#  else /* WORDS_BIGENDIAN */
-#    define WRITE_WORD_ROM(a,d) (WRITE_WORD(a,SWAP16(d)))
-#    define READ_WORD_ROM(a) (SWAP16(READ_WORD(a)))
-#    define WRITE_BYTE_ROM WRITE_BYTE
-#    define READ_BYTE_ROM READ_BYTE
-#  endif
-#else /* USE_GENERATOR68K */
-/* Programs are stored as LITTLEENDIAN */
+#ifdef WORDS_BIGENDIAN
 #  define WRITE_WORD_ROM WRITE_WORD
 #  define READ_WORD_ROM READ_WORD
-#  define WRITE_BYTE_ROM(a,d) WRITE_BYTE(SWAP_BYTE_ADDRESS(a),(d))
-#  define READ_BYTE_ROM(a) READ_BYTE(SWAP_BYTE_ADDRESS(a))
+#  define WRITE_BYTE_ROM WRITE_BYTE
+#  define READ_BYTE_ROM READ_BYTE
+#else /* WORDS_BIGENDIAN */
+#  define WRITE_WORD_ROM(a,d) (WRITE_WORD(a,SWAP16(d)))
+#  define READ_WORD_ROM(a) (SWAP16(READ_WORD(a)))
+#  define WRITE_BYTE_ROM WRITE_BYTE
+#  define READ_BYTE_ROM READ_BYTE
 #endif
 
 #define GFX_MAPPED 1
