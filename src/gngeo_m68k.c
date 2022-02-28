@@ -179,7 +179,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
     address &= 0xffffff;
 
     if (address < 0x100000) { // Fixed 1M Program ROM Bank
-        gn_log(GN_LOG_WRN, "68K write to Program ROM: %06x %04x\n",
+        gn_log(GN_LOG_WRN, "68K write to Program ROM: %06x %02x\n",
             address, value);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
@@ -207,7 +207,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
         mem68k_store_memcrd_byte(address, value);
     }
     else if (address < 0xd00000) { // BIOS ROM
-        gn_log(GN_LOG_WRN, "68K write to BIOS ROM: %06x %04x\n",
+        gn_log(GN_LOG_WRN, "68K write to BIOS ROM: %06x %02x\n",
             address, value);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
