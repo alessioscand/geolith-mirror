@@ -145,9 +145,10 @@ void cpu_z80_init(void) {
     z80ctx.port_out = &gn_z80_port_wr;
 }
 
-void cpu_z80_run(int nbcycle) {
+int cpu_z80_run(int nbcycle) {
     int retcyc = z80_step_n(&z80ctx, nbcycle - extracycs);
     extracycs = retcyc - (nbcycle - extracycs);
+    return retcyc;
 }
 
 void cpu_z80_nmi(void) {

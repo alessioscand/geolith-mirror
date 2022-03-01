@@ -34,7 +34,7 @@ double timer_count;
 timer_struct *timer_list;
 #define MAX_TIMER 3
 timer_struct timers[MAX_TIMER];
-extern int nb_interlace;
+extern unsigned nb_interlace;
 //int nb_timer=0;
 
 double timer_get_time(void) {

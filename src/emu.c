@@ -34,21 +34,25 @@
 #include "ym2610/2610intf.h"
 #include "neocrypt.h"
 
+#define CYC_LINE_68K 768
+#define CYC_LINE_Z80 256
+#define NG_SCANLINES 264
+
 // Log callback
 void (*gn_log)(int, const char *, ...);
 
 struct _conf_t conf;
 
-int nb_interlace = 256;
+unsigned nb_interlace = 256;
 unsigned current_line;
 
 static int last_line;
 static int frame;
 static unsigned fc;
 
-static uint32_t cpu_68k_timeslice_scanline = 200000 / 264.0;
-static uint32_t tm_cycle = 0;
-static uint32_t cpu_z80_timeslice_interlace = 200000 / 256.0;
+// Extra cycles stored at the end of scanlines/frames
+static uint32_t mextcycs = 0;
+static uint32_t zextcycs = 0;
 
 // Set the log callback
 void gn_log_set_callback(void (*cb)(int, const char *, ...)) {
@@ -177,27 +181,37 @@ static inline int update_scanline(void) {
 }
 
 void main_loop(void) {
+    size_t reqcycs = 0;
+    size_t itercycs = 0;
+
     if (conf.test_switch == 1)
         conf.test_switch = 0;
 
-    for (int i = 0; i < nb_interlace; ++i) {
-        cpu_z80_run(cpu_z80_timeslice_interlace);
-        my_timer();
-    }
+    // Run scanline-based iterations of emulation until a frame is complete
+    for (size_t i = 0; i < NG_SCANLINES; ++i) {
+        // Set the number of cycles required to complete this scanline
+        reqcycs = CYC_LINE_68K - mextcycs;
 
-    current_line = 0;
-    for (int i = 0; i < 264; ++i) {
-        tm_cycle = cpu_68k_run(cpu_68k_timeslice_scanline - tm_cycle);
+        // Run 68K for one scanline
+        itercycs = cpu_68k_run(reqcycs - mextcycs);
+        mextcycs = itercycs - reqcycs; // Store extra cycle count
+
+        // Run Z80 for one scanline
+        reqcycs = CYC_LINE_Z80 - zextcycs;
+        itercycs = cpu_z80_run(reqcycs);
+        zextcycs = itercycs - reqcycs;
+        my_timer(); // FIXME - this is dodgy
+
         if (update_scanline())
             cpu_68k_interrupt(2);
     }
-    tm_cycle = cpu_68k_run(cpu_68k_timeslice_scanline - tm_cycle);
 
     update_screen();
-    ++memory.watchdog;
-    if (memory.watchdog > 7) {
+
+    if (++memory.watchdog > 7) {
         gn_log(GN_LOG_DBG, "Watchdog reset\n");
         cpu_68k_reset();
     }
+
     cpu_68k_interrupt(1);
 }

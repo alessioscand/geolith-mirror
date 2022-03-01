@@ -14,7 +14,7 @@ LIBS_ZLIB := $(shell $(PKGCONF) --libs zlib)
 
 LIBS := $(LIBS_ZLIB)
 
-INCLUDES := -I$(SRCDIR) -I$(SRCDIR)/generator68k -I$(SRCDIR)/z80
+INCLUDES := -I$(SRCDIR) -I$(SRCDIR)/m68k -I$(SRCDIR)/z80
 PIC := -fPIC
 SHARED := $(PIC)
 
@@ -42,31 +42,13 @@ ifeq ($(UNAME), Linux)
 	LIBS += -Wl,--no-undefined
 endif
 
-CSRCS := generator68k/cpu68k.c \
-	generator68k/diss68k.c \
-	generator68k/reg68k.c \
-	generator68k/tab68k2.c \
-	generator68k/cpu68k-0.c \
-	generator68k/cpu68k-1.c \
-	generator68k/cpu68k-2.c \
-	generator68k/cpu68k-3.c \
-	generator68k/cpu68k-4.c \
-	generator68k/cpu68k-5.c \
-	generator68k/cpu68k-6.c \
-	generator68k/cpu68k-7.c \
-	generator68k/cpu68k-8.c \
-	generator68k/cpu68k-9.c \
-	generator68k/cpu68k-a.c \
-	generator68k/cpu68k-b.c \
-	generator68k/cpu68k-c.c \
-	generator68k/cpu68k-d.c \
-	generator68k/cpu68k-e.c \
-	generator68k/cpu68k-f.c \
+CSRCS := m68k/m68kcpu.c \
+	m68k/m68kops.c \
 	ym2610/ym2610.c \
 	ym2610/2610intf.c \
 	z80/z80.c \
 	emu.c \
-	generator68k_interf.c \
+	gngeo_m68k.c \
 	gngeo_z80.c \
 	mame_layer.c \
 	memory.c \
@@ -81,7 +63,7 @@ CSRCS := generator68k/cpu68k.c \
 	jg.c
 
 # Object dirs
-MKDIRS := generator68k ym2610 z80
+MKDIRS := generator68k m68k ym2610 z80
 
 OBJDIR := objs
 
