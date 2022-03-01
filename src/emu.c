@@ -65,13 +65,12 @@ void setup_misc_patch(char *name) {
     }
 
     if (!strcmp(name, "mslugx")) {
-        /* patch out protection checks */
+        // patch out protection checks
         uint8_t *RAM = memory.rom.cpu_m68k.p;
         for (unsigned i = 0; i < memory.rom.cpu_m68k.size; i += 2) {
-            if ((READ_WORD_ROM(&RAM[i + 0]) == 0x0243)
-                    && (READ_WORD_ROM(&RAM[i + 2]) == 0x0001) && /* andi.w  #$1, D3 */
-            (READ_WORD_ROM(&RAM[i + 4]) == 0x6600)) { /* bne xxxx */
-
+            if ((READ_WORD_ROM(&RAM[i + 0]) == 0x0243) &&
+                (READ_WORD_ROM(&RAM[i + 2]) == 0x0001) && // andi.w  #$1, D3
+                (READ_WORD_ROM(&RAM[i + 4]) == 0x6600)) { // bne xxxx
                 WRITE_WORD_ROM(&RAM[i + 4], 0x4e71);
                 WRITE_WORD_ROM(&RAM[i + 6], 0x4e71);
             }
@@ -83,7 +82,6 @@ void setup_misc_patch(char *name) {
         WRITE_WORD_ROM(&RAM[0x3c0c], 0x4e71);
         WRITE_WORD_ROM(&RAM[0x3c0e], 0x4e71);
         WRITE_WORD_ROM(&RAM[0x3c10], 0x4e71);
-
         WRITE_WORD_ROM(&RAM[0x3c36], 0x4e71);
         WRITE_WORD_ROM(&RAM[0x3c38], 0x4e71);
     }
@@ -133,16 +131,19 @@ static inline int neo_interrupt(void) {
 }
 
 static inline void update_screen(void) {
-
     if (memory.vid.irq2control & 0x40)
-        memory.vid.irq2start = (memory.vid.irq2pos + 3) / 0x180; /* ridhero gives 0x17d */
+        // ridhero gives 0x17d
+        memory.vid.irq2start = (memory.vid.irq2pos + 3) / 0x180;
     else
         memory.vid.irq2start = 1000;
 
-    if (last_line < 21) { /* there was no IRQ2 while the beam was in the
-                         * visible area -> no need for scanline rendering */
+    /* there was no IRQ2 while the beam was in the visible area -> no need for
+       scanline rendering
+    */
+    if (last_line < 21) {
         draw_screen();
-    } else {
+    }
+    else {
         draw_screen_scanline(last_line - 21, 262, 1);
     }
 
@@ -176,6 +177,7 @@ static inline int update_scanline(void) {
         draw_screen_scanline(last_line - 21, current_line - 20, 0);
         last_line = current_line;
     }
+
     ++current_line;
     return memory.vid.irq2taken;
 }

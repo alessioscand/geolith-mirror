@@ -29,7 +29,6 @@ SOFTWARE.
 #include "z80.h"
 
 static z80 z80ctx;
-static int extracycs = 0;
 
 static uint8_t zram[SIZE_2K];
 static uint32_t zbank[4];
@@ -146,9 +145,7 @@ void cpu_z80_init(void) {
 }
 
 int cpu_z80_run(int nbcycle) {
-    int retcyc = z80_step_n(&z80ctx, nbcycle - extracycs);
-    extracycs = retcyc - (nbcycle - extracycs);
-    return retcyc;
+    return z80_step_n(&z80ctx, nbcycle);
 }
 
 void cpu_z80_nmi(void) {

@@ -29,8 +29,6 @@ SOFTWARE.
 #include "memory.h"
 #include "emu.h"
 
-static int extracycs = 0;
-static int totalcycs = 0;
 
 /* 68K Memory Map
  * =====================================================================
@@ -42,7 +40,7 @@ static int totalcycs = 0;
  * |---------------------|  64K |---------------------------------------
  * | 0x10f300 - 0x10ffff |      | System ROM-reserved RAM              |
  * ---------------------------------------------------------------------
- * | 0x110000 - 0x1fffff |  64K | Work RAM mirror                      |
+ * | 0x110000 - 0x1fffff |  64K | User/System RAM mirror               |
  * ---------------------------------------------------------------------
  * | 0x200000 - 0x2fffff |   1M | Switchable Bank of 68K program ROM   |
  * ---------------------------------------------------------------------
@@ -321,10 +319,7 @@ void cpu_68k_init(void) {
 }
 
 int cpu_68k_run(uint32_t nb_cycle) {
-    int retcyc = m68k_execute(nb_cycle - extracycs);
-    extracycs = retcyc - (nb_cycle - extracycs);
-    totalcycs += retcyc;
-    return retcyc;
+    return m68k_execute(nb_cycle);
 }
 
 uint32_t cpu_68k_getpc(void) {
@@ -332,9 +327,7 @@ uint32_t cpu_68k_getpc(void) {
 }
 
 int cpu_68k_run_step(void) {
-    int retcyc = m68k_execute(1);
-    totalcycs += retcyc;
-    return retcyc;
+    return m68k_execute(1);
 }
 
 void cpu_68k_interrupt(int a) {
