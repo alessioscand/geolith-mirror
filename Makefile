@@ -49,6 +49,7 @@ CSRCS := m68k/m68kcpu.c \
 	z80/z80.c \
 	emu.c \
 	gngeo_m68k.c \
+	gngeo_mixer.c \
 	gngeo_z80.c \
 	mame_layer.c \
 	memory.c \

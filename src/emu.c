@@ -27,6 +27,7 @@
 #include <zlib.h>
 
 #include "emu.h"
+#include "gngeo_mixer.h"
 #include "memory.h"
 #include "pd4990a.h"
 #include "timer.h"
@@ -209,6 +210,8 @@ void main_loop(void) {
     }
 
     update_screen();
+
+    gn_mixer_resamp();
 
     if (++memory.watchdog > 7) {
         gn_log(GN_LOG_DBG, "Watchdog reset\n");

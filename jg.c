@@ -31,11 +31,11 @@ SOFTWARE.
 #include <jg/jg_neogeo.h>
 
 #include "emu.h"
+#include "gngeo_mixer.h"
 #include "memory.h"
 #include "roms.h"
 #include "resfile.h"
 #include "video.h"
-#include "ym2610/2610intf.h"
 #include "ym2610/ym2610.h"
 
 #define SAMPLERATE 44100
@@ -151,13 +151,6 @@ static void gn_input_refresh(void) {
         memory.intern_p2 &= 0x7f;
 }
 
-extern uint16_t play_buffer[16384];
-
-static void gn_audio(void) {
-    YM2610Update_stream(audinfo.spf / CHANNELS);
-    jg_cb_audio(audinfo.spf);
-}
-
 void jg_set_cb_audio(jg_cb_audio_t func) {
     jg_cb_audio = func;
 }
@@ -182,6 +175,7 @@ int jg_init(void) {
     gn_settings_read();
     gn_log_set_callback(jg_cb_log);
     conf.sample_rate = SAMPLERATE;
+    gn_mixer_set_rate(SAMPLERATE);
     conf.pal = 0; // Not currently supported
     conf.system = settings_gn[SYS].value;
     conf.country = settings_gn[REGION].value;
@@ -199,7 +193,6 @@ void jg_reset(int hard) {
 void jg_exec_frame(void) {
     gn_input_refresh();
     main_loop();
-    gn_audio();
 }
 
 int jg_game_load(void) {
@@ -262,6 +255,7 @@ void jg_setup_video(void) {
 
 void jg_setup_audio(void) {
     YM2610SetBuffer(audinfo.buf);
+    gn_mixer_set_callback(jg_cb_audio);
 }
 
 void jg_set_inputstate(jg_inputstate_t *ptr, int port) {
