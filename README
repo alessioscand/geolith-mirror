@@ -23,8 +23,8 @@ Jolly Good Z80 (MIT)
   Copyright (c) 2022 rofl0r
   See src/z80/LICENSE
 
-Musashi
-  Copyright (c) 1998-2019 Karl Stenerud (MIT)
+Musashi (MIT)
+  Copyright (c) 1998-2019 Karl Stenerud
   See src/m68k/readme.txt (https://github.com/kstenerud/Musashi)
 
 Neoboot/Neocrypt (XMAME)
@@ -34,3 +34,7 @@ YM2610 Emulator (XMAME)
   Copyright (c) 1998 Tatsuyuki Satoh
   Copyright (c) 2001-2003 Jarek Burczynski
   See source files in src/ym2610
+
+YMFM (BSD-3-Clause)
+  Copyright (c) 2021 Aaron Giles
+  See source files in src/ymfm

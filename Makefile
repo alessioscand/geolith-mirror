@@ -4,6 +4,10 @@ SOURCEDIR := $(abspath $(patsubst %/,%,$(dir $(abspath $(lastword \
 CC ?= cc
 CFLAGS ?= -O2
 FLAGS := -std=c11 -Wall -Wextra -Wno-unused-variable
+
+CXX ?= c++
+CXXFLAGS ?= -O2 -fPIC -std=c++14
+
 DEPDIR := $(SOURCEDIR)/deps
 SRCDIR := $(SOURCEDIR)/src
 
@@ -12,9 +16,9 @@ CFLAGS_JG := $(shell $(PKGCONF) --cflags jg)
 
 LIBS_ZLIB := $(shell $(PKGCONF) --libs zlib)
 
-LIBS := $(LIBS_ZLIB)
+LIBS := $(LIBS_ZLIB) -lstdc++
 
-INCLUDES := -I$(SRCDIR) -I$(SRCDIR)/m68k -I$(SRCDIR)/z80
+INCLUDES := -I$(SRCDIR) -I$(SRCDIR)/m68k -I$(SRCDIR)/ymfm -I$(SRCDIR)/z80
 PIC := -fPIC
 SHARED := $(PIC)
 
@@ -63,17 +67,24 @@ CSRCS := m68k/m68kcpu.c \
 	video.c \
 	jg.c
 
+CXXSRCS := ymfm/ymfm_opn.cpp \
+	ymfm/ymfm_adpcm.cpp \
+	ymfm/ymfm_shim.cpp \
+	ymfm/ymfm_ssg.cpp
+
 # Object dirs
-MKDIRS := generator68k m68k ym2610 z80
+MKDIRS := generator68k m68k ym2610 ymfm z80
 
 OBJDIR := objs
 
 # List of object files
-OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o))
+OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o)) \
+	$(patsubst %,$(OBJDIR)/%,$(CXXSRCS:.cpp=.o))
 
 # Compiler command
 COMPILE = $(strip $(1) $(CPPFLAGS) $(PIC) $(2) -c $< -o $@)
 COMPILE_C = $(call COMPILE, $(CC) $(CFLAGS) $(CFLAGS_JG), $(1))
+COMPILE_CXX = $(call COMPILE, $(CXX) $(CXXFLAGS), $(1))
 
 # Info command
 COMPILE_INFO = $(info $(subst $(SOURCEDIR)/,,$(1)))
@@ -81,6 +92,7 @@ COMPILE_INFO = $(info $(subst $(SOURCEDIR)/,,$(1)))
 # Core commands
 BUILD_JG = $(call COMPILE_C, $(FLAGS) $(INCLUDES) $(CFLAGS_JG))
 BUILD_MAIN = $(call COMPILE_C, $(FLAGS) $(INCLUDES))
+BUILD_YMFM = $(call COMPILE_CXX, $(CXXFLAGS) $(INCLUDES))
 
 .PHONY: all clean install install-strip uninstall
 
@@ -94,6 +106,10 @@ $(OBJDIR)/%.o: $(DEPDIR)/%.c $(OBJDIR)/.tag
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(OBJDIR)/.tag
 	$(call COMPILE_INFO, $(BUILD_MAIN))
 	@$(BUILD_MAIN)
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(OBJDIR)/.tag
+	$(call COMPILE_INFO, $(BUILD_YMFM))
+	@$(BUILD_YMFM)
 
 $(OBJDIR)/%.o: $(SOURCEDIR)/%.c $(OBJDIR)/.tag
 	$(call COMPILE_INFO, $(BUILD_JG))
