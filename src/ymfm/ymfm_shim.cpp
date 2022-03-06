@@ -34,16 +34,15 @@ using namespace ymfm;
 class ym_device : public ymfm::ymfm_interface {
 public:
     virtual uint8_t ymfm_external_read(access_class type, uint32_t address) override {
-        //printf("rd: %08x\n", address);
         switch (type) {
             case ymfm::ACCESS_ADPCM_A:
-                if (address & 0xffffff > memory.rom.adpcma.size)
+                if (address > memory.rom.adpcma.size)
                     return 0;
-                return memory.rom.adpcma.p[address & 0xffffff];
+                return memory.rom.adpcma.p[address];
             case ymfm::ACCESS_ADPCM_B:
-                if (address & 0xffffff > memory.rom.adpcmb.size)
+                if (address > memory.rom.adpcmb.size)
                     return 0;
-                return memory.rom.adpcmb.p[address & 0xffffff];
+                return memory.rom.adpcmb.p[address];
             default:
                 return 0;
         }
