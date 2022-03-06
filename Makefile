@@ -53,8 +53,6 @@ endif
 
 CSRCS := m68k/m68kcpu.c \
 	m68k/m68kops.c \
-	ym2610/ym2610.c \
-	ym2610/2610intf.c \
 	z80/z80.c \
 	emu.c \
 	gngeo_m68k.c \
@@ -67,7 +65,6 @@ CSRCS := m68k/m68kcpu.c \
 	pd4990a.c \
 	resfile.c \
 	roms.c \
-	timer.c \
 	unzip.c \
 	video.c \
 	jg.c
@@ -78,7 +75,7 @@ CXXSRCS := ymfm/ymfm_opn.cpp \
 	ymfm/ymfm_ssg.cpp
 
 # Object dirs
-MKDIRS := generator68k m68k ym2610 ymfm z80
+MKDIRS := m68k ymfm z80
 
 OBJDIR := objs
 

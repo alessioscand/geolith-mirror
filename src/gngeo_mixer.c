@@ -28,9 +28,6 @@ SOFTWARE.
 #include <speex/speex_resampler.h>
 
 #include "gngeo_mixer.h"
-
-#include "ym2610/2610intf.h"
-#include "ym2610/ym2610.h"
 #include "ymfm/ymfm_shim.h"
 
 // 55555 becomes 56280 to compensate for 60.0Hz vs ~59.18Hz

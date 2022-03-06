@@ -24,7 +24,6 @@
 #define _MEMORY_H_
 
 #include "video.h"
-#include "ym2610/2610intf.h"
 #include "roms.h"
 
 #define READ_WORD(a)          (*(uint16_t *)(a))
@@ -132,7 +131,6 @@ uint8_t z80_port_read(uint16_t PortNo);
 void z80_port_write(uint16_t PortNb, uint8_t Value);
 
 /* memory handler prototype */
-void neogeo_sound_irq(int irq);
 
 #define LONG_FETCH(fetchname) uint32_t fetchname ## _long(uint32_t addr) { \
       return (fetchname ## _word(addr) << 16) | fetchname ## _word(addr+2); \

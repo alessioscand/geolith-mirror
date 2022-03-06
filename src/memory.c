@@ -49,17 +49,6 @@ uint8_t result_code;
 uint32_t bankaddress = 0;
 extern unsigned current_line;
 
-void neogeo_sound_irq(int irq) {
-    //printf("neogeo_sound_irq %d\n",irq);
-    if (irq) {
-        cpu_z80_raise_irq(0);
-    }
-    else {
-        cpu_z80_lower_irq();
-    }
-    //printf("neogeo_sound_end %d\n",irq);
-}
-
 static inline uint16_t read_neo_control(void) {
     unsigned int scan;
     scan = current_line /*+ 22*/; /* current scanline */
@@ -95,49 +84,28 @@ uint8_t z80_port_read(uint16_t PortNo)
         pending_command = 0;
         //printf("Reseting command. Return sndcode %x\n",sound_code);
         return sound_code;
-        break;
-
     case 0x4:
-        //printf("v=%02x\n",YM2610_status_port_0_A_r(0));
         return ymfm_shim_rd(PortNo);
-        //return YM2610_status_port_A_r(0);
-        break;
-
     case 0x5:
-        //printf("v=%02x\n",YM2610_read_port_0_r(0));
         return ymfm_shim_rd(PortNo);
-        //return YM2610_read_port_r(0);
-        break;
-
     case 0x6:
-        //printf("v=%02x\n",YM2610_status_port_0_B_r(0));
         return ymfm_shim_rd(PortNo);
-        //return YM2610_status_port_B_r(0);
-        break;
-
     case 0x08:
         //printf("v=00 (sb3)\n");
         cpu_z80_switchbank(3, PortNo);
         return 0;
-        break;
-
     case 0x09:
         //printf("v=00 (sb2)\n");
         cpu_z80_switchbank(2, PortNo);
         return 0;
-        break;
-
     case 0x0a:
         //printf("v=00 (sb1)\n");
         cpu_z80_switchbank(1, PortNo);
         return 0;
-        break;
-
     case 0x0b:
         //printf("v=00 (sb0)\n");
         cpu_z80_switchbank(0, PortNo);
         return 0;
-        break;
     };
 
     return 0;
@@ -151,26 +119,17 @@ void z80_port_write(uint16_t PortNb, uint8_t Value)
     switch (PortNb & 0xff) {
     case 0x4:
         ymfm_shim_wr(PortNb, Value);
-        //YM2610_control_port_A_w(0, data);
         break;
-
     case 0x5:
         ymfm_shim_wr(PortNb, Value);
-        //YM2610_data_port_A_w(0, data);
         break;
-
     case 0x6:
         ymfm_shim_wr(PortNb, Value);
-        //YM2610_control_port_B_w(0, data);
         break;
-
     case 0x7:
         ymfm_shim_wr(PortNb, Value);
-        //YM2610_data_port_B_w(0, data);
         break;
-
     case 0xC:
-        //printf("Setting result code to %0x\n",Value);
         result_code = Value;
         break;
     /*default:

@@ -30,9 +30,7 @@
 #include "gngeo_mixer.h"
 #include "memory.h"
 #include "pd4990a.h"
-#include "timer.h"
 
-#include "ym2610/2610intf.h"
 #include "ymfm/ymfm_shim.h"
 #include "neocrypt.h"
 
@@ -107,7 +105,6 @@ void neogeo_reset(void) {
 
 void init_sound(void) {
     cpu_z80_init();
-    YM2610_sh_start();
 }
 
 void init_neo(void) {

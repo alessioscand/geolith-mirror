@@ -36,7 +36,6 @@ SOFTWARE.
 #include "roms.h"
 #include "resfile.h"
 #include "video.h"
-#include "ym2610/ym2610.h"
 
 #define SAMPLERATE 44100
 #define FRAMERATE 60
@@ -256,7 +255,6 @@ void jg_setup_video(void) {
 }
 
 void jg_setup_audio(void) {
-    YM2610SetBuffer(audinfo.buf);
     gn_mixer_set_buffer(audinfo.buf);
     gn_mixer_set_callback(jg_cb_audio);
 }
