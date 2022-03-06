@@ -26,6 +26,7 @@
 #include "video.h"
 #include "memory.h"
 #include "pd4990a.h"
+#include "ymfm_shim.h"
 
 uint8_t (*mem68k_fetch_bksw_byte)(uint32_t);
 uint16_t (*mem68k_fetch_bksw_word)(uint32_t);
@@ -98,17 +99,20 @@ uint8_t z80_port_read(uint16_t PortNo)
 
     case 0x4:
         //printf("v=%02x\n",YM2610_status_port_0_A_r(0));
-        return YM2610_status_port_A_r(0);
+        return ymfm_shim_rd(PortNo);
+        //return YM2610_status_port_A_r(0);
         break;
 
     case 0x5:
         //printf("v=%02x\n",YM2610_read_port_0_r(0));
-        return YM2610_read_port_r(0);
+        return ymfm_shim_rd(PortNo);
+        //return YM2610_read_port_r(0);
         break;
 
     case 0x6:
         //printf("v=%02x\n",YM2610_status_port_0_B_r(0));
-        return YM2610_status_port_B_r(0);
+        return ymfm_shim_rd(PortNo);
+        //return YM2610_status_port_B_r(0);
         break;
 
     case 0x08:
@@ -146,25 +150,31 @@ void z80_port_write(uint16_t PortNb, uint8_t Value)
     //printf("Write port %04x %02x\n",PortNb,Value);
     switch (PortNb & 0xff) {
     case 0x4:
-        YM2610_control_port_A_w(0, data);
+        ymfm_shim_wr(PortNb, Value);
+        //YM2610_control_port_A_w(0, data);
         break;
 
     case 0x5:
-        YM2610_data_port_A_w(0, data);
+        ymfm_shim_wr(PortNb, Value);
+        //YM2610_data_port_A_w(0, data);
         break;
 
     case 0x6:
-        YM2610_control_port_B_w(0, data);
+        ymfm_shim_wr(PortNb, Value);
+        //YM2610_control_port_B_w(0, data);
         break;
 
     case 0x7:
-        YM2610_data_port_B_w(0, data);
+        ymfm_shim_wr(PortNb, Value);
+        //YM2610_data_port_B_w(0, data);
         break;
 
     case 0xC:
         //printf("Setting result code to %0x\n",Value);
         result_code = Value;
         break;
+    /*default:
+        printf("z80_port_write p=%04x %02x\n", PortNb, Value);*/
     }
 }
 

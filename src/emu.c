@@ -33,6 +33,7 @@
 #include "timer.h"
 
 #include "ym2610/2610intf.h"
+#include "ymfm/ymfm_shim.h"
 #include "neocrypt.h"
 
 #define CYC_LINE_68K 768
@@ -54,6 +55,7 @@ static unsigned fc;
 // Extra cycles stored at the end of scanlines/frames
 static uint32_t mextcycs = 0;
 static uint32_t zextcycs = 0;
+static uint32_t ymcycs = 0;
 
 // Set the log callback
 void gn_log_set_callback(void (*cb)(int, const char *, ...)) {
@@ -112,6 +114,7 @@ void init_neo(void) {
     cpu_68k_init();
     pd4990a_init();
     init_sound();
+    ymfm_shim_init();
     neogeo_reset();
 }
 
@@ -186,6 +189,7 @@ static inline int update_scanline(void) {
 void main_loop(void) {
     size_t reqcycs = 0;
     size_t itercycs = 0;
+    size_t ymsamps = 0;
 
     if (conf.test_switch == 1)
         conf.test_switch = 0;
@@ -203,7 +207,13 @@ void main_loop(void) {
         reqcycs = CYC_LINE_Z80 - zextcycs;
         itercycs = cpu_z80_run(reqcycs);
         zextcycs = itercycs - reqcycs;
-        my_timer(); // FIXME - this is dodgy
+
+        for (size_t s = 0; s < itercycs; ++s) {
+            if (++ymcycs == 72) {
+                ymcycs = 0;
+                ymsamps += ymfm_shim_exec();
+            }
+        }
 
         if (update_scanline())
             cpu_68k_interrupt(2);
@@ -211,7 +221,7 @@ void main_loop(void) {
 
     update_screen();
 
-    gn_mixer_resamp();
+    gn_mixer_resamp(ymsamps);
 
     if (++memory.watchdog > 7) {
         gn_log(GN_LOG_DBG, "Watchdog reset\n");

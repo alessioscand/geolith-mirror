@@ -25,14 +25,23 @@ SOFTWARE.
 #include <stddef.h>
 #include <stdint.h>
 
+#include <speex/speex_resampler.h>
+
 #include "gngeo_mixer.h"
 
 #include "ym2610/2610intf.h"
 #include "ym2610/ym2610.h"
+#include "ymfm/ymfm_shim.h"
+
+// 55555 becomes 56280 to compensate for 60.0Hz vs ~59.18Hz
+#define SAMPLERATE_YM2610 56280
 
 static int16_t *abuf = NULL; // Buffer to output resampled data into
-static size_t samplerate = 44100; // Default sample rate is 48000Hz
+static size_t samplerate = 44100; // Default sample rate is 44100Hz
 static size_t framerate = 60; // Default to 60 for NTSC
+
+static SpeexResamplerState *resampler = NULL;
+static int err;
 
 // Callback to notify the fronted that N samples are ready
 static void (*gn_mixer_cb)(size_t);
@@ -52,10 +61,26 @@ void gn_mixer_set_rate(size_t rate) {
     samplerate = rate;
 }
 
-void gn_mixer_resamp(void) {
-    // Update buffer
-    YM2610Update_stream(samplerate / framerate);
+// Deinitialize the resampler
+void gn_mixer_deinit(void) {
+    if (resampler) {
+        speex_resampler_destroy(resampler);
+        resampler = NULL;
+    }
+}
 
-    // No resampling, just pass the samples to the frontend
-    gn_mixer_cb((samplerate / framerate) << 1);
+// Bring up the Speex resampler
+void gn_mixer_init(void) {
+    resampler = speex_resampler_init(2, SAMPLERATE_YM2610, samplerate, 3, &err);
+}
+
+void gn_mixer_resamp(size_t in_ym) {
+    int16_t *ybuf = ymfm_shim_get_buffer();
+    spx_uint32_t insamps = in_ym;
+    spx_uint32_t outsamps = samplerate / framerate;
+
+    err = speex_resampler_process_interleaved_int(resampler,
+        (spx_int16_t*)ybuf, &insamps, (spx_int16_t*)abuf, &outsamps);
+
+    gn_mixer_cb(outsamps << 1);
 }

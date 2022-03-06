@@ -28,6 +28,8 @@ SOFTWARE.
 void gn_mixer_set_buffer(int16_t*);
 void gn_mixer_set_callback(void (*)(size_t));
 void gn_mixer_set_rate(size_t);
-void gn_mixer_resamp(void);
+void gn_mixer_deinit(void);
+void gn_mixer_init(void);
+void gn_mixer_resamp(size_t);
 
 #endif

@@ -176,6 +176,7 @@ int jg_init(void) {
     gn_log_set_callback(jg_cb_log);
     conf.sample_rate = SAMPLERATE;
     gn_mixer_set_rate(SAMPLERATE);
+    gn_mixer_init();
     conf.pal = 0; // Not currently supported
     conf.system = settings_gn[SYS].value;
     conf.country = settings_gn[REGION].value;
@@ -184,6 +185,7 @@ int jg_init(void) {
 
 void jg_deinit(void) {
     close_game();
+    gn_mixer_deinit();
 }
 
 void jg_reset(int hard) {
@@ -255,6 +257,7 @@ void jg_setup_video(void) {
 
 void jg_setup_audio(void) {
     YM2610SetBuffer(audinfo.buf);
+    gn_mixer_set_buffer(audinfo.buf);
     gn_mixer_set_callback(jg_cb_audio);
 }
 

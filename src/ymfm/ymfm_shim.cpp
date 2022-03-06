@@ -25,19 +25,46 @@ SOFTWARE.
 #include "ymfm_opn.h"
 #include "ymfm_shim.h"
 
+extern "C" {
+    #include "memory.h"
+}
+
 using namespace ymfm;
 
 class ym_device : public ymfm::ymfm_interface {
 public:
-    virtual void ymfm_set_timer(uint32_t tnum, int32_t duration) override {
-        if (duration >= 0) {
-            timer[tnum] += (duration / divisor);
-        }
-        else {
-            timer[tnum] = duration;
+    virtual uint8_t ymfm_external_read(access_class type, uint32_t address) override {
+        //printf("rd: %08x\n", address);
+        switch (type) {
+            case ymfm::ACCESS_ADPCM_A:
+                if (address & 0xffffff > memory.rom.adpcma.size)
+                    return 0;
+                return memory.rom.adpcma.p[address & 0xffffff];
+            case ymfm::ACCESS_ADPCM_B:
+                if (address & 0xffffff > memory.rom.adpcmb.size)
+                    return 0;
+                return memory.rom.adpcmb.p[address & 0xffffff];
+            default:
+                return 0;
         }
     }
-    
+
+    virtual void ymfm_external_write(access_class type, uint32_t address, uint8_t data) override { }
+
+    virtual void ymfm_update_irq(bool asserted) override {
+        if (asserted)
+            cpu_z80_raise_irq(0);
+        else
+            cpu_z80_lower_irq();
+    }
+
+    virtual void ymfm_set_timer(uint32_t tnum, int32_t duration) override {
+        if (duration >= 0)
+            timer[tnum] += (duration / divisor);
+        else
+            timer[tnum] = duration;
+    }
+
     virtual void ymfm_set_busy_end(uint32_t clocks) override {
         busytimer += clocks / divisor;
         busyfrac += clocks % divisor;
@@ -46,17 +73,17 @@ public:
             busyfrac -= divisor;
         }
     }
-    
+
     virtual bool ymfm_is_busy() override {
         return busytimer ? true : false;
     }
 
-    
+
     void timer_tick() {
         if (busytimer) {
             --busytimer;
         }
-        
+
         for (int i = 0; i < 2; ++i) {
             if (timer[i] < 0)
                 continue;
@@ -64,14 +91,14 @@ public:
                 m_engine->engine_timer_expired(i);
         }
     }
-    
+
     int busytimer;
     int busyfrac;
     int timer[2];
     int divisor;
 };
 
-#define SIZE_YMBUF 2600
+#define SIZE_YMBUF 2048
 
 static int16_t ymbuf[SIZE_YMBUF];
 static size_t bufpos;
@@ -89,6 +116,7 @@ int16_t* ymfm_shim_get_buffer(void) {
 void ymfm_shim_init(void) {
     intf.divisor = 144;
     chip = new ym2610(intf);
+    chip->set_fidelity(OPN_FIDELITY_MED);
 }
 
 void ymfm_shim_deinit(void) {
