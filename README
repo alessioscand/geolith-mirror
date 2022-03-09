@@ -10,6 +10,30 @@ Gngeo JG is an emulator for the Neo Geo.
 
 This repository lives at https://gitlab.com/jgemu/gngeo
 
+Compiling
+---------
+Make sure you have The Jolly Good API's header files installed. If you did
+not install them, you will be required to include their path in CFLAGS.
+
+Options:
+  USE_VENDORED_SPEEXDSP - Set to a non-zero value to use vendored SpeexDSP.
+
+Linux:
+  make
+
+macOS:
+  make
+
+BSD:
+  gmake
+
+Windows (MSYS2):
+  make
+
+The build will be output to "gngeo/". This directory may be used as is
+locally by copying it to your local "cores" directory, or may be installed
+system-wide using the "install" target specified in the Makefile.
+
 Copyright
 ---------
 Gngeo JG

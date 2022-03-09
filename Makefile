@@ -14,12 +14,9 @@ SRCDIR := $(SOURCEDIR)/src
 PKGCONF ?= pkg-config
 CFLAGS_JG := $(shell $(PKGCONF) --cflags jg)
 
-CFLAGS_SPEEXDSP := $(shell $(PKGCONF) --cflags speexdsp)
-LIBS_SPEEXDSP := $(shell $(PKGCONF) --libs speexdsp)
-
 LIBS_ZLIB := $(shell $(PKGCONF) --libs zlib)
 
-LIBS := $(LIBS_SPEEXDSP) $(LIBS_ZLIB) -lstdc++
+LIBS := $(LIBS_ZLIB) -lstdc++
 
 INCLUDES := -I$(SRCDIR) -I$(SRCDIR)/m68k -I$(SRCDIR)/ymfm -I$(SRCDIR)/z80
 PIC := -fPIC
@@ -33,6 +30,8 @@ DATAROOTDIR ?= $(PREFIX)/share
 DATADIR ?= $(DATAROOTDIR)
 DOCDIR ?= $(DATAROOTDIR)/doc/$(NAME)
 LIBDIR ?= $(PREFIX)/lib
+
+USE_VENDORED_SPEEXDSP ?= 0
 
 UNAME := $(shell uname -s)
 ifeq ($(UNAME), Darwin)
@@ -74,8 +73,22 @@ CXXSRCS := ymfm/ymfm_opn.cpp \
 	ymfm/ymfm_shim.cpp \
 	ymfm/ymfm_ssg.cpp
 
+ifneq ($(USE_VENDORED_SPEEXDSP), 0)
+	Q_SPEEXDSP :=
+	CFLAGS_SPEEXDSP := -I$(DEPDIR)
+	LIBS_SPEEXDSP :=
+	CSRCS += speex/resample.c
+else
+	Q_SPEEXDSP := @
+	CFLAGS_SPEEXDSP := $(shell $(PKGCONF) --cflags speexdsp)
+	LIBS_SPEEXDSP := $(shell $(PKGCONF) --libs speexdsp)
+endif
+
+INCLUDES += $(CFLAGS_SPEEXDSP)
+LIBS := $(LIBS_SPEEXDSP)
+
 # Object dirs
-MKDIRS := m68k ymfm z80
+MKDIRS := m68k speex ymfm z80
 
 OBJDIR := objs
 
@@ -137,6 +150,10 @@ install: all
 	cp $(NAME)/$(NAME)_data.zip $(DESTDIR)$(DATADIR)/jollygood/$(NAME)/
 	cp $(SOURCEDIR)/COPYING $(DESTDIR)$(DOCDIR)
 	cp $(SOURCEDIR)/README $(DESTDIR)$(DOCDIR)
+	$(Q_SPEEXDSP)if test $(USE_VENDORED_SPEEXDSP) != 0; then \
+		cp $(DEPDIR)/speex/COPYING \
+			$(DESTDIR)$(DOCDIR)/COPYING-speexdsp; \
+	fi
 
 install-strip: install
 	strip $(DESTDIR)$(LIBDIR)/jollygood/$(TARGET)
