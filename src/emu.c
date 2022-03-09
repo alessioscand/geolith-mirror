@@ -100,6 +100,7 @@ void neogeo_reset(void) {
         cpu_68k_bankswitch(0);
     cpu_68k_reset();
 
+    ymfm_shim_reset(); // Reset the YM2610 to make sure everything is defaulted
 }
 
 void init_sound(void) {
