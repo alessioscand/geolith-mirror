@@ -138,7 +138,10 @@ void ymfm_shim_wr(uint16_t addr, uint8_t data) {
 size_t ymfm_shim_exec(void) {
     intf.timer_tick();
     chip->generate(&output);
-    ymbuf[bufpos++] = output.data[0];
-    ymbuf[bufpos++] = output.data[1];
+
+    // Mix stereo FM/ADPCM output (0,1) with mono SSG output (2)
+    ymbuf[bufpos++] = output.data[0] + output.data[2];
+    ymbuf[bufpos++] = output.data[1] + output.data[2];
+
     return 1;
 }
