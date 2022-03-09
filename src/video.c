@@ -273,7 +273,7 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
 
 void draw_screen(void) {
     int sx = 0, sy = 0, oy = 0, my = 0, zx = 1, rzy = 1;
-    unsigned int offs, i, count;
+    unsigned int offs, count;
     unsigned int tileno, tileatr, t1, t2, t3;
     char fullmode = 0;
     int dday = 0, rzx = 15, yskip = 0;
@@ -400,7 +400,7 @@ void draw_screen(void) {
                 yskip = 0;
                 dda_y_skip_i = 0;
                 dda_y_skip[0] = 0;
-                for (i = 0; i < 16; i++) {
+                for (unsigned i = 0; i < 16; i++) {
                     dda_y_skip[i + 1] = 0;
                     dday -= (rzy + 1);
                     if (dday <= 0) {
