@@ -206,7 +206,7 @@ void main_loop(void) {
         zextcycs = itercycs - reqcycs;
 
         for (size_t s = 0; s < itercycs; ++s) {
-            if (++ymcycs == 72) {
+            if (++ymcycs == 72) { // 72 for medium fidelity, 8 for high
                 ymcycs = 0;
                 ymsamps += ymfm_shim_exec();
             }

@@ -113,7 +113,7 @@ int16_t* ymfm_shim_get_buffer(void) {
 }
 
 void ymfm_shim_init(void) {
-    intf.divisor = 144;
+    intf.divisor = 144; // 144 for medium fidelity, 16 for high
     chip = new ym2610(intf);
     chip->set_fidelity(OPN_FIDELITY_MED);
 }
