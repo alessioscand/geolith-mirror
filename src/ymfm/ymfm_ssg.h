@@ -46,9 +46,8 @@ namespace ymfm
 
 // this class describes a simple interface to allow the internal SSG to be
 // overridden with another implementation
-class ssg_override
+struct ssg_override
 {
-public:
 	// reset our status
 	virtual void ssg_reset() = 0;
 
@@ -95,9 +94,8 @@ public:
 //     08,09,0A ---x---- Mode: fixed(0) or variable(1) for channel A,B,C
 //              ----xxxx Amplitude for channel A,B,C
 //
-class ssg_registers
+struct ssg_registers
 {
-public:
 	// constants
 	static constexpr uint32_t OUTPUTS = 3;
 	static constexpr uint32_t CHANNELS = 3;
@@ -143,9 +141,8 @@ public:
 
 // ======================> ssg_engine
 
-class ssg_engine
+struct ssg_engine
 {
-public:
 	static constexpr int OUTPUTS = ssg_registers::OUTPUTS;
 	static constexpr int CHANNELS = ssg_registers::CHANNELS;
 	static constexpr int CLOCK_DIVIDER = 8;
