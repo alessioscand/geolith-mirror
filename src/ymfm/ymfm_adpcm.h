@@ -43,8 +43,8 @@ namespace ymfm
 //*********************************************************
 
 // forward declarations
-class adpcm_a_engine;
-class adpcm_b_engine;
+struct adpcm_a_engine;
+struct adpcm_b_engine;
 
 
 // ======================> adpcm_a_registers
@@ -65,9 +65,8 @@ class adpcm_b_engine;
 //        20-25 xxxxxxxx End address (low)
 //        28-2D xxxxxxxx End address (high)
 //
-class adpcm_a_registers
+struct adpcm_a_registers
 {
-public:
 	// constants
 	static constexpr uint32_t OUTPUTS = 2;
 	static constexpr uint32_t CHANNELS = 6;
@@ -125,9 +124,8 @@ public:
 
 // ======================> adpcm_a_channel
 
-class adpcm_a_channel
+struct adpcm_a_channel
 {
-public:
 	// constructor
 	adpcm_a_channel(adpcm_a_engine &owner, uint32_t choffs, uint32_t addrshift);
 
@@ -163,9 +161,8 @@ public:
 
 // ======================> adpcm_a_engine
 
-class adpcm_a_engine
+struct adpcm_a_engine
 {
-public:
 	static constexpr int CHANNELS = adpcm_a_registers::CHANNELS;
 
 	// constructor
@@ -244,9 +241,8 @@ public:
 //           0f xx------ DAC data low [Y8950]
 //           10 -----xxx DAC data exponent [Y8950]
 //
-class adpcm_b_registers
+struct adpcm_b_registers
 {
-public:
 	// constants
 	static constexpr uint32_t REGISTERS = 0x11;
 
@@ -292,9 +288,8 @@ public:
 
 // ======================> adpcm_b_channel
 
-class adpcm_b_channel
+struct adpcm_b_channel
 {
-public:
 	static constexpr int32_t STEP_MIN = 127;
 	static constexpr int32_t STEP_MAX = 24576;
 
@@ -360,9 +355,8 @@ public:
 
 // ======================> adpcm_b_engine
 
-class adpcm_b_engine
+struct adpcm_b_engine
 {
-public:
 	// constructor
 	adpcm_b_engine(ymfm_interface &intf, uint32_t addrshift = 0);
 
