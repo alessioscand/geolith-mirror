@@ -108,9 +108,8 @@ namespace ymfm
 //
 
 template<bool IsOpnA>
-class opn_registers_base : public fm_registers_base
+struct opn_registers_base : public fm_registers_base
 {
-public:
 	// constants
 	static constexpr uint32_t OUTPUTS = IsOpnA ? 2 : 1;
 	static constexpr uint32_t CHANNELS = IsOpnA ? 6 : 3;
@@ -340,9 +339,8 @@ enum opn_fidelity : uint8_t
 // ======================> ssg_resampler
 
 template<typename OutputType, int FirstOutput, bool MixTo1>
-class ssg_resampler
+struct ssg_resampler
 {
-public:
 	// helper to add the last computed value to the sums, applying the given scale
 	void add_last(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale = 1);
 
@@ -413,9 +411,8 @@ public:
 
 // ======================> ym2610/ym2610b
 
-class ym2610
+struct ym2610
 {
-public:
 	static constexpr uint8_t EOS_FLAGS_MASK = 0xbf;
 
 	using fm_engine = fm_engine_base<opna_registers>;
@@ -490,9 +487,8 @@ public:
 
 // ======================> ym2612
 
-class ym2612
+struct ym2612
 {
-public:
 	using fm_engine = fm_engine_base<opna_registers>;
 	static constexpr uint32_t OUTPUTS = fm_engine::OUTPUTS;
 	using output_data = fm_engine::output_data;
@@ -537,9 +533,8 @@ public:
 
 // ======================> ym3438
 
-class ym3438 : public ym2612
+struct ym3438 : public ym2612
 {
-public:
 	ym3438(ymfm_interface &intf) : ym2612(intf) { }
 
 	// generate one sample of sound
