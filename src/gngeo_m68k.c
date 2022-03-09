@@ -301,7 +301,7 @@ static inline void swapb16_range(void *ptr, size_t len) {
 
 void cpu_68k_bankswitch(uint32_t address) {
     bankaddress = address;
-};
+}
 
 void cpu_68k_reset(void) {
     m68k_pulse_reset();

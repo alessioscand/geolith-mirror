@@ -173,7 +173,6 @@ uint16_t mem68k_fetch_ram_word(uint32_t addr) {
 }
 
 LONG_FETCH(mem68k_fetch_ram)
-;
 
 /**** CPU ****/
 uint8_t mem68k_fetch_cpu_byte(uint32_t addr) {
@@ -189,7 +188,6 @@ uint16_t mem68k_fetch_cpu_word(uint32_t addr) {
 }
 
 LONG_FETCH(mem68k_fetch_cpu)
-;
 
 /**** BIOS ****/
 uint8_t mem68k_fetch_bios_byte(uint32_t addr) {
@@ -203,7 +201,6 @@ uint16_t mem68k_fetch_bios_word(uint32_t addr) {
 }
 
 LONG_FETCH(mem68k_fetch_bios)
-;
 
 /**** SRAM ****/
 uint8_t mem68k_fetch_sram_byte(uint32_t addr) {
@@ -216,7 +213,6 @@ uint16_t mem68k_fetch_sram_word(uint32_t addr) {
 }
 
 LONG_FETCH(mem68k_fetch_sram)
-;
 
 /**** PALETTE ****/
 uint8_t mem68k_fetch_pal_byte(uint32_t addr) {
@@ -234,7 +230,6 @@ uint16_t mem68k_fetch_pal_word(uint32_t addr) {
 }
 
 LONG_FETCH(mem68k_fetch_pal)
-;
 
 /**** VIDEO ****/
 uint8_t mem68k_fetch_video_byte(uint32_t addr) {
@@ -278,7 +273,6 @@ uint16_t mem68k_fetch_video_word(uint32_t addr) {
     return 0;
 }
 LONG_FETCH(mem68k_fetch_video)
-;
 
 /**** CONTROLLER ****/
 uint8_t mem68k_fetch_ctl1_byte(uint32_t addr) {
@@ -425,7 +419,6 @@ void mem68k_store_ram_word(uint32_t addr, uint16_t data) {
 }
 
 LONG_STORE(mem68k_store_ram)
-;
 
 /**** SRAM ****/
 void mem68k_store_sram_byte(uint32_t addr, uint8_t data) {
@@ -452,7 +445,6 @@ void mem68k_store_sram_word(uint32_t addr, uint16_t data) {
 }
 
 LONG_STORE(mem68k_store_sram)
-;
 
 /**** PALETTE ****/
 /*static inline */uint32_t convert_pal(uint16_t npal) {
@@ -511,7 +503,6 @@ void mem68k_store_pal_word(uint32_t addr, uint16_t data) {
 }
 
 LONG_STORE(mem68k_store_pal)
-;
 
 /**** VIDEO ****/
 void mem68k_store_video_byte(uint32_t addr, uint8_t data) {
@@ -564,7 +555,6 @@ void mem68k_store_video_word(uint32_t addr, uint16_t data) {
 
 }
 LONG_STORE(mem68k_store_video)
-;
 
 /**** PD4990 ****/
 void mem68k_store_pd4990_byte(uint32_t addr, uint8_t data) {
@@ -769,7 +759,6 @@ uint16_t mem68k_fetch_bk_normal_word(uint32_t addr) {
 }
 
 LONG_FETCH(mem68k_fetch_bk_normal)
-;
 
 static void bankswitch(uint32_t address, uint8_t data) {
 
@@ -813,4 +802,3 @@ void mem68k_store_bk_normal_word(uint32_t addr, uint16_t data) {
 }
 
 LONG_STORE(mem68k_store_bk_normal)
-;
