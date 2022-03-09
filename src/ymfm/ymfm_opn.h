@@ -342,7 +342,7 @@ enum opn_fidelity : uint8_t
 template<typename OutputType, int FirstOutput, bool MixTo1>
 class ssg_resampler
 {
-private:
+public:
 	// helper to add the last computed value to the sums, applying the given scale
 	void add_last(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale = 1);
 
@@ -353,7 +353,6 @@ private:
 	// divisor to the final result
 	void write_to_output(OutputType *output, int32_t sum0, int32_t sum1, int32_t sum2, int32_t divisor = 1);
 
-public:
 	// constructor
 	ssg_resampler(ssg_engine &ssg);
 
@@ -372,7 +371,6 @@ public:
 		(this->*m_resampler)(output, numsamples);
 	}
 
-private:
 	// resample SSG output to the target at a rate of 1 SSG sample
 	// to every n output samples
 	template<int Multiplier>
@@ -417,9 +415,9 @@ private:
 
 class ym2610
 {
+public:
 	static constexpr uint8_t EOS_FLAGS_MASK = 0xbf;
 
-public:
 	using fm_engine = fm_engine_base<opna_registers>;
 	static constexpr uint32_t FM_OUTPUTS = fm_engine::OUTPUTS;
 	static constexpr uint32_t SSG_OUTPUTS = 1;

@@ -354,7 +354,6 @@ public:
 			restore(data);
 	}
 
-public:
 	// save data to the buffer
 	void save(bool &data) { write(data ? 1 : 0); }
 	void save(int8_t &data) { write(data); }
@@ -419,10 +418,10 @@ public:
 // world; it provides hooks for timers, synchronization, and I/O
 class ymfm_interface
 {
+public:
 	// the engine is our friend
 	template<typename RegisterType> friend class fm_engine_base;
 
-public:
 	// the following functions must be implemented by any derived classes; the
 	// default implementations are sufficient for some minimal operation, but will
 	// likely need to be overridden to integrate with the outside world; they are
@@ -479,7 +478,6 @@ public:
 	// of the chip; our responsibility is to pass the written data on to any consumers
 	virtual void ymfm_external_write(access_class type, uint32_t address, uint8_t data) { }
 
-protected:
 	// pointer to engine callbacks -- this is set directly by the engine at
 	// construction time
 	ymfm_engine_callbacks *m_engine;

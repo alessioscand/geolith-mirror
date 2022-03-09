@@ -161,10 +161,10 @@ template<class RegisterType> class fm_engine_base;
 template<class RegisterType>
 class fm_operator
 {
+public:
 	// "quiet" value, used to optimize when we can skip doing working
 	static constexpr uint32_t EG_QUIET = 0x200;
 
-public:
 	// constructor
 	fm_operator(fm_engine_base<RegisterType> &owner, uint32_t opoffs);
 
@@ -244,9 +244,9 @@ public:
 template<class RegisterType>
 class fm_channel
 {
+public:
 	using output_data = ymfm_output<RegisterType::OUTPUTS>;
 
-public:
 	// constructor
 	fm_channel(fm_engine_base<RegisterType> &owner, uint32_t choffs);
 

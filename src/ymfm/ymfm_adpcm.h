@@ -285,7 +285,6 @@ public:
 	uint32_t dac() const              { return m_regdata[0x0e]; }
 	uint32_t pcm() const              { return m_regdata[0x0f]; }
 
-private:
 	// internal state
 	uint8_t m_regdata[REGISTERS];         // register data
 };
@@ -295,10 +294,10 @@ private:
 
 class adpcm_b_channel
 {
+public:
 	static constexpr int32_t STEP_MIN = 127;
 	static constexpr int32_t STEP_MAX = 24576;
 
-public:
 	static constexpr uint8_t STATUS_EOS = 0x01;
 	static constexpr uint8_t STATUS_BRDY = 0x02;
 	static constexpr uint8_t STATUS_PLAYING = 0x04;
