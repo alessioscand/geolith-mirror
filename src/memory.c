@@ -113,7 +113,6 @@ uint8_t z80_port_read(uint16_t PortNo)
 
 void z80_port_write(uint16_t PortNb, uint8_t Value)
 {
-    uint8_t data = Value;
     //printf("z80_port_write PC=%04x OP=%02x p=%04x v=%02x\n",cpu_z80_get_pc(),memory.rom.cpu_z80.p[cpu_z80_get_pc()],PortNb,Value);
     //printf("Write port %04x %02x\n",PortNb,Value);
     switch (PortNb & 0xff) {

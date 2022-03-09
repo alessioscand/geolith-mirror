@@ -47,7 +47,6 @@ unsigned nb_interlace = 256;
 unsigned current_line;
 
 static int last_line;
-static int frame;
 static unsigned fc;
 
 // Extra cycles stored at the end of scanlines/frames
