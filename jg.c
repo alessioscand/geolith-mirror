@@ -37,7 +37,7 @@ SOFTWARE.
 #include "resfile.h"
 #include "video.h"
 
-#define SAMPLERATE 44100
+#define SAMPLERATE 48000
 #define FRAMERATE 60
 #define CHANNELS 2
 #define NUMINPUTS 3
