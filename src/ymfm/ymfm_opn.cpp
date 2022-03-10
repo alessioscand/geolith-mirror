@@ -28,6 +28,8 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <string.h>
+
 #include "ymfm_opn.h"
 #include "ymfm_fm.ipp"
 
@@ -63,7 +65,7 @@ opn_registers_base::opn_registers_base() :
 
 void opn_registers_base::reset()
 {
-	std::fill_n(&m_regdata[0], REGISTERS, 0);
+	memset(&m_regdata[0], 0, REGISTERS);
 	// enable output on both channels by default
 	m_regdata[0xb4] = m_regdata[0xb5] = m_regdata[0xb6] = 0xc0;
 	m_regdata[0x1b4] = m_regdata[0x1b5] = m_regdata[0x1b6] = 0xc0;

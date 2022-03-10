@@ -28,6 +28,8 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <string.h>
+
 #include "ymfm_adpcm.h"
 
 namespace ymfm
@@ -43,7 +45,7 @@ namespace ymfm
 
 void adpcm_a_registers::reset()
 {
-	std::fill_n(&m_regdata[0], REGISTERS, 0);
+	memset(&m_regdata[0], 0, REGISTERS);
 
 	// initialize the pans to on by default, and max instrument volume;
 	// some neogeo homebrews (for example ffeast) rely on this
@@ -361,7 +363,7 @@ void adpcm_a_engine::write(uint32_t regnum, uint8_t data)
 
 void adpcm_b_registers::reset()
 {
-	std::fill_n(&m_regdata[0], REGISTERS, 0);
+	memset(&m_regdata[0], 0, REGISTERS);
 
 	// default limit to wide open
 	m_regdata[0x0c] = m_regdata[0x0d] = 0xff;

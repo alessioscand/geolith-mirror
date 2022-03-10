@@ -28,6 +28,8 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <string.h>
+
 #include "ymfm_ssg.h"
 
 namespace ymfm
@@ -43,7 +45,7 @@ namespace ymfm
 
 void ssg_registers::reset()
 {
-	std::fill_n(&m_regdata[0], REGISTERS, 0);
+	memset(&m_regdata[0], 0, REGISTERS);
 }
 
 
