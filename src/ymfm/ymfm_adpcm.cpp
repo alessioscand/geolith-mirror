@@ -221,8 +221,7 @@ bool adpcm_a_channel::clock()
 //  panning applied
 //-------------------------------------------------
 
-template<int NumOutputs>
-void adpcm_a_channel::output(ymfm_output<NumOutputs> &output) const
+void adpcm_a_channel::output(ymfm_output<2> &output) const
 {
 	// volume combines instrument and total levels
 	int vol = (m_regs.ch_instrument_level(m_choffs) ^ 0x1f) + (m_regs.total_level() ^ 0x3f);
@@ -241,9 +240,9 @@ void adpcm_a_channel::output(ymfm_output<NumOutputs> &output) const
 	int16_t value = ((int16_t(m_accumulator << 4) * mul) >> shift) & ~3;
 
 	// apply to left/right as appropriate
-	if (NumOutputs == 1 || m_regs.ch_pan_left(m_choffs))
+	if (m_regs.ch_pan_left(m_choffs))
 		output.data[0] += value;
-	if (NumOutputs > 1 && m_regs.ch_pan_right(m_choffs))
+	if (m_regs.ch_pan_right(m_choffs))
 		output.data[1] += value;
 }
 
@@ -318,8 +317,7 @@ uint32_t adpcm_a_engine::clock(uint32_t chanmask)
 //  update - master update function
 //-------------------------------------------------
 
-template<int NumOutputs>
-void adpcm_a_engine::output(ymfm_output<NumOutputs> &output, uint32_t chanmask)
+void adpcm_a_engine::output(ymfm_output<2> &output, uint32_t chanmask)
 {
 	// mask out some channels for debug purposes
 	chanmask &= debug::GLOBAL_ADPCM_A_CHANNEL_MASK;
@@ -329,9 +327,6 @@ void adpcm_a_engine::output(ymfm_output<NumOutputs> &output, uint32_t chanmask)
 		if (bitfield(chanmask, chnum))
 			m_channel[chnum]->output(output);
 }
-
-template void adpcm_a_engine::output<1>(ymfm_output<1> &output, uint32_t chanmask);
-template void adpcm_a_engine::output<2>(ymfm_output<2> &output, uint32_t chanmask);
 
 
 //-------------------------------------------------
@@ -527,8 +522,7 @@ void adpcm_b_channel::clock()
 //  panning applied
 //-------------------------------------------------
 
-template<int NumOutputs>
-void adpcm_b_channel::output(ymfm_output<NumOutputs> &output, uint32_t rshift) const
+void adpcm_b_channel::output(ymfm_output<2> &output, uint32_t rshift) const
 {
 	// mask out some channels for debug purposes
 	if ((debug::GLOBAL_ADPCM_B_CHANNEL_MASK & 1) == 0)
@@ -541,9 +535,9 @@ void adpcm_b_channel::output(ymfm_output<NumOutputs> &output, uint32_t rshift) c
 	result = (result * int32_t(m_regs.level())) >> (8 + rshift);
 
 	// apply to left/right
-	if (NumOutputs == 1 || m_regs.pan_left())
+	if (m_regs.pan_left())
 		output.data[0] += result;
-	if (NumOutputs > 1 && m_regs.pan_right())
+	if (m_regs.pan_right())
 		output.data[1] += result;
 }
 
@@ -760,15 +754,11 @@ void adpcm_b_engine::clock()
 //  output - master output function
 //-------------------------------------------------
 
-template<int NumOutputs>
-void adpcm_b_engine::output(ymfm_output<NumOutputs> &output, uint32_t rshift)
+void adpcm_b_engine::output(ymfm_output<2> &output, uint32_t rshift)
 {
 	// compute the output of each channel
 	m_channel->output(output, rshift);
 }
-
-template void adpcm_b_engine::output<1>(ymfm_output<1> &output, uint32_t rshift);
-template void adpcm_b_engine::output<2>(ymfm_output<2> &output, uint32_t rshift);
 
 
 //-------------------------------------------------
