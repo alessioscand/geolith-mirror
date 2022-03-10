@@ -47,8 +47,7 @@ namespace ymfm
 //  opn_registers_base - constructor
 //-------------------------------------------------
 
-template<bool IsOpnA>
-opn_registers_base<IsOpnA>::opn_registers_base() :
+opn_registers_base::opn_registers_base() :
 	m_lfo_counter(0),
 	m_lfo_am(0)
 {
@@ -62,16 +61,12 @@ opn_registers_base<IsOpnA>::opn_registers_base() :
 //  reset - reset to initial state
 //-------------------------------------------------
 
-template<bool IsOpnA>
-void opn_registers_base<IsOpnA>::reset()
+void opn_registers_base::reset()
 {
 	std::fill_n(&m_regdata[0], REGISTERS, 0);
-	if (IsOpnA)
-	{
-		// enable output on both channels by default
-		m_regdata[0xb4] = m_regdata[0xb5] = m_regdata[0xb6] = 0xc0;
-		m_regdata[0x1b4] = m_regdata[0x1b5] = m_regdata[0x1b6] = 0xc0;
-	}
+	// enable output on both channels by default
+	m_regdata[0xb4] = m_regdata[0xb5] = m_regdata[0xb6] = 0xc0;
+	m_regdata[0x1b4] = m_regdata[0x1b5] = m_regdata[0x1b6] = 0xc0;
 }
 
 
@@ -79,14 +74,10 @@ void opn_registers_base<IsOpnA>::reset()
 //  save_restore - save or restore the data
 //-------------------------------------------------
 
-template<bool IsOpnA>
-void opn_registers_base<IsOpnA>::save_restore(ymfm_saved_state &state)
+void opn_registers_base::save_restore(ymfm_saved_state &state)
 {
-	if (IsOpnA)
-	{
-		state.save_restore(m_lfo_counter);
-		state.save_restore(m_lfo_am);
-	}
+	state.save_restore(m_lfo_counter);
+	state.save_restore(m_lfo_am);
 	state.save_restore(m_regdata);
 }
 
@@ -96,27 +87,7 @@ void opn_registers_base<IsOpnA>::save_restore(ymfm_saved_state &state)
 //  indices for each channel; for OPN this is fixed
 //-------------------------------------------------
 
-template<>
-void opn_registers_base<false>::operator_map(operator_mapping &dest) const
-{
-	// Note that the channel index order is 0,2,1,3, so we bitswap the index.
-	//
-	// This is because the order in the map is:
-	//    carrier 1, carrier 2, modulator 1, modulator 2
-	//
-	// But when wiring up the connections, the more natural order is:
-	//    carrier 1, modulator 1, carrier 2, modulator 2
-	static const operator_mapping s_fixed_map =
-	{ {
-		operator_list(  0,  6,  3,  9 ),  // Channel 0 operators
-		operator_list(  1,  7,  4, 10 ),  // Channel 1 operators
-		operator_list(  2,  8,  5, 11 ),  // Channel 2 operators
-	} };
-	dest = s_fixed_map;
-}
-
-template<>
-void opn_registers_base<true>::operator_map(operator_mapping &dest) const
+void opn_registers_base::operator_map(operator_mapping &dest) const
 {
 	// Note that the channel index order is 0,2,1,3, so we bitswap the index.
 	//
@@ -142,8 +113,7 @@ void opn_registers_base<true>::operator_map(operator_mapping &dest) const
 //  write - handle writes to the register array
 //-------------------------------------------------
 
-template<bool IsOpnA>
-bool opn_registers_base<IsOpnA>::write(uint16_t index, uint8_t data, uint32_t &channel, uint32_t &opmask)
+bool opn_registers_base::write(uint16_t index, uint8_t data, uint32_t &channel, uint32_t &opmask)
 {
 	assert(index < REGISTERS);
 
@@ -152,8 +122,7 @@ bool opn_registers_base<IsOpnA>::write(uint16_t index, uint8_t data, uint32_t &c
 	if ((index & 0xf0) == 0xa0)
 	{
 		uint32_t latchindex = 0xb8 | (bitfield(index, 3) << 2) | bitfield(index, 0, 2);
-		if (IsOpnA)
-			latchindex |= index & 0x100;
+		latchindex |= index & 0x100;
 
 		// writes to the upper half just latch (only low 6 bits matter)
 		if (bitfield(index, 2))
@@ -176,8 +145,8 @@ bool opn_registers_base<IsOpnA>::write(uint16_t index, uint8_t data, uint32_t &c
 		channel = bitfield(data, 0, 2);
 		if (channel == 3)
 			return false;
-		if (IsOpnA)
-			channel += bitfield(data, 2, 1) * 3;
+
+		channel += bitfield(data, 2, 1) * 3;
 		opmask = bitfield(data, 4, 4);
 		return true;
 	}
@@ -191,13 +160,12 @@ bool opn_registers_base<IsOpnA>::write(uint16_t index, uint8_t data, uint32_t &c
 //  computations
 //-------------------------------------------------
 
-template<bool IsOpnA>
-int32_t opn_registers_base<IsOpnA>::clock_noise_and_lfo()
+int32_t opn_registers_base::clock_noise_and_lfo()
 {
 	// OPN has no noise generation
 
 	// if LFO not enabled (not present on OPN), quick exit with 0s
-	if (!IsOpnA || !lfo_enable())
+	if (!lfo_enable())
 	{
 		m_lfo_counter = 0;
 		m_lfo_am = 0;
@@ -243,8 +211,7 @@ int32_t opn_registers_base<IsOpnA>::clock_noise_and_lfo()
 //  for the given channel
 //-------------------------------------------------
 
-template<bool IsOpnA>
-uint32_t opn_registers_base<IsOpnA>::lfo_am_offset(uint32_t choffs) const
+uint32_t opn_registers_base::lfo_am_offset(uint32_t choffs) const
 {
 	// shift value for AM sensitivity is [7, 3, 1, 0],
 	// mapping to values of [0, 1.4, 5.9, and 11.8dB]
@@ -266,8 +233,7 @@ uint32_t opn_registers_base<IsOpnA>::lfo_am_offset(uint32_t choffs) const
 //  with prefetched data
 //-------------------------------------------------
 
-template<bool IsOpnA>
-void opn_registers_base<IsOpnA>::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_cache &cache)
+void opn_registers_base::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_cache &cache)
 {
 	// set up the easy stuff
 	cache.waveform = &m_waveform[0][0];
@@ -314,7 +280,7 @@ void opn_registers_base<IsOpnA>::cache_operator_data(uint32_t choffs, uint32_t o
 
 	// phase step, or PHASE_STEP_DYNAMIC if PM is active; this depends on
 	// block_freq, detune, and multiple, so compute it after we've done those
-	if (!IsOpnA || lfo_enable() == 0 || ch_lfo_pm_sens(choffs) == 0)
+	if (lfo_enable() == 0 || ch_lfo_pm_sens(choffs) == 0)
 		cache.phase_step = compute_phase_step(choffs, opoffs, cache, 0);
 	else
 		cache.phase_step = opdata_cache::PHASE_STEP_DYNAMIC;
@@ -340,8 +306,7 @@ void opn_registers_base<IsOpnA>::cache_operator_data(uint32_t choffs, uint32_t o
 //  compute_phase_step - compute the phase step
 //-------------------------------------------------
 
-template<bool IsOpnA>
-uint32_t opn_registers_base<IsOpnA>::compute_phase_step(uint32_t choffs, uint32_t opoffs, opdata_cache const &cache, int32_t lfo_raw_pm)
+uint32_t opn_registers_base::compute_phase_step(uint32_t choffs, uint32_t opoffs, opdata_cache const &cache, int32_t lfo_raw_pm)
 {
 	// OPN phase calculation has only a single detune parameter
 	// and uses FNUMs instead of keycodes
@@ -381,8 +346,7 @@ uint32_t opn_registers_base<IsOpnA>::compute_phase_step(uint32_t choffs, uint32_
 //  log_keyon - log a key-on event
 //-------------------------------------------------
 
-template<bool IsOpnA>
-std::string opn_registers_base<IsOpnA>::log_keyon(uint32_t choffs, uint32_t opoffs)
+std::string opn_registers_base::log_keyon(uint32_t choffs, uint32_t opoffs)
 {
 	uint32_t chnum = (choffs & 3) + 3 * bitfield(choffs, 8);
 	uint32_t opnum = (opoffs & 15) - ((opoffs & 15) / 4) + 12 * bitfield(opoffs, 8);
