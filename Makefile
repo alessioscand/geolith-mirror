@@ -85,7 +85,7 @@ else
 endif
 
 INCLUDES += $(CFLAGS_SPEEXDSP)
-LIBS := $(LIBS_SPEEXDSP)
+LIBS += $(LIBS_SPEEXDSP)
 
 # Object dirs
 MKDIRS := m68k speex ymfm z80
