@@ -31,6 +31,11 @@
 #include "ymfm_opn.h"
 #include "ymfm_fm.ipp"
 
+// simulate the DAC discontinuity (YM2612)
+static inline int32_t dac_discontinuity(int32_t value) {
+	return (value < 0) ? (value - 2) : (value + 3);
+}
+
 namespace ymfm
 {
 

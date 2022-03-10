@@ -520,9 +520,6 @@ struct ym2612
 	// generate one sample of sound
 	void generate(output_data *output, uint32_t numsamples = 1);
 
-	// simulate the DAC discontinuity
-	constexpr int32_t dac_discontinuity(int32_t value) const { return (value < 0) ? (value - 2) : (value + 3); }
-
 	// internal state
 	uint16_t m_address;              // address register
 	uint16_t m_dac_data;             // 9-bit DAC data
