@@ -261,7 +261,7 @@ adpcm_a_engine::adpcm_a_engine(ymfm_interface &intf, uint32_t addrshift) :
 {
 	// create the channels
 	for (int chnum = 0; chnum < CHANNELS; chnum++)
-		m_channel[chnum] = std::make_unique<adpcm_a_channel>(*this, chnum, addrshift);
+		m_channel[chnum] = new adpcm_a_channel(*this, chnum, addrshift);
 }
 
 
@@ -707,7 +707,7 @@ adpcm_b_engine::adpcm_b_engine(ymfm_interface &intf, uint32_t addrshift) :
 	m_intf(intf)
 {
 	// create the channel (only one supported for now, but leaving possibilities open)
-	m_channel = std::make_unique<adpcm_b_channel>(*this, addrshift);
+	m_channel = new adpcm_b_channel(*this, addrshift);
 }
 
 
