@@ -966,7 +966,7 @@ int m68k_execute(int num_cycles)
 		/* Main loop.  Keep going until we run out of clock cycles */
 		do
 		{
-			int i;
+			//int i;
 			/* Set tracing accodring to T1. (T0 is done inside instruction) */
 			m68ki_trace_t1(); /* auto-disable (see m68kcpu.h) */
 
@@ -980,9 +980,10 @@ int m68k_execute(int num_cycles)
 			REG_PPC = REG_PC;
 
 			/* Record previous D/A register state (in case of bus error) */
-			for (i = 15; i >= 0; i--){
+			// https://github.com/kstenerud/Musashi/issues/72
+			/*for (i = 15; i >= 0; i--){
 				REG_DA_SAVE[i] = REG_DA[i];
-			}
+			}*/
 
 			/* Read an instruction and call its handler */
 			REG_IR = m68ki_read_imm_16();
