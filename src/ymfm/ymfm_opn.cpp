@@ -1241,10 +1241,10 @@ void ym2612::generate(output_data *output, uint32_t numsamples)
 
 
 //-------------------------------------------------
-//  generate - generate one sample of sound
+//  generate - generate one sample of YM3438 sound
 //-------------------------------------------------
 
-void ym3438::generate(output_data *output, uint32_t numsamples)
+void ym2612::generate3438(output_data *output, uint32_t numsamples)
 {
 	for (uint32_t samp = 0; samp < numsamples; samp++, output++)
 	{

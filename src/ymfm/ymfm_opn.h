@@ -543,22 +543,14 @@ struct ym2612
 	// generate one sample of sound
 	void generate(output_data *output, uint32_t numsamples = 1);
 
+	// generate one sample of YM3438 sound
+	void generate3438(output_data *output, uint32_t numsamples = 1);
+
 	// internal state
 	uint16_t m_address;              // address register
 	uint16_t m_dac_data;             // 9-bit DAC data
 	uint8_t m_dac_enable;            // DAC enabled?
 	fm_engine m_fm;                  // core FM engine
-};
-
-
-// ======================> ym3438
-
-struct ym3438 : public ym2612
-{
-	ym3438(ymfm_interface &intf) : ym2612(intf) { }
-
-	// generate one sample of sound
-	void generate(output_data *output, uint32_t numsamples = 1);
 };
 
 }
