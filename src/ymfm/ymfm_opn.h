@@ -137,14 +137,14 @@ struct opn_registers_base : public fm_registers_base
 	void save_restore(ymfm_saved_state &state);
 
 	// map channel number to register offset
-	static constexpr uint32_t channel_offset(uint32_t chnum)
+	static inline uint32_t channel_offset(uint32_t chnum)
 	{
 		assert(chnum < CHANNELS);
 		return (chnum % 3) + 0x100 * (chnum / 3);
 	}
 
 	// map operator number to register offset
-	static constexpr uint32_t operator_offset(uint32_t opnum)
+	static inline uint32_t operator_offset(uint32_t opnum)
 	{
 		assert(opnum < OPERATORS);
 		return (opnum % 12) + ((opnum % 12) / 3) + 0x100 * (opnum / 12);
