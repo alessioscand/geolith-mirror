@@ -107,7 +107,7 @@ COMPILE_INFO = $(info $(subst $(SOURCEDIR)/,,$(1)))
 # Core commands
 BUILD_JG = $(call COMPILE_C, $(FLAGS) $(INCLUDES) $(CFLAGS_JG))
 BUILD_MAIN = $(call COMPILE_C, $(FLAGS) $(INCLUDES))
-BUILD_YMFM = $(call COMPILE_CXX, $(CXXFLAGS) $(INCLUDES))
+BUILD_YMFM = $(call COMPILE_CXX, $(INCLUDES))
 
 -include config.mak
 .PHONY: all clean install install-strip uninstall
