@@ -107,9 +107,39 @@ namespace ymfm
 //        BC-BF --xxxxxx Latched frequency number upper bits (from AC-AF)
 //
 
-struct opn_registers_base : public fm_registers_base
+struct opn_registers_base
 {
 	// constants
+	// this value is returned from the write() function for rhythm channels
+	static constexpr uint32_t RHYTHM_CHANNEL = 0xff;
+
+	// this is the size of a full sin waveform
+	static constexpr uint32_t WAVEFORM_LENGTH = 0x400;
+
+	//
+	// the following constants need to be defined per family:
+	//          uint32_t OUTPUTS: The number of outputs exposed (1-4)
+	//         uint32_t CHANNELS: The number of channels on the chip
+	//     uint32_t ALL_CHANNELS: A bitmask of all channels
+	//        uint32_t OPERATORS: The number of operators on the chip
+	//        uint32_t WAVEFORMS: The number of waveforms offered
+	//        uint32_t REGISTERS: The number of 8-bit registers allocated
+	// uint32_t DEFAULT_PRESCALE: The starting clock prescale
+	// uint32_t EG_CLOCK_DIVIDER: The clock divider of the envelope generator
+	// uint32_t CSM_TRIGGER_MASK: Mask of channels to trigger in CSM mode
+	//         uint32_t REG_MODE: The address of the "mode" register controlling timers
+	//     uint8_t STATUS_TIMERA: Status bit to set when timer A fires
+	//     uint8_t STATUS_TIMERB: Status bit to set when tiemr B fires
+	//       uint8_t STATUS_BUSY: Status bit to set when the chip is busy
+	//        uint8_t STATUS_IRQ: Status bit to set when an IRQ is signalled
+	//
+	// the following constants are uncommon:
+	//          bool DYNAMIC_OPS: True if ops/channel can be changed at runtime (OPL3+)
+	//       bool EG_HAS_DEPRESS: True if the chip has a DP ("depress"?) envelope stage (OPLL)
+	//        bool EG_HAS_REVERB: True if the chip has a faux reverb envelope stage (OPQ/OPZ)
+	//           bool EG_HAS_SSG: True if the chip has SSG envelope support (OPN)
+	//      bool MODULATOR_DELAY: True if the modulator is delayed by 1 sample (OPL pre-OPL3)
+	//
 	static constexpr uint32_t OUTPUTS = 2;
 	static constexpr uint32_t CHANNELS = 6;
 	static constexpr uint32_t ALL_CHANNELS = (1 << CHANNELS) - 1;
@@ -118,7 +148,10 @@ struct opn_registers_base : public fm_registers_base
 	static constexpr uint32_t REGISTERS = 0x200;
 	static constexpr uint32_t REG_MODE = 0x27;
 	static constexpr uint32_t DEFAULT_PRESCALE = 6;
+	static constexpr bool DYNAMIC_OPS = false;
 	static constexpr uint32_t EG_CLOCK_DIVIDER = 3;
+	static constexpr bool EG_HAS_DEPRESS = false;
+	static constexpr bool EG_HAS_REVERB = false;
 	static constexpr bool EG_HAS_SSG = true;
 	static constexpr bool MODULATOR_DELAY = false;
 	static constexpr uint32_t CSM_TRIGGER_MASK = 1 << 2;
