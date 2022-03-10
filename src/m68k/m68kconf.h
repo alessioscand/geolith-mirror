@@ -64,11 +64,11 @@
 /* ======================================================================== */
 
 /* Turn ON if you want to use the following M68K variants */
-#define M68K_EMULATE_010            OPT_ON
-#define M68K_EMULATE_EC020          OPT_ON
-#define M68K_EMULATE_020            OPT_ON
-#define M68K_EMULATE_030            OPT_ON
-#define M68K_EMULATE_040            OPT_ON
+#define M68K_EMULATE_010            OPT_OFF
+#define M68K_EMULATE_EC020          OPT_OFF
+#define M68K_EMULATE_020            OPT_OFF
+#define M68K_EMULATE_030            OPT_OFF
+#define M68K_EMULATE_040            OPT_OFF
 
 
 /* If ON, the CPU will call m68k_read_immediate_xx() for immediate addressing
@@ -186,7 +186,7 @@
 
 /* Emulate PMMU : if you enable this, there will be a test to see if the current chip has some enabled pmmu added to every memory access,
  * so enable this only if it's useful */
-#define M68K_EMULATE_PMMU   OPT_ON
+#define M68K_EMULATE_PMMU   OPT_OFF
 
 /* ----------------------------- COMPATIBILITY ---------------------------- */
 
@@ -198,8 +198,11 @@
 /* If ON, the enulation core will use 64-bit integers to speed up some
  * operations.
 */
+#if defined(__x86_64__) || __SIZEOF_LONG__+0 == 8
 #define M68K_USE_64_BIT  OPT_ON
-
+#else
+#define M68K_USE_64_BIT  OPT_OFF
+#endif
 
 #endif /* M68K_COMPILE_FOR_MAME */
 
