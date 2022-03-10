@@ -436,8 +436,8 @@ public:
 	uint32_t m_modified_channels;    // mask of channels that have been modified
 	uint32_t m_prepare_count;        // counter to do periodic prepare sweeps
 	RegisterType m_regs;             // register accessor
-	std::unique_ptr<fm_channel<RegisterType>> m_channel[CHANNELS]; // channel pointers
-	std::unique_ptr<fm_operator<RegisterType>> m_operator[OPERATORS]; // operator pointers
+	fm_channel<RegisterType> *m_channel[CHANNELS]; // channel pointers
+	fm_operator<RegisterType> *m_operator[OPERATORS]; // operator pointers
 };
 
 }

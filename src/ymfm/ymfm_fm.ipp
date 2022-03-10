@@ -1183,11 +1183,11 @@ fm_engine_base<RegisterType>::fm_engine_base(ymfm_interface &intf) :
 
 	// create the channels
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-		m_channel[chnum] = std::make_unique<fm_channel<RegisterType>>(*this, RegisterType::channel_offset(chnum));
+		m_channel[chnum] = new fm_channel<RegisterType>(*this, RegisterType::channel_offset(chnum));
 
 	// create the operators
 	for (uint32_t opnum = 0; opnum < OPERATORS; opnum++)
-		m_operator[opnum] = std::make_unique<fm_operator<RegisterType>>(*this, RegisterType::operator_offset(opnum));
+		m_operator[opnum] = new fm_operator<RegisterType>(*this, RegisterType::operator_offset(opnum));
 
 	// do the initial operator assignment
 	assign_operators();
@@ -1448,7 +1448,7 @@ void fm_engine_base<RegisterType>::assign_operators()
 		for (uint32_t index = 0; index < 4; index++)
 		{
 			uint32_t opnum = bitfield(map.chan[chnum], 8 * index, 8);
-			m_channel[chnum]->assign(index, (opnum == 0xff) ? nullptr : m_operator[opnum].get());
+			m_channel[chnum]->assign(index, (opnum == 0xff) ? nullptr : m_operator[opnum]);
 		}
 }
 
