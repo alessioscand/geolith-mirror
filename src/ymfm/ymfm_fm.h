@@ -120,12 +120,6 @@ public:
 	static constexpr bool EG_HAS_SSG = false;
 	static constexpr bool MODULATOR_DELAY = false;
 
-	// system-wide register defaults
-	uint32_t status_mask() const                     { return 0; } // OPL only
-	uint32_t irq_reset() const                       { return 0; } // OPL only
-	uint32_t noise_enable() const                    { return 0; } // OPM only
-	uint32_t rhythm_enable() const                   { return 0; } // OPL only
-
 	// per-operator register defaults
 	uint32_t op_ssg_eg_enable(uint32_t opoffs) const { return 0; } // OPN(A) only
 	uint32_t op_ssg_eg_mode(uint32_t opoffs) const   { return 0; } // OPN(A) only
@@ -366,7 +360,7 @@ public:
 	{
 		m_status = (m_status | set) & ~(reset | STATUS_BUSY);
 		m_intf.ymfm_sync_check_interrupts();
-		return m_status & ~m_regs.status_mask();
+		return m_status;
 	}
 
 	// set the IRQ mask

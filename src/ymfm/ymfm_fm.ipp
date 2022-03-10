@@ -1041,13 +1041,8 @@ void fm_channel<RegisterType>::output_4op(output_data &output, uint32_t rshift, 
 	// compute the 14-bit volume/value of operator 4; this could be a noise
 	// value on the OPM; all algorithms consume OP4 output at a minimum
 	int32_t result;
-	if (m_regs.noise_enable() && m_choffs == 7)
-		result = m_op[3]->compute_noise_volume(am_offset);
-	else
-	{
-		opmod = opout[bitfield(algorithm_ops, 4, 3)] >> 1;
-		result = m_op[3]->compute_volume(m_op[3]->phase() + opmod, am_offset);
-	}
+	opmod = opout[bitfield(algorithm_ops, 4, 3)] >> 1;
+	result = m_op[3]->compute_volume(m_op[3]->phase() + opmod, am_offset);
 	result >>= rshift;
 
 	// optionally add OP1, OP2, OP3
@@ -1336,46 +1331,15 @@ void fm_engine_base<RegisterType>::output(output_data &output, uint32_t rshift, 
 	// mask out inactive channels
 	chanmask &= m_active_channels;
 
-	// handle the rhythm case, where some of the operators are dedicated
-	// to percussion (this is an OPL-specific feature)
-	if (m_regs.rhythm_enable())
-	{
-		// we don't support the OPM noise channel here; ensure it is off
-		assert(m_regs.noise_enable() == 0);
-
-		// precompute the operator 13+17 phase selection value
-		uint32_t op13phase = m_operator[13]->phase();
-		uint32_t op17phase = m_operator[17]->phase();
-		uint32_t phase_select = (bitfield(op13phase, 2) ^ bitfield(op13phase, 7)) | bitfield(op13phase, 3) | (bitfield(op17phase, 5) ^ bitfield(op17phase, 3));
-
-		// sum over all the desired channels
-		for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-			if (bitfield(chanmask, chnum))
-			{
-				if (chnum == 6)
-					m_channel[chnum]->output_rhythm_ch6(output, rshift, clipmax);
-				else if (chnum == 7)
-					m_channel[chnum]->output_rhythm_ch7(phase_select, output, rshift, clipmax);
-				else if (chnum == 8)
-					m_channel[chnum]->output_rhythm_ch8(phase_select, output, rshift, clipmax);
-				else if (m_channel[chnum]->is4op())
-					m_channel[chnum]->output_4op(output, rshift, clipmax);
-				else
-					m_channel[chnum]->output_2op(output, rshift, clipmax);
-			}
-	}
-	else
-	{
-		// sum over all the desired channels
-		for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-			if (bitfield(chanmask, chnum))
-			{
-				if (m_channel[chnum]->is4op())
-					m_channel[chnum]->output_4op(output, rshift, clipmax);
-				else
-					m_channel[chnum]->output_2op(output, rshift, clipmax);
-			}
-	}
+	// sum over all the desired channels
+	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
+		if (bitfield(chanmask, chnum))
+		{
+			if (m_channel[chnum]->is4op())
+				m_channel[chnum]->output_4op(output, rshift, clipmax);
+			else
+				m_channel[chnum]->output_2op(output, rshift, clipmax);
+		}
 }
 
 
@@ -1429,7 +1393,7 @@ void fm_engine_base<RegisterType>::write(uint16_t regnum, uint8_t data)
 template<class RegisterType>
 uint8_t fm_engine_base<RegisterType>::status() const
 {
-	return m_status & ~STATUS_BUSY & ~m_regs.status_mask();
+	return m_status & ~STATUS_BUSY;
 }
 
 
@@ -1520,7 +1484,7 @@ void fm_engine_base<RegisterType>::engine_check_interrupts()
 {
 	// update the state
 	uint8_t old_state = m_irq_state;
-	m_irq_state = ((m_status & m_irq_mask & ~m_regs.status_mask()) != 0);
+	m_irq_state = ((m_status & m_irq_mask) != 0);
 
 	// set the IRQ status bit
 	if (m_irq_state)
@@ -1552,24 +1516,19 @@ void fm_engine_base<RegisterType>::engine_mode_write(uint8_t data)
 	// reset IRQ status -- when written, all other bits are ignored
 	// QUESTION: should this maybe just reset the IRQ bit and not all the bits?
 	//   That is, check_interrupts would only set, this would only clear?
-	if (m_regs.irq_reset())
-		set_reset_status(0, 0x78);
-	else
-	{
-		// reset timer status
-		uint8_t reset_mask = 0;
-		if (m_regs.reset_timer_b())
-			reset_mask |= RegisterType::STATUS_TIMERB;
-		if (m_regs.reset_timer_a())
-			reset_mask |= RegisterType::STATUS_TIMERA;
-		set_reset_status(0, reset_mask);
+	// reset timer status
+	uint8_t reset_mask = 0;
+	if (m_regs.reset_timer_b())
+		reset_mask |= RegisterType::STATUS_TIMERB;
+	if (m_regs.reset_timer_a())
+		reset_mask |= RegisterType::STATUS_TIMERA;
+	set_reset_status(0, reset_mask);
 
-		// load timers; note that timer B gets a small negative adjustment because
-		// the *16 multiplier is free-running, so the first tick of the clock
-		// is a bit shorter
-		update_timer(1, m_regs.load_timer_b(), -(m_total_clocks & 15));
-		update_timer(0, m_regs.load_timer_a(), 0);
-	}
+	// load timers; note that timer B gets a small negative adjustment because
+	// the *16 multiplier is free-running, so the first tick of the clock
+	// is a bit shorter
+	update_timer(1, m_regs.load_timer_b(), -(m_total_clocks & 15));
+	update_timer(0, m_regs.load_timer_a(), 0);
 }
 
 }
