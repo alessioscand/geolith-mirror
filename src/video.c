@@ -271,6 +271,22 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
         }
 }
 
+void draw_bg(uint32_t *pix, uint32_t bgcol) {
+/* this could be as easy as:
+   uint32_t *p = pix, *e = pix + 256*352;
+   while(p < e) *(p++) = bgcol;
+   but using the optimized libc memcpy is 10x faster. */
+    size_t i;
+    uint32_t *p = pix, *e = pix+256;
+    while(p < e) *(p++) = bgcol;
+    for(i = 0; i < 31; ++i, p+=256)
+        memcpy(p, pix, 256*4);
+    for(i = 0; i < 2; ++i, p += 32*256)
+        memcpy(p, pix, 32*256*4);
+    for(i = 0; i < 4; ++i, p+=64*256)
+        memcpy(p, pix, 64*256*4);
+}
+
 void draw_screen(void) {
     int sx = 0, sy = 0, oy = 0, my = 0, zx = 1, rzy = 1;
     unsigned int offs, count;
@@ -279,9 +295,7 @@ void draw_screen(void) {
     int dday = 0, rzx = 15, yskip = 0;
     uint8_t *vidram = memory.vid.ram;
 
-    uint32_t *pix = (uint32_t*)vbuf;
-    for (unsigned i = 0; i < 352*256; ++i)
-        pix[i] = current_pc_pal[4095];
+    draw_bg(vbuf, current_pc_pal[4095]);
 
     /* Draw sprites */
     for (count = 0; count < 0x300; count += 2) {
