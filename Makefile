@@ -11,10 +11,10 @@ CXXFLAGS ?= -O2 -fPIC -std=c++14
 DEPDIR := $(SOURCEDIR)/deps
 SRCDIR := $(SOURCEDIR)/src
 
-PKGCONF ?= pkg-config
-CFLAGS_JG := $(shell $(PKGCONF) --cflags jg)
+PKG_CONFIG ?= pkg-config
+CFLAGS_JG := $(shell $(PKG_CONFIG) --cflags jg)
 
-LIBS_ZLIB := $(shell $(PKGCONF) --libs zlib)
+LIBS_ZLIB := $(shell $(PKG_CONFIG) --libs zlib)
 
 LIBS := $(LIBS_ZLIB) -lstdc++
 
@@ -80,8 +80,8 @@ ifneq ($(USE_VENDORED_SPEEXDSP), 0)
 	CSRCS += speex/resample.c
 else
 	Q_SPEEXDSP := @
-	CFLAGS_SPEEXDSP := $(shell $(PKGCONF) --cflags speexdsp)
-	LIBS_SPEEXDSP := $(shell $(PKGCONF) --libs speexdsp)
+	CFLAGS_SPEEXDSP := $(shell $(PKG_CONFIG) --cflags speexdsp)
+	LIBS_SPEEXDSP := $(shell $(PKG_CONFIG) --libs speexdsp)
 endif
 
 INCLUDES += $(CFLAGS_SPEEXDSP)
