@@ -99,7 +99,6 @@ struct ssg_registers
 	// constants
 	static constexpr uint32_t OUTPUTS = 3;
 	static constexpr uint32_t CHANNELS = 3;
-	static constexpr uint32_t REGISTERS = 0x10;
 	static constexpr uint32_t ALL_CHANNELS = (1 << CHANNELS) - 1;
 
 	// constructor
@@ -112,30 +111,27 @@ struct ssg_registers
 	void save_restore(ymfm_saved_state &state);
 
 	// direct read/write access
-	uint8_t read(uint32_t index) { return m_regdata[index]; }
-	void write(uint32_t index, uint8_t data) { m_regdata[index] = data; }
+	uint8_t read(uint32_t index);
+	void write(uint32_t index, uint8_t data);
 
 	// system-wide registers
-	uint32_t noise_period() const                       { return bitfield(m_regdata[0x06], 0, 5); }
-	uint32_t io_b_out() const                           { return bitfield(m_regdata[0x07], 7); }
-	uint32_t io_a_out() const                           { return bitfield(m_regdata[0x07], 6); }
-	uint32_t envelope_period() const                    { return m_regdata[0x0b] | (m_regdata[0x0c] << 8); }
-	uint32_t envelope_continue() const                  { return bitfield(m_regdata[0x0d], 3); }
-	uint32_t envelope_attack() const                    { return bitfield(m_regdata[0x0d], 2); }
-	uint32_t envelope_alternate() const                 { return bitfield(m_regdata[0x0d], 1); }
-	uint32_t envelope_hold() const                      { return bitfield(m_regdata[0x0d], 0); }
-	uint32_t io_a_data() const                          { return m_regdata[0x0e]; }
-	uint32_t io_b_data() const                          { return m_regdata[0x0f]; }
+	uint32_t noise_period() const;
+	uint32_t io_b_out() const;
+	uint32_t io_a_out() const;
+	uint32_t envelope_period() const;
+	uint32_t envelope_continue() const;
+	uint32_t envelope_attack() const;
+	uint32_t envelope_alternate() const;
+	uint32_t envelope_hold() const;
+	uint32_t io_a_data() const;
+	uint32_t io_b_data() const;
 
 	// per-channel registers
-	uint32_t ch_noise_enable(uint32_t choffs) const     { return bitfield(~m_regdata[0x07], 3 + choffs); }
-	uint32_t ch_tone_enable(uint32_t choffs) const      { return bitfield(~m_regdata[0x07], 0 + choffs); }
-	uint32_t ch_tone_period(uint32_t choffs) const      { return m_regdata[0x00 + 2 * choffs] | (bitfield(m_regdata[0x01 + 2 * choffs], 0, 4) << 8); }
-	uint32_t ch_envelope_enable(uint32_t choffs) const  { return bitfield(m_regdata[0x08 + choffs], 4); }
-	uint32_t ch_amplitude(uint32_t choffs) const        { return bitfield(m_regdata[0x08 + choffs], 0, 4); }
-
-	// internal state
-	uint8_t m_regdata[REGISTERS];         // register data
+	uint32_t ch_noise_enable(uint32_t choffs) const;
+	uint32_t ch_tone_enable(uint32_t choffs) const;
+	uint32_t ch_tone_period(uint32_t choffs) const;
+	uint32_t ch_envelope_enable(uint32_t choffs) const;
+	uint32_t ch_amplitude(uint32_t choffs) const;
 };
 
 

@@ -28,9 +28,15 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <stdint.h>
 #include <string.h>
 
 #include "ymfm_ssg.h"
+
+#define REGISTERS 0x10
+
+// internal state
+static uint8_t m_regdata[REGISTERS];         // register data
 
 namespace ymfm
 {
@@ -38,6 +44,78 @@ namespace ymfm
 //*********************************************************
 // SSG REGISTERS
 //*********************************************************
+
+// direct read/write access
+uint8_t ssg_registers::read(uint32_t index) {
+	return m_regdata[index];
+}
+
+void ssg_registers::write(uint32_t index, uint8_t data) {
+	m_regdata[index] = data;
+}
+
+// system-wide registers
+uint32_t ssg_registers::noise_period() const {
+	return bitfield(m_regdata[0x06], 0, 5);
+}
+
+uint32_t ssg_registers::io_b_out() const {
+	return bitfield(m_regdata[0x07], 7);
+}
+
+uint32_t ssg_registers::io_a_out() const {
+	return bitfield(m_regdata[0x07], 6);
+}
+
+uint32_t ssg_registers::envelope_period() const {
+	return m_regdata[0x0b] | (m_regdata[0x0c] << 8);
+}
+
+uint32_t ssg_registers::envelope_continue() const {
+	return bitfield(m_regdata[0x0d], 3);
+}
+
+uint32_t ssg_registers::envelope_attack() const {
+	return bitfield(m_regdata[0x0d], 2);
+}
+
+uint32_t ssg_registers::envelope_alternate() const {
+	return bitfield(m_regdata[0x0d], 1);
+}
+
+uint32_t ssg_registers::envelope_hold() const {
+	return bitfield(m_regdata[0x0d], 0);
+}
+
+uint32_t ssg_registers::io_a_data() const {
+	return m_regdata[0x0e];
+}
+
+uint32_t ssg_registers::io_b_data() const {
+	return m_regdata[0x0f];
+}
+
+// per-channel registers
+uint32_t ssg_registers::ch_noise_enable(uint32_t choffs) const {
+	return bitfield(~m_regdata[0x07], 3 + choffs);
+}
+
+uint32_t ssg_registers::ch_tone_enable(uint32_t choffs) const {
+	return bitfield(~m_regdata[0x07], 0 + choffs);
+}
+
+uint32_t ssg_registers::ch_tone_period(uint32_t choffs) const {
+	return m_regdata[0x00 + 2 * choffs] | (bitfield(m_regdata[0x01 + 2 * choffs], 0, 4) << 8);
+}
+
+uint32_t ssg_registers::ch_envelope_enable(uint32_t choffs) const {
+	return bitfield(m_regdata[0x08 + choffs], 4);
+}
+
+uint32_t ssg_registers::ch_amplitude(uint32_t choffs) const {
+	return bitfield(m_regdata[0x08 + choffs], 0, 4);
+}
+
 
 //-------------------------------------------------
 //  reset - reset the register state
