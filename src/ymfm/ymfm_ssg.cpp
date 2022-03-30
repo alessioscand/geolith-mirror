@@ -46,73 +46,73 @@ namespace ymfm
 //*********************************************************
 
 // direct read/write access
-uint8_t ssg_registers::read(uint32_t index) {
+uint8_t ssg_registers_read(uint32_t index) {
 	return m_regdata[index];
 }
 
-void ssg_registers::write(uint32_t index, uint8_t data) {
+void ssg_registers_write(uint32_t index, uint8_t data) {
 	m_regdata[index] = data;
 }
 
 // system-wide registers
-uint32_t ssg_registers::noise_period() const {
+static inline uint32_t ssg_registers_noise_period(void) {
 	return bitfield(m_regdata[0x06], 0, 5);
 }
 
-uint32_t ssg_registers::io_b_out() const {
+static inline uint32_t ssg_registers_io_b_out(void) {
 	return bitfield(m_regdata[0x07], 7);
 }
 
-uint32_t ssg_registers::io_a_out() const {
+static inline uint32_t ssg_registers_io_a_out(void) {
 	return bitfield(m_regdata[0x07], 6);
 }
 
-uint32_t ssg_registers::envelope_period() const {
+static inline uint32_t ssg_registers_envelope_period(void) {
 	return m_regdata[0x0b] | (m_regdata[0x0c] << 8);
 }
 
-uint32_t ssg_registers::envelope_continue() const {
+static inline uint32_t ssg_registers_envelope_continue(void) {
 	return bitfield(m_regdata[0x0d], 3);
 }
 
-uint32_t ssg_registers::envelope_attack() const {
+static inline uint32_t ssg_registers_envelope_attack(void) {
 	return bitfield(m_regdata[0x0d], 2);
 }
 
-uint32_t ssg_registers::envelope_alternate() const {
+static inline uint32_t ssg_registers_envelope_alternate(void) {
 	return bitfield(m_regdata[0x0d], 1);
 }
 
-uint32_t ssg_registers::envelope_hold() const {
+static inline uint32_t ssg_registers_envelope_hold(void) {
 	return bitfield(m_regdata[0x0d], 0);
 }
 
-uint32_t ssg_registers::io_a_data() const {
+static inline uint32_t ssg_registers_io_a_data(void) {
 	return m_regdata[0x0e];
 }
 
-uint32_t ssg_registers::io_b_data() const {
+static inline uint32_t ssg_registers_io_b_data(void) {
 	return m_regdata[0x0f];
 }
 
 // per-channel registers
-uint32_t ssg_registers::ch_noise_enable(uint32_t choffs) const {
+static inline uint32_t ssg_registers_ch_noise_enable(uint32_t choffs) {
 	return bitfield(~m_regdata[0x07], 3 + choffs);
 }
 
-uint32_t ssg_registers::ch_tone_enable(uint32_t choffs) const {
+static inline uint32_t ssg_registers_ch_tone_enable(uint32_t choffs) {
 	return bitfield(~m_regdata[0x07], 0 + choffs);
 }
 
-uint32_t ssg_registers::ch_tone_period(uint32_t choffs) const {
+static inline uint32_t ssg_registers_ch_tone_period(uint32_t choffs) {
 	return m_regdata[0x00 + 2 * choffs] | (bitfield(m_regdata[0x01 + 2 * choffs], 0, 4) << 8);
 }
 
-uint32_t ssg_registers::ch_envelope_enable(uint32_t choffs) const {
+static inline uint32_t ssg_registers_ch_envelope_enable(uint32_t choffs) {
 	return bitfield(m_regdata[0x08 + choffs], 4);
 }
 
-uint32_t ssg_registers::ch_amplitude(uint32_t choffs) const {
+static inline uint32_t ssg_registers_ch_amplitude(uint32_t choffs) {
 	return bitfield(m_regdata[0x08 + choffs], 0, 4);
 }
 
@@ -211,7 +211,7 @@ void ssg_engine::clock()
 	for (int chan = 0; chan < 3; chan++)
 	{
 		m_tone_count[chan]++;
-		if (m_tone_count[chan] >= m_regs.ch_tone_period(chan))
+		if (m_tone_count[chan] >= ssg_registers_ch_tone_period(chan))
 		{
 			m_tone_state[chan] ^= 1;
 			m_tone_count[chan] = 0;
@@ -223,7 +223,7 @@ void ssg_engine::clock()
 	// should produce an indentical result to a period of 1, so add a special
 	// check against that case
 	m_noise_count++;
-	if ((m_noise_count >> 1) >= m_regs.noise_period() && m_noise_count != 1)
+	if ((m_noise_count >> 1) >= ssg_registers_noise_period() && m_noise_count != 1)
 	{
 		m_noise_state ^= (bitfield(m_noise_state, 0) ^ bitfield(m_noise_state, 3)) << 17;
 		m_noise_state >>= 1;
@@ -233,7 +233,7 @@ void ssg_engine::clock()
 	// clock envelope; envelope period units are clock/8 (manual says clock/256
 	// but that's for all 32 steps)
 	m_envelope_count++;
-	if (m_envelope_count >= m_regs.envelope_period())
+	if (m_envelope_count >= ssg_registers_envelope_period())
 	{
 		m_envelope_state++;
 		m_envelope_count = 0;
@@ -259,15 +259,15 @@ void ssg_engine::output(output_data &output)
 
 	// compute the envelope volume
 	uint32_t envelope_volume;
-	if ((m_regs.envelope_hold() | (m_regs.envelope_continue() ^ 1)) && m_envelope_state >= 32)
+	if ((ssg_registers_envelope_hold() | (ssg_registers_envelope_continue() ^ 1)) && m_envelope_state >= 32)
 	{
 		m_envelope_state = 32;
-		envelope_volume = ((m_regs.envelope_attack() ^ m_regs.envelope_alternate()) & m_regs.envelope_continue()) ? 31 : 0;
+		envelope_volume = ((ssg_registers_envelope_attack() ^ ssg_registers_envelope_alternate()) & ssg_registers_envelope_continue()) ? 31 : 0;
 	}
 	else
 	{
-		uint32_t attack = m_regs.envelope_attack();
-		if (m_regs.envelope_alternate())
+		uint32_t attack = ssg_registers_envelope_attack();
+		if (ssg_registers_envelope_alternate())
 			attack ^= bitfield(m_envelope_state, 5);
 		envelope_volume = (m_envelope_state & 31) ^ (attack ? 0 : 31);
 	}
@@ -276,10 +276,10 @@ void ssg_engine::output(output_data &output)
 	for (int chan = 0; chan < 3; chan++)
 	{
 		// noise depends on the noise state, which is the LSB of m_noise_state
-		uint32_t noise_on = m_regs.ch_noise_enable(chan) & m_noise_state;
+		uint32_t noise_on = ssg_registers_ch_noise_enable(chan) & m_noise_state;
 
 		// tone depends on the current tone state
-		uint32_t tone_on = m_regs.ch_tone_enable(chan) & m_tone_state[chan];
+		uint32_t tone_on = ssg_registers_ch_tone_enable(chan) & m_tone_state[chan];
 
 		// if neither tone nor noise enabled, return 0
 		uint32_t volume;
@@ -287,14 +287,14 @@ void ssg_engine::output(output_data &output)
 			volume = 0;
 
 		// if the envelope is enabled, use its amplitude
-		else if (m_regs.ch_envelope_enable(chan))
+		else if (ssg_registers_ch_envelope_enable(chan))
 			volume = envelope_volume;
 
 		// otherwise, scale the tone amplitude up to match envelope values
 		// according to the datasheet, amplitude 15 maps to envelope 31
 		else
 		{
-			volume = m_regs.ch_amplitude(chan) * 2;
+			volume = ssg_registers_ch_amplitude(chan) * 2;
 			if (volume != 0)
 				volume |= 1;
 		}
@@ -312,13 +312,13 @@ void ssg_engine::output(output_data &output)
 uint8_t ssg_engine::read(uint32_t regnum)
 {
 	// read from the I/O ports call the handlers if they are configured for input
-	if (regnum == 0x0e && !m_regs.io_a_out())
+	if (regnum == 0x0e && !ssg_registers_io_a_out())
 		return m_intf.ymfm_external_read(ACCESS_IO, 0);
-	else if (regnum == 0x0f && !m_regs.io_b_out())
+	else if (regnum == 0x0f && !ssg_registers_io_b_out())
 		return m_intf.ymfm_external_read(ACCESS_IO, 1);
 
 	// otherwise just return the register value
-	return m_regs.read(regnum);
+	return ssg_registers_read(regnum);
 }
 
 
@@ -330,16 +330,16 @@ void ssg_engine::write(uint32_t regnum, uint8_t data)
 {
 	// store the raw value to the register array;
 	// most writes are passive, consumed only when needed
-	m_regs.write(regnum, data);
+	ssg_registers_write(regnum, data);
 
 	// writes to the envelope shape register reset the state
 	if (regnum == 0x0d)
 		m_envelope_state = 0;
 
 	// writes to the I/O ports call the handlers if they are configured for output
-	else if (regnum == 0x0e && m_regs.io_a_out())
+	else if (regnum == 0x0e && ssg_registers_io_a_out())
 		m_intf.ymfm_external_write(ACCESS_IO, 0, data);
-	else if (regnum == 0x0f && m_regs.io_b_out())
+	else if (regnum == 0x0f && ssg_registers_io_b_out())
 		m_intf.ymfm_external_write(ACCESS_IO, 1, data);
 }
 

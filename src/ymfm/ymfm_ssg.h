@@ -87,29 +87,6 @@ struct ssg_registers
 
 	// save/restore
 	void save_restore(ymfm_saved_state &state);
-
-	// direct read/write access
-	uint8_t read(uint32_t index);
-	void write(uint32_t index, uint8_t data);
-
-	// system-wide registers
-	uint32_t noise_period() const;
-	uint32_t io_b_out() const;
-	uint32_t io_a_out() const;
-	uint32_t envelope_period() const;
-	uint32_t envelope_continue() const;
-	uint32_t envelope_attack() const;
-	uint32_t envelope_alternate() const;
-	uint32_t envelope_hold() const;
-	uint32_t io_a_data() const;
-	uint32_t io_b_data() const;
-
-	// per-channel registers
-	uint32_t ch_noise_enable(uint32_t choffs) const;
-	uint32_t ch_tone_enable(uint32_t choffs) const;
-	uint32_t ch_tone_period(uint32_t choffs) const;
-	uint32_t ch_envelope_enable(uint32_t choffs) const;
-	uint32_t ch_amplitude(uint32_t choffs) const;
 };
 
 
@@ -139,9 +116,6 @@ struct ssg_engine
 	// read/write to the SSG registers
 	uint8_t read(uint32_t regnum);
 	void write(uint32_t regnum, uint8_t data);
-
-	// return a reference to our interface
-	ymfm_interface &intf() { return m_intf; }
 
 	// return a reference to our registers
 	ssg_registers &regs() { return m_regs; }
