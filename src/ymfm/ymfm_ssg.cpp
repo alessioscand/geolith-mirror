@@ -153,8 +153,7 @@ ssg_engine::ssg_engine(ymfm_interface &intf) :
 	m_envelope_count(0),
 	m_envelope_state(0),
 	m_noise_count(0),
-	m_noise_state(1),
-	m_override(nullptr)
+	m_noise_state(1)
 {
 }
 
@@ -165,10 +164,6 @@ ssg_engine::ssg_engine(ymfm_interface &intf) :
 
 void ssg_engine::reset()
 {
-	// defer to the override if present
-	if (m_override != nullptr)
-		return m_override->ssg_reset();
-
 	// reset register state
 	m_regs.reset();
 
@@ -316,10 +311,6 @@ void ssg_engine::output(output_data &output)
 
 uint8_t ssg_engine::read(uint32_t regnum)
 {
-	// defer to the override if present
-	if (m_override != nullptr)
-		return m_override->ssg_read(regnum);
-
 	// read from the I/O ports call the handlers if they are configured for input
 	if (regnum == 0x0e && !m_regs.io_a_out())
 		return m_intf.ymfm_external_read(ACCESS_IO, 0);
@@ -337,10 +328,6 @@ uint8_t ssg_engine::read(uint32_t regnum)
 
 void ssg_engine::write(uint32_t regnum, uint8_t data)
 {
-	// defer to the override if present
-	if (m_override != nullptr)
-		return m_override->ssg_write(regnum, data);
-
 	// store the raw value to the register array;
 	// most writes are passive, consumed only when needed
 	m_regs.write(regnum, data);

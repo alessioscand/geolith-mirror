@@ -39,28 +39,6 @@ namespace ymfm
 {
 
 //*********************************************************
-//  OVERRIDE INTERFACE
-//*********************************************************
-
-// ======================> ssg_override
-
-// this class describes a simple interface to allow the internal SSG to be
-// overridden with another implementation
-struct ssg_override
-{
-	// reset our status
-	virtual void ssg_reset() = 0;
-
-	// read/write to the SSG registers
-	virtual uint8_t ssg_read(uint32_t regnum) = 0;
-	virtual void ssg_write(uint32_t regnum, uint8_t data) = 0;
-
-	// notification when the prescale has changed
-	virtual void ssg_prescale_changed() = 0;
-};
-
-
-//*********************************************************
 //  REGISTER CLASS
 //*********************************************************
 
@@ -139,17 +117,12 @@ struct ssg_registers
 
 struct ssg_engine
 {
-	static constexpr int OUTPUTS = ssg_registers::OUTPUTS;
-	static constexpr int CHANNELS = ssg_registers::CHANNELS;
-	static constexpr int CLOCK_DIVIDER = 8;
+	#define CLOCK_DIVIDER 8
 
-	using output_data = ymfm_output<OUTPUTS>;
+	using output_data = ymfm_output<3>;
 
 	// constructor
 	ssg_engine(ymfm_interface &intf);
-
-	// configure an override
-	void override(ssg_override &override) { m_override = &override; }
 
 	// reset our status
 	void reset();
@@ -173,12 +146,6 @@ struct ssg_engine
 	// return a reference to our registers
 	ssg_registers &regs() { return m_regs; }
 
-	// true if we are overridden
-	bool overridden() const { return (m_override != nullptr); }
-
-	// indicate the prescale has changed
-	void prescale_changed() { if (m_override != nullptr) m_override->ssg_prescale_changed(); }
-
 	// internal state
 	ymfm_interface &m_intf;                   // reference to the interface
 	uint32_t m_tone_count[3];               // current tone counter
@@ -188,7 +155,6 @@ struct ssg_engine
 	uint32_t m_noise_count;                 // current noise counter
 	uint32_t m_noise_state;                 // current noise state
 	ssg_registers m_regs;                   // registers
-	ssg_override *m_override;               // override interface
 };
 
 }

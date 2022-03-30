@@ -971,11 +971,6 @@ void ym2610::update_prescale()
 		m_fm_samples_per_output = 9;
 		m_ssg_resampler.configure(2, 1);
 	}
-
-	// if overriding the SSG, override the configuration with the nop
-	// resampler to at least keep the sample index moving forward
-	if (m_ssg.overridden())
-		m_ssg_resampler.configure(0, 0);
 }
 
 

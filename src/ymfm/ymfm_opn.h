@@ -448,7 +448,6 @@ struct ym2610
 	ym2610(ymfm_interface &intf, uint8_t channel_mask = 0x36);
 
 	// configuration
-	void ssg_override(ssg_override &intf) { m_ssg.override(intf); }
 	void set_fidelity(opn_fidelity fidelity) { m_fidelity = fidelity; update_prescale(); }
 
 	// reset
