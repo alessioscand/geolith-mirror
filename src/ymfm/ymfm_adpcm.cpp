@@ -178,7 +178,7 @@ bool adpcm_a_channel::clock()
 			return true;
 		}
 
-		m_curbyte = m_owner.intf().ymfm_external_read(ACCESS_ADPCM_A, m_curaddress++);
+		m_curbyte = ymfm_external_read(ACCESS_ADPCM_A, m_curaddress++);
 		data = m_curbyte >> 4;
 		m_curnibble = 1;
 	}
@@ -484,7 +484,7 @@ void adpcm_b_channel::clock()
 		// if we're about to process nibble 0, fetch and increment
 		if (m_curnibble == 0)
 		{
-			m_curbyte = m_owner.intf().ymfm_external_read(ACCESS_ADPCM_B, m_curaddress++);
+			m_curbyte = ymfm_external_read(ACCESS_ADPCM_B, m_curaddress++);
 			m_curaddress &= 0xffffff;
 		}
 	}
@@ -570,7 +570,7 @@ uint8_t adpcm_b_channel::read(uint32_t regnum)
 		// otherwise, write the data and signal ready
 		else
 		{
-			result = m_owner.intf().ymfm_external_read(ACCESS_ADPCM_B, m_curaddress++);
+			result = ymfm_external_read(ACCESS_ADPCM_B, m_curaddress++);
 			m_status = STATUS_BRDY;
 		}
 	}
@@ -646,7 +646,7 @@ void adpcm_b_channel::write(uint32_t regnum, uint8_t value)
 			// otherwise, write the data and signal ready
 			else
 			{
-				m_owner.intf().ymfm_external_write(ACCESS_ADPCM_B, m_curaddress++, value);
+				ymfm_external_write(ACCESS_ADPCM_B, m_curaddress++, value);
 				m_status = STATUS_BRDY;
 			}
 		}

@@ -308,9 +308,9 @@ uint8_t ssg_engine::read(uint32_t regnum)
 {
 	// read from the I/O ports call the handlers if they are configured for input
 	if (regnum == 0x0e && !ssg_registers_io_a_out())
-		return m_intf.ymfm_external_read(ACCESS_IO, 0);
+		return ymfm_external_read(ACCESS_IO, 0);
 	else if (regnum == 0x0f && !ssg_registers_io_b_out())
-		return m_intf.ymfm_external_read(ACCESS_IO, 1);
+		return ymfm_external_read(ACCESS_IO, 1);
 
 	// otherwise just return the register value
 	return ssg_registers_read(regnum);
@@ -333,9 +333,9 @@ void ssg_engine::write(uint32_t regnum, uint8_t data)
 
 	// writes to the I/O ports call the handlers if they are configured for output
 	else if (regnum == 0x0e && ssg_registers_io_a_out())
-		m_intf.ymfm_external_write(ACCESS_IO, 0, data);
+		ymfm_external_write(ACCESS_IO, 0, data);
 	else if (regnum == 0x0f && ssg_registers_io_b_out())
-		m_intf.ymfm_external_write(ACCESS_IO, 1, data);
+		ymfm_external_write(ACCESS_IO, 1, data);
 }
 
 }

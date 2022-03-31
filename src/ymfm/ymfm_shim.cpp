@@ -39,25 +39,26 @@ static int busyfrac;
 static int timer[2];
 static int divisor;
 
+uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
+    switch (type) {
+        case ACCESS_ADPCM_A:
+            return address > memory.rom.adpcma.size ?
+                0 : memory.rom.adpcma.p[address];
+        case ACCESS_ADPCM_B:
+            return address > memory.rom.adpcmb.size ?
+                0 : memory.rom.adpcmb.p[address];
+        default:
+            return 0;
+    }
+}
+
+void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data) {
+}
+
 using namespace ymfm;
 
 class ym_device : public ymfm::ymfm_interface {
 public:
-    virtual uint8_t ymfm_external_read(access_class type, uint32_t address) override {
-        switch (type) {
-            case ACCESS_ADPCM_A:
-                return address > memory.rom.adpcma.size ?
-                    0 : memory.rom.adpcma.p[address];
-            case ACCESS_ADPCM_B:
-                return address > memory.rom.adpcmb.size ?
-                    0 : memory.rom.adpcmb.p[address];
-            default:
-                return 0;
-        }
-    }
-
-    virtual void ymfm_external_write(access_class type, uint32_t address, uint8_t data) override { }
-
     virtual void ymfm_update_irq(bool asserted) override {
         asserted ? cpu_z80_raise_irq(0) : cpu_z80_lower_irq();
     }

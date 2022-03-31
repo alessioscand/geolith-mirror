@@ -45,6 +45,24 @@
 #include <string>
 #include <vector>
 
+// external I/O access classes
+enum access_class : uint32_t
+{
+	ACCESS_IO = 0,
+	ACCESS_ADPCM_A,
+	ACCESS_ADPCM_B,
+	ACCESS_PCM,
+	ACCESS_CLASSES
+};
+
+// the chip implementation calls this whenever data is read from outside
+// of the chip; our responsibility is to provide the data requested
+extern uint8_t ymfm_external_read(uint32_t type, uint32_t address);
+
+// the chip implementation calls this whenever data is written outside
+// of the chip; our responsibility is to pass the written data on to any consumers
+extern void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data);
+
 //-------------------------------------------------
 //  bitfield - extract a bitfield from the given
 //  value, starting at bit 'start' for a length of
@@ -273,18 +291,6 @@ enum envelope_state : uint32_t
 	EG_STATES = 6
 };
 
-// external I/O access classes
-enum access_class : uint32_t
-{
-	ACCESS_IO = 0,
-	ACCESS_ADPCM_A,
-	ACCESS_ADPCM_B,
-	ACCESS_PCM,
-	ACCESS_CLASSES
-};
-
-
-
 //*********************************************************
 //  HELPER CLASSES
 //*********************************************************
@@ -468,14 +474,6 @@ public:
 	// changed due to a status change; our responsibility is to respond as
 	// needed to the change in IRQ state, signaling any consumers
 	virtual void ymfm_update_irq(bool asserted) { }
-
-	// the chip implementation calls this whenever data is read from outside
-	// of the chip; our responsibility is to provide the data requested
-	virtual uint8_t ymfm_external_read(access_class type, uint32_t address) { return 0; }
-
-	// the chip implementation calls this whenever data is written outside
-	// of the chip; our responsibility is to pass the written data on to any consumers
-	virtual void ymfm_external_write(access_class type, uint32_t address, uint8_t data) { }
 
 	// pointer to engine callbacks -- this is set directly by the engine at
 	// construction time
