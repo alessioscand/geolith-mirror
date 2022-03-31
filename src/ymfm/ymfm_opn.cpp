@@ -644,11 +644,12 @@ ym2610::ym2610(ymfm_interface &intf, uint8_t channel_mask) :
 	m_eos_status(0x00),
 	m_flag_mask(EOS_FLAGS_MASK),
 	m_fm(intf),
-	m_ssg(intf),
+	m_ssg(),
 	m_ssg_resampler(m_ssg),
 	m_adpcm_a(intf, 8),
 	m_adpcm_b(intf, 8)
 {
+	m_ssg.init();
 	update_prescale();
 }
 

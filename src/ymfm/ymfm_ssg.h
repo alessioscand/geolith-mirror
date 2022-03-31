@@ -35,6 +35,7 @@
 
 #include "ymfm.h"
 
+
 namespace ymfm
 {
 
@@ -47,7 +48,10 @@ struct ssg_engine
 	using output_data = ymfm_output<3>;
 
 	// constructor
-	ssg_engine(ymfm_interface &intf);
+	ssg_engine();
+
+	// init
+	void init(void);
 
 	// reset our status
 	void reset();
@@ -63,7 +67,6 @@ struct ssg_engine
 	void write(uint32_t regnum, uint8_t data);
 
 	// internal state
-	ymfm_interface &m_intf;                   // reference to the interface
 	uint32_t m_tone_count[3];               // current tone counter
 	uint32_t m_tone_state[3];               // current tone state
 	uint32_t m_envelope_count;              // envelope counter

@@ -85,7 +85,7 @@ static ymfm::ymfm_interface intf;
 static ym2610 *chip;
 static ym2610::output_data output;
 
-static void ymfm_shim_timer_tick(void) {
+static inline void ymfm_shim_timer_tick(void) {
     if (busytimer)
         --busytimer;
 

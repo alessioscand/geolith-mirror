@@ -161,17 +161,22 @@ namespace ymfm
 //  ssg_engine - constructor
 //-------------------------------------------------
 
-ssg_engine::ssg_engine(ymfm_interface &intf) :
-	m_intf(intf),
-	m_tone_count{ 0,0,0 },
-	m_tone_state{ 0,0,0 },
-	m_envelope_count(0),
-	m_envelope_state(0),
-	m_noise_count(0),
-	m_noise_state(1)
+ssg_engine::ssg_engine()
 {
 }
 
+//-------------------------------------------------
+//  ssg_engine - init
+//-------------------------------------------------
+void ssg_engine::init(void)
+{
+	m_tone_count[0] = m_tone_count[1] = m_tone_count[2] = 0;
+	m_tone_state[0] = m_tone_state[1] = m_tone_state[2] = 0;
+	m_envelope_count = 0;
+	m_envelope_state = 0;
+	m_noise_count = 0;
+	m_noise_state = 1;
+}
 
 //-------------------------------------------------
 //  reset - reset the engine state
