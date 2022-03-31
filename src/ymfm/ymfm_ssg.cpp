@@ -38,9 +38,6 @@
 // internal state
 static uint8_t m_regdata[REGISTERS];         // register data
 
-namespace ymfm
-{
-
 //*********************************************************
 // SSG REGISTERS
 //*********************************************************
@@ -154,7 +151,8 @@ static inline void ssg_registers_reset(void)
 	memset(&m_regdata[0], 0, REGISTERS);
 }
 
-
+namespace ymfm
+{
 //*********************************************************
 // SSG ENGINE
 //*********************************************************

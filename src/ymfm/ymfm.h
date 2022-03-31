@@ -45,42 +45,6 @@
 #include <string>
 #include <vector>
 
-namespace ymfm
-{
-
-//*********************************************************
-//  DEBUGGING
-//*********************************************************
-
-class debug
-{
-public:
-	// masks to help isolate specific channels
-	static constexpr uint32_t GLOBAL_FM_CHANNEL_MASK = 0xffffffff;
-	static constexpr uint32_t GLOBAL_ADPCM_A_CHANNEL_MASK = 0xffffffff;
-	static constexpr uint32_t GLOBAL_ADPCM_B_CHANNEL_MASK = 0xffffffff;
-	static constexpr uint32_t GLOBAL_PCM_CHANNEL_MASK = 0xffffffff;
-
-	// types of logging
-	static constexpr bool LOG_FM_WRITES = false;
-	static constexpr bool LOG_KEYON_EVENTS = false;
-	static constexpr bool LOG_UNEXPECTED_READ_WRITES = false;
-
-	// helpers to write based on the log type
-	template<typename... Params> static void log_fm_write(Params &&... args) { if (LOG_FM_WRITES) log(args...); }
-	template<typename... Params> static void log_keyon(Params &&... args) { if (LOG_KEYON_EVENTS) log(args...); }
-	template<typename... Params> static void log_unexpected_read_write(Params &&... args) { if  (LOG_UNEXPECTED_READ_WRITES) log(args...); }
-
-	// downstream helper to output log data; defaults to printf
-	template<typename... Params> static void log(Params &&... args) { printf(args...); }
-};
-
-
-
-//*********************************************************
-//  GLOBAL HELPERS
-//*********************************************************
-
 //-------------------------------------------------
 //  bitfield - extract a bitfield from the given
 //  value, starting at bit 'start' for a length of
@@ -106,18 +70,6 @@ inline int32_t clamp(int32_t value, int32_t minval, int32_t maxval)
 		return maxval;
 	return value;
 }
-
-
-//-------------------------------------------------
-//  array_size - return the size of an array
-//-------------------------------------------------
-
-template<typename ArrayType, int ArraySize>
-constexpr uint32_t array_size(ArrayType (&array)[ArraySize])
-{
-	return ArraySize;
-}
-
 
 //-------------------------------------------------
 //  count_leading_zeros - return the number of
@@ -157,6 +109,9 @@ inline uint8_t count_leading_zeros(uint32_t value)
 
 #endif
 
+static inline int max(int i, int j) {
+  return (i > j) ? i : j;
+}
 
 // Many of the Yamaha FM chips emit a floating-point value, which is sent to
 // a DAC for processing. The exact format of this floating-point value is
@@ -203,7 +158,7 @@ inline int16_t encode_fp(int32_t value)
 	int exponent = 7 - count_leading_zeros(scanvalue << 17);
 
 	// smallest exponent value allowed is 1
-	exponent = std::max(exponent, 1);
+	exponent = max(exponent, 1);
 
 	// mantissa
 	int32_t mantissa = value >> (exponent - 1);
@@ -249,14 +204,58 @@ inline int16_t roundtrip_fp(int32_t value)
 	int exponent = 7 - count_leading_zeros(scanvalue << 17);
 
 	// smallest exponent value allowed is 1
-	exponent = std::max(exponent, 1);
+	exponent = max(exponent, 1);
 
 	// apply the shift back and forth to zero out bits that are lost
 	exponent -= 1;
 	return (value >> exponent) << exponent;
 }
 
+namespace ymfm
+{
 
+//*********************************************************
+//  DEBUGGING
+//*********************************************************
+
+class debug
+{
+public:
+	// masks to help isolate specific channels
+	static constexpr uint32_t GLOBAL_FM_CHANNEL_MASK = 0xffffffff;
+	static constexpr uint32_t GLOBAL_ADPCM_A_CHANNEL_MASK = 0xffffffff;
+	static constexpr uint32_t GLOBAL_ADPCM_B_CHANNEL_MASK = 0xffffffff;
+	static constexpr uint32_t GLOBAL_PCM_CHANNEL_MASK = 0xffffffff;
+
+	// types of logging
+	static constexpr bool LOG_FM_WRITES = false;
+	static constexpr bool LOG_KEYON_EVENTS = false;
+	static constexpr bool LOG_UNEXPECTED_READ_WRITES = false;
+
+	// helpers to write based on the log type
+	template<typename... Params> static void log_fm_write(Params &&... args) { if (LOG_FM_WRITES) log(args...); }
+	template<typename... Params> static void log_keyon(Params &&... args) { if (LOG_KEYON_EVENTS) log(args...); }
+	template<typename... Params> static void log_unexpected_read_write(Params &&... args) { if  (LOG_UNEXPECTED_READ_WRITES) log(args...); }
+
+	// downstream helper to output log data; defaults to printf
+	template<typename... Params> static void log(Params &&... args) { printf(args...); }
+};
+
+
+
+//*********************************************************
+//  GLOBAL HELPERS
+//*********************************************************
+
+//-------------------------------------------------
+//  array_size - return the size of an array
+//-------------------------------------------------
+
+template<typename ArrayType, int ArraySize>
+constexpr uint32_t array_size(ArrayType (&array)[ArraySize])
+{
+	return ArraySize;
+}
 
 //*********************************************************
 //  HELPER CLASSES
@@ -316,7 +315,7 @@ struct ymfm_output
 	ymfm_output &roundtrip_fp()
 	{
 		for (uint32_t index = 0; index < NumOutputs; index++)
-			data[index] = ymfm::roundtrip_fp(data[index]);
+			data[index] = roundtrip_fp(data[index]);
 		return *this;
 	}
 
