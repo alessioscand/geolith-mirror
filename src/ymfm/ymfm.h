@@ -63,6 +63,13 @@ extern uint8_t ymfm_external_read(uint32_t type, uint32_t address);
 // of the chip; our responsibility is to pass the written data on to any consumers
 extern void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data);
 
+// the chip implementation calls this when one of the two internal timers
+// has changed state; our responsibility is to arrange to call the engine's
+// engine_timer_expired() method after the provided number of clocks; if
+// duration_in_clocks is negative, we should cancel any outstanding timers
+extern void ymfm_set_timer(uint32_t tnum, int32_t duration_in_clocks);
+
+
 //
 // I/O functions
 //
@@ -456,12 +463,6 @@ public:
 	// the system is up to date before calling the engine's
 	// engine_check_interrupts() method
 	virtual void ymfm_sync_check_interrupts() { m_engine->engine_check_interrupts(); }
-
-	// the chip implementation calls this when one of the two internal timers
-	// has changed state; our responsibility is to arrange to call the engine's
-	// engine_timer_expired() method after the provided number of clocks; if
-	// duration_in_clocks is negative, we should cancel any outstanding timers
-	virtual void ymfm_set_timer(uint32_t tnum, int32_t duration_in_clocks) { }
 
 	// the chip implementation calls this to indicate that the chip should be
 	// considered in a busy state until the given number of clocks has passed;

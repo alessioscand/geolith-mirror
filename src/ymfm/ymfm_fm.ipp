@@ -1435,14 +1435,14 @@ void fm_engine_base<RegisterType>::update_timer(uint32_t tnum, uint32_t enable, 
 		period += delta_clocks;
 
 		// reset it
-		m_intf.ymfm_set_timer(tnum, period * OPERATORS * m_clock_prescale);
+		ymfm_set_timer(tnum, period * OPERATORS * m_clock_prescale);
 		m_timer_running[tnum] = 1;
 	}
 
 	// if the timer is not live, ensure it is not enabled
 	else if (!enable)
 	{
-		m_intf.ymfm_set_timer(tnum, -1);
+		ymfm_set_timer(tnum, -1);
 		m_timer_running[tnum] = 0;
 	}
 }
