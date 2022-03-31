@@ -32,7 +32,15 @@
 
 #include "ymfm_adpcm.h"
 
+// ADPCM Channel A
 #define CHANNELS 6
+
+// ADPCM Channel B
+#define STEP_MIN 127
+#define STEP_MAX 24576
+#define STATUS_EOS 0x01
+#define STATUS_BRDY 0x02
+#define STATUS_PLAYING 0x04
 
 namespace ymfm
 {
@@ -409,7 +417,7 @@ void adpcm_b_channel::clock()
 			{
 				m_accumulator = 0;
 				m_prev_accum = 0;
-				m_status = (m_status & ~STATUS_PLAYING) | STATUS_EOS;
+				m_status = (m_status & (uint8_t)~STATUS_PLAYING) | STATUS_EOS;
 				debug::log_keyon("%s\n", "ADPCM EOS");
 				return;
 			}
@@ -546,7 +554,7 @@ void adpcm_b_channel::write(uint32_t regnum, uint8_t value)
 					m_regs.limit());
 		}
 		else
-			m_status &= ~STATUS_EOS;
+			m_status &= (uint8_t)~STATUS_EOS;
 		if (m_regs.resetflag())
 			reset();
 		if (m_regs.external())
@@ -558,7 +566,7 @@ void adpcm_b_channel::write(uint32_t regnum, uint8_t value)
 	{
 		// if writing from the CPU during execute, clear the ready flag
 		if (m_regs.execute() && !m_regs.record() && !m_regs.external())
-			m_status &= ~STATUS_BRDY;
+			m_status &= (uint8_t)~STATUS_BRDY;
 
 		// if writing during "record", pass through as data
 		else if (!m_regs.execute() && m_regs.record() && m_regs.external())
@@ -617,7 +625,7 @@ uint32_t adpcm_b_channel::address_shift() const
 
 void adpcm_b_channel::load_start()
 {
-	m_status = (m_status & ~STATUS_EOS) | STATUS_PLAYING;
+	m_status = (m_status & (uint8_t)~STATUS_EOS) | STATUS_PLAYING;
 	m_curaddress = m_regs.external() ? (m_regs.start() << address_shift()) : 0;
 	m_curnibble = 0;
 	m_curbyte = 0;

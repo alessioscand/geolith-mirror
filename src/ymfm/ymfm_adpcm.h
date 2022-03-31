@@ -265,13 +265,6 @@ struct adpcm_b_registers
 
 struct adpcm_b_channel
 {
-	static constexpr int32_t STEP_MIN = 127;
-	static constexpr int32_t STEP_MAX = 24576;
-
-	static constexpr uint8_t STATUS_EOS = 0x01;
-	static constexpr uint8_t STATUS_BRDY = 0x02;
-	static constexpr uint8_t STATUS_PLAYING = 0x04;
-
 	// constructor
 	adpcm_b_channel(adpcm_b_engine &owner, uint32_t addrshift);
 

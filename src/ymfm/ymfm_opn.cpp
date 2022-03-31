@@ -33,6 +33,8 @@
 #include "ymfm_opn.h"
 #include "ymfm_fm.ipp"
 
+#define STATUS_EOS 0x01 // FIXME: This is defined twice (ADPCM B)
+
 // simulate the DAC discontinuity (YM2612)
 static inline int32_t dac_discontinuity(int32_t value)
 {
@@ -950,7 +952,7 @@ void ym2610::clock_fm_and_adpcm()
 
 	// we track the last ADPCM-B EOS value in bit 6 (which is hidden from callers);
 	// if it changed since the last sample, update the visible EOS state in bit 7
-	uint8_t live_eos = ((m_adpcm_b.status() & adpcm_b_channel::STATUS_EOS) != 0) ? 0x40 : 0x00;
+	uint8_t live_eos = ((m_adpcm_b.status() & STATUS_EOS) != 0) ? 0x40 : 0x00;
 	if (((live_eos ^ m_eos_status) & 0x40) != 0)
 		m_eos_status = (m_eos_status & ~0xc0) | live_eos | (live_eos << 1);
 
