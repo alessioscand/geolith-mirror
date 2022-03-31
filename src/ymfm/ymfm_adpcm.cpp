@@ -63,6 +63,60 @@ void adpcm_a_registers::reset()
 	m_regdata[0x0b] = m_regdata[0x0c] = m_regdata[0x0d] = 0xdf;
 }
 
+// direct read/write access
+void adpcm_a_registers::write(uint32_t index, uint8_t data) {
+	m_regdata[index] = data;
+}
+
+// system-wide registers
+uint32_t adpcm_a_registers::dump() const {
+	return bitfield(m_regdata[0x00], 7);
+}
+
+uint32_t adpcm_a_registers::dump_mask() const {
+	return bitfield(m_regdata[0x00], 0, 6);
+}
+
+uint32_t adpcm_a_registers::total_level() const {
+	return bitfield(m_regdata[0x01], 0, 6);
+}
+
+uint32_t adpcm_a_registers::test() const {
+	return m_regdata[0x02];
+}
+
+// per-channel registers
+uint32_t adpcm_a_registers::ch_pan_left(uint32_t choffs) const {
+	return bitfield(m_regdata[choffs + 0x08], 7);
+}
+
+uint32_t adpcm_a_registers::ch_pan_right(uint32_t choffs) const {
+	return bitfield(m_regdata[choffs + 0x08], 6);
+}
+
+uint32_t adpcm_a_registers::ch_instrument_level(uint32_t choffs) const {
+	return bitfield(m_regdata[choffs + 0x08], 0, 5);
+}
+
+uint32_t adpcm_a_registers::ch_start(uint32_t choffs) const {
+	return m_regdata[choffs + 0x10] | (m_regdata[choffs + 0x18] << 8);
+}
+
+uint32_t adpcm_a_registers::ch_end(uint32_t choffs) const {
+	return m_regdata[choffs + 0x20] | (m_regdata[choffs + 0x28] << 8);
+}
+
+// per-channel writes
+void adpcm_a_registers::write_start(uint32_t choffs, uint32_t address)
+{
+	write(choffs + 0x10, address);
+	write(choffs + 0x18, address >> 8);
+}
+void adpcm_a_registers::write_end(uint32_t choffs, uint32_t address)
+{
+	write(choffs + 0x20, address);
+	write(choffs + 0x28, address >> 8);
+}
 
 //*********************************************************
 // ADPCM "A" CHANNEL

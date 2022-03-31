@@ -73,40 +73,25 @@ struct adpcm_a_registers
 	// reset to initial state
 	void reset();
 
-	// map channel number to register offset
-	static constexpr uint32_t channel_offset(uint32_t chnum)
-	{
-		assert(chnum < 6);
-		return chnum;
-	}
-
 	// direct read/write access
-	void write(uint32_t index, uint8_t data) { m_regdata[index] = data; }
+	void write(uint32_t index, uint8_t data);
 
 	// system-wide registers
-	uint32_t dump() const                               { return bitfield(m_regdata[0x00], 7); }
-	uint32_t dump_mask() const                          { return bitfield(m_regdata[0x00], 0, 6); }
-	uint32_t total_level() const                        { return bitfield(m_regdata[0x01], 0, 6); }
-	uint32_t test() const                               { return m_regdata[0x02]; }
+	uint32_t dump() const;
+	uint32_t dump_mask() const;
+	uint32_t total_level() const;
+	uint32_t test() const;
 
 	// per-channel registers
-	uint32_t ch_pan_left(uint32_t choffs) const         { return bitfield(m_regdata[choffs + 0x08], 7); }
-	uint32_t ch_pan_right(uint32_t choffs) const        { return bitfield(m_regdata[choffs + 0x08], 6); }
-	uint32_t ch_instrument_level(uint32_t choffs) const { return bitfield(m_regdata[choffs + 0x08], 0, 5); }
-	uint32_t ch_start(uint32_t choffs) const            { return m_regdata[choffs + 0x10] | (m_regdata[choffs + 0x18] << 8); }
-	uint32_t ch_end(uint32_t choffs) const              { return m_regdata[choffs + 0x20] | (m_regdata[choffs + 0x28] << 8); }
+	uint32_t ch_pan_left(uint32_t choffs) const;
+	uint32_t ch_pan_right(uint32_t choffs) const;
+	uint32_t ch_instrument_level(uint32_t choffs) const;
+	uint32_t ch_start(uint32_t choffs) const;
+	uint32_t ch_end(uint32_t choffs) const;
 
 	// per-channel writes
-	void write_start(uint32_t choffs, uint32_t address)
-	{
-		write(choffs + 0x10, address);
-		write(choffs + 0x18, address >> 8);
-	}
-	void write_end(uint32_t choffs, uint32_t address)
-	{
-		write(choffs + 0x20, address);
-		write(choffs + 0x28, address >> 8);
-	}
+	void write_start(uint32_t choffs, uint32_t address);
+	void write_end(uint32_t choffs, uint32_t address);
 
 	// internal state
 	uint8_t m_regdata[0x30];         // register data
@@ -168,7 +153,7 @@ struct adpcm_a_engine
 	// set the start/end address for a channel (for hardcoded YM2608 percussion)
 	void set_start_end(uint8_t chnum, uint16_t start, uint16_t end)
 	{
-		uint32_t choffs = adpcm_a_registers::channel_offset(chnum);
+		uint32_t choffs = chnum;
 		m_regs.write_start(choffs, start);
 		m_regs.write_end(choffs, end);
 	}
