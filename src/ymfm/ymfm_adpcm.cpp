@@ -32,6 +32,8 @@
 
 #include "ymfm_adpcm.h"
 
+#define CHANNELS 6
+
 namespace ymfm
 {
 
@@ -45,7 +47,7 @@ namespace ymfm
 
 void adpcm_a_registers::reset()
 {
-	memset(&m_regdata[0], 0, REGISTERS);
+	memset(&m_regdata[0], 0, 0x30);
 
 	// initialize the pans to on by default, and max instrument volume;
 	// some neogeo homebrews (for example ffeast) rely on this
@@ -318,7 +320,7 @@ void adpcm_a_engine::write(uint32_t regnum, uint8_t data)
 
 void adpcm_b_registers::reset()
 {
-	memset(&m_regdata[0], 0, REGISTERS);
+	memset(&m_regdata[0], 0, 0x11);
 
 	// default limit to wide open
 	m_regdata[0x0c] = m_regdata[0x0d] = 0xff;

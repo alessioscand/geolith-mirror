@@ -67,12 +67,6 @@ struct adpcm_b_engine;
 //
 struct adpcm_a_registers
 {
-	// constants
-	static constexpr uint32_t OUTPUTS = 2;
-	static constexpr uint32_t CHANNELS = 6;
-	static constexpr uint32_t REGISTERS = 0x30;
-	static constexpr uint32_t ALL_CHANNELS = (1 << CHANNELS) - 1;
-
 	// constructor
 	adpcm_a_registers() { }
 
@@ -82,7 +76,7 @@ struct adpcm_a_registers
 	// map channel number to register offset
 	static constexpr uint32_t channel_offset(uint32_t chnum)
 	{
-		assert(chnum < CHANNELS);
+		assert(chnum < 6);
 		return chnum;
 	}
 
@@ -115,7 +109,7 @@ struct adpcm_a_registers
 	}
 
 	// internal state
-	uint8_t m_regdata[REGISTERS];         // register data
+	uint8_t m_regdata[0x30];         // register data
 };
 
 
@@ -156,8 +150,6 @@ struct adpcm_a_channel
 
 struct adpcm_a_engine
 {
-	static constexpr int CHANNELS = adpcm_a_registers::CHANNELS;
-
 	// constructor
 	adpcm_a_engine(ymfm_interface &intf, uint32_t addrshift);
 
@@ -189,7 +181,7 @@ struct adpcm_a_engine
 
 	// internal state
 	ymfm_interface &m_intf;                                 // reference to the interface
-	adpcm_a_channel *m_channel[CHANNELS];                 // array of channels
+	adpcm_a_channel *m_channel[6];                 // array of channels
 	adpcm_a_registers m_regs;                             // registers
 };
 
@@ -232,9 +224,6 @@ struct adpcm_a_engine
 //
 struct adpcm_b_registers
 {
-	// constants
-	static constexpr uint32_t REGISTERS = 0x11;
-
 	// constructor
 	adpcm_b_registers() { }
 
@@ -268,7 +257,7 @@ struct adpcm_b_registers
 	uint32_t pcm() const              { return m_regdata[0x0f]; }
 
 	// internal state
-	uint8_t m_regdata[REGISTERS];         // register data
+	uint8_t m_regdata[0x11];         // register data
 };
 
 
