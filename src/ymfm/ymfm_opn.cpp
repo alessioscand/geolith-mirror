@@ -720,7 +720,7 @@ void ym2610::save_restore(ymfm_saved_state &state)
 uint8_t ym2610::read_status()
 {
 	uint8_t result = m_fm.status() & (fm_engine::STATUS_TIMERA | fm_engine::STATUS_TIMERB);
-	if (m_fm.intf().ymfm_is_busy())
+	if (ymfm_is_busy())
 		result |= fm_engine::STATUS_BUSY;
 	return result;
 }
@@ -855,7 +855,7 @@ void ym2610::write_data(uint8_t data)
 	}
 
 	// mark busy for a bit
-	m_fm.intf().ymfm_set_busy_end(32 * m_fm.clock_prescale());
+	ymfm_set_busy_end(32 * m_fm.clock_prescale());
 }
 
 
@@ -894,7 +894,7 @@ void ym2610::write_data_hi(uint8_t data)
 	}
 
 	// mark busy for a bit
-	m_fm.intf().ymfm_set_busy_end(32 * m_fm.clock_prescale());
+	ymfm_set_busy_end(32 * m_fm.clock_prescale());
 }
 
 
@@ -1054,7 +1054,7 @@ void ym2612::save_restore(ymfm_saved_state &state)
 uint8_t ym2612::read_status()
 {
 	uint8_t result = m_fm.status();
-	if (m_fm.intf().ymfm_is_busy())
+	if (ymfm_is_busy())
 		result |= fm_engine::STATUS_BUSY;
 	return result;
 }
@@ -1128,7 +1128,7 @@ void ym2612::write_data(uint8_t data)
 	}
 
 	// mark busy for a bit
-	m_fm.intf().ymfm_set_busy_end(32 * m_fm.clock_prescale());
+	ymfm_set_busy_end(32 * m_fm.clock_prescale());
 }
 
 
@@ -1159,7 +1159,7 @@ void ym2612::write_data_hi(uint8_t data)
 	m_fm.write(m_address, data);
 
 	// mark busy for a bit
-	m_fm.intf().ymfm_set_busy_end(32 * m_fm.clock_prescale());
+	ymfm_set_busy_end(32 * m_fm.clock_prescale());
 }
 
 

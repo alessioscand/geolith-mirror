@@ -69,6 +69,17 @@ extern void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data);
 // duration_in_clocks is negative, we should cancel any outstanding timers
 extern void ymfm_set_timer(uint32_t tnum, int32_t duration_in_clocks);
 
+// the chip implementation calls this to indicate that the chip should be
+// considered in a busy state until the given number of clocks has passed;
+// our responsibility is to compute and remember the ending time based on
+// the chip's clock for later checking
+extern void ymfm_set_busy_end(uint32_t clocks);
+
+// the chip implementation calls this to see if the chip is still currently
+// is a busy state, as specified by a previous call to ymfm_set_busy_end();
+// our responsibility is to compare the current time against the previously
+// noted busy end time and return true if we haven't yet passed it
+extern bool ymfm_is_busy(void);
 
 //
 // I/O functions
@@ -463,18 +474,6 @@ public:
 	// the system is up to date before calling the engine's
 	// engine_check_interrupts() method
 	virtual void ymfm_sync_check_interrupts() { m_engine->engine_check_interrupts(); }
-
-	// the chip implementation calls this to indicate that the chip should be
-	// considered in a busy state until the given number of clocks has passed;
-	// our responsibility is to compute and remember the ending time based on
-	// the chip's clock for later checking
-	virtual void ymfm_set_busy_end(uint32_t clocks) { }
-
-	// the chip implementation calls this to see if the chip is still currently
-	// is a busy state, as specified by a previous call to ymfm_set_busy_end();
-	// our responsibility is to compare the current time against the previously
-	// noted busy end time and return true if we haven't yet passed it
-	virtual bool ymfm_is_busy() { return false; }
 
 	// pointer to engine callbacks -- this is set directly by the engine at
 	// construction time

@@ -62,29 +62,26 @@ void ymfm_set_timer(uint32_t tnum, int32_t duration) {
         timer[tnum] = duration;
 }
 
+void ymfm_set_busy_end(uint32_t clocks) {
+    busytimer += clocks / divisor;
+    busyfrac += clocks % divisor;
+    if (busyfrac >= divisor) {
+        ++busytimer;
+        busyfrac -= divisor;
+    }
+}
+
+bool ymfm_is_busy(void) {
+    return busytimer ? true : false;
+}
+
 void ymfm_update_irq(bool asserted) {
     asserted ? cpu_z80_raise_irq(0) : cpu_z80_lower_irq();
 }
 
 using namespace ymfm;
 
-class ym_device : public ymfm::ymfm_interface {
-public:
-    virtual void ymfm_set_busy_end(uint32_t clocks) override {
-        busytimer += clocks / divisor;
-        busyfrac += clocks % divisor;
-        if (busyfrac >= divisor) {
-            ++busytimer;
-            busyfrac -= divisor;
-        }
-    }
-
-    virtual bool ymfm_is_busy() override {
-        return busytimer ? true : false;
-    }
-};
-
-static ym_device intf;
+static ymfm::ymfm_interface intf;
 static ym2610 *chip;
 static ym2610::output_data output;
 
