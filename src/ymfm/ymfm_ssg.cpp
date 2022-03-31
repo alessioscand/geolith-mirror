@@ -194,23 +194,6 @@ void ssg_engine::reset()
 	m_noise_state = 1;
 }
 
-
-//-------------------------------------------------
-//  save_restore - save or restore the data
-//-------------------------------------------------
-
-void ssg_engine::save_restore(ymfm_saved_state &state)
-{
-	// save engine state
-	state.save_restore(m_tone_count);
-	state.save_restore(m_tone_state);
-	state.save_restore(m_envelope_count);
-	state.save_restore(m_envelope_state);
-	state.save_restore(m_noise_count);
-	state.save_restore(m_noise_state);
-}
-
-
 //-------------------------------------------------
 //  clock - master clocking function
 //-------------------------------------------------

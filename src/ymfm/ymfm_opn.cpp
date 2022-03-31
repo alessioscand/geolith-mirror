@@ -707,7 +707,6 @@ void ym2610::save_restore(ymfm_saved_state &state)
 	state.save_restore(m_flag_mask);
 
 	m_fm.save_restore(state);
-	m_ssg.save_restore(state);
 	m_ssg_resampler.save_restore(state);
 	m_adpcm_a.save_restore(state);
 	m_adpcm_b.save_restore(state);

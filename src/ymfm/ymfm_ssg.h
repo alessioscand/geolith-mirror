@@ -52,9 +52,6 @@ struct ssg_engine
 	// reset our status
 	void reset();
 
-	// save/restore
-	void save_restore(ymfm_saved_state &state);
-
 	// master clocking function
 	void clock();
 
