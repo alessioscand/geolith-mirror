@@ -54,16 +54,6 @@ void adpcm_a_registers::reset()
 }
 
 
-//-------------------------------------------------
-//  save_restore - save or restore the data
-//-------------------------------------------------
-
-void adpcm_a_registers::save_restore(ymfm_saved_state &state)
-{
-	state.save_restore(m_regdata);
-}
-
-
 //*********************************************************
 // ADPCM "A" CHANNEL
 //*********************************************************
@@ -99,21 +89,6 @@ void adpcm_a_channel::reset()
 	m_curaddress = 0;
 	m_accumulator = 0;
 	m_step_index = 0;
-}
-
-
-//-------------------------------------------------
-//  save_restore - save or restore the data
-//-------------------------------------------------
-
-void adpcm_a_channel::save_restore(ymfm_saved_state &state)
-{
-	state.save_restore(m_playing);
-	state.save_restore(m_curnibble);
-	state.save_restore(m_curbyte);
-	state.save_restore(m_curaddress);
-	state.save_restore(m_accumulator);
-	state.save_restore(m_step_index);
 }
 
 
@@ -281,21 +256,6 @@ void adpcm_a_engine::reset()
 
 
 //-------------------------------------------------
-//  save_restore - save or restore the data
-//-------------------------------------------------
-
-void adpcm_a_engine::save_restore(ymfm_saved_state &state)
-{
-	// save register state
-	m_regs.save_restore(state);
-
-	// save channel state
-	for (int chnum = 0; chnum < CHANNELS; chnum++)
-		m_channel[chnum]->save_restore(state);
-}
-
-
-//-------------------------------------------------
 //  clock - master clocking function
 //-------------------------------------------------
 
@@ -365,16 +325,6 @@ void adpcm_b_registers::reset()
 }
 
 
-//-------------------------------------------------
-//  save_restore - save or restore the data
-//-------------------------------------------------
-
-void adpcm_b_registers::save_restore(ymfm_saved_state &state)
-{
-	state.save_restore(m_regdata);
-}
-
-
 
 //*********************************************************
 // ADPCM "B" CHANNEL
@@ -416,24 +366,6 @@ void adpcm_b_channel::reset()
 	m_accumulator = 0;
 	m_prev_accum = 0;
 	m_adpcm_step = STEP_MIN;
-}
-
-
-//-------------------------------------------------
-//  save_restore - save or restore the data
-//-------------------------------------------------
-
-void adpcm_b_channel::save_restore(ymfm_saved_state &state)
-{
-	state.save_restore(m_status);
-	state.save_restore(m_curnibble);
-	state.save_restore(m_curbyte);
-	state.save_restore(m_dummy_read);
-	state.save_restore(m_position);
-	state.save_restore(m_curaddress);
-	state.save_restore(m_accumulator);
-	state.save_restore(m_prev_accum);
-	state.save_restore(m_adpcm_step);
 }
 
 
@@ -722,20 +654,6 @@ void adpcm_b_engine::reset()
 
 	// reset each channel
 	m_channel->reset();
-}
-
-
-//-------------------------------------------------
-//  save_restore - save or restore the data
-//-------------------------------------------------
-
-void adpcm_b_engine::save_restore(ymfm_saved_state &state)
-{
-	// save our state
-	m_regs.save_restore(state);
-
-	// save channel state
-	m_channel->save_restore(state);
 }
 
 

@@ -97,9 +97,6 @@ public:
 	// constructor
 	fm_operator(fm_engine_base<RegisterType> &owner, uint32_t opoffs);
 
-	// save/restore
-	void save_restore(ymfm_saved_state &state);
-
 	// reset the operator state
 	void reset();
 
@@ -178,9 +175,6 @@ public:
 
 	// constructor
 	fm_channel(fm_engine_base<RegisterType> &owner, uint32_t choffs);
-
-	// save/restore
-	void save_restore(ymfm_saved_state &state);
 
 	// reset the channel state
 	void reset();
@@ -285,9 +279,6 @@ public:
 
 	// constructor
 	fm_engine_base(ymfm_interface &intf);
-
-	// save/restore
-	void save_restore(ymfm_saved_state &state);
 
 	// reset the overall state
 	void reset();

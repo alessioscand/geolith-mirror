@@ -88,18 +88,6 @@ void opn_registers_base::reset()
 
 
 //-------------------------------------------------
-//  save_restore - save or restore the data
-//-------------------------------------------------
-
-void opn_registers_base::save_restore(ymfm_saved_state &state)
-{
-	state.save_restore(m_lfo_counter);
-	state.save_restore(m_lfo_am);
-	state.save_restore(m_regdata);
-}
-
-
-//-------------------------------------------------
 //  operator_map - return an array of operator
 //  indices for each channel; for OPN this is fixed
 //-------------------------------------------------
@@ -492,19 +480,6 @@ ssg_resampler<OutputType, FirstOutput, MixTo1>::ssg_resampler(ssg_engine &ssg) :
 	m_last.clear();
 }
 
-
-//-------------------------------------------------
-//  save_restore - save or restore the data
-//-------------------------------------------------
-
-template<typename OutputType, int FirstOutput, bool MixTo1>
-void ssg_resampler<OutputType, FirstOutput, MixTo1>::save_restore(ymfm_saved_state &state)
-{
-	state.save_restore(m_sampindex);
-	state.save_restore(m_last.data);
-}
-
-
 //-------------------------------------------------
 //  configure - configure a new ratio
 //-------------------------------------------------
@@ -693,23 +668,6 @@ void ym2610::reset()
 	// initialize our special interrupt states
 	m_eos_status = 0x00;
 	m_flag_mask = EOS_FLAGS_MASK;
-}
-
-
-//-------------------------------------------------
-//  save_restore - save or restore the data
-//-------------------------------------------------
-
-void ym2610::save_restore(ymfm_saved_state &state)
-{
-	state.save_restore(m_address);
-	state.save_restore(m_eos_status);
-	state.save_restore(m_flag_mask);
-
-	m_fm.save_restore(state);
-	m_ssg_resampler.save_restore(state);
-	m_adpcm_a.save_restore(state);
-	m_adpcm_b.save_restore(state);
 }
 
 
@@ -1031,19 +989,6 @@ void ym2612::reset()
 {
 	// reset the engines
 	m_fm.reset();
-}
-
-
-//-------------------------------------------------
-//  save_restore - save or restore the data
-//-------------------------------------------------
-
-void ym2612::save_restore(ymfm_saved_state &state)
-{
-	state.save_restore(m_address);
-	state.save_restore(m_dac_data);
-	state.save_restore(m_dac_enable);
-	m_fm.save_restore(state);
 }
 
 

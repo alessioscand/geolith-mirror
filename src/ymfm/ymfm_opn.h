@@ -166,9 +166,6 @@ struct opn_registers_base
 	// reset to initial state
 	void reset();
 
-	// save/restore
-	void save_restore(ymfm_saved_state &state);
-
 	// map channel number to register offset
 	static inline uint32_t channel_offset(uint32_t chnum)
 	{
@@ -377,9 +374,6 @@ struct ssg_resampler
 	// constructor
 	ssg_resampler(ssg_engine &ssg);
 
-	// save/restore
-	void save_restore(ymfm_saved_state &state);
-
 	// get the current sample index
 	uint32_t sampindex() const { return m_sampindex; }
 
@@ -453,9 +447,6 @@ struct ym2610
 	// reset
 	void reset();
 
-	// save/restore
-	void save_restore(ymfm_saved_state &state);
-
 	// pass-through helpers
 	uint32_t sample_rate(uint32_t input_clock) const
 	{
@@ -520,9 +511,6 @@ struct ym2612
 
 	// reset
 	void reset();
-
-	// save/restore
-	void save_restore(ymfm_saved_state &state);
 
 	// pass-through helpers
 	uint32_t sample_rate(uint32_t input_clock) const { return m_fm.sample_rate(input_clock); }

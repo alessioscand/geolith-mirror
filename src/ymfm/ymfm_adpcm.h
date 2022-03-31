@@ -79,9 +79,6 @@ struct adpcm_a_registers
 	// reset to initial state
 	void reset();
 
-	// save/restore
-	void save_restore(ymfm_saved_state &state);
-
 	// map channel number to register offset
 	static constexpr uint32_t channel_offset(uint32_t chnum)
 	{
@@ -132,9 +129,6 @@ struct adpcm_a_channel
 	// reset the channel state
 	void reset();
 
-	// save/restore
-	void save_restore(ymfm_saved_state &state);
-
 	// signal key on/off
 	void keyonoff(bool on);
 
@@ -169,9 +163,6 @@ struct adpcm_a_engine
 
 	// reset our status
 	void reset();
-
-	// save/restore
-	void save_restore(ymfm_saved_state &state);
 
 	// master clocking function
 	uint32_t clock(uint32_t chanmask);
@@ -250,9 +241,6 @@ struct adpcm_b_registers
 	// reset to initial state
 	void reset();
 
-	// save/restore
-	void save_restore(ymfm_saved_state &state);
-
 	// direct read/write access
 	void write(uint32_t index, uint8_t data) { m_regdata[index] = data; }
 
@@ -300,9 +288,6 @@ struct adpcm_b_channel
 
 	// reset the channel state
 	void reset();
-
-	// save/restore
-	void save_restore(ymfm_saved_state &state);
 
 	// signal key on/off
 	void keyonoff(bool on);
@@ -359,9 +344,6 @@ struct adpcm_b_engine
 
 	// reset our status
 	void reset();
-
-	// save/restore
-	void save_restore(ymfm_saved_state &state);
 
 	// master clocking function
 	void clock();
