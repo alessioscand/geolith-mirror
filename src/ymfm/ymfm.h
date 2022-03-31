@@ -63,6 +63,15 @@ extern uint8_t ymfm_external_read(uint32_t type, uint32_t address);
 // of the chip; our responsibility is to pass the written data on to any consumers
 extern void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data);
 
+//
+// I/O functions
+//
+
+// the chip implementation calls this when the state of the IRQ signal has
+// changed due to a status change; our responsibility is to respond as
+// needed to the change in IRQ state, signaling any consumers
+extern void ymfm_update_irq(bool asserted);
+
 //-------------------------------------------------
 //  bitfield - extract a bitfield from the given
 //  value, starting at bit 'start' for a length of
@@ -465,15 +474,6 @@ public:
 	// our responsibility is to compare the current time against the previously
 	// noted busy end time and return true if we haven't yet passed it
 	virtual bool ymfm_is_busy() { return false; }
-
-	//
-	// I/O functions
-	//
-
-	// the chip implementation calls this when the state of the IRQ signal has
-	// changed due to a status change; our responsibility is to respond as
-	// needed to the change in IRQ state, signaling any consumers
-	virtual void ymfm_update_irq(bool asserted) { }
 
 	// pointer to engine callbacks -- this is set directly by the engine at
 	// construction time

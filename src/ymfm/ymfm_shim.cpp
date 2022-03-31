@@ -55,14 +55,14 @@ uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
 void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data) {
 }
 
+void ymfm_update_irq(bool asserted) {
+    asserted ? cpu_z80_raise_irq(0) : cpu_z80_lower_irq();
+}
+
 using namespace ymfm;
 
 class ym_device : public ymfm::ymfm_interface {
 public:
-    virtual void ymfm_update_irq(bool asserted) override {
-        asserted ? cpu_z80_raise_irq(0) : cpu_z80_lower_irq();
-    }
-
     virtual void ymfm_set_timer(uint32_t tnum, int32_t duration) override {
         if (duration >= 0)
             timer[tnum] += (duration / divisor);

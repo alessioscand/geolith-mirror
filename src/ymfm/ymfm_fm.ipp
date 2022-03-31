@@ -1494,7 +1494,7 @@ void fm_engine_base<RegisterType>::engine_check_interrupts()
 
 	// if changed, signal the new state
 	if (old_state != m_irq_state)
-		m_intf.ymfm_update_irq(m_irq_state ? true : false);
+		ymfm_update_irq(m_irq_state ? true : false);
 }
 
 
