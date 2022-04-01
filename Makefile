@@ -52,6 +52,7 @@ endif
 
 CSRCS := m68k/m68kcpu.c \
 	m68k/m68kops.c \
+	ymfm/ymfm_ssg.c \
 	z80/z80.c \
 	emu.c \
 	gngeo_m68k.c \
@@ -70,8 +71,7 @@ CSRCS := m68k/m68kcpu.c \
 
 CXXSRCS := ymfm/ymfm_opn.cpp \
 	ymfm/ymfm_adpcm.cpp \
-	ymfm/ymfm_shim.cpp \
-	ymfm/ymfm_ssg.cpp
+	ymfm/ymfm_shim.cpp
 
 ifneq ($(USE_VENDORED_SPEEXDSP), 0)
 	Q_SPEEXDSP :=

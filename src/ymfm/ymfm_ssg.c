@@ -60,8 +60,7 @@ extern uint8_t ymfm_external_read(uint32_t type, uint32_t address);
 
 extern void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data);
 
-static inline uint32_t bitfield(uint32_t value, int start, int length = 1)
-{
+static inline uint32_t bitfield(uint32_t value, int start, int length) {
 	return (value >> start) & ((1 << length) - 1);
 }
 //*********************************************************

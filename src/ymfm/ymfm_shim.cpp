@@ -39,6 +39,7 @@ static int busyfrac;
 static int timer[2];
 static int divisor;
 
+extern "C" {
 uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
     switch (type) {
         case ACCESS_ADPCM_A:
@@ -53,6 +54,7 @@ uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
 }
 
 void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data) {
+}
 }
 
 void ymfm_set_timer(uint32_t tnum, int32_t duration) {

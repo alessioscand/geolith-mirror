@@ -55,6 +55,7 @@ enum access_class : uint32_t
 	ACCESS_CLASSES
 };
 
+extern "C" {
 // the chip implementation calls this whenever data is read from outside
 // of the chip; our responsibility is to provide the data requested
 extern uint8_t ymfm_external_read(uint32_t type, uint32_t address);
@@ -62,6 +63,7 @@ extern uint8_t ymfm_external_read(uint32_t type, uint32_t address);
 // the chip implementation calls this whenever data is written outside
 // of the chip; our responsibility is to pass the written data on to any consumers
 extern void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data);
+}
 
 // the chip implementation calls this when one of the two internal timers
 // has changed state; our responsibility is to arrange to call the engine's
