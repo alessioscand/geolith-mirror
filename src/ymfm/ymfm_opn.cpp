@@ -418,8 +418,8 @@ std::string opn_registers_base::log_keyon(uint32_t choffs, uint32_t opoffs)
 //  value to the sums, applying the given scale
 //-------------------------------------------------
 
-template<typename OutputType, int FirstOutput, bool MixTo1>
-void ssg_resampler<OutputType, FirstOutput, MixTo1>::add_last(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale)
+template<typename OutputType, int FirstOutput>
+void ssg_resampler<OutputType, FirstOutput>::add_last(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale)
 {
 	sum0 += m_last.data[0] * scale;
 	sum1 += m_last.data[1] * scale;
@@ -433,8 +433,8 @@ void ssg_resampler<OutputType, FirstOutput, MixTo1>::add_last(int32_t &sum0, int
 //  given scale
 //-------------------------------------------------
 
-template<typename OutputType, int FirstOutput, bool MixTo1>
-void ssg_resampler<OutputType, FirstOutput, MixTo1>::clock_and_add(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale)
+template<typename OutputType, int FirstOutput>
+void ssg_resampler<OutputType, FirstOutput>::clock_and_add(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale)
 {
 	ssg_engine_clock();
 	m_ssg.output(m_last);
@@ -448,21 +448,11 @@ void ssg_resampler<OutputType, FirstOutput, MixTo1>::clock_and_add(int32_t &sum0
 //  divisor to the final result
 //-------------------------------------------------
 
-template<typename OutputType, int FirstOutput, bool MixTo1>
-void ssg_resampler<OutputType, FirstOutput, MixTo1>::write_to_output(OutputType *output, int32_t sum0, int32_t sum1, int32_t sum2, int32_t divisor)
+template<typename OutputType, int FirstOutput>
+void ssg_resampler<OutputType, FirstOutput>::write_to_output(OutputType *output, int32_t sum0, int32_t sum1, int32_t sum2, int32_t divisor)
 {
-	if (MixTo1)
-	{
-		// mixing to one, apply a 2/3 factor to prevent overflow
-		output->data[FirstOutput] = (sum0 + sum1 + sum2) * 2 / (3 * divisor);
-	}
-	else
-	{
-		// write three outputs in a row
-		output->data[FirstOutput + 0] = sum0 / divisor;
-		output->data[FirstOutput + 1] = sum1 / divisor;
-		output->data[FirstOutput + 2] = sum2 / divisor;
-	}
+	// mixing to one, apply a 2/3 factor to prevent overflow
+	output->data[FirstOutput] = (sum0 + sum1 + sum2) * 2 / (3 * divisor);
 
 	// track the sample index here
 	m_sampindex++;
@@ -473,8 +463,8 @@ void ssg_resampler<OutputType, FirstOutput, MixTo1>::write_to_output(OutputType 
 //  ssg_resampler - constructor
 //-------------------------------------------------
 
-template<typename OutputType, int FirstOutput, bool MixTo1>
-ssg_resampler<OutputType, FirstOutput, MixTo1>::ssg_resampler(ssg_engine &ssg) :
+template<typename OutputType, int FirstOutput>
+ssg_resampler<OutputType, FirstOutput>::ssg_resampler(ssg_engine &ssg) :
 	m_ssg(ssg),
 	m_sampindex(0),
 	m_resampler(&ssg_resampler::resample_nop)
@@ -486,8 +476,8 @@ ssg_resampler<OutputType, FirstOutput, MixTo1>::ssg_resampler(ssg_engine &ssg) :
 //  configure - configure a new ratio
 //-------------------------------------------------
 
-template<typename OutputType, int FirstOutput, bool MixTo1>
-void ssg_resampler<OutputType, FirstOutput, MixTo1>::configure(uint8_t outsamples, uint8_t srcsamples)
+template<typename OutputType, int FirstOutput>
+void ssg_resampler<OutputType, FirstOutput>::configure(uint8_t outsamples, uint8_t srcsamples)
 {
 	switch (outsamples * 10 + srcsamples)
 	{
@@ -504,8 +494,8 @@ void ssg_resampler<OutputType, FirstOutput, MixTo1>::configure(uint8_t outsample
 //  2 output samples
 //-------------------------------------------------
 
-template<typename OutputType, int FirstOutput, bool MixTo1>
-void ssg_resampler<OutputType, FirstOutput, MixTo1>::resample_2_1(OutputType *output, uint32_t numsamples)
+template<typename OutputType, int FirstOutput>
+void ssg_resampler<OutputType, FirstOutput>::resample_2_1(OutputType *output, uint32_t numsamples)
 {
 	for (uint32_t samp = 0; samp < numsamples; samp++, output++)
 	{
@@ -525,8 +515,8 @@ void ssg_resampler<OutputType, FirstOutput, MixTo1>::resample_2_1(OutputType *ou
 //  2 output samples
 //-------------------------------------------------
 
-template<typename OutputType, int FirstOutput, bool MixTo1>
-void ssg_resampler<OutputType, FirstOutput, MixTo1>::resample_2_9(OutputType *output, uint32_t numsamples)
+template<typename OutputType, int FirstOutput>
+void ssg_resampler<OutputType, FirstOutput>::resample_2_9(OutputType *output, uint32_t numsamples)
 {
 	for (uint32_t samp = 0; samp < numsamples; samp++, output++)
 	{
@@ -548,8 +538,8 @@ void ssg_resampler<OutputType, FirstOutput, MixTo1>::resample_2_9(OutputType *ou
 //  resample_nop - no-op resampler
 //-------------------------------------------------
 
-template<typename OutputType, int FirstOutput, bool MixTo1>
-void ssg_resampler<OutputType, FirstOutput, MixTo1>::resample_nop(OutputType *output, uint32_t numsamples)
+template<typename OutputType, int FirstOutput>
+void ssg_resampler<OutputType, FirstOutput>::resample_nop(OutputType *output, uint32_t numsamples)
 {
 	// nothing to do except increment the sample index
 	m_sampindex += numsamples;

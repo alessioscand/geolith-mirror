@@ -358,7 +358,7 @@ enum opn_fidelity : uint8_t
 
 // ======================> ssg_resampler
 
-template<typename OutputType, int FirstOutput, bool MixTo1>
+template<typename OutputType, int FirstOutput>
 struct ssg_resampler
 {
 	// helper to add the last computed value to the sums, applying the given scale
@@ -474,7 +474,7 @@ struct ym2610
 	fm_engine::output_data m_last_fm;   // last FM output
 	fm_engine m_fm;                     // core FM engine
 	ssg_engine m_ssg;                   // core FM engine
-	ssg_resampler<output_data, 2, true> m_ssg_resampler; // SSG resampler helper
+	ssg_resampler<output_data, 2> m_ssg_resampler; // SSG resampler helper
 	adpcm_a_engine m_adpcm_a;           // ADPCM-A engine
 	adpcm_b_engine m_adpcm_b;           // ADPCM-B engine
 };
