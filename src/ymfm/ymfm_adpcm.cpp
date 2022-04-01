@@ -147,7 +147,7 @@ namespace ymfm
 //  adpcm_a_channel - constructor
 //-------------------------------------------------
 
-adpcm_a_channel::adpcm_a_channel(adpcm_a_engine &owner, uint32_t choffs, uint32_t addrshift) :
+adpcm_a_channel::adpcm_a_channel(uint32_t choffs, uint32_t addrshift) :
 	m_choffs(choffs),
 	m_address_shift(addrshift),
 	m_playing(0),
@@ -155,8 +155,7 @@ adpcm_a_channel::adpcm_a_channel(adpcm_a_engine &owner, uint32_t choffs, uint32_
 	m_curbyte(0),
 	m_curaddress(0),
 	m_accumulator(0),
-	m_step_index(0),
-	m_owner(owner)
+	m_step_index(0)
 {
 }
 
@@ -316,12 +315,11 @@ void adpcm_a_channel::output(ymfm_output<2> &output) const
 //  adpcm_a_engine - constructor
 //-------------------------------------------------
 
-adpcm_a_engine::adpcm_a_engine(ymfm_interface &intf, uint32_t addrshift) :
-	m_intf(intf)
+adpcm_a_engine::adpcm_a_engine(uint32_t addrshift)
 {
 	// create the channels
 	for (int chnum = 0; chnum < CHANNELS; chnum++)
-		m_channel[chnum] = new adpcm_a_channel(*this, chnum, addrshift);
+		m_channel[chnum] = new adpcm_a_channel(chnum, addrshift);
 }
 
 
@@ -544,7 +542,7 @@ namespace ymfm
 //  adpcm_b_channel - constructor
 //-------------------------------------------------
 
-adpcm_b_channel::adpcm_b_channel(adpcm_b_engine &owner, uint32_t addrshift) :
+adpcm_b_channel::adpcm_b_channel(uint32_t addrshift) :
 	m_address_shift(addrshift),
 	m_status(STATUS_BRDY),
 	m_curnibble(0),
@@ -554,8 +552,7 @@ adpcm_b_channel::adpcm_b_channel(adpcm_b_engine &owner, uint32_t addrshift) :
 	m_curaddress(0),
 	m_accumulator(0),
 	m_prev_accum(0),
-	m_adpcm_step(STEP_MIN),
-	m_owner(owner)
+	m_adpcm_step(STEP_MIN)
 {
 }
 
@@ -855,11 +852,10 @@ bool adpcm_b_channel::at_end() const {
 //  adpcm_b_engine - constructor
 //-------------------------------------------------
 
-adpcm_b_engine::adpcm_b_engine(ymfm_interface &intf, uint32_t addrshift) :
-	m_intf(intf)
+adpcm_b_engine::adpcm_b_engine(uint32_t addrshift)
 {
 	// create the channel (only one supported for now, but leaving possibilities open)
-	m_channel = new adpcm_b_channel(*this, addrshift);
+	m_channel = new adpcm_b_channel(addrshift);
 }
 
 

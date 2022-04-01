@@ -648,8 +648,8 @@ ym2610::ym2610(ymfm_interface &intf, uint8_t channel_mask) :
 	m_fm(intf),
 	m_ssg(),
 	m_ssg_resampler(m_ssg),
-	m_adpcm_a(intf, 8),
-	m_adpcm_b(intf, 8)
+	m_adpcm_a(8),
+	m_adpcm_b(8)
 {
 	m_ssg.init();
 	update_prescale();

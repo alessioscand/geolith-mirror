@@ -54,7 +54,7 @@ void adpcm_a_registers_write_end(uint32_t choffs, uint32_t address);
 struct adpcm_a_channel
 {
 	// constructor
-	adpcm_a_channel(adpcm_a_engine &owner, uint32_t choffs, uint32_t addrshift);
+	adpcm_a_channel(uint32_t choffs, uint32_t addrshift);
 
 	// reset the channel state
 	void reset();
@@ -77,7 +77,6 @@ struct adpcm_a_channel
 	uint32_t m_curaddress;                // current address
 	int32_t m_accumulator;                // accumulator
 	int32_t m_step_index;                 // index in the stepping table
-	adpcm_a_engine &m_owner;              // reference to our owner
 };
 
 
@@ -86,7 +85,7 @@ struct adpcm_a_channel
 struct adpcm_a_engine
 {
 	// constructor
-	adpcm_a_engine(ymfm_interface &intf, uint32_t addrshift);
+	adpcm_a_engine(uint32_t addrshift);
 
 	// reset our status
 	void reset();
@@ -108,11 +107,7 @@ struct adpcm_a_engine
 		adpcm_a_registers_write_end(choffs, end);
 	}
 
-	// return a reference to our interface
-	ymfm_interface &intf() { return m_intf; }
-
 	// internal state
-	ymfm_interface &m_intf;                                 // reference to the interface
 	adpcm_a_channel *m_channel[6];                 // array of channels
 };
 
@@ -122,7 +117,7 @@ struct adpcm_a_engine
 struct adpcm_b_channel
 {
 	// constructor
-	adpcm_b_channel(adpcm_b_engine &owner, uint32_t addrshift);
+	adpcm_b_channel(uint32_t addrshift);
 
 	// reset the channel state
 	void reset();
@@ -168,7 +163,6 @@ struct adpcm_b_channel
 	int32_t m_accumulator;          // accumulator
 	int32_t m_prev_accum;           // previous accumulator (for linear interp)
 	int32_t m_adpcm_step;           // next forecast
-	adpcm_b_engine &m_owner;        // reference to our owner
 };
 
 
@@ -177,7 +171,7 @@ struct adpcm_b_channel
 struct adpcm_b_engine
 {
 	// constructor
-	adpcm_b_engine(ymfm_interface &intf, uint32_t addrshift = 0);
+	adpcm_b_engine(uint32_t addrshift = 0);
 
 	// reset our status
 	void reset();
@@ -197,11 +191,7 @@ struct adpcm_b_engine
 	// status
 	uint8_t status() const { return m_channel->status(); }
 
-	// return a reference to our interface
-	ymfm_interface &intf() { return m_intf; }
-
 	// internal state
-	ymfm_interface &m_intf;                     // reference to our interface
 	adpcm_b_channel *m_channel;                 // channel pointer
 };
 
