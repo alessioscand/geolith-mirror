@@ -34,6 +34,7 @@
 
 // ADPCM Channel A
 #define CHANNELS 6
+#define REGISTERS_A 0x30
 
 // ADPCM Channel B
 #define STEP_MIN 127
@@ -42,8 +43,7 @@
 #define STATUS_BRDY 0x02
 #define STATUS_PLAYING 0x04
 
-namespace ymfm
-{
+uint8_t m_regdata_a[REGISTERS_A];         // register data
 
 //*********************************************************
 // ADPCM "A" REGISTERS
@@ -53,70 +53,73 @@ namespace ymfm
 //  reset - reset the register state
 //-------------------------------------------------
 
-void adpcm_a_registers::reset()
+static inline void adpcm_a_registers_reset(void)
 {
-	memset(&m_regdata[0], 0, 0x30);
+	memset(&m_regdata_a[0], 0, 0x30);
 
 	// initialize the pans to on by default, and max instrument volume;
 	// some neogeo homebrews (for example ffeast) rely on this
-	m_regdata[0x08] = m_regdata[0x09] = m_regdata[0x0a] =
-	m_regdata[0x0b] = m_regdata[0x0c] = m_regdata[0x0d] = 0xdf;
+	m_regdata_a[0x08] = m_regdata_a[0x09] = m_regdata_a[0x0a] =
+	m_regdata_a[0x0b] = m_regdata_a[0x0c] = m_regdata_a[0x0d] = 0xdf;
 }
 
 // direct read/write access
-void adpcm_a_registers::write(uint32_t index, uint8_t data) {
-	m_regdata[index] = data;
+static inline void adpcm_a_registers_write(uint32_t index, uint8_t data) {
+	m_regdata_a[index] = data;
 }
 
 // system-wide registers
-uint32_t adpcm_a_registers::dump() const {
-	return bitfield(m_regdata[0x00], 7);
+static inline uint32_t adpcm_a_registers_dump(void) {
+	return bitfield(m_regdata_a[0x00], 7);
 }
 
-uint32_t adpcm_a_registers::dump_mask() const {
-	return bitfield(m_regdata[0x00], 0, 6);
+static inline uint32_t adpcm_a_registers_dump_mask(void) {
+	return bitfield(m_regdata_a[0x00], 0, 6);
 }
 
-uint32_t adpcm_a_registers::total_level() const {
-	return bitfield(m_regdata[0x01], 0, 6);
+static inline uint32_t adpcm_a_registers_total_level(void) {
+	return bitfield(m_regdata_a[0x01], 0, 6);
 }
 
-uint32_t adpcm_a_registers::test() const {
-	return m_regdata[0x02];
+static inline uint32_t adpcm_a_registers_test(void) {
+	return m_regdata_a[0x02];
 }
 
 // per-channel registers
-uint32_t adpcm_a_registers::ch_pan_left(uint32_t choffs) const {
-	return bitfield(m_regdata[choffs + 0x08], 7);
+static inline uint32_t adpcm_a_registers_ch_pan_left(uint32_t choffs) {
+	return bitfield(m_regdata_a[choffs + 0x08], 7);
 }
 
-uint32_t adpcm_a_registers::ch_pan_right(uint32_t choffs) const {
-	return bitfield(m_regdata[choffs + 0x08], 6);
+static inline uint32_t adpcm_a_registers_ch_pan_right(uint32_t choffs) {
+	return bitfield(m_regdata_a[choffs + 0x08], 6);
 }
 
-uint32_t adpcm_a_registers::ch_instrument_level(uint32_t choffs) const {
-	return bitfield(m_regdata[choffs + 0x08], 0, 5);
+static inline uint32_t adpcm_a_registers_ch_instrument_level(uint32_t choffs) {
+	return bitfield(m_regdata_a[choffs + 0x08], 0, 5);
 }
 
-uint32_t adpcm_a_registers::ch_start(uint32_t choffs) const {
-	return m_regdata[choffs + 0x10] | (m_regdata[choffs + 0x18] << 8);
+static inline uint32_t adpcm_a_registers_ch_start(uint32_t choffs) {
+	return m_regdata_a[choffs + 0x10] | (m_regdata_a[choffs + 0x18] << 8);
 }
 
-uint32_t adpcm_a_registers::ch_end(uint32_t choffs) const {
-	return m_regdata[choffs + 0x20] | (m_regdata[choffs + 0x28] << 8);
+static inline uint32_t adpcm_a_registers_ch_end(uint32_t choffs) {
+	return m_regdata_a[choffs + 0x20] | (m_regdata_a[choffs + 0x28] << 8);
 }
 
 // per-channel writes
-void adpcm_a_registers::write_start(uint32_t choffs, uint32_t address)
+void adpcm_a_registers_write_start(uint32_t choffs, uint32_t address)
 {
-	write(choffs + 0x10, address);
-	write(choffs + 0x18, address >> 8);
+	adpcm_a_registers_write(choffs + 0x10, address);
+	adpcm_a_registers_write(choffs + 0x18, address >> 8);
 }
-void adpcm_a_registers::write_end(uint32_t choffs, uint32_t address)
+void adpcm_a_registers_write_end(uint32_t choffs, uint32_t address)
 {
-	write(choffs + 0x20, address);
-	write(choffs + 0x28, address >> 8);
+	adpcm_a_registers_write(choffs + 0x20, address);
+	adpcm_a_registers_write(choffs + 0x28, address >> 8);
 }
+
+namespace ymfm
+{
 
 //*********************************************************
 // ADPCM "A" CHANNEL
@@ -135,7 +138,6 @@ adpcm_a_channel::adpcm_a_channel(adpcm_a_engine &owner, uint32_t choffs, uint32_
 	m_curaddress(0),
 	m_accumulator(0),
 	m_step_index(0),
-	m_regs(owner.regs()),
 	m_owner(owner)
 {
 }
@@ -166,7 +168,7 @@ void adpcm_a_channel::keyonoff(bool on)
 	m_playing = on;
 	if (m_playing)
 	{
-		m_curaddress = m_regs.ch_start(m_choffs) << m_address_shift;
+		m_curaddress = adpcm_a_registers_ch_start(m_choffs) << m_address_shift;
 		m_curnibble = 0;
 		m_curbyte = 0;
 		m_accumulator = 0;
@@ -176,11 +178,11 @@ void adpcm_a_channel::keyonoff(bool on)
 		if (((debug::GLOBAL_ADPCM_A_CHANNEL_MASK >> m_choffs) & 1) != 0)
 			debug::log_keyon("KeyOn ADPCM-A%d: pan=%d%d start=%04X end=%04X level=%02X\n",
 				m_choffs,
-				m_regs.ch_pan_left(m_choffs),
-				m_regs.ch_pan_right(m_choffs),
-				m_regs.ch_start(m_choffs),
-				m_regs.ch_end(m_choffs),
-				m_regs.ch_instrument_level(m_choffs));
+				adpcm_a_registers_ch_pan_left(m_choffs),
+				adpcm_a_registers_ch_pan_right(m_choffs),
+				adpcm_a_registers_ch_start(m_choffs),
+				adpcm_a_registers_ch_end(m_choffs),
+				adpcm_a_registers_ch_instrument_level(m_choffs));
 	}
 }
 
@@ -210,7 +212,7 @@ bool adpcm_a_channel::clock()
 		// note also: end address is inclusive, so wait until we are about to fetch
 		// the sample just after the end before stopping; this is needed for nitd's
 		// jump sound, for example
-		uint32_t end = (m_regs.ch_end(m_choffs) + 1) << m_address_shift;
+		uint32_t end = (adpcm_a_registers_ch_end(m_choffs) + 1) << m_address_shift;
 		if (((m_curaddress ^ end) & 0xfffff) == 0)
 		{
 			m_playing = m_accumulator = 0;
@@ -263,7 +265,8 @@ bool adpcm_a_channel::clock()
 void adpcm_a_channel::output(ymfm_output<2> &output) const
 {
 	// volume combines instrument and total levels
-	int vol = (m_regs.ch_instrument_level(m_choffs) ^ 0x1f) + (m_regs.total_level() ^ 0x3f);
+	int vol = (adpcm_a_registers_ch_instrument_level(m_choffs) ^ 0x1f) +
+		(adpcm_a_registers_total_level() ^ 0x3f);
 
 	// if combined is maximum, don't add to outputs
 	if (vol >= 63)
@@ -279,9 +282,9 @@ void adpcm_a_channel::output(ymfm_output<2> &output) const
 	int16_t value = ((int16_t(m_accumulator << 4) * mul) >> shift) & ~3;
 
 	// apply to left/right as appropriate
-	if (m_regs.ch_pan_left(m_choffs))
+	if (adpcm_a_registers_ch_pan_left(m_choffs))
 		output.data[0] += value;
-	if (m_regs.ch_pan_right(m_choffs))
+	if (adpcm_a_registers_ch_pan_right(m_choffs))
 		output.data[1] += value;
 }
 
@@ -311,7 +314,7 @@ adpcm_a_engine::adpcm_a_engine(ymfm_interface &intf, uint32_t addrshift) :
 void adpcm_a_engine::reset()
 {
 	// reset register state
-	m_regs.reset();
+	adpcm_a_registers_reset();
 
 	// reset each channel
 	for (auto &chan : m_channel)
@@ -361,7 +364,7 @@ void adpcm_a_engine::write(uint32_t regnum, uint8_t data)
 {
 	// store the raw value to the register array;
 	// most writes are passive, consumed only when needed
-	m_regs.write(regnum, data);
+	adpcm_a_registers_write(regnum, data);
 
 	// actively handle writes to the control register
 	if (regnum == 0x00)

@@ -65,38 +65,9 @@ struct adpcm_b_engine;
 //        20-25 xxxxxxxx End address (low)
 //        28-2D xxxxxxxx End address (high)
 //
-struct adpcm_a_registers
-{
-	// constructor
-	adpcm_a_registers() { }
 
-	// reset to initial state
-	void reset();
-
-	// direct read/write access
-	void write(uint32_t index, uint8_t data);
-
-	// system-wide registers
-	uint32_t dump() const;
-	uint32_t dump_mask() const;
-	uint32_t total_level() const;
-	uint32_t test() const;
-
-	// per-channel registers
-	uint32_t ch_pan_left(uint32_t choffs) const;
-	uint32_t ch_pan_right(uint32_t choffs) const;
-	uint32_t ch_instrument_level(uint32_t choffs) const;
-	uint32_t ch_start(uint32_t choffs) const;
-	uint32_t ch_end(uint32_t choffs) const;
-
-	// per-channel writes
-	void write_start(uint32_t choffs, uint32_t address);
-	void write_end(uint32_t choffs, uint32_t address);
-
-	// internal state
-	uint8_t m_regdata[0x30];         // register data
-};
-
+void adpcm_a_registers_write_start(uint32_t choffs, uint32_t address);
+void adpcm_a_registers_write_end(uint32_t choffs, uint32_t address);
 
 // ======================> adpcm_a_channel
 
@@ -126,7 +97,6 @@ struct adpcm_a_channel
 	uint32_t m_curaddress;                // current address
 	int32_t m_accumulator;                // accumulator
 	int32_t m_step_index;                 // index in the stepping table
-	adpcm_a_registers &m_regs;            // reference to registers
 	adpcm_a_engine &m_owner;              // reference to our owner
 };
 
@@ -154,20 +124,16 @@ struct adpcm_a_engine
 	void set_start_end(uint8_t chnum, uint16_t start, uint16_t end)
 	{
 		uint32_t choffs = chnum;
-		m_regs.write_start(choffs, start);
-		m_regs.write_end(choffs, end);
+		adpcm_a_registers_write_start(choffs, start);
+		adpcm_a_registers_write_end(choffs, end);
 	}
 
 	// return a reference to our interface
 	ymfm_interface &intf() { return m_intf; }
 
-	// return a reference to our registers
-	adpcm_a_registers &regs() { return m_regs; }
-
 	// internal state
 	ymfm_interface &m_intf;                                 // reference to the interface
 	adpcm_a_channel *m_channel[6];                 // array of channels
-	adpcm_a_registers m_regs;                             // registers
 };
 
 
