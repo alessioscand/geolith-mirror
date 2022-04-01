@@ -31,8 +31,6 @@
 #ifndef YMFM_ADPCM_H
 #define YMFM_ADPCM_H
 
-#pragma once
-
 #include "ymfm.h"
 
 namespace ymfm
@@ -45,9 +43,6 @@ namespace ymfm
 // forward declarations
 struct adpcm_a_engine;
 struct adpcm_b_engine;
-
-void adpcm_a_registers_write_start(uint32_t choffs, uint32_t address);
-void adpcm_a_registers_write_end(uint32_t choffs, uint32_t address);
 
 // ======================> adpcm_a_channel
 
@@ -98,17 +93,6 @@ struct adpcm_a_engine
 
 	// write to the ADPCM-A registers
 	void write(uint32_t regnum, uint8_t data);
-
-	// set the start/end address for a channel (for hardcoded YM2608 percussion)
-	void set_start_end(uint8_t chnum, uint16_t start, uint16_t end)
-	{
-		uint32_t choffs = chnum;
-		adpcm_a_registers_write_start(choffs, start);
-		adpcm_a_registers_write_end(choffs, end);
-	}
-
-	// internal state
-	adpcm_a_channel *m_channel[6];                 // array of channels
 };
 
 
@@ -132,7 +116,7 @@ struct adpcm_b_channel
 	void output(int32_t *output, uint32_t rshift) const;
 
 	// return the status register
-	uint8_t status() const { return m_status; }
+	uint8_t status() const;
 
 	// handle special register reads
 	uint8_t read(uint32_t regnum);
@@ -183,16 +167,13 @@ struct adpcm_b_engine
 	void output(int32_t *output, uint32_t rshift);
 
 	// read from the ADPCM-B registers
-	uint32_t read(uint32_t regnum) { return m_channel->read(regnum); }
+	uint32_t read(uint32_t regnum);
 
 	// write to the ADPCM-B registers
 	void write(uint32_t regnum, uint8_t data);
 
 	// status
-	uint8_t status() const { return m_channel->status(); }
-
-	// internal state
-	adpcm_b_channel *m_channel;                 // channel pointer
+	uint8_t status(void) const;
 };
 
 }

@@ -33,7 +33,7 @@
 #include "ymfm_adpcm.h"
 
 // ADPCM Channel A
-#define CHANNELS 6
+#define CHANNELS_A 6
 #define REGISTERS_A 0x30
 
 // ADPCM Channel B
@@ -44,8 +44,12 @@
 #define STATUS_BRDY 0x02
 #define STATUS_PLAYING 0x04
 
-uint8_t m_regdata_a[REGISTERS_A];         // register data
-uint8_t m_regdata_b[REGISTERS_B];         // register data
+static uint8_t m_regdata_a[REGISTERS_A];         // register data
+static uint8_t m_regdata_b[REGISTERS_B];         // register data
+
+// internal state
+static ymfm::adpcm_a_channel *m_channel_a[CHANNELS_A]; // array of channels
+static ymfm::adpcm_b_channel *m_channel_b;             // channel pointer
 
 //*********************************************************
 // ADPCM "A" REGISTERS
@@ -122,18 +126,6 @@ static inline uint32_t adpcm_a_registers_ch_start(uint32_t choffs) {
 
 static inline uint32_t adpcm_a_registers_ch_end(uint32_t choffs) {
 	return m_regdata_a[choffs + 0x20] | (m_regdata_a[choffs + 0x28] << 8);
-}
-
-// per-channel writes
-void adpcm_a_registers_write_start(uint32_t choffs, uint32_t address)
-{
-	adpcm_a_registers_write(choffs + 0x10, address);
-	adpcm_a_registers_write(choffs + 0x18, address >> 8);
-}
-void adpcm_a_registers_write_end(uint32_t choffs, uint32_t address)
-{
-	adpcm_a_registers_write(choffs + 0x20, address);
-	adpcm_a_registers_write(choffs + 0x28, address >> 8);
 }
 
 namespace ymfm
@@ -308,8 +300,8 @@ void adpcm_a_channel::output(int32_t *output) const
 adpcm_a_engine::adpcm_a_engine(uint32_t addrshift)
 {
 	// create the channels
-	for (int chnum = 0; chnum < CHANNELS; chnum++)
-		m_channel[chnum] = new adpcm_a_channel(chnum, addrshift);
+	for (int chnum = 0; chnum < CHANNELS_A; chnum++)
+		m_channel_a[chnum] = new adpcm_a_channel(chnum, addrshift);
 }
 
 
@@ -323,8 +315,8 @@ void adpcm_a_engine::reset()
 	adpcm_a_registers_reset();
 
 	// reset each channel
-	for (auto &chan : m_channel)
-		chan->reset();
+	for (int i = 0; i < CHANNELS_A; ++i)
+		m_channel_a[i]->reset();
 }
 
 
@@ -336,9 +328,9 @@ uint32_t adpcm_a_engine::clock(uint32_t chanmask)
 {
 	// clock each channel, setting a bit in result if it finished
 	uint32_t result = 0;
-	for (int chnum = 0; chnum < CHANNELS; chnum++)
+	for (int chnum = 0; chnum < CHANNELS_A; chnum++)
 		if (bitfield(chanmask, chnum))
-			if (m_channel[chnum]->clock())
+			if (m_channel_a[chnum]->clock())
 				result |= 1 << chnum;
 
 	// return the bitmask of completed samples
@@ -356,9 +348,9 @@ void adpcm_a_engine::output(int32_t *output, uint32_t chanmask)
 	chanmask &= 0xffffffff;
 
 	// compute the output of each channel
-	for (int chnum = 0; chnum < CHANNELS; chnum++)
+	for (int chnum = 0; chnum < CHANNELS_A; chnum++)
 		if (bitfield(chanmask, chnum))
-			m_channel[chnum]->output(output);
+			m_channel_a[chnum]->output(output);
 }
 
 
@@ -374,9 +366,9 @@ void adpcm_a_engine::write(uint32_t regnum, uint8_t data)
 
 	// actively handle writes to the control register
 	if (regnum == 0x00)
-		for (int chnum = 0; chnum < CHANNELS; chnum++)
+		for (int chnum = 0; chnum < CHANNELS_A; chnum++)
 			if (bitfield(data, chnum))
-				m_channel[chnum]->keyonoff(bitfield(~data, 7));
+				m_channel_a[chnum]->keyonoff(bitfield(~data, 7));
 }
 
 }
@@ -665,6 +657,10 @@ void adpcm_b_channel::output(int32_t *output, uint32_t rshift) const
 }
 
 
+uint8_t adpcm_b_channel::status() const {
+	return m_status;
+}
+
 //-------------------------------------------------
 //  read - handle special register reads
 //-------------------------------------------------
@@ -817,7 +813,7 @@ bool adpcm_b_channel::at_end() const {
 adpcm_b_engine::adpcm_b_engine(uint32_t addrshift)
 {
 	// create the channel (only one supported for now, but leaving possibilities open)
-	m_channel = new adpcm_b_channel(addrshift);
+	m_channel_b = new adpcm_b_channel(addrshift);
 }
 
 
@@ -831,7 +827,7 @@ void adpcm_b_engine::reset()
 	adpcm_b_registers_reset();
 
 	// reset each channel
-	m_channel->reset();
+	m_channel_b->reset();
 }
 
 
@@ -842,7 +838,7 @@ void adpcm_b_engine::reset()
 void adpcm_b_engine::clock()
 {
 	// clock each channel, setting a bit in result if it finished
-	m_channel->clock();
+	m_channel_b->clock();
 }
 
 
@@ -853,7 +849,7 @@ void adpcm_b_engine::clock()
 void adpcm_b_engine::output(int32_t *output, uint32_t rshift)
 {
 	// compute the output of each channel
-	m_channel->output(output, rshift);
+	m_channel_b->output(output, rshift);
 }
 
 
@@ -868,7 +864,17 @@ void adpcm_b_engine::write(uint32_t regnum, uint8_t data)
 	adpcm_b_registers_write(regnum, data);
 
 	// let the channel handle any special writes
-	m_channel->write(regnum, data);
+	m_channel_b->write(regnum, data);
+}
+
+// read from the ADPCM-B registers
+uint32_t adpcm_b_engine::read(uint32_t regnum) {
+	return m_channel_b->read(regnum);
+}
+
+// status
+uint8_t adpcm_b_engine::status(void) const {
+	return m_channel_b->status();
 }
 
 }
