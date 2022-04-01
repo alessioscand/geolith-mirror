@@ -175,34 +175,6 @@ struct adpcm_a_engine
 //
 struct adpcm_b_registers
 {
-	// reset to initial state
-	void reset();
-
-	// direct read/write access
-	void write(uint32_t index, uint8_t data);
-
-	// system-wide registers
-	uint32_t execute() const;
-	uint32_t record() const;
-	uint32_t external() const;
-	uint32_t repeat() const;
-	uint32_t speaker() const;
-	uint32_t resetflag() const;
-	uint32_t pan_left() const;
-	uint32_t pan_right() const;
-	uint32_t start_conversion() const;
-	uint32_t dac_enable() const;
-	uint32_t dram_8bit() const;
-	uint32_t rom_ram() const;
-	uint32_t start() const;
-	uint32_t end() const;
-	uint32_t prescale() const;
-	uint32_t cpudata() const;
-	uint32_t delta_n() const;
-	uint32_t level() const;
-	uint32_t limit() const;
-	uint32_t dac() const;
-	uint32_t pcm() const;
 };
 
 
@@ -241,10 +213,10 @@ struct adpcm_b_channel
 	void load_start();
 
 	// limit checker
-	bool at_limit() const { return (m_curaddress >> address_shift()) >= m_regs.limit(); }
+	bool at_limit() const;
 
 	// end checker
-	bool at_end() const { return (m_curaddress >> address_shift()) > m_regs.end(); }
+	bool at_end() const;
 
 	// internal state
 	uint32_t const m_address_shift; // address bits shift-left
@@ -257,7 +229,6 @@ struct adpcm_b_channel
 	int32_t m_accumulator;          // accumulator
 	int32_t m_prev_accum;           // previous accumulator (for linear interp)
 	int32_t m_adpcm_step;           // next forecast
-	adpcm_b_registers &m_regs;      // reference to registers
 	adpcm_b_engine &m_owner;        // reference to our owner
 };
 

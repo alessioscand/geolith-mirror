@@ -377,9 +377,6 @@ void adpcm_a_engine::write(uint32_t regnum, uint8_t data)
 
 }
 
-namespace ymfm
-{
-
 //*********************************************************
 // ADPCM "B" REGISTERS
 //*********************************************************
@@ -388,7 +385,7 @@ namespace ymfm
 //  reset - reset the register state
 //-------------------------------------------------
 
-void adpcm_b_registers::reset()
+void adpcm_b_registers_reset(void)
 {
 	memset(&m_regdata_b[0], 0, REGISTERS_B);
 
@@ -397,94 +394,97 @@ void adpcm_b_registers::reset()
 }
 
 // direct read/write access
-void adpcm_b_registers::write(uint32_t index, uint8_t data) {
+void adpcm_b_registers_write(uint32_t index, uint8_t data) {
 	m_regdata_b[index] = data;
 }
 
 // system-wide registers
-uint32_t adpcm_b_registers::execute() const {
+static inline uint32_t adpcm_b_registers_execute(void) {
 	return bitfield(m_regdata_b[0x00], 7);
 }
 
-uint32_t adpcm_b_registers::record() const {
+static inline uint32_t adpcm_b_registers_record(void) {
 	return bitfield(m_regdata_b[0x00], 6);
 }
 
-uint32_t adpcm_b_registers::external() const {
+static inline uint32_t adpcm_b_registers_external(void) {
 	return bitfield(m_regdata_b[0x00], 5);
 }
 
-uint32_t adpcm_b_registers::repeat() const {
+static inline uint32_t adpcm_b_registers_repeat(void) {
 	return bitfield(m_regdata_b[0x00], 4);
 }
 
-uint32_t adpcm_b_registers::speaker() const {
+static inline uint32_t adpcm_b_registers_speaker(void) {
 	return bitfield(m_regdata_b[0x00], 3);
 }
 
-uint32_t adpcm_b_registers::resetflag() const {
+static inline uint32_t adpcm_b_registers_resetflag(void) {
 	return bitfield(m_regdata_b[0x00], 0);
 }
 
-uint32_t adpcm_b_registers::pan_left() const {
+static inline uint32_t adpcm_b_registers_pan_left(void) {
 	return bitfield(m_regdata_b[0x01], 7);
 }
 
-uint32_t adpcm_b_registers::pan_right() const {
+static inline uint32_t adpcm_b_registers_pan_right(void) {
 	return bitfield(m_regdata_b[0x01], 6);
 }
 
-uint32_t adpcm_b_registers::start_conversion() const {
+static inline uint32_t adpcm_b_registers_start_conversion(void) {
 	return bitfield(m_regdata_b[0x01], 3);
 }
 
-uint32_t adpcm_b_registers::dac_enable() const {
+static inline uint32_t adpcm_b_registers_dac_enable(void) {
 	return bitfield(m_regdata_b[0x01], 2);
 }
 
-uint32_t adpcm_b_registers::dram_8bit() const {
+static inline uint32_t adpcm_b_registers_dram_8bit(void) {
 	return bitfield(m_regdata_b[0x01], 1);
 }
 
-uint32_t adpcm_b_registers::rom_ram() const {
+static inline uint32_t adpcm_b_registers_rom_ram(void) {
 	return bitfield(m_regdata_b[0x01], 0);
 }
 
-uint32_t adpcm_b_registers::start() const {
+static inline uint32_t adpcm_b_registers_start(void) {
 	return m_regdata_b[0x02] | (m_regdata_b[0x03] << 8);
 }
 
-uint32_t adpcm_b_registers::end() const {
+static inline uint32_t adpcm_b_registers_end(void) {
 	return m_regdata_b[0x04] | (m_regdata_b[0x05] << 8);
 }
 
-uint32_t adpcm_b_registers::prescale() const {
+static inline uint32_t adpcm_b_registers_prescale(void) {
 	return m_regdata_b[0x06] | (bitfield(m_regdata_b[0x07], 0, 3) << 8);
 }
 
-uint32_t adpcm_b_registers::cpudata() const {
+static inline uint32_t adpcm_b_registers_cpudata(void) {
 	return m_regdata_b[0x08];
 }
 
-uint32_t adpcm_b_registers::delta_n() const {
+static inline uint32_t adpcm_b_registers_delta_n(void) {
 	return m_regdata_b[0x09] | (m_regdata_b[0x0a] << 8);
 }
 
-uint32_t adpcm_b_registers::level() const {
+static inline uint32_t adpcm_b_registers_level(void) {
 	return m_regdata_b[0x0b];
 }
 
-uint32_t adpcm_b_registers::limit() const {
+static inline uint32_t adpcm_b_registers_limit(void) {
 	return m_regdata_b[0x0c] | (m_regdata_b[0x0d] << 8);
 }
 
-uint32_t adpcm_b_registers::dac() const {
+static inline uint32_t adpcm_b_registers_dac(void) {
 	return m_regdata_b[0x0e];
 }
 
-uint32_t adpcm_b_registers::pcm() const {
+static inline uint32_t adpcm_b_registers_pcm(void) {
 	return m_regdata_b[0x0f];
 }
+
+namespace ymfm
+{
 
 //*********************************************************
 // ADPCM "B" CHANNEL
@@ -505,7 +505,6 @@ adpcm_b_channel::adpcm_b_channel(adpcm_b_engine &owner, uint32_t addrshift) :
 	m_accumulator(0),
 	m_prev_accum(0),
 	m_adpcm_step(STEP_MIN),
-	m_regs(owner.regs()),
 	m_owner(owner)
 {
 }
@@ -536,20 +535,20 @@ void adpcm_b_channel::reset()
 void adpcm_b_channel::clock()
 {
 	// only process if active and not recording (which we don't support)
-	if (!m_regs.execute() || m_regs.record() || (m_status & STATUS_PLAYING) == 0)
+	if (!adpcm_b_registers_execute() || adpcm_b_registers_record() || (m_status & STATUS_PLAYING) == 0)
 	{
 		m_status &= ~STATUS_PLAYING;
 		return;
 	}
 
 	// otherwise, advance the step
-	uint32_t position = m_position + m_regs.delta_n();
+	uint32_t position = m_position + adpcm_b_registers_delta_n();
 	m_position = uint16_t(position);
 	if (position < 0x10000)
 		return;
 
 	// if playing from RAM/ROM, check the end address and process
-	if (m_regs.external())
+	if (adpcm_b_registers_external())
 	{
 		// wrap at the limit address
 		if (at_limit())
@@ -559,7 +558,7 @@ void adpcm_b_channel::clock()
 		if (at_end())
 		{
 			// if repeating, go back to the start
-			if (m_regs.repeat())
+			if (adpcm_b_registers_repeat())
 				load_start();
 
 			// otherwise, done; set the EOS bit and return
@@ -586,9 +585,9 @@ void adpcm_b_channel::clock()
 	m_curnibble ^= 1;
 
 	// if CPU-driven and we just processed the last nibble, copy the next byte and request more
-	if (m_curnibble == 0 && !m_regs.external())
+	if (m_curnibble == 0 && !adpcm_b_registers_external())
 	{
-		m_curbyte = m_regs.cpudata();
+		m_curbyte = adpcm_b_registers_cpudata();
 		m_status |= STATUS_BRDY;
 	}
 
@@ -624,12 +623,12 @@ void adpcm_b_channel::output(ymfm_output<2> &output, uint32_t rshift) const
 	int32_t result = (m_prev_accum * int32_t((m_position ^ 0xffff) + 1) + m_accumulator * int32_t(m_position)) >> 16;
 
 	// apply volume (level) in a linear fashion and reduce
-	result = (result * int32_t(m_regs.level())) >> (8 + rshift);
+	result = (result * int32_t(adpcm_b_registers_level())) >> (8 + rshift);
 
 	// apply to left/right
-	if (m_regs.pan_left())
+	if (adpcm_b_registers_pan_left())
 		output.data[0] += result;
-	if (m_regs.pan_right())
+	if (adpcm_b_registers_pan_right())
 		output.data[1] += result;
 }
 
@@ -643,7 +642,7 @@ uint8_t adpcm_b_channel::read(uint32_t regnum)
 	uint8_t result = 0;
 
 	// register 8 reads over the bus under some conditions
-	if (regnum == 0x08 && !m_regs.execute() && !m_regs.record() && m_regs.external())
+	if (regnum == 0x08 && !adpcm_b_registers_execute() && !adpcm_b_registers_record() && adpcm_b_registers_external())
 	{
 		// two dummy reads are consumed first
 		if (m_dummy_read != 0)
@@ -680,34 +679,34 @@ void adpcm_b_channel::write(uint32_t regnum, uint8_t value)
 	// dummy read counter
 	if (regnum == 0x00)
 	{
-		if (m_regs.execute())
+		if (adpcm_b_registers_execute())
 		{
 			load_start();
 
 			// don't log masked channels
 			if ((debug::GLOBAL_ADPCM_B_CHANNEL_MASK & 1) != 0)
 				debug::log_keyon("KeyOn ADPCM-B: rep=%d spk=%d pan=%d%d dac=%d 8b=%d rom=%d ext=%d rec=%d start=%04X end=%04X pre=%04X dn=%04X lvl=%02X lim=%04X\n",
-					m_regs.repeat(),
-					m_regs.speaker(),
-					m_regs.pan_left(),
-					m_regs.pan_right(),
-					m_regs.dac_enable(),
-					m_regs.dram_8bit(),
-					m_regs.rom_ram(),
-					m_regs.external(),
-					m_regs.record(),
-					m_regs.start(),
-					m_regs.end(),
-					m_regs.prescale(),
-					m_regs.delta_n(),
-					m_regs.level(),
-					m_regs.limit());
+					adpcm_b_registers_repeat(),
+					adpcm_b_registers_speaker(),
+					adpcm_b_registers_pan_left(),
+					adpcm_b_registers_pan_right(),
+					adpcm_b_registers_dac_enable(),
+					adpcm_b_registers_dram_8bit(),
+					adpcm_b_registers_rom_ram(),
+					adpcm_b_registers_external(),
+					adpcm_b_registers_record(),
+					adpcm_b_registers_start(),
+					adpcm_b_registers_end(),
+					adpcm_b_registers_prescale(),
+					adpcm_b_registers_delta_n(),
+					adpcm_b_registers_level(),
+					adpcm_b_registers_limit());
 		}
 		else
 			m_status &= (uint8_t)~STATUS_EOS;
-		if (m_regs.resetflag())
+		if (adpcm_b_registers_resetflag())
 			reset();
-		if (m_regs.external())
+		if (adpcm_b_registers_external())
 			m_dummy_read = 2;
 	}
 
@@ -715,11 +714,11 @@ void adpcm_b_channel::write(uint32_t regnum, uint8_t value)
 	else if (regnum == 0x08)
 	{
 		// if writing from the CPU during execute, clear the ready flag
-		if (m_regs.execute() && !m_regs.record() && !m_regs.external())
+		if (adpcm_b_registers_execute() && !adpcm_b_registers_record() && !adpcm_b_registers_external())
 			m_status &= (uint8_t)~STATUS_BRDY;
 
 		// if writing during "record", pass through as data
-		else if (!m_regs.execute() && m_regs.record() && m_regs.external())
+		else if (!adpcm_b_registers_execute() && adpcm_b_registers_record() && adpcm_b_registers_external())
 		{
 			// clear out dummy reads and set start address
 			if (m_dummy_read != 0)
@@ -758,9 +757,9 @@ uint32_t adpcm_b_channel::address_shift() const
 		return m_address_shift;
 
 	// if ROM or 8-bit DRAM, shift is 5 bits
-	if (m_regs.rom_ram())
+	if (adpcm_b_registers_rom_ram())
 		return 5;
-	if (m_regs.dram_8bit())
+	if (adpcm_b_registers_dram_8bit())
 		return 5;
 
 	// otherwise, shift is 2 bits
@@ -776,7 +775,8 @@ uint32_t adpcm_b_channel::address_shift() const
 void adpcm_b_channel::load_start()
 {
 	m_status = (m_status & (uint8_t)~STATUS_EOS) | STATUS_PLAYING;
-	m_curaddress = m_regs.external() ? (m_regs.start() << address_shift()) : 0;
+	m_curaddress = adpcm_b_registers_external() ?
+		(adpcm_b_registers_start() << address_shift()) : 0;
 	m_curnibble = 0;
 	m_curbyte = 0;
 	m_position = 0;
@@ -785,6 +785,16 @@ void adpcm_b_channel::load_start()
 	m_adpcm_step = STEP_MIN;
 }
 
+
+// limit checker
+bool adpcm_b_channel::at_limit() const {
+	return (m_curaddress >> address_shift()) >= adpcm_b_registers_limit();
+}
+
+// end checker
+bool adpcm_b_channel::at_end() const {
+	return (m_curaddress >> address_shift()) > adpcm_b_registers_end();
+}
 
 
 //*********************************************************
@@ -810,7 +820,7 @@ adpcm_b_engine::adpcm_b_engine(ymfm_interface &intf, uint32_t addrshift) :
 void adpcm_b_engine::reset()
 {
 	// reset registers
-	m_regs.reset();
+	adpcm_b_registers_reset();
 
 	// reset each channel
 	m_channel->reset();
@@ -847,7 +857,7 @@ void adpcm_b_engine::write(uint32_t regnum, uint8_t data)
 {
 	// store the raw value to the register array;
 	// most writes are passive, consumed only when needed
-	m_regs.write(regnum, data);
+	adpcm_b_registers_write(regnum, data);
 
 	// let the channel handle any special writes
 	m_channel->write(regnum, data);
