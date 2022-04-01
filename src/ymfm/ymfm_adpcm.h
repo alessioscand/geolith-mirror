@@ -175,40 +175,34 @@ struct adpcm_a_engine
 //
 struct adpcm_b_registers
 {
-	// constructor
-	adpcm_b_registers() { }
-
 	// reset to initial state
 	void reset();
 
 	// direct read/write access
-	void write(uint32_t index, uint8_t data) { m_regdata[index] = data; }
+	void write(uint32_t index, uint8_t data);
 
 	// system-wide registers
-	uint32_t execute() const          { return bitfield(m_regdata[0x00], 7); }
-	uint32_t record() const           { return bitfield(m_regdata[0x00], 6); }
-	uint32_t external() const         { return bitfield(m_regdata[0x00], 5); }
-	uint32_t repeat() const           { return bitfield(m_regdata[0x00], 4); }
-	uint32_t speaker() const          { return bitfield(m_regdata[0x00], 3); }
-	uint32_t resetflag() const        { return bitfield(m_regdata[0x00], 0); }
-	uint32_t pan_left() const         { return bitfield(m_regdata[0x01], 7); }
-	uint32_t pan_right() const        { return bitfield(m_regdata[0x01], 6); }
-	uint32_t start_conversion() const { return bitfield(m_regdata[0x01], 3); }
-	uint32_t dac_enable() const       { return bitfield(m_regdata[0x01], 2); }
-	uint32_t dram_8bit() const        { return bitfield(m_regdata[0x01], 1); }
-	uint32_t rom_ram() const          { return bitfield(m_regdata[0x01], 0); }
-	uint32_t start() const            { return m_regdata[0x02] | (m_regdata[0x03] << 8); }
-	uint32_t end() const              { return m_regdata[0x04] | (m_regdata[0x05] << 8); }
-	uint32_t prescale() const         { return m_regdata[0x06] | (bitfield(m_regdata[0x07], 0, 3) << 8); }
-	uint32_t cpudata() const          { return m_regdata[0x08]; }
-	uint32_t delta_n() const          { return m_regdata[0x09] | (m_regdata[0x0a] << 8); }
-	uint32_t level() const            { return m_regdata[0x0b]; }
-	uint32_t limit() const            { return m_regdata[0x0c] | (m_regdata[0x0d] << 8); }
-	uint32_t dac() const              { return m_regdata[0x0e]; }
-	uint32_t pcm() const              { return m_regdata[0x0f]; }
-
-	// internal state
-	uint8_t m_regdata[0x11];         // register data
+	uint32_t execute() const;
+	uint32_t record() const;
+	uint32_t external() const;
+	uint32_t repeat() const;
+	uint32_t speaker() const;
+	uint32_t resetflag() const;
+	uint32_t pan_left() const;
+	uint32_t pan_right() const;
+	uint32_t start_conversion() const;
+	uint32_t dac_enable() const;
+	uint32_t dram_8bit() const;
+	uint32_t rom_ram() const;
+	uint32_t start() const;
+	uint32_t end() const;
+	uint32_t prescale() const;
+	uint32_t cpudata() const;
+	uint32_t delta_n() const;
+	uint32_t level() const;
+	uint32_t limit() const;
+	uint32_t dac() const;
+	uint32_t pcm() const;
 };
 
 

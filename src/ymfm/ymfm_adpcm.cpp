@@ -37,6 +37,7 @@
 #define REGISTERS_A 0x30
 
 // ADPCM Channel B
+#define REGISTERS_B 0x11
 #define STEP_MIN 127
 #define STEP_MAX 24576
 #define STATUS_EOS 0x01
@@ -44,6 +45,7 @@
 #define STATUS_PLAYING 0x04
 
 uint8_t m_regdata_a[REGISTERS_A];         // register data
+uint8_t m_regdata_b[REGISTERS_B];         // register data
 
 //*********************************************************
 // ADPCM "A" REGISTERS
@@ -55,7 +57,7 @@ uint8_t m_regdata_a[REGISTERS_A];         // register data
 
 static inline void adpcm_a_registers_reset(void)
 {
-	memset(&m_regdata_a[0], 0, 0x30);
+	memset(&m_regdata_a[0], 0, REGISTERS_A);
 
 	// initialize the pans to on by default, and max instrument volume;
 	// some neogeo homebrews (for example ffeast) rely on this
@@ -373,7 +375,10 @@ void adpcm_a_engine::write(uint32_t regnum, uint8_t data)
 				m_channel[chnum]->keyonoff(bitfield(~data, 7));
 }
 
+}
 
+namespace ymfm
+{
 
 //*********************************************************
 // ADPCM "B" REGISTERS
@@ -385,13 +390,101 @@ void adpcm_a_engine::write(uint32_t regnum, uint8_t data)
 
 void adpcm_b_registers::reset()
 {
-	memset(&m_regdata[0], 0, 0x11);
+	memset(&m_regdata_b[0], 0, REGISTERS_B);
 
 	// default limit to wide open
-	m_regdata[0x0c] = m_regdata[0x0d] = 0xff;
+	m_regdata_b[0x0c] = m_regdata_b[0x0d] = 0xff;
 }
 
+// direct read/write access
+void adpcm_b_registers::write(uint32_t index, uint8_t data) {
+	m_regdata_b[index] = data;
+}
 
+// system-wide registers
+uint32_t adpcm_b_registers::execute() const {
+	return bitfield(m_regdata_b[0x00], 7);
+}
+
+uint32_t adpcm_b_registers::record() const {
+	return bitfield(m_regdata_b[0x00], 6);
+}
+
+uint32_t adpcm_b_registers::external() const {
+	return bitfield(m_regdata_b[0x00], 5);
+}
+
+uint32_t adpcm_b_registers::repeat() const {
+	return bitfield(m_regdata_b[0x00], 4);
+}
+
+uint32_t adpcm_b_registers::speaker() const {
+	return bitfield(m_regdata_b[0x00], 3);
+}
+
+uint32_t adpcm_b_registers::resetflag() const {
+	return bitfield(m_regdata_b[0x00], 0);
+}
+
+uint32_t adpcm_b_registers::pan_left() const {
+	return bitfield(m_regdata_b[0x01], 7);
+}
+
+uint32_t adpcm_b_registers::pan_right() const {
+	return bitfield(m_regdata_b[0x01], 6);
+}
+
+uint32_t adpcm_b_registers::start_conversion() const {
+	return bitfield(m_regdata_b[0x01], 3);
+}
+
+uint32_t adpcm_b_registers::dac_enable() const {
+	return bitfield(m_regdata_b[0x01], 2);
+}
+
+uint32_t adpcm_b_registers::dram_8bit() const {
+	return bitfield(m_regdata_b[0x01], 1);
+}
+
+uint32_t adpcm_b_registers::rom_ram() const {
+	return bitfield(m_regdata_b[0x01], 0);
+}
+
+uint32_t adpcm_b_registers::start() const {
+	return m_regdata_b[0x02] | (m_regdata_b[0x03] << 8);
+}
+
+uint32_t adpcm_b_registers::end() const {
+	return m_regdata_b[0x04] | (m_regdata_b[0x05] << 8);
+}
+
+uint32_t adpcm_b_registers::prescale() const {
+	return m_regdata_b[0x06] | (bitfield(m_regdata_b[0x07], 0, 3) << 8);
+}
+
+uint32_t adpcm_b_registers::cpudata() const {
+	return m_regdata_b[0x08];
+}
+
+uint32_t adpcm_b_registers::delta_n() const {
+	return m_regdata_b[0x09] | (m_regdata_b[0x0a] << 8);
+}
+
+uint32_t adpcm_b_registers::level() const {
+	return m_regdata_b[0x0b];
+}
+
+uint32_t adpcm_b_registers::limit() const {
+	return m_regdata_b[0x0c] | (m_regdata_b[0x0d] << 8);
+}
+
+uint32_t adpcm_b_registers::dac() const {
+	return m_regdata_b[0x0e];
+}
+
+uint32_t adpcm_b_registers::pcm() const {
+	return m_regdata_b[0x0f];
+}
 
 //*********************************************************
 // ADPCM "B" CHANNEL
