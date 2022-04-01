@@ -36,6 +36,12 @@
 #define REGISTERS 0x10
 
 // internal state
+static uint32_t m_tone_count[3];             // current tone counter
+static uint32_t m_tone_state[3];             // current tone state
+static uint32_t m_envelope_count;            // envelope counter
+static uint32_t m_envelope_state;            // envelope state
+static uint32_t m_noise_count;               // current noise counter
+static uint32_t m_noise_state;               // current noise state
 static uint8_t m_regdata[REGISTERS];         // register data
 
 //*********************************************************
@@ -151,24 +157,10 @@ static inline void ssg_registers_reset(void)
 	memset(&m_regdata[0], 0, REGISTERS);
 }
 
-namespace ymfm
-{
-//*********************************************************
-// SSG ENGINE
-//*********************************************************
-
-//-------------------------------------------------
-//  ssg_engine - constructor
-//-------------------------------------------------
-
-ssg_engine::ssg_engine()
-{
-}
-
 //-------------------------------------------------
 //  ssg_engine - init
 //-------------------------------------------------
-void ssg_engine::init(void)
+void ssg_engine_init(void)
 {
 	m_tone_count[0] = m_tone_count[1] = m_tone_count[2] = 0;
 	m_tone_state[0] = m_tone_state[1] = m_tone_state[2] = 0;
@@ -182,7 +174,7 @@ void ssg_engine::init(void)
 //  reset - reset the engine state
 //-------------------------------------------------
 
-void ssg_engine::reset()
+void ssg_engine_reset()
 {
 	// reset register state
 	ssg_registers_reset();
@@ -203,7 +195,7 @@ void ssg_engine::reset()
 //  clock - master clocking function
 //-------------------------------------------------
 
-void ssg_engine::clock()
+void ssg_engine_clock()
 {
 	// clock tones; tone period units are clock/16 but since we run at clock/8
 	// that works out for us to toggle the state (50% duty cycle) at twice the
@@ -240,6 +232,8 @@ void ssg_engine::clock()
 	}
 }
 
+namespace ymfm
+{
 
 //-------------------------------------------------
 //  output - output the current state
@@ -304,12 +298,13 @@ void ssg_engine::output(output_data &output)
 	}
 }
 
+}
 
 //-------------------------------------------------
 //  read - handle reads from the SSG registers
 //-------------------------------------------------
 
-uint8_t ssg_engine::read(uint32_t regnum)
+uint8_t ssg_engine_read(uint32_t regnum)
 {
 	// read from the I/O ports call the handlers if they are configured for input
 	if (regnum == 0x0e && !ssg_registers_io_a_out())
@@ -321,12 +316,11 @@ uint8_t ssg_engine::read(uint32_t regnum)
 	return ssg_registers_read(regnum);
 }
 
-
 //-------------------------------------------------
 //  write - handle writes to the SSG registers
 //-------------------------------------------------
 
-void ssg_engine::write(uint32_t regnum, uint8_t data)
+void ssg_engine_write(uint32_t regnum, uint8_t data)
 {
 	// store the raw value to the register array;
 	// most writes are passive, consumed only when needed
@@ -341,6 +335,4 @@ void ssg_engine::write(uint32_t regnum, uint8_t data)
 		ymfm_external_write(ACCESS_IO, 0, data);
 	else if (regnum == 0x0f && ssg_registers_io_b_out())
 		ymfm_external_write(ACCESS_IO, 1, data);
-}
-
 }

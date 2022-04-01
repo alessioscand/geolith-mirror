@@ -31,48 +31,30 @@
 #ifndef YMFM_SSG_H
 #define YMFM_SSG_H
 
-#pragma once
-
 #include "ymfm.h"
 
+// init
+void ssg_engine_init(void);
+
+// reset our status
+void ssg_engine_reset();
+
+// read/write to the SSG registers
+uint8_t ssg_engine_read(uint32_t regnum);
+void ssg_engine_write(uint32_t regnum, uint8_t data);
+
+// master clocking function
+void ssg_engine_clock();
 
 namespace ymfm
 {
 
-// ======================> ssg_engine
-
 struct ssg_engine
 {
-	#define CLOCK_DIVIDER 8
-
-	using output_data = ymfm_output<3>;
-
-	// constructor
-	ssg_engine();
-
-	// init
-	void init(void);
-
-	// reset our status
-	void reset();
-
-	// master clocking function
-	void clock();
+	using output_data = ymfm::ymfm_output<3>;
 
 	// compute sum of channel outputs
 	void output(output_data &output);
-
-	// read/write to the SSG registers
-	uint8_t read(uint32_t regnum);
-	void write(uint32_t regnum, uint8_t data);
-
-	// internal state
-	uint32_t m_tone_count[3];               // current tone counter
-	uint32_t m_tone_state[3];               // current tone state
-	uint32_t m_envelope_count;              // envelope counter
-	uint32_t m_envelope_state;              // envelope state
-	uint32_t m_noise_count;                 // current noise counter
-	uint32_t m_noise_state;                 // current noise state
 };
 
 }

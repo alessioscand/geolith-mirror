@@ -436,7 +436,7 @@ void ssg_resampler<OutputType, FirstOutput, MixTo1>::add_last(int32_t &sum0, int
 template<typename OutputType, int FirstOutput, bool MixTo1>
 void ssg_resampler<OutputType, FirstOutput, MixTo1>::clock_and_add(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale)
 {
-	m_ssg.clock();
+	ssg_engine_clock();
 	m_ssg.output(m_last);
 	add_last(sum0, sum1, sum2, scale);
 }
@@ -519,7 +519,7 @@ void ssg_resampler<OutputType, FirstOutput, MixTo1>::resample_n_1(OutputType *ou
 	{
 		if (m_sampindex % Multiplier == 0)
 		{
-			m_ssg.clock();
+			ssg_engine_clock();
 			m_ssg.output(m_last);
 		}
 		write_to_output(output, m_last.data[0], m_last.data[1], m_last.data[2]);
@@ -651,7 +651,7 @@ ym2610::ym2610(ymfm_interface &intf, uint8_t channel_mask) :
 	m_adpcm_a(8),
 	m_adpcm_b(8)
 {
-	m_ssg.init();
+	ssg_engine_init();
 	update_prescale();
 }
 
@@ -664,7 +664,7 @@ void ym2610::reset()
 {
 	// reset the engines
 	m_fm.reset();
-	m_ssg.reset();
+	ssg_engine_reset();
 	m_adpcm_a.reset();
 	m_adpcm_b.reset();
 
@@ -697,7 +697,7 @@ uint8_t ym2610::read_data()
 	if (m_address < 0x0e)
 	{
 		// 00-0D: Read from SSG
-		result = m_ssg.read(m_address & 0x0f);
+		result = ssg_engine_read(m_address & 0x0f);
 	}
 	else if (m_address < 0x10)
 	{
@@ -789,7 +789,7 @@ void ym2610::write_data(uint8_t data)
 	if (m_address < 0x0e)
 	{
 		// 00-0D: write to SSG
-		m_ssg.write(m_address & 0x0f, data);
+		ssg_engine_write(m_address & 0x0f, data);
 	}
 	else if (m_address < 0x10)
 	{
