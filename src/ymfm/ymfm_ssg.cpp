@@ -45,6 +45,28 @@ static uint32_t m_noise_state;               // current noise state
 static uint8_t m_regdata[REGISTERS];         // register data
 
 //*********************************************************
+// FIXME - put this somewhere common after total conversion
+//         to C is done
+//*********************************************************
+enum {
+	ACCESS_IO = 0,
+	ACCESS_ADPCM_A,
+	ACCESS_ADPCM_B,
+	ACCESS_PCM,
+	ACCESS_CLASSES
+};
+
+extern uint8_t ymfm_external_read(uint32_t type, uint32_t address);
+
+extern void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data);
+
+static inline uint32_t bitfield(uint32_t value, int start, int length = 1)
+{
+	return (value >> start) & ((1 << length) - 1);
+}
+//*********************************************************
+
+//*********************************************************
 // SSG REGISTERS
 //*********************************************************
 //
@@ -91,11 +113,11 @@ static inline uint32_t ssg_registers_noise_period(void) {
 }
 
 static inline uint32_t ssg_registers_io_b_out(void) {
-	return bitfield(m_regdata[0x07], 7);
+	return bitfield(m_regdata[0x07], 7, 1);
 }
 
 static inline uint32_t ssg_registers_io_a_out(void) {
-	return bitfield(m_regdata[0x07], 6);
+	return bitfield(m_regdata[0x07], 6, 1);
 }
 
 static inline uint32_t ssg_registers_envelope_period(void) {
@@ -103,19 +125,19 @@ static inline uint32_t ssg_registers_envelope_period(void) {
 }
 
 static inline uint32_t ssg_registers_envelope_continue(void) {
-	return bitfield(m_regdata[0x0d], 3);
+	return bitfield(m_regdata[0x0d], 3, 1);
 }
 
 static inline uint32_t ssg_registers_envelope_attack(void) {
-	return bitfield(m_regdata[0x0d], 2);
+	return bitfield(m_regdata[0x0d], 2, 1);
 }
 
 static inline uint32_t ssg_registers_envelope_alternate(void) {
-	return bitfield(m_regdata[0x0d], 1);
+	return bitfield(m_regdata[0x0d], 1, 1);
 }
 
 static inline uint32_t ssg_registers_envelope_hold(void) {
-	return bitfield(m_regdata[0x0d], 0);
+	return bitfield(m_regdata[0x0d], 0, 1);
 }
 
 static inline uint32_t ssg_registers_io_a_data(void) {
@@ -128,11 +150,11 @@ static inline uint32_t ssg_registers_io_b_data(void) {
 
 // per-channel registers
 static inline uint32_t ssg_registers_ch_noise_enable(uint32_t choffs) {
-	return bitfield(~m_regdata[0x07], 3 + choffs);
+	return bitfield(~m_regdata[0x07], 3 + choffs, 1);
 }
 
 static inline uint32_t ssg_registers_ch_tone_enable(uint32_t choffs) {
-	return bitfield(~m_regdata[0x07], 0 + choffs);
+	return bitfield(~m_regdata[0x07], 0 + choffs, 1);
 }
 
 static inline uint32_t ssg_registers_ch_tone_period(uint32_t choffs) {
@@ -140,7 +162,7 @@ static inline uint32_t ssg_registers_ch_tone_period(uint32_t choffs) {
 }
 
 static inline uint32_t ssg_registers_ch_envelope_enable(uint32_t choffs) {
-	return bitfield(m_regdata[0x08 + choffs], 4);
+	return bitfield(m_regdata[0x08 + choffs], 4, 1);
 }
 
 static inline uint32_t ssg_registers_ch_amplitude(uint32_t choffs) {
@@ -217,7 +239,7 @@ void ssg_engine_clock()
 	m_noise_count++;
 	if ((m_noise_count >> 1) >= ssg_registers_noise_period() && m_noise_count != 1)
 	{
-		m_noise_state ^= (bitfield(m_noise_state, 0) ^ bitfield(m_noise_state, 3)) << 17;
+		m_noise_state ^= (bitfield(m_noise_state, 0, 1) ^ bitfield(m_noise_state, 3, 1)) << 17;
 		m_noise_state >>= 1;
 		m_noise_count = 0;
 	}
@@ -259,7 +281,7 @@ void ssg_engine_output(int32_t *output)
 	{
 		uint32_t attack = ssg_registers_envelope_attack();
 		if (ssg_registers_envelope_alternate())
-			attack ^= bitfield(m_envelope_state, 5);
+			attack ^= bitfield(m_envelope_state, 5, 1);
 		envelope_volume = (m_envelope_state & 31) ^ (attack ? 0 : 31);
 	}
 
