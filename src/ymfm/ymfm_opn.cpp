@@ -551,10 +551,10 @@ ym2610::ym2610(ymfm_interface &intf, uint8_t channel_mask) :
 	m_eos_status(0x00),
 	m_flag_mask(EOS_FLAGS_MASK),
 	m_fm(intf),
-	m_ssg_resampler(),
-	m_adpcm_a(8)
+	m_ssg_resampler()
 {
 	ssg_engine_init();
+	adpcm_a_engine_init();
 	adpcm_b_engine_init();
 	update_prescale();
 }
@@ -569,7 +569,7 @@ void ym2610::reset()
 	// reset the engines
 	m_fm.reset();
 	ssg_engine_reset();
-	m_adpcm_a.reset();
+	adpcm_a_engine_reset();
 	adpcm_b_engine_reset();
 
 	// initialize our special interrupt states
@@ -750,7 +750,7 @@ void ym2610::write_data_hi(uint8_t data)
 	if (m_address < 0x130)
 	{
 		// 100-12F: write to ADPCM-A
-		m_adpcm_a.write(m_address & 0x3f, data);
+		adpcm_a_engine_write(m_address & 0x3f, data);
 	}
 	else
 	{
@@ -849,7 +849,7 @@ void ym2610::clock_fm_and_adpcm()
 
 	// clock the ADPCM-A engine on every envelope cycle
 	if (bitfield(env_counter, 0, 2) == 0)
-		m_eos_status |= m_adpcm_a.clock(0x3f);
+		m_eos_status |= adpcm_a_engine_clock(0x3f);
 
 	// clock the ADPCM-B engine every cycle
 	adpcm_b_engine_clock();
@@ -864,7 +864,7 @@ void ym2610::clock_fm_and_adpcm()
 	m_fm.output(m_last_fm.clear(), 1, 32767, m_fm_mask);
 
 	// mix in the ADPCM and clamp
-	m_adpcm_a.output(m_last_fm.data, 0x3f);
+	adpcm_a_engine_output(m_last_fm.data, 0x3f);
 	adpcm_b_engine_output(m_last_fm.data, 1);
 	m_last_fm.clamp16();
 }

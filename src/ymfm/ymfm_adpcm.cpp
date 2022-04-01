@@ -287,6 +287,7 @@ void adpcm_a_channel::output(int32_t *output) const
 		output[1] += value;
 }
 
+}
 
 
 //*********************************************************
@@ -297,11 +298,11 @@ void adpcm_a_channel::output(int32_t *output) const
 //  adpcm_a_engine - constructor
 //-------------------------------------------------
 
-adpcm_a_engine::adpcm_a_engine(uint32_t addrshift)
+void adpcm_a_engine_init(void)
 {
 	// create the channels
 	for (int chnum = 0; chnum < CHANNELS_A; chnum++)
-		m_channel_a[chnum] = new adpcm_a_channel(chnum, addrshift);
+		m_channel_a[chnum] = new ymfm::adpcm_a_channel(chnum, 8);
 }
 
 
@@ -309,7 +310,7 @@ adpcm_a_engine::adpcm_a_engine(uint32_t addrshift)
 //  reset - reset the engine state
 //-------------------------------------------------
 
-void adpcm_a_engine::reset()
+void adpcm_a_engine_reset(void)
 {
 	// reset register state
 	adpcm_a_registers_reset();
@@ -324,7 +325,7 @@ void adpcm_a_engine::reset()
 //  clock - master clocking function
 //-------------------------------------------------
 
-uint32_t adpcm_a_engine::clock(uint32_t chanmask)
+uint32_t adpcm_a_engine_clock(uint32_t chanmask)
 {
 	// clock each channel, setting a bit in result if it finished
 	uint32_t result = 0;
@@ -342,7 +343,7 @@ uint32_t adpcm_a_engine::clock(uint32_t chanmask)
 //  update - master update function
 //-------------------------------------------------
 
-void adpcm_a_engine::output(int32_t *output, uint32_t chanmask)
+void adpcm_a_engine_output(int32_t *output, uint32_t chanmask)
 {
 	// mask out some channels
 	chanmask &= 0xffffffff;
@@ -358,7 +359,7 @@ void adpcm_a_engine::output(int32_t *output, uint32_t chanmask)
 //  write - handle writes to the ADPCM-A registers
 //-------------------------------------------------
 
-void adpcm_a_engine::write(uint32_t regnum, uint8_t data)
+void adpcm_a_engine_write(uint32_t regnum, uint8_t data)
 {
 	// store the raw value to the register array;
 	// most writes are passive, consumed only when needed
@@ -369,8 +370,6 @@ void adpcm_a_engine::write(uint32_t regnum, uint8_t data)
 		for (int chnum = 0; chnum < CHANNELS_A; chnum++)
 			if (bitfield(data, chnum, 1))
 				m_channel_a[chnum]->keyonoff(bitfield(~data, 7, 1));
-}
-
 }
 
 //*********************************************************

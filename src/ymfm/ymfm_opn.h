@@ -472,7 +472,6 @@ struct ym2610
 	fm_engine::output_data m_last_fm;   // last FM output
 	fm_engine m_fm;                     // core FM engine
 	ssg_resampler m_ssg_resampler;      // SSG resampler helper
-	adpcm_a_engine m_adpcm_a;           // ADPCM-A engine
 };
 
 

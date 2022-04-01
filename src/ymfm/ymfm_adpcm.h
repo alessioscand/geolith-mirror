@@ -33,6 +33,22 @@
 
 #include "ymfm.h"
 
+// ======================> adpcm_a_engine
+// init
+void adpcm_a_engine_init(void);
+
+// reset our status
+void adpcm_a_engine_reset(void);
+
+// master clocking function
+uint32_t adpcm_a_engine_clock(uint32_t chanmask);
+
+// compute sum of channel outputs
+void adpcm_a_engine_output(int32_t *output, uint32_t chanmask);
+
+// write to the ADPCM-A registers
+void adpcm_a_engine_write(uint32_t regnum, uint8_t data);
+
 // ======================> adpcm_b_engine
 // init
 void adpcm_b_engine_init(void);
@@ -95,26 +111,6 @@ struct adpcm_a_channel
 	int32_t m_step_index;                 // index in the stepping table
 };
 
-
-// ======================> adpcm_a_engine
-
-struct adpcm_a_engine
-{
-	// constructor
-	adpcm_a_engine(uint32_t addrshift);
-
-	// reset our status
-	void reset();
-
-	// master clocking function
-	uint32_t clock(uint32_t chanmask);
-
-	// compute sum of channel outputs
-	void output(int32_t *output, uint32_t chanmask);
-
-	// write to the ADPCM-A registers
-	void write(uint32_t regnum, uint8_t data);
-};
 
 }
 
