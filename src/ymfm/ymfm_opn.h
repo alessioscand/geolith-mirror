@@ -358,7 +358,6 @@ enum opn_fidelity : uint8_t
 
 // ======================> ssg_resampler
 
-template<typename OutputType>
 struct ssg_resampler
 {
 	// helper to add the last computed value to the sums, applying the given scale
@@ -369,7 +368,7 @@ struct ssg_resampler
 
 	// helper to write the sums to the appropriate outputs, applying the given
 	// divisor to the final result
-	void write_to_output(OutputType *output, int32_t sum0, int32_t sum1, int32_t sum2, int32_t divisor = 1);
+	void write_to_output(ymfm::ymfm_output<3> *output, int32_t sum0, int32_t sum1, int32_t sum2, int32_t divisor = 1);
 
 	// constructor
 	ssg_resampler(ssg_engine &ssg);
@@ -381,24 +380,24 @@ struct ssg_resampler
 	void configure(uint8_t outsamples, uint8_t srcsamples);
 
 	// resample
-	void resample(OutputType *output, uint32_t numsamples)
+	void resample(ymfm::ymfm_output<3> *output, uint32_t numsamples)
 	{
 		(this->*m_resampler)(output, numsamples);
 	}
 
 	// resample SSG output to the target at a rate of 1 SSG sample
 	// to every 2 output samples
-	void resample_2_1(OutputType *output, uint32_t numsamples);
+	void resample_2_1(ymfm::ymfm_output<3> *output, uint32_t numsamples);
 
 	// resample SSG output to the target at a rate of 9 SSG samples
 	// to every 2 output samples
-	void resample_2_9(OutputType *output, uint32_t numsamples);
+	void resample_2_9(ymfm::ymfm_output<3> *output, uint32_t numsamples);
 
 	// no-op resampler
-	void resample_nop(OutputType *output, uint32_t numsamples);
+	void resample_nop(ymfm::ymfm_output<3> *output, uint32_t numsamples);
 
 	// define a pointer type
-	using resample_func = void (ssg_resampler::*)(OutputType *output, uint32_t numsamples);
+	using resample_func = void (ssg_resampler::*)(ymfm::ymfm_output<3> *output, uint32_t numsamples);
 
 	// internal state
 	ssg_engine &m_ssg;
@@ -474,7 +473,7 @@ struct ym2610
 	fm_engine::output_data m_last_fm;   // last FM output
 	fm_engine m_fm;                     // core FM engine
 	ssg_engine m_ssg;                   // core FM engine
-	ssg_resampler<output_data> m_ssg_resampler; // SSG resampler helper
+	ssg_resampler m_ssg_resampler;      // SSG resampler helper
 	adpcm_a_engine m_adpcm_a;           // ADPCM-A engine
 	adpcm_b_engine m_adpcm_b;           // ADPCM-B engine
 };
