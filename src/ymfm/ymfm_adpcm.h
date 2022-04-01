@@ -200,13 +200,9 @@ struct adpcm_b_engine
 	// return a reference to our interface
 	ymfm_interface &intf() { return m_intf; }
 
-	// return a reference to our registers
-	adpcm_b_registers &regs() { return m_regs; }
-
 	// internal state
 	ymfm_interface &m_intf;                     // reference to our interface
 	adpcm_b_channel *m_channel;                 // channel pointer
-	adpcm_b_registers m_regs;                   // registers
 };
 
 }
