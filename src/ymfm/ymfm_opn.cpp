@@ -491,58 +491,30 @@ void ssg_resampler<OutputType, FirstOutput, MixTo1>::configure(uint8_t outsample
 {
 	switch (outsamples * 10 + srcsamples)
 	{
-		case 4*10 + 1:	/* 4:1 */	m_resampler = &ssg_resampler::resample_n_1<4>;	break;
-		case 2*10 + 1:	/* 2:1 */	m_resampler = &ssg_resampler::resample_n_1<2>;	break;
-		case 4*10 + 3:	/* 4:3 */	m_resampler = &ssg_resampler::resample_4_3;		break;
-		case 1*10 + 1:	/* 1:1 */	m_resampler = &ssg_resampler::resample_n_1<1>;	break;
-		case 2*10 + 3:	/* 2:3 */	m_resampler = &ssg_resampler::resample_2_3;		break;
-		case 1*10 + 3:	/* 1:3 */	m_resampler = &ssg_resampler::resample_1_n<3>;	break;
-		case 2*10 + 9:	/* 2:9 */	m_resampler = &ssg_resampler::resample_2_9;		break;
-		case 1*10 + 6:	/* 1:6 */	m_resampler = &ssg_resampler::resample_1_n<6>;	break;
-		case 0*10 + 0:	/* 0:0 */	m_resampler = &ssg_resampler::resample_nop;		break;
+		case 2*10 + 1:	/* 2:1 */	m_resampler = &ssg_resampler::resample_2_1; break;
+		case 2*10 + 9:	/* 2:9 */	m_resampler = &ssg_resampler::resample_2_9; break;
 		default: assert(false); break;
 	}
 }
 
 
 //-------------------------------------------------
-//  resample_n_1 - resample SSG output to the
+//  resample_2_1 - resample SSG output to the
 //  target at a rate of 1 SSG sample to every
-//  n output sample
+//  2 output samples
 //-------------------------------------------------
 
 template<typename OutputType, int FirstOutput, bool MixTo1>
-template<int Multiplier>
-void ssg_resampler<OutputType, FirstOutput, MixTo1>::resample_n_1(OutputType *output, uint32_t numsamples)
+void ssg_resampler<OutputType, FirstOutput, MixTo1>::resample_2_1(OutputType *output, uint32_t numsamples)
 {
 	for (uint32_t samp = 0; samp < numsamples; samp++, output++)
 	{
-		if (m_sampindex % Multiplier == 0)
+		if (m_sampindex % 2 == 0)
 		{
 			ssg_engine_clock();
 			m_ssg.output(m_last);
 		}
 		write_to_output(output, m_last.data[0], m_last.data[1], m_last.data[2]);
-	}
-}
-
-
-//-------------------------------------------------
-//  resample_1_n - resample SSG output to the
-//  target at a rate of n SSG samples to every
-//  1 output sample
-//-------------------------------------------------
-
-template<typename OutputType, int FirstOutput, bool MixTo1>
-template<int Divisor>
-void ssg_resampler<OutputType, FirstOutput, MixTo1>::resample_1_n(OutputType *output, uint32_t numsamples)
-{
-	for (uint32_t samp = 0; samp < numsamples; samp++, output++)
-	{
-		int32_t sum0 = 0, sum1 = 0, sum2 = 0;
-		for (int rep = 0; rep < Divisor; rep++)
-			clock_and_add(sum0, sum1, sum2);
-		write_to_output(output, sum0, sum1, sum2, Divisor);
 	}
 }
 
@@ -568,54 +540,6 @@ void ssg_resampler<OutputType, FirstOutput, MixTo1>::resample_2_9(OutputType *ou
 		if (bitfield(m_sampindex, 0) == 0)
 			clock_and_add(sum0, sum1, sum2, 1);
 		write_to_output(output, sum0, sum1, sum2, 9);
-	}
-}
-
-
-//-------------------------------------------------
-//  resample_2_3 - resample SSG output to the
-//  target at a rate of 3 SSG samples to every
-//  2 output samples
-//-------------------------------------------------
-
-template<typename OutputType, int FirstOutput, bool MixTo1>
-void ssg_resampler<OutputType, FirstOutput, MixTo1>::resample_2_3(OutputType *output, uint32_t numsamples)
-{
-	for (uint32_t samp = 0; samp < numsamples; samp++, output++)
-	{
-		int32_t sum0 = 0, sum1 = 0, sum2 = 0;
-		if (bitfield(m_sampindex, 0) == 0)
-		{
-			clock_and_add(sum0, sum1, sum2, 2);
-			clock_and_add(sum0, sum1, sum2, 1);
-		}
-		else
-		{
-			add_last(sum0, sum1, sum2, 1);
-			clock_and_add(sum0, sum1, sum2, 2);
-		}
-		write_to_output(output, sum0, sum1, sum2, 3);
-	}
-}
-
-
-//-------------------------------------------------
-//  resample_4_3 - resample SSG output to the
-//  target at a rate of 3 SSG samples to every
-//  4 output samples
-//-------------------------------------------------
-
-template<typename OutputType, int FirstOutput, bool MixTo1>
-void ssg_resampler<OutputType, FirstOutput, MixTo1>::resample_4_3(OutputType *output, uint32_t numsamples)
-{
-	for (uint32_t samp = 0; samp < numsamples; samp++, output++)
-	{
-		int32_t sum0 = 0, sum1 = 0, sum2 = 0;
-		int32_t step = bitfield(m_sampindex, 0, 2);
-		add_last(sum0, sum1, sum2, step);
-		if (step != 3)
-			clock_and_add(sum0, sum1, sum2, 3 - step);
-		write_to_output(output, sum0, sum1, sum2, 3);
 	}
 }
 

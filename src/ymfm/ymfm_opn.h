@@ -387,30 +387,12 @@ struct ssg_resampler
 	}
 
 	// resample SSG output to the target at a rate of 1 SSG sample
-	// to every n output samples
-	template<int Multiplier>
-	void resample_n_1(OutputType *output, uint32_t numsamples);
-
-	// resample SSG output to the target at a rate of n SSG samples
-	// to every 1 output sample
-	template<int Divisor>
-	void resample_1_n(OutputType *output, uint32_t numsamples);
+	// to every 2 output samples
+	void resample_2_1(OutputType *output, uint32_t numsamples);
 
 	// resample SSG output to the target at a rate of 9 SSG samples
 	// to every 2 output samples
 	void resample_2_9(OutputType *output, uint32_t numsamples);
-
-	// resample SSG output to the target at a rate of 3 SSG samples
-	// to every 1 output sample
-	void resample_1_3(OutputType *output, uint32_t numsamples);
-
-	// resample SSG output to the target at a rate of 3 SSG samples
-	// to every 2 output samples
-	void resample_2_3(OutputType *output, uint32_t numsamples);
-
-	// resample SSG output to the target at a rate of 3 SSG samples
-	// to every 4 output samples
-	void resample_4_3(OutputType *output, uint32_t numsamples);
 
 	// no-op resampler
 	void resample_nop(OutputType *output, uint32_t numsamples);

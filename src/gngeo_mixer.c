@@ -31,7 +31,8 @@ SOFTWARE.
 #include "ymfm/ymfm_shim.h"
 
 // 55555 becomes 56280 to compensate for 60.0Hz vs ~59.18Hz
-#define SAMPLERATE_YM2610 56280
+#define SAMPLERATE_YM2610 56280 // Medium Fidelity
+//#define SAMPLERATE_YM2610 530880 // High Fidelity
 
 static int16_t *abuf = NULL; // Buffer to output resampled data into
 static size_t samplerate = 44100; // Default sample rate is 44100Hz
