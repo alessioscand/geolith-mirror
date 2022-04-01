@@ -33,7 +33,27 @@
 
 #include "ymfm.h"
 
+// ======================> adpcm_b_engine
+// init
 void adpcm_b_engine_init(void);
+
+// reset our status
+void adpcm_b_engine_reset();
+
+// master clocking function
+void adpcm_b_engine_clock();
+
+// compute sum of channel outputs
+void adpcm_b_engine_output(int32_t *output, uint32_t rshift);
+
+// read from the ADPCM-B registers
+uint32_t adpcm_b_engine_read(uint32_t regnum);
+
+// write to the ADPCM-B registers
+void adpcm_b_engine_write(uint32_t regnum, uint8_t data);
+
+// status
+uint8_t adpcm_b_engine_status(void);
 
 namespace ymfm
 {
@@ -44,7 +64,6 @@ namespace ymfm
 
 // forward declarations
 struct adpcm_a_engine;
-struct adpcm_b_engine;
 
 // ======================> adpcm_a_channel
 
@@ -97,6 +116,7 @@ struct adpcm_a_engine
 	void write(uint32_t regnum, uint8_t data);
 };
 
+}
 
 // ======================> adpcm_b_channel
 
@@ -114,31 +134,5 @@ struct adpcm_b_channel
 	int32_t m_adpcm_step;           // next forecast
 };
 
-
-// ======================> adpcm_b_engine
-
-struct adpcm_b_engine
-{
-
-	// reset our status
-	void reset();
-
-	// master clocking function
-	void clock();
-
-	// compute sum of channel outputs
-	void output(int32_t *output, uint32_t rshift);
-
-	// read from the ADPCM-B registers
-	uint32_t read(uint32_t regnum);
-
-	// write to the ADPCM-B registers
-	void write(uint32_t regnum, uint8_t data);
-
-	// status
-	uint8_t status(void) const;
-};
-
-}
 
 #endif // YMFM_ADPCM_H

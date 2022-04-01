@@ -35,8 +35,6 @@
 
 #define STATUS_EOS 0x01 // FIXME: This is defined twice (ADPCM B)
 
-static ymfm::adpcm_b_engine m_adpcm_b;           // ADPCM-B engine
-
 // simulate the DAC discontinuity (YM2612)
 static inline int32_t dac_discontinuity(int32_t value)
 {
@@ -572,7 +570,7 @@ void ym2610::reset()
 	m_fm.reset();
 	ssg_engine_reset();
 	m_adpcm_a.reset();
-	m_adpcm_b.reset();
+	adpcm_b_engine_reset();
 
 	// initialize our special interrupt states
 	m_eos_status = 0x00;
@@ -707,7 +705,7 @@ void ym2610::write_data(uint8_t data)
 		// YM2610 effectively forces external mode on, and disables recording
 		if (m_address == 0x10)
 			data = (data | 0x20) & ~0x40;
-		m_adpcm_b.write(m_address & 0x0f, data);
+		adpcm_b_engine_write(m_address & 0x0f, data);
 	}
 	else if (m_address == 0x1c)
 	{
@@ -854,11 +852,11 @@ void ym2610::clock_fm_and_adpcm()
 		m_eos_status |= m_adpcm_a.clock(0x3f);
 
 	// clock the ADPCM-B engine every cycle
-	m_adpcm_b.clock();
+	adpcm_b_engine_clock();
 
 	// we track the last ADPCM-B EOS value in bit 6 (which is hidden from callers);
 	// if it changed since the last sample, update the visible EOS state in bit 7
-	uint8_t live_eos = ((m_adpcm_b.status() & STATUS_EOS) != 0) ? 0x40 : 0x00;
+	uint8_t live_eos = ((adpcm_b_engine_status() & STATUS_EOS) != 0) ? 0x40 : 0x00;
 	if (((live_eos ^ m_eos_status) & 0x40) != 0)
 		m_eos_status = (m_eos_status & ~0xc0) | live_eos | (live_eos << 1);
 
@@ -867,7 +865,7 @@ void ym2610::clock_fm_and_adpcm()
 
 	// mix in the ADPCM and clamp
 	m_adpcm_a.output(m_last_fm.data, 0x3f);
-	m_adpcm_b.output(m_last_fm.data, 1);
+	adpcm_b_engine_output(m_last_fm.data, 1);
 	m_last_fm.clamp16();
 }
 

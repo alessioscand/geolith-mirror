@@ -49,7 +49,7 @@ static uint8_t m_regdata_b[REGISTERS_B];         // register data
 
 // internal state
 static ymfm::adpcm_a_channel *m_channel_a[CHANNELS_A]; // array of channels
-static ymfm::adpcm_b_channel m_channel_b;              // channel
+static adpcm_b_channel m_channel_b;              // channel
 
 //*********************************************************
 // ADPCM "A" REGISTERS
@@ -816,13 +816,12 @@ void adpcm_b_engine_init(void)
 	adpcm_b_channel_init();
 }
 
-namespace ymfm {
 
 //-------------------------------------------------
 //  reset - reset the engine state
 //-------------------------------------------------
 
-void adpcm_b_engine::reset()
+void adpcm_b_engine_reset()
 {
 	// reset registers
 	adpcm_b_registers_reset();
@@ -836,7 +835,7 @@ void adpcm_b_engine::reset()
 //  clock - master clocking function
 //-------------------------------------------------
 
-void adpcm_b_engine::clock()
+void adpcm_b_engine_clock()
 {
 	// clock each channel, setting a bit in result if it finished
 	adpcm_b_channel_clock();
@@ -847,7 +846,7 @@ void adpcm_b_engine::clock()
 //  output - master output function
 //-------------------------------------------------
 
-void adpcm_b_engine::output(int32_t *output, uint32_t rshift)
+void adpcm_b_engine_output(int32_t *output, uint32_t rshift)
 {
 	// compute the output of each channel
 	adpcm_b_channel_output(output, rshift);
@@ -858,7 +857,7 @@ void adpcm_b_engine::output(int32_t *output, uint32_t rshift)
 //  write - handle writes to the ADPCM-B registers
 //-------------------------------------------------
 
-void adpcm_b_engine::write(uint32_t regnum, uint8_t data)
+void adpcm_b_engine_write(uint32_t regnum, uint8_t data)
 {
 	// store the raw value to the register array;
 	// most writes are passive, consumed only when needed
@@ -869,13 +868,11 @@ void adpcm_b_engine::write(uint32_t regnum, uint8_t data)
 }
 
 // read from the ADPCM-B registers
-uint32_t adpcm_b_engine::read(uint32_t regnum) {
+uint32_t adpcm_b_engine_read(uint32_t regnum) {
 	return adpcm_b_channel_read(regnum);
 }
 
 // status
-uint8_t adpcm_b_engine::status(void) const {
+uint8_t adpcm_b_engine_status(void) {
 	return adpcm_b_channel_status();
-}
-
 }
