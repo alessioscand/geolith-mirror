@@ -33,6 +33,8 @@
 
 #include "ymfm.h"
 
+void adpcm_b_engine_init(void);
+
 namespace ymfm
 {
 
@@ -100,44 +102,7 @@ struct adpcm_a_engine
 
 struct adpcm_b_channel
 {
-	// constructor
-	adpcm_b_channel(uint32_t addrshift);
-
-	// reset the channel state
-	void reset();
-
-	// signal key on/off
-	void keyonoff(bool on);
-
-	// master clocking function
-	void clock();
-
-	// return the computed output value, with panning applied
-	void output(int32_t *output, uint32_t rshift) const;
-
-	// return the status register
-	uint8_t status() const;
-
-	// handle special register reads
-	uint8_t read(uint32_t regnum);
-
-	// handle special register writes
-	void write(uint32_t regnum, uint8_t value);
-
-	// helper - return the current address shift
-	uint32_t address_shift() const;
-
-	// load the start address
-	void load_start();
-
-	// limit checker
-	bool at_limit() const;
-
-	// end checker
-	bool at_end() const;
-
-	// internal state
-	uint32_t const m_address_shift; // address bits shift-left
+	uint32_t m_address_shift;       // address bits shift-left
 	uint32_t m_status;              // currently playing?
 	uint32_t m_curnibble;           // index of the current nibble
 	uint32_t m_curbyte;             // current byte of data
@@ -154,8 +119,6 @@ struct adpcm_b_channel
 
 struct adpcm_b_engine
 {
-	// constructor
-	adpcm_b_engine(uint32_t addrshift = 0);
 
 	// reset our status
 	void reset();

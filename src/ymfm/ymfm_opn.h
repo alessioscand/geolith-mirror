@@ -473,7 +473,6 @@ struct ym2610
 	fm_engine m_fm;                     // core FM engine
 	ssg_resampler m_ssg_resampler;      // SSG resampler helper
 	adpcm_a_engine m_adpcm_a;           // ADPCM-A engine
-	adpcm_b_engine m_adpcm_b;           // ADPCM-B engine
 };
 
 

@@ -35,6 +35,8 @@
 
 #define STATUS_EOS 0x01 // FIXME: This is defined twice (ADPCM B)
 
+static ymfm::adpcm_b_engine m_adpcm_b;           // ADPCM-B engine
+
 // simulate the DAC discontinuity (YM2612)
 static inline int32_t dac_discontinuity(int32_t value)
 {
@@ -552,10 +554,10 @@ ym2610::ym2610(ymfm_interface &intf, uint8_t channel_mask) :
 	m_flag_mask(EOS_FLAGS_MASK),
 	m_fm(intf),
 	m_ssg_resampler(),
-	m_adpcm_a(8),
-	m_adpcm_b(8)
+	m_adpcm_a(8)
 {
 	ssg_engine_init();
+	adpcm_b_engine_init();
 	update_prescale();
 }
 

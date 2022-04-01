@@ -49,7 +49,7 @@ static uint8_t m_regdata_b[REGISTERS_B];         // register data
 
 // internal state
 static ymfm::adpcm_a_channel *m_channel_a[CHANNELS_A]; // array of channels
-static ymfm::adpcm_b_channel *m_channel_b;             // channel pointer
+static ymfm::adpcm_b_channel m_channel_b;              // channel
 
 //*********************************************************
 // ADPCM "A" REGISTERS
@@ -513,29 +513,26 @@ static inline uint32_t adpcm_b_registers_pcm(void) {
 	return m_regdata_b[0x0f];
 }
 
-namespace ymfm
-{
-
 //*********************************************************
 // ADPCM "B" CHANNEL
 //*********************************************************
 
 //-------------------------------------------------
-//  adpcm_b_channel - constructor
+//  adpcm_b_channel - init
 //-------------------------------------------------
 
-adpcm_b_channel::adpcm_b_channel(uint32_t addrshift) :
-	m_address_shift(addrshift),
-	m_status(STATUS_BRDY),
-	m_curnibble(0),
-	m_curbyte(0),
-	m_dummy_read(0),
-	m_position(0),
-	m_curaddress(0),
-	m_accumulator(0),
-	m_prev_accum(0),
-	m_adpcm_step(STEP_MIN)
+static inline void adpcm_b_channel_init(void)
 {
+	m_channel_b.m_address_shift = 8;
+	m_channel_b.m_status = STATUS_BRDY;
+	m_channel_b.m_curnibble = 0;
+	m_channel_b.m_curbyte = 0;
+	m_channel_b.m_dummy_read = 0;
+	m_channel_b.m_position = 0;
+	m_channel_b.m_curaddress = 0;
+	m_channel_b.m_accumulator = 0;
+	m_channel_b.m_prev_accum = 0;
+	m_channel_b.m_adpcm_step = STEP_MIN;
 }
 
 
@@ -543,210 +540,17 @@ adpcm_b_channel::adpcm_b_channel(uint32_t addrshift) :
 //  reset - reset the channel state
 //-------------------------------------------------
 
-void adpcm_b_channel::reset()
+static inline void adpcm_b_channel_reset(void)
 {
-	m_status = STATUS_BRDY;
-	m_curnibble = 0;
-	m_curbyte = 0;
-	m_dummy_read = 0;
-	m_position = 0;
-	m_curaddress = 0;
-	m_accumulator = 0;
-	m_prev_accum = 0;
-	m_adpcm_step = STEP_MIN;
-}
-
-
-//-------------------------------------------------
-//  clock - master clocking function
-//-------------------------------------------------
-
-void adpcm_b_channel::clock()
-{
-	// only process if active and not recording (which we don't support)
-	if (!adpcm_b_registers_execute() || adpcm_b_registers_record() || (m_status & STATUS_PLAYING) == 0)
-	{
-		m_status &= ~STATUS_PLAYING;
-		return;
-	}
-
-	// otherwise, advance the step
-	uint32_t position = m_position + adpcm_b_registers_delta_n();
-	m_position = uint16_t(position);
-	if (position < 0x10000)
-		return;
-
-	// if playing from RAM/ROM, check the end address and process
-	if (adpcm_b_registers_external())
-	{
-		// wrap at the limit address
-		if (at_limit())
-			m_curaddress = 0;
-
-		// handle the sample end, either repeating or stopping
-		if (at_end())
-		{
-			// if repeating, go back to the start
-			if (adpcm_b_registers_repeat())
-				load_start();
-
-			// otherwise, done; set the EOS bit and return
-			else
-			{
-				m_accumulator = 0;
-				m_prev_accum = 0;
-				m_status = (m_status & (uint8_t)~STATUS_PLAYING) | STATUS_EOS;
-				return;
-			}
-		}
-
-		// if we're about to process nibble 0, fetch and increment
-		if (m_curnibble == 0)
-		{
-			m_curbyte = ymfm_external_read(ACCESS_ADPCM_B, m_curaddress++);
-			m_curaddress &= 0xffffff;
-		}
-	}
-
-	// extract the nibble from our current byte
-	uint8_t data = uint8_t(m_curbyte << (4 * m_curnibble)) >> 4;
-	m_curnibble ^= 1;
-
-	// if CPU-driven and we just processed the last nibble, copy the next byte and request more
-	if (m_curnibble == 0 && !adpcm_b_registers_external())
-	{
-		m_curbyte = adpcm_b_registers_cpudata();
-		m_status |= STATUS_BRDY;
-	}
-
-	// remember previous value for interpolation
-	m_prev_accum = m_accumulator;
-
-	// forecast to next forecast: 1/8, 3/8, 5/8, 7/8, 9/8, 11/8, 13/8, 15/8
-	int32_t delta = (2 * bitfield(data, 0, 3) + 1) * m_adpcm_step / 8;
-	if (bitfield(data, 3))
-		delta = -delta;
-
-	// add and clamp to 16 bits
-	m_accumulator = clamp(m_accumulator + delta, -32768, 32767);
-
-	// scale the ADPCM step: 0.9, 0.9, 0.9, 0.9, 1.2, 1.6, 2.0, 2.4
-	static uint8_t const s_step_scale[8] = { 57, 57, 57, 57, 77, 102, 128, 153 };
-	m_adpcm_step = clamp((m_adpcm_step * s_step_scale[bitfield(data, 0, 3)]) / 64, STEP_MIN, STEP_MAX);
-}
-
-
-//-------------------------------------------------
-//  output - return the computed output value, with
-//  panning applied
-//-------------------------------------------------
-
-void adpcm_b_channel::output(int32_t *output, uint32_t rshift) const
-{
-	// do a linear interpolation between samples
-	int32_t result = (m_prev_accum * int32_t((m_position ^ 0xffff) + 1) + m_accumulator * int32_t(m_position)) >> 16;
-
-	// apply volume (level) in a linear fashion and reduce
-	result = (result * int32_t(adpcm_b_registers_level())) >> (8 + rshift);
-
-	// apply to left/right
-	if (adpcm_b_registers_pan_left())
-		output[0] += result;
-	if (adpcm_b_registers_pan_right())
-		output[1] += result;
-}
-
-
-uint8_t adpcm_b_channel::status() const {
-	return m_status;
-}
-
-//-------------------------------------------------
-//  read - handle special register reads
-//-------------------------------------------------
-
-uint8_t adpcm_b_channel::read(uint32_t regnum)
-{
-	uint8_t result = 0;
-
-	// register 8 reads over the bus under some conditions
-	if (regnum == 0x08 && !adpcm_b_registers_execute() && !adpcm_b_registers_record() && adpcm_b_registers_external())
-	{
-		// two dummy reads are consumed first
-		if (m_dummy_read != 0)
-		{
-			load_start();
-			m_dummy_read--;
-		}
-
-		// did we hit the end? if so, signal EOS
-		if (at_end())
-		{
-			m_status = STATUS_EOS | STATUS_BRDY;
-		}
-
-		// otherwise, write the data and signal ready
-		else
-		{
-			result = ymfm_external_read(ACCESS_ADPCM_B, m_curaddress++);
-			m_status = STATUS_BRDY;
-		}
-	}
-	return result;
-}
-
-
-//-------------------------------------------------
-//  write - handle special register writes
-//-------------------------------------------------
-
-void adpcm_b_channel::write(uint32_t regnum, uint8_t value)
-{
-	// register 0 can do a reset; also use writes here to reset the
-	// dummy read counter
-	if (regnum == 0x00)
-	{
-		if (adpcm_b_registers_execute())
-			load_start();
-		else
-			m_status &= (uint8_t)~STATUS_EOS;
-		if (adpcm_b_registers_resetflag())
-			reset();
-		if (adpcm_b_registers_external())
-			m_dummy_read = 2;
-	}
-
-	// register 8 writes over the bus under some conditions
-	else if (regnum == 0x08)
-	{
-		// if writing from the CPU during execute, clear the ready flag
-		if (adpcm_b_registers_execute() && !adpcm_b_registers_record() && !adpcm_b_registers_external())
-			m_status &= (uint8_t)~STATUS_BRDY;
-
-		// if writing during "record", pass through as data
-		else if (!adpcm_b_registers_execute() && adpcm_b_registers_record() && adpcm_b_registers_external())
-		{
-			// clear out dummy reads and set start address
-			if (m_dummy_read != 0)
-			{
-				load_start();
-				m_dummy_read = 0;
-			}
-
-			// did we hit the end? if so, signal EOS
-			if (at_end())
-			{
-				m_status = STATUS_EOS | STATUS_BRDY;
-			}
-
-			// otherwise, write the data and signal ready
-			else
-			{
-				ymfm_external_write(ACCESS_ADPCM_B, m_curaddress++, value);
-				m_status = STATUS_BRDY;
-			}
-		}
-	}
+	m_channel_b.m_status = STATUS_BRDY;
+	m_channel_b.m_curnibble = 0;
+	m_channel_b.m_curbyte = 0;
+	m_channel_b.m_dummy_read = 0;
+	m_channel_b.m_position = 0;
+	m_channel_b.m_curaddress = 0;
+	m_channel_b.m_accumulator = 0;
+	m_channel_b.m_prev_accum = 0;
+	m_channel_b.m_adpcm_step = STEP_MIN;
 }
 
 
@@ -755,11 +559,11 @@ void adpcm_b_channel::write(uint32_t regnum, uint8_t value)
 //  shift amount based on register settings
 //-------------------------------------------------
 
-uint32_t adpcm_b_channel::address_shift() const
+static inline uint32_t adpcm_b_channel_address_shift(void)
 {
 	// if a constant address shift, just provide that
-	if (m_address_shift != 0)
-		return m_address_shift;
+	if (m_channel_b.m_address_shift != 0)
+		return m_channel_b.m_address_shift;
 
 	// if ROM or 8-bit DRAM, shift is 5 bits
 	if (adpcm_b_registers_rom_ram())
@@ -772,33 +576,229 @@ uint32_t adpcm_b_channel::address_shift() const
 }
 
 
+// limit checker
+static inline bool adpcm_b_channel_at_limit(void) {
+	return (m_channel_b.m_curaddress >> adpcm_b_channel_address_shift()) >= adpcm_b_registers_limit();
+}
+
+// end checker
+static inline bool adpcm_b_channel_at_end(void) {
+	return (m_channel_b.m_curaddress >> adpcm_b_channel_address_shift()) > adpcm_b_registers_end();
+}
+
+
 //-------------------------------------------------
 //  load_start - load the start address and
 //  initialize the state
 //-------------------------------------------------
 
-void adpcm_b_channel::load_start()
+static inline void adpcm_b_channel_load_start(void)
 {
-	m_status = (m_status & (uint8_t)~STATUS_EOS) | STATUS_PLAYING;
-	m_curaddress = adpcm_b_registers_external() ?
-		(adpcm_b_registers_start() << address_shift()) : 0;
-	m_curnibble = 0;
-	m_curbyte = 0;
-	m_position = 0;
-	m_accumulator = 0;
-	m_prev_accum = 0;
-	m_adpcm_step = STEP_MIN;
+	m_channel_b.m_status = (m_channel_b.m_status & (uint8_t)~STATUS_EOS) | STATUS_PLAYING;
+	m_channel_b.m_curaddress = adpcm_b_registers_external() ?
+		(adpcm_b_registers_start() << adpcm_b_channel_address_shift()) : 0;
+	m_channel_b.m_curnibble = 0;
+	m_channel_b.m_curbyte = 0;
+	m_channel_b.m_position = 0;
+	m_channel_b.m_accumulator = 0;
+	m_channel_b.m_prev_accum = 0;
+	m_channel_b.m_adpcm_step = STEP_MIN;
 }
 
 
-// limit checker
-bool adpcm_b_channel::at_limit() const {
-	return (m_curaddress >> address_shift()) >= adpcm_b_registers_limit();
+//-------------------------------------------------
+//  clock - master clocking function
+//-------------------------------------------------
+
+static inline void adpcm_b_channel_clock(void)
+{
+	// only process if active and not recording (which we don't support)
+	if (!adpcm_b_registers_execute() || adpcm_b_registers_record() || (m_channel_b.m_status & STATUS_PLAYING) == 0)
+	{
+		m_channel_b.m_status &= ~STATUS_PLAYING;
+		return;
+	}
+
+	// otherwise, advance the step
+	uint32_t position = m_channel_b.m_position + adpcm_b_registers_delta_n();
+	m_channel_b.m_position = uint16_t(position);
+	if (position < 0x10000)
+		return;
+
+	// if playing from RAM/ROM, check the end address and process
+	if (adpcm_b_registers_external())
+	{
+		// wrap at the limit address
+		if (adpcm_b_channel_at_limit())
+			m_channel_b.m_curaddress = 0;
+
+		// handle the sample end, either repeating or stopping
+		if (adpcm_b_channel_at_end())
+		{
+			// if repeating, go back to the start
+			if (adpcm_b_registers_repeat())
+				adpcm_b_channel_load_start();
+
+			// otherwise, done; set the EOS bit and return
+			else
+			{
+				m_channel_b.m_accumulator = 0;
+				m_channel_b.m_prev_accum = 0;
+				m_channel_b.m_status = (m_channel_b.m_status & (uint8_t)~STATUS_PLAYING) | STATUS_EOS;
+				return;
+			}
+		}
+
+		// if we're about to process nibble 0, fetch and increment
+		if (m_channel_b.m_curnibble == 0)
+		{
+			m_channel_b.m_curbyte = ymfm_external_read(ACCESS_ADPCM_B, m_channel_b.m_curaddress++);
+			m_channel_b.m_curaddress &= 0xffffff;
+		}
+	}
+
+	// extract the nibble from our current byte
+	uint8_t data = uint8_t(m_channel_b.m_curbyte << (4 * m_channel_b.m_curnibble)) >> 4;
+	m_channel_b.m_curnibble ^= 1;
+
+	// if CPU-driven and we just processed the last nibble, copy the next byte and request more
+	if (m_channel_b.m_curnibble == 0 && !adpcm_b_registers_external())
+	{
+		m_channel_b.m_curbyte = adpcm_b_registers_cpudata();
+		m_channel_b.m_status |= STATUS_BRDY;
+	}
+
+	// remember previous value for interpolation
+	m_channel_b.m_prev_accum = m_channel_b.m_accumulator;
+
+	// forecast to next forecast: 1/8, 3/8, 5/8, 7/8, 9/8, 11/8, 13/8, 15/8
+	int32_t delta = (2 * bitfield(data, 0, 3) + 1) * m_channel_b.m_adpcm_step / 8;
+	if (bitfield(data, 3))
+		delta = -delta;
+
+	// add and clamp to 16 bits
+	m_channel_b.m_accumulator = clamp(m_channel_b.m_accumulator + delta, -32768, 32767);
+
+	// scale the ADPCM step: 0.9, 0.9, 0.9, 0.9, 1.2, 1.6, 2.0, 2.4
+	static uint8_t const s_step_scale[8] = { 57, 57, 57, 57, 77, 102, 128, 153 };
+	m_channel_b.m_adpcm_step = clamp((m_channel_b.m_adpcm_step * s_step_scale[bitfield(data, 0, 3)]) / 64, STEP_MIN, STEP_MAX);
 }
 
-// end checker
-bool adpcm_b_channel::at_end() const {
-	return (m_curaddress >> address_shift()) > adpcm_b_registers_end();
+
+//-------------------------------------------------
+//  output - return the computed output value, with
+//  panning applied
+//-------------------------------------------------
+
+static inline void adpcm_b_channel_output(int32_t *output, uint32_t rshift)
+{
+	// do a linear interpolation between samples
+	int32_t result = (m_channel_b.m_prev_accum *
+		int32_t((m_channel_b.m_position ^ 0xffff) + 1) +
+		m_channel_b.m_accumulator * int32_t(m_channel_b.m_position)) >> 16;
+
+	// apply volume (level) in a linear fashion and reduce
+	result = (result * int32_t(adpcm_b_registers_level())) >> (8 + rshift);
+
+	// apply to left/right
+	if (adpcm_b_registers_pan_left())
+		output[0] += result;
+	if (adpcm_b_registers_pan_right())
+		output[1] += result;
+}
+
+
+static inline uint8_t adpcm_b_channel_status(void) {
+	return m_channel_b.m_status;
+}
+
+
+//-------------------------------------------------
+//  read - handle special register reads
+//-------------------------------------------------
+
+static inline uint8_t adpcm_b_channel_read(uint32_t regnum)
+{
+	uint8_t result = 0;
+
+	// register 8 reads over the bus under some conditions
+	if (regnum == 0x08 && !adpcm_b_registers_execute() && !adpcm_b_registers_record() && adpcm_b_registers_external())
+	{
+		// two dummy reads are consumed first
+		if (m_channel_b.m_dummy_read != 0)
+		{
+			adpcm_b_channel_load_start();
+			m_channel_b.m_dummy_read--;
+		}
+
+		// did we hit the end? if so, signal EOS
+		if (adpcm_b_channel_at_end())
+		{
+			m_channel_b.m_status = STATUS_EOS | STATUS_BRDY;
+		}
+
+		// otherwise, write the data and signal ready
+		else
+		{
+			result = ymfm_external_read(ACCESS_ADPCM_B, m_channel_b.m_curaddress++);
+			m_channel_b.m_status = STATUS_BRDY;
+		}
+	}
+	return result;
+}
+
+
+//-------------------------------------------------
+//  write - handle special register writes
+//-------------------------------------------------
+
+static inline void adpcm_b_channel_write(uint32_t regnum, uint8_t value)
+{
+	// register 0 can do a reset; also use writes here to reset the
+	// dummy read counter
+	if (regnum == 0x00)
+	{
+		if (adpcm_b_registers_execute())
+			adpcm_b_channel_load_start();
+		else
+			m_channel_b.m_status &= (uint8_t)~STATUS_EOS;
+		if (adpcm_b_registers_resetflag())
+			adpcm_b_channel_reset();
+		if (adpcm_b_registers_external())
+			m_channel_b.m_dummy_read = 2;
+	}
+
+	// register 8 writes over the bus under some conditions
+	else if (regnum == 0x08)
+	{
+		// if writing from the CPU during execute, clear the ready flag
+		if (adpcm_b_registers_execute() && !adpcm_b_registers_record() && !adpcm_b_registers_external())
+			m_channel_b.m_status &= (uint8_t)~STATUS_BRDY;
+
+		// if writing during "record", pass through as data
+		else if (!adpcm_b_registers_execute() && adpcm_b_registers_record() && adpcm_b_registers_external())
+		{
+			// clear out dummy reads and set start address
+			if (m_channel_b.m_dummy_read != 0)
+			{
+				adpcm_b_channel_load_start();
+				m_channel_b.m_dummy_read = 0;
+			}
+
+			// did we hit the end? if so, signal EOS
+			if (adpcm_b_channel_at_end())
+			{
+				m_channel_b.m_status = STATUS_EOS | STATUS_BRDY;
+			}
+
+			// otherwise, write the data and signal ready
+			else
+			{
+				ymfm_external_write(ACCESS_ADPCM_B, m_channel_b.m_curaddress++, value);
+				m_channel_b.m_status = STATUS_BRDY;
+			}
+		}
+	}
 }
 
 
@@ -807,15 +807,16 @@ bool adpcm_b_channel::at_end() const {
 //*********************************************************
 
 //-------------------------------------------------
-//  adpcm_b_engine - constructor
+//  adpcm_b_engine - init
 //-------------------------------------------------
 
-adpcm_b_engine::adpcm_b_engine(uint32_t addrshift)
+void adpcm_b_engine_init(void)
 {
-	// create the channel (only one supported for now, but leaving possibilities open)
-	m_channel_b = new adpcm_b_channel(addrshift);
+	// create the channel
+	adpcm_b_channel_init();
 }
 
+namespace ymfm {
 
 //-------------------------------------------------
 //  reset - reset the engine state
@@ -827,7 +828,7 @@ void adpcm_b_engine::reset()
 	adpcm_b_registers_reset();
 
 	// reset each channel
-	m_channel_b->reset();
+	adpcm_b_channel_reset();
 }
 
 
@@ -838,7 +839,7 @@ void adpcm_b_engine::reset()
 void adpcm_b_engine::clock()
 {
 	// clock each channel, setting a bit in result if it finished
-	m_channel_b->clock();
+	adpcm_b_channel_clock();
 }
 
 
@@ -849,7 +850,7 @@ void adpcm_b_engine::clock()
 void adpcm_b_engine::output(int32_t *output, uint32_t rshift)
 {
 	// compute the output of each channel
-	m_channel_b->output(output, rshift);
+	adpcm_b_channel_output(output, rshift);
 }
 
 
@@ -864,17 +865,17 @@ void adpcm_b_engine::write(uint32_t regnum, uint8_t data)
 	adpcm_b_registers_write(regnum, data);
 
 	// let the channel handle any special writes
-	m_channel_b->write(regnum, data);
+	adpcm_b_channel_write(regnum, data);
 }
 
 // read from the ADPCM-B registers
 uint32_t adpcm_b_engine::read(uint32_t regnum) {
-	return m_channel_b->read(regnum);
+	return adpcm_b_channel_read(regnum);
 }
 
 // status
 uint8_t adpcm_b_engine::status(void) const {
-	return m_channel_b->status();
+	return adpcm_b_channel_status();
 }
 
 }
