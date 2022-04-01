@@ -92,7 +92,7 @@ static inline void adpcm_a_registers_write(uint32_t index, uint8_t data) {
 
 // system-wide registers
 static inline uint32_t adpcm_a_registers_dump(void) {
-	return bitfield(m_regdata_a[0x00], 7);
+	return bitfield(m_regdata_a[0x00], 7, 1);
 }
 
 static inline uint32_t adpcm_a_registers_dump_mask(void) {
@@ -109,11 +109,11 @@ static inline uint32_t adpcm_a_registers_test(void) {
 
 // per-channel registers
 static inline uint32_t adpcm_a_registers_ch_pan_left(uint32_t choffs) {
-	return bitfield(m_regdata_a[choffs + 0x08], 7);
+	return bitfield(m_regdata_a[choffs + 0x08], 7, 1);
 }
 
 static inline uint32_t adpcm_a_registers_ch_pan_right(uint32_t choffs) {
-	return bitfield(m_regdata_a[choffs + 0x08], 6);
+	return bitfield(m_regdata_a[choffs + 0x08], 6, 1);
 }
 
 static inline uint32_t adpcm_a_registers_ch_instrument_level(uint32_t choffs) {
@@ -242,7 +242,7 @@ bool adpcm_a_channel::clock()
 		876, 963, 1060, 1166, 1282, 1411, 1552
 	};
 	int32_t delta = (2 * bitfield(data, 0, 3) + 1) * s_steps[m_step_index] / 8;
-	if (bitfield(data, 3))
+	if (bitfield(data, 3, 1))
 		delta = -delta;
 
 	// the 12-bit accumulator wraps on the ym2610 and ym2608 (like the msm5205)
@@ -329,7 +329,7 @@ uint32_t adpcm_a_engine::clock(uint32_t chanmask)
 	// clock each channel, setting a bit in result if it finished
 	uint32_t result = 0;
 	for (int chnum = 0; chnum < CHANNELS_A; chnum++)
-		if (bitfield(chanmask, chnum))
+		if (bitfield(chanmask, chnum, 1))
 			if (m_channel_a[chnum]->clock())
 				result |= 1 << chnum;
 
@@ -349,7 +349,7 @@ void adpcm_a_engine::output(int32_t *output, uint32_t chanmask)
 
 	// compute the output of each channel
 	for (int chnum = 0; chnum < CHANNELS_A; chnum++)
-		if (bitfield(chanmask, chnum))
+		if (bitfield(chanmask, chnum, 1))
 			m_channel_a[chnum]->output(output);
 }
 
@@ -367,8 +367,8 @@ void adpcm_a_engine::write(uint32_t regnum, uint8_t data)
 	// actively handle writes to the control register
 	if (regnum == 0x00)
 		for (int chnum = 0; chnum < CHANNELS_A; chnum++)
-			if (bitfield(data, chnum))
-				m_channel_a[chnum]->keyonoff(bitfield(~data, 7));
+			if (bitfield(data, chnum, 1))
+				m_channel_a[chnum]->keyonoff(bitfield(~data, 7, 1));
 }
 
 }
@@ -430,51 +430,51 @@ void adpcm_b_registers_write(uint32_t index, uint8_t data) {
 
 // system-wide registers
 static inline uint32_t adpcm_b_registers_execute(void) {
-	return bitfield(m_regdata_b[0x00], 7);
+	return bitfield(m_regdata_b[0x00], 7, 1);
 }
 
 static inline uint32_t adpcm_b_registers_record(void) {
-	return bitfield(m_regdata_b[0x00], 6);
+	return bitfield(m_regdata_b[0x00], 6, 1);
 }
 
 static inline uint32_t adpcm_b_registers_external(void) {
-	return bitfield(m_regdata_b[0x00], 5);
+	return bitfield(m_regdata_b[0x00], 5, 1);
 }
 
 static inline uint32_t adpcm_b_registers_repeat(void) {
-	return bitfield(m_regdata_b[0x00], 4);
+	return bitfield(m_regdata_b[0x00], 4, 1);
 }
 
 static inline uint32_t adpcm_b_registers_speaker(void) {
-	return bitfield(m_regdata_b[0x00], 3);
+	return bitfield(m_regdata_b[0x00], 3, 1);
 }
 
 static inline uint32_t adpcm_b_registers_resetflag(void) {
-	return bitfield(m_regdata_b[0x00], 0);
+	return bitfield(m_regdata_b[0x00], 0, 1);
 }
 
 static inline uint32_t adpcm_b_registers_pan_left(void) {
-	return bitfield(m_regdata_b[0x01], 7);
+	return bitfield(m_regdata_b[0x01], 7, 1);
 }
 
 static inline uint32_t adpcm_b_registers_pan_right(void) {
-	return bitfield(m_regdata_b[0x01], 6);
+	return bitfield(m_regdata_b[0x01], 6, 1);
 }
 
 static inline uint32_t adpcm_b_registers_start_conversion(void) {
-	return bitfield(m_regdata_b[0x01], 3);
+	return bitfield(m_regdata_b[0x01], 3, 1);
 }
 
 static inline uint32_t adpcm_b_registers_dac_enable(void) {
-	return bitfield(m_regdata_b[0x01], 2);
+	return bitfield(m_regdata_b[0x01], 2, 1);
 }
 
 static inline uint32_t adpcm_b_registers_dram_8bit(void) {
-	return bitfield(m_regdata_b[0x01], 1);
+	return bitfield(m_regdata_b[0x01], 1, 1);
 }
 
 static inline uint32_t adpcm_b_registers_rom_ram(void) {
-	return bitfield(m_regdata_b[0x01], 0);
+	return bitfield(m_regdata_b[0x01], 0, 1);
 }
 
 static inline uint32_t adpcm_b_registers_start(void) {
@@ -673,7 +673,7 @@ static inline void adpcm_b_channel_clock(void)
 
 	// forecast to next forecast: 1/8, 3/8, 5/8, 7/8, 9/8, 11/8, 13/8, 15/8
 	int32_t delta = (2 * bitfield(data, 0, 3) + 1) * m_channel_b.m_adpcm_step / 8;
-	if (bitfield(data, 3))
+	if (bitfield(data, 3, 1))
 		delta = -delta;
 
 	// add and clamp to 16 bits
