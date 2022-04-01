@@ -864,8 +864,8 @@ void ym2610::clock_fm_and_adpcm()
 	m_fm.output(m_last_fm.clear(), 1, 32767, m_fm_mask);
 
 	// mix in the ADPCM and clamp
-	m_adpcm_a.output(m_last_fm, 0x3f);
-	m_adpcm_b.output(m_last_fm, 1);
+	m_adpcm_a.output(m_last_fm.data, 0x3f);
+	m_adpcm_b.output(m_last_fm.data, 1);
 	m_last_fm.clamp16();
 }
 

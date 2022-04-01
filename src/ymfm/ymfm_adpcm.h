@@ -66,7 +66,7 @@ struct adpcm_a_channel
 	bool clock();
 
 	// return the computed output value, with panning applied
-	void output(ymfm_output<2> &output) const;
+	void output(int32_t *output) const;
 
 	// internal state
 	uint32_t const m_choffs;              // channel offset
@@ -94,7 +94,7 @@ struct adpcm_a_engine
 	uint32_t clock(uint32_t chanmask);
 
 	// compute sum of channel outputs
-	void output(ymfm_output<2> &output, uint32_t chanmask);
+	void output(int32_t *output, uint32_t chanmask);
 
 	// write to the ADPCM-A registers
 	void write(uint32_t regnum, uint8_t data);
@@ -129,7 +129,7 @@ struct adpcm_b_channel
 	void clock();
 
 	// return the computed output value, with panning applied
-	void output(ymfm_output<2> &output, uint32_t rshift) const;
+	void output(int32_t *output, uint32_t rshift) const;
 
 	// return the status register
 	uint8_t status() const { return m_status; }
@@ -180,7 +180,7 @@ struct adpcm_b_engine
 	void clock();
 
 	// compute sum of channel outputs
-	void output(ymfm_output<2> &output, uint32_t rshift);
+	void output(int32_t *output, uint32_t rshift);
 
 	// read from the ADPCM-B registers
 	uint32_t read(uint32_t regnum) { return m_channel->read(regnum); }
