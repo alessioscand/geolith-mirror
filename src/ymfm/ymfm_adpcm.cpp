@@ -50,6 +50,22 @@ uint8_t m_regdata_b[REGISTERS_B];         // register data
 //*********************************************************
 // ADPCM "A" REGISTERS
 //*********************************************************
+//
+// ADPCM-A register map:
+//
+//      System-wide registers:
+//           00 x------- Dump (disable=1) or keyon (0) control
+//              --xxxxxx Mask of channels to dump or keyon
+//           01 --xxxxxx Total level
+//           02 xxxxxxxx Test register
+//        08-0D x------- Pan left
+//              -x------ Pan right
+//              ---xxxxx Instrument level
+//        10-15 xxxxxxxx Start address (low)
+//        18-1D xxxxxxxx Start address (high)
+//        20-25 xxxxxxxx End address (low)
+//        28-2D xxxxxxxx End address (high)
+//
 
 //-------------------------------------------------
 //  reset - reset the register state
@@ -380,6 +396,40 @@ void adpcm_a_engine::write(uint32_t regnum, uint8_t data)
 //*********************************************************
 // ADPCM "B" REGISTERS
 //*********************************************************
+//
+// ADPCM-B register map:
+//
+//      System-wide registers:
+//           00 x------- Start of synthesis/analysis
+//              -x------ Record
+//              --x----- External/manual driving
+//              ---x---- Repeat playback
+//              ----x--- Speaker off
+//              -------x Reset
+//           01 x------- Pan left
+//              -x------ Pan right
+//              ----x--- Start conversion
+//              -----x-- DAC enable
+//              ------x- DRAM access (1=8-bit granularity; 0=1-bit)
+//              -------x RAM/ROM (1=ROM, 0=RAM)
+//           02 xxxxxxxx Start address (low)
+//           03 xxxxxxxx Start address (high)
+//           04 xxxxxxxx End address (low)
+//           05 xxxxxxxx End address (high)
+//           06 xxxxxxxx Prescale value (low)
+//           07 -----xxx Prescale value (high)
+//           08 xxxxxxxx CPU data/buffer
+//           09 xxxxxxxx Delta-N frequency scale (low)
+//           0a xxxxxxxx Delta-N frequency scale (high)
+//           0b xxxxxxxx Level control
+//           0c xxxxxxxx Limit address (low)
+//           0d xxxxxxxx Limit address (high)
+//           0e xxxxxxxx DAC data [YM2608/10]
+//           0f xxxxxxxx PCM data [YM2608/10]
+//           0e xxxxxxxx DAC data high [Y8950]
+//           0f xx------ DAC data low [Y8950]
+//           10 -----xxx DAC data exponent [Y8950]
+//
 
 //-------------------------------------------------
 //  reset - reset the register state
