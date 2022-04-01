@@ -420,9 +420,9 @@ std::string opn_registers_base::log_keyon(uint32_t choffs, uint32_t opoffs)
 
 void ssg_resampler::add_last(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale)
 {
-	sum0 += m_last.data[0] * scale;
-	sum1 += m_last.data[1] * scale;
-	sum2 += m_last.data[2] * scale;
+	sum0 += m_last[0] * scale;
+	sum1 += m_last[1] * scale;
+	sum2 += m_last[2] * scale;
 }
 
 
@@ -435,7 +435,7 @@ void ssg_resampler::add_last(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_
 void ssg_resampler::clock_and_add(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale)
 {
 	ssg_engine_clock();
-	m_ssg.output(m_last);
+	ssg_engine_output(m_last);
 	add_last(sum0, sum1, sum2, scale);
 }
 
@@ -460,12 +460,11 @@ void ssg_resampler::write_to_output(ymfm::ymfm_output<3> *output, int32_t sum0, 
 //  ssg_resampler - constructor
 //-------------------------------------------------
 
-ssg_resampler::ssg_resampler(ssg_engine &ssg) :
-	m_ssg(ssg),
+ssg_resampler::ssg_resampler() :
 	m_sampindex(0),
 	m_resampler(&ssg_resampler::resample_nop)
 {
-	m_last.clear();
+	m_last[0] = m_last[1] = m_last[2] = 0;
 }
 
 //-------------------------------------------------
@@ -496,9 +495,9 @@ void ssg_resampler::resample_2_1(ymfm::ymfm_output<3> *output, uint32_t numsampl
 		if (m_sampindex % 2 == 0)
 		{
 			ssg_engine_clock();
-			m_ssg.output(m_last);
+			ssg_engine_output(m_last);
 		}
-		write_to_output(output, m_last.data[0], m_last.data[1], m_last.data[2]);
+		write_to_output(output, m_last[0], m_last[1], m_last[2]);
 	}
 }
 
@@ -552,8 +551,7 @@ ym2610::ym2610(ymfm_interface &intf, uint8_t channel_mask) :
 	m_eos_status(0x00),
 	m_flag_mask(EOS_FLAGS_MASK),
 	m_fm(intf),
-	m_ssg(),
-	m_ssg_resampler(m_ssg),
+	m_ssg_resampler(),
 	m_adpcm_a(8),
 	m_adpcm_b(8)
 {

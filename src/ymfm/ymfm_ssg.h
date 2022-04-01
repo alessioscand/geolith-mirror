@@ -46,17 +46,7 @@ void ssg_engine_write(uint32_t regnum, uint8_t data);
 // master clocking function
 void ssg_engine_clock();
 
-namespace ymfm
-{
-
-struct ssg_engine
-{
-	using output_data = ymfm::ymfm_output<3>;
-
-	// compute sum of channel outputs
-	void output(output_data &output);
-};
-
-}
+// compute sum of channel outputs
+void ssg_engine_output(int32_t *output);
 
 #endif // YMFM_SSG_H

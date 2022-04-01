@@ -371,7 +371,7 @@ struct ssg_resampler
 	void write_to_output(ymfm::ymfm_output<3> *output, int32_t sum0, int32_t sum1, int32_t sum2, int32_t divisor = 1);
 
 	// constructor
-	ssg_resampler(ssg_engine &ssg);
+	ssg_resampler();
 
 	// get the current sample index
 	uint32_t sampindex() const { return m_sampindex; }
@@ -400,10 +400,9 @@ struct ssg_resampler
 	using resample_func = void (ssg_resampler::*)(ymfm::ymfm_output<3> *output, uint32_t numsamples);
 
 	// internal state
-	ssg_engine &m_ssg;
 	uint32_t m_sampindex;
 	resample_func m_resampler;
-	ssg_engine::output_data m_last;
+	int32_t m_last[3];
 };
 
 
@@ -472,7 +471,6 @@ struct ym2610
 	uint8_t m_flag_mask;                // flag mask control
 	fm_engine::output_data m_last_fm;   // last FM output
 	fm_engine m_fm;                     // core FM engine
-	ssg_engine m_ssg;                   // core FM engine
 	ssg_resampler m_ssg_resampler;      // SSG resampler helper
 	adpcm_a_engine m_adpcm_a;           // ADPCM-A engine
 	adpcm_b_engine m_adpcm_b;           // ADPCM-B engine

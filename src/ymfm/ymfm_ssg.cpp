@@ -232,14 +232,11 @@ void ssg_engine_clock()
 	}
 }
 
-namespace ymfm
-{
-
 //-------------------------------------------------
 //  output - output the current state
 //-------------------------------------------------
 
-void ssg_engine::output(output_data &output)
+void ssg_engine_output(int32_t *output)
 {
 	// volume to amplitude table, taken from MAME's implementation but biased
 	// so that 0 == 0
@@ -294,10 +291,8 @@ void ssg_engine::output(output_data &output)
 		}
 
 		// convert to amplitude
-		output.data[chan] = s_amplitudes[volume];
+		output[chan] = s_amplitudes[volume];
 	}
-}
-
 }
 
 //-------------------------------------------------
