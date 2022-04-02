@@ -683,11 +683,6 @@ void fm_channel<RegisterType>::keyonoff(uint32_t states, keyon_type type, uint32
 	for (uint32_t opnum = 0; opnum < array_size(m_op); opnum++)
 		if (m_op[opnum] != nullptr)
 			m_op[opnum]->keyonoff(bitfield(states, opnum), type);
-
-	if (debug::LOG_KEYON_EVENTS && ((debug::GLOBAL_FM_CHANNEL_MASK >> chnum) & 1) != 0)
-		for (uint32_t opnum = 0; opnum < array_size(m_op); opnum++)
-			if (m_op[opnum] != nullptr)
-				debug::log_keyon("%c%s\n", bitfield(states, opnum) ? '+' : '-', m_regs.log_keyon(m_choffs, m_op[opnum]->opoffs()).c_str());
 }
 
 
@@ -1016,7 +1011,7 @@ template<class RegisterType>
 void fm_engine_base<RegisterType>::output(output_data &output, uint32_t rshift, int32_t clipmax, uint32_t chanmask) const
 {
 	// mask out some channels for debug purposes
-	chanmask &= debug::GLOBAL_FM_CHANNEL_MASK;
+	chanmask &= 0xffffffff;
 
 	// mask out inactive channels
 	chanmask &= m_active_channels;
@@ -1040,8 +1035,6 @@ void fm_engine_base<RegisterType>::output(output_data &output, uint32_t rshift, 
 template<class RegisterType>
 void fm_engine_base<RegisterType>::write(uint16_t regnum, uint8_t data)
 {
-	debug::log_fm_write("%03X = %02X\n", regnum, data);
-
 	// special case: writes to the mode register can impact IRQs;
 	// schedule these writes to ensure ordering with timers
 	if (regnum == RegisterType::REG_MODE)

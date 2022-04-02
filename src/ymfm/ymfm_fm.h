@@ -204,11 +204,6 @@ public:
 	void output_2op(output_data &output, uint32_t rshift, int32_t clipmax) const;
 	void output_4op(output_data &output, uint32_t rshift, int32_t clipmax) const;
 
-	// compute the special OPL rhythm channel outputs
-	void output_rhythm_ch6(output_data &output, uint32_t rshift, int32_t clipmax) const;
-	void output_rhythm_ch7(uint32_t phase_select, output_data &output, uint32_t rshift, int32_t clipmax) const;
-	void output_rhythm_ch8(uint32_t phase_select, output_data &output, uint32_t rshift, int32_t clipmax) const;
-
 	// are we a 4-operator channel or a 2-operator one?
 	bool is4op() const
 	{
@@ -219,9 +214,6 @@ public:
 
 	// return a reference to our registers
 	RegisterType &regs() const { return m_regs; }
-
-	// simple getters for debugging
-	fm_operator<RegisterType> *debug_operator(uint32_t index) const { return m_op[index]; }
 
 	// helper to add values to the outputs based on channel enables
 	void add_to_output(uint32_t choffs, output_data &output, int32_t value) const
