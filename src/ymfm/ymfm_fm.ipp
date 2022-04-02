@@ -730,7 +730,7 @@ void fm_channel<RegisterType>::clock(uint32_t env_counter, int32_t lfo_raw_pm)
 //-------------------------------------------------
 
 template<class RegisterType>
-void fm_channel<RegisterType>::output_2op(output_data &output, uint32_t rshift, int32_t clipmax) const
+void fm_channel<RegisterType>::output_2op(int32_t *output, uint32_t rshift, int32_t clipmax) const
 {
 	// The first 2 operators should be populated
 	assert(m_op[0] != nullptr);
@@ -784,7 +784,7 @@ void fm_channel<RegisterType>::output_2op(output_data &output, uint32_t rshift, 
 //-------------------------------------------------
 
 template<class RegisterType>
-void fm_channel<RegisterType>::output_4op(output_data &output, uint32_t rshift, int32_t clipmax) const
+void fm_channel<RegisterType>::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax) const
 {
 	// all 4 operators should be populated
 	assert(m_op[0] != nullptr);
@@ -1008,7 +1008,7 @@ uint32_t fm_engine_base<RegisterType>::clock(uint32_t chanmask)
 //-------------------------------------------------
 
 template<class RegisterType>
-void fm_engine_base<RegisterType>::output(output_data &output, uint32_t rshift, int32_t clipmax, uint32_t chanmask) const
+void fm_engine_base<RegisterType>::output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_t chanmask) const
 {
 	// mask out some channels for debug purposes
 	chanmask &= 0xffffffff;

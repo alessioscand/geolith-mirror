@@ -799,16 +799,16 @@ void ym2610::write(uint32_t offset, uint8_t data)
 //  generate - generate one sample of sound
 //-------------------------------------------------
 
-void ym2610::generate(output_data *output)
+void ym2610::generate(int32_t *output)
 {
 	// FM output is just repeated the prescale number of times
 	if (m_ssg_resampler_sampindex % m_fm_samples_per_output == 0)
 		clock_fm_and_adpcm();
-	output->data[0] = m_last_fm.data[0];
-	output->data[1] = m_last_fm.data[1];
+	output[0] = m_last_fm[0];
+	output[1] = m_last_fm[1];
 
 	// resample the SSG as configured
-	ssg_resampler_resample(output->data);
+	ssg_resampler_resample(output);
 }
 
 
@@ -862,16 +862,16 @@ void ym2610::clock_fm_and_adpcm()
 		m_eos_status = (m_eos_status & ~0xc0) | live_eos | (live_eos << 1);
 
 	// update the FM content; OPNB is 13-bit with no intermediate clipping
-	m_last_fm.data[0] = m_last_fm.data[1] = m_last_fm.data[2] = 0;
+	m_last_fm[0] = m_last_fm[1] = m_last_fm[2] = 0;
 	m_fm.output(m_last_fm, 1, 32767, m_fm_mask);
 
 	// mix in the ADPCM and clamp
-	adpcm_a_engine_output(m_last_fm.data, 0x3f);
-	adpcm_b_engine_output(m_last_fm.data, 1);
+	adpcm_a_engine_output(m_last_fm, 0x3f);
+	adpcm_b_engine_output(m_last_fm, 1);
 
-	m_last_fm.data[0] = clamp(m_last_fm.data[0], -32768, 32767);
-	m_last_fm.data[1] = clamp(m_last_fm.data[1], -32768, 32767);
-	m_last_fm.data[2] = clamp(m_last_fm.data[2], -32768, 32767);
+	m_last_fm[0] = clamp(m_last_fm[0], -32768, 32767);
+	m_last_fm[1] = clamp(m_last_fm[1], -32768, 32767);
+	m_last_fm[2] = clamp(m_last_fm[2], -32768, 32767);
 }
 
 
@@ -1052,23 +1052,23 @@ void ym2612::write(uint32_t offset, uint8_t data)
 //  generate - generate one sample of sound
 //-------------------------------------------------
 
-void ym2612::generate(output_data *output)
+void ym2612::generate(int32_t *output)
 {
 	// clock the system
 	m_fm.clock(fm_engine::ALL_CHANNELS);
 
 	// sum individual channels to apply DAC discontinuity on each
-	output->data[0] = output->data[1] = 0;
-	output_data temp;
+	output[0] = output[1] = 0;
+	int32_t temp[2];
 
 	// first do FM-only channels; OPN2 is 9-bit with intermediate clipping
 	int const last_fm_channel = m_dac_enable ? 5 : 6;
 	for (int chan = 0; chan < last_fm_channel; chan++)
 	{
-		temp.data[0] = temp.data[1] = 0;
+		temp[0] = temp[1] = 0;
 		m_fm.output(temp, 5, 256, 1 << chan);
-		output->data[0] += dac_discontinuity(temp.data[0]);
-		output->data[1] += dac_discontinuity(temp.data[1]);
+		output[0] += dac_discontinuity(temp[0]);
+		output[1] += dac_discontinuity(temp[1]);
 	}
 
 	// add in DAC
@@ -1076,16 +1076,16 @@ void ym2612::generate(output_data *output)
 	{
 		// DAC enabled: start with DAC value then add the first 5 channels only
 		int32_t dacval = dac_discontinuity(int16_t(m_dac_data << 7) >> 7);
-		output->data[0] += m_fm.regs().ch_output_0(0x102) ? dacval : dac_discontinuity(0);
-		output->data[1] += m_fm.regs().ch_output_1(0x102) ? dacval : dac_discontinuity(0);
+		output[0] += m_fm.regs().ch_output_0(0x102) ? dacval : dac_discontinuity(0);
+		output[1] += m_fm.regs().ch_output_1(0x102) ? dacval : dac_discontinuity(0);
 	}
 
 	// output is technically multiplexed rather than mixed, but that requires
 	// a better sound mixer than we usually have, so just average over the six
 	// channels; also apply a 64/65 factor to account for the discontinuity
 	// adjustment above
-	output->data[0] = (output->data[0] * 128) * 64 / (6 * 65);
-	output->data[1] = (output->data[1] * 128) * 64 / (6 * 65);
+	output[0] = (output[0] * 128) * 64 / (6 * 65);
+	output[1] = (output[1] * 128) * 64 / (6 * 65);
 }
 
 
@@ -1093,7 +1093,7 @@ void ym2612::generate(output_data *output)
 //  generate - generate one sample of YM3438 sound
 //-------------------------------------------------
 
-void ym2612::generate3438(output_data *output)
+void ym2612::generate3438(int32_t *output)
 {
 	// clock the system
 	m_fm.clock(fm_engine::ALL_CHANNELS);
@@ -1102,22 +1102,22 @@ void ym2612::generate3438(output_data *output)
 	if (!m_dac_enable)
 	{
 		// DAC disabled: all 6 channels sum together
-		output->data[0] = output->data[1] = 0;
-		m_fm.output(*output, 5, 256, fm_engine::ALL_CHANNELS);
+		output[0] = output[1] = 0;
+		m_fm.output(output, 5, 256, fm_engine::ALL_CHANNELS);
 	}
 	else
 	{
 		// DAC enabled: start with DAC value then add the first 5 channels only
 		int32_t dacval = int16_t(m_dac_data << 7) >> 7;
-		output->data[0] = m_fm.regs().ch_output_0(0x102) ? dacval : 0;
-		output->data[1] = m_fm.regs().ch_output_1(0x102) ? dacval : 0;
-		m_fm.output(*output, 5, 256, fm_engine::ALL_CHANNELS ^ (1 << 5));
+		output[0] = m_fm.regs().ch_output_0(0x102) ? dacval : 0;
+		output[1] = m_fm.regs().ch_output_1(0x102) ? dacval : 0;
+		m_fm.output(output, 5, 256, fm_engine::ALL_CHANNELS ^ (1 << 5));
 	}
 
 	// YM3438 doesn't have the same DAC discontinuity, though its output is
 	// multiplexed like the YM2612
-	output->data[0] = (output->data[0] * 128) / 6;
-	output->data[1] = (output->data[1] * 128) / 6;
+	output[0] = (output[0] * 128) / 6;
+	output[1] = (output[1] * 128) / 6;
 }
 
 }

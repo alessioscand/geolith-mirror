@@ -360,7 +360,6 @@ struct ym2610
 	#define EOS_FLAGS_MASK 0xbf
 
 	using fm_engine = fm_engine_base<opn_registers_base>;
-	using output_data = ymfm_output<3>; //FM_OUTPUTS + SSG_OUTPUTS
 
 	// constructor
 	ym2610(ymfm_interface &intf, uint8_t channel_mask = 0x36);
@@ -400,7 +399,7 @@ struct ym2610
 	void write(uint32_t offset, uint8_t data);
 
 	// generate one sample of sound
-	void generate(output_data *output);
+	void generate(int32_t *output);
 
 	// internal helpers
 	void update_prescale();
@@ -413,7 +412,7 @@ struct ym2610
 	uint8_t m_fm_samples_per_output;    // how many samples to repeat
 	uint8_t m_eos_status;               // end-of-sample signals
 	uint8_t m_flag_mask;                // flag mask control
-	fm_engine::output_data m_last_fm;   // last FM output
+	int32_t m_last_fm[3];               // last FM output
 	fm_engine m_fm;                     // core FM engine
 };
 
@@ -423,7 +422,6 @@ struct ym2610
 struct ym2612
 {
 	using fm_engine = fm_engine_base<opn_registers_base>;
-	using output_data = fm_engine::output_data;
 
 	// constructor
 	ym2612(ymfm_interface &intf);
@@ -447,10 +445,10 @@ struct ym2612
 	void write(uint32_t offset, uint8_t data);
 
 	// generate one sample of sound
-	void generate(output_data *output);
+	void generate(int32_t *output);
 
 	// generate one sample of YM3438 sound
-	void generate3438(output_data *output);
+	void generate3438(int32_t *output);
 
 	// internal state
 	uint16_t m_address;              // address register

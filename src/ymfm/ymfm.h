@@ -151,19 +151,6 @@ enum envelope_state : uint32_t
 	EG_STATES = 6
 };
 
-//*********************************************************
-//  HELPER CLASSES
-//*********************************************************
-
-// ======================> ymfm_output
-
-// struct containing an array of output values
-template<int NumOutputs>
-struct ymfm_output
-{
-	// internal state
-	int32_t data[NumOutputs];
-};
 
 //*********************************************************
 //  INTERFACE CLASSES

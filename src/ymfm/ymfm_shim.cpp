@@ -38,6 +38,7 @@ static int busytimer;
 static int busyfrac;
 static int timer[2];
 static int divisor;
+static int32_t output[3];
 
 extern "C" {
 uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
@@ -85,7 +86,6 @@ using namespace ymfm;
 
 static ymfm::ymfm_interface intf;
 static ym2610 *chip;
-static ym2610::output_data output;
 
 static inline void ymfm_shim_timer_tick(void) {
     if (busytimer)
@@ -130,11 +130,11 @@ void ymfm_shim_wr(uint16_t addr, uint8_t data) {
 
 size_t ymfm_shim_exec(void) {
     ymfm_shim_timer_tick();
-    chip->generate(&output);
+    chip->generate(output);
 
     // Mix stereo FM/ADPCM output (0,1) with mono SSG output (2)
-    ymbuf[bufpos++] = output.data[0] + output.data[2];
-    ymbuf[bufpos++] = output.data[1] + output.data[2];
+    ymbuf[bufpos++] = output[0] + output[2];
+    ymbuf[bufpos++] = output[1] + output[2];
 
     return 1;
 }
