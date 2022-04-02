@@ -344,8 +344,7 @@ struct opn_registers_base
 
 // ======================> opn_fidelity
 
-enum opn_fidelity : uint8_t
-{
+enum {
 	OPN_FIDELITY_MAX,
 	OPN_FIDELITY_MIN,
 	OPN_FIDELITY_MED,
@@ -358,19 +357,16 @@ enum opn_fidelity : uint8_t
 
 struct ym2610
 {
-	static constexpr uint8_t EOS_FLAGS_MASK = 0xbf;
+	#define EOS_FLAGS_MASK 0xbf
 
 	using fm_engine = fm_engine_base<opn_registers_base>;
-	static constexpr uint32_t FM_OUTPUTS = fm_engine::OUTPUTS;
-	static constexpr uint32_t SSG_OUTPUTS = 1;
-	static constexpr uint32_t OUTPUTS = FM_OUTPUTS + SSG_OUTPUTS;
-	using output_data = ymfm_output<OUTPUTS>;
+	using output_data = ymfm_output<3>; //FM_OUTPUTS + SSG_OUTPUTS
 
 	// constructor
 	ym2610(ymfm_interface &intf, uint8_t channel_mask = 0x36);
 
 	// configuration
-	void set_fidelity(opn_fidelity fidelity) { m_fidelity = fidelity; update_prescale(); }
+	void set_fidelity(uint32_t fidelity) { m_fidelity = fidelity; update_prescale(); }
 
 	// reset
 	void reset();
@@ -411,7 +407,7 @@ struct ym2610
 	void clock_fm_and_adpcm();
 
 	// internal state
-	opn_fidelity m_fidelity;            // configured fidelity
+	uint32_t m_fidelity;                // configured fidelity
 	uint16_t m_address;                 // address register
 	uint8_t const m_fm_mask;            // FM channel mask
 	uint8_t m_fm_samples_per_output;    // how many samples to repeat
@@ -427,7 +423,6 @@ struct ym2610
 struct ym2612
 {
 	using fm_engine = fm_engine_base<opn_registers_base>;
-	static constexpr uint32_t OUTPUTS = fm_engine::OUTPUTS;
 	using output_data = fm_engine::output_data;
 
 	// constructor
