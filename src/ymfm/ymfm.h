@@ -133,21 +133,6 @@ namespace ymfm
 {
 
 //*********************************************************
-//  GLOBAL HELPERS
-//*********************************************************
-
-//-------------------------------------------------
-//  array_size - return the size of an array
-//-------------------------------------------------
-
-template<typename ArrayType, int ArraySize>
-constexpr uint32_t array_size(ArrayType (&array)[ArraySize])
-{
-	return ArraySize;
-}
-
-
-//*********************************************************
 //  INTERFACE CLASSES
 //*********************************************************
 

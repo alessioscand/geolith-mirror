@@ -680,7 +680,7 @@ void fm_channel<RegisterType>::reset()
 template<class RegisterType>
 void fm_channel<RegisterType>::keyonoff(uint32_t states, uint32_t type, uint32_t chnum)
 {
-	for (uint32_t opnum = 0; opnum < array_size(m_op); opnum++)
+	for (uint32_t opnum = 0; opnum < 4; opnum++)
 		if (m_op[opnum] != nullptr)
 			m_op[opnum]->keyonoff(bitfield(states, opnum), type);
 }
@@ -696,7 +696,7 @@ bool fm_channel<RegisterType>::prepare()
 	uint32_t active_mask = 0;
 
 	// prepare all operators and determine if they are active
-	for (uint32_t opnum = 0; opnum < array_size(m_op); opnum++)
+	for (uint32_t opnum = 0; opnum < 4; opnum++)
 		if (m_op[opnum] != nullptr)
 			if (m_op[opnum]->prepare())
 				active_mask |= 1 << opnum;
@@ -716,7 +716,7 @@ void fm_channel<RegisterType>::clock(uint32_t env_counter, int32_t lfo_raw_pm)
 	m_feedback[0] = m_feedback[1];
 	m_feedback[1] = m_feedback_in;
 
-	for (uint32_t opnum = 0; opnum < array_size(m_op); opnum++)
+	for (uint32_t opnum = 0; opnum < 4; opnum++)
 		if (m_op[opnum] != nullptr)
 			m_op[opnum]->clock(env_counter, lfo_raw_pm);
 }

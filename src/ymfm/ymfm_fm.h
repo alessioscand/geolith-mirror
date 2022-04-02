@@ -177,7 +177,7 @@ public:
 	// assign operators
 	void assign(uint32_t index, fm_operator<RegisterType> *op)
 	{
-		assert(index < array_size(m_op));
+		assert(index < 4);
 		m_op[index] = op;
 		if (op != nullptr)
 			op->set_choffs(m_choffs);
