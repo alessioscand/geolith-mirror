@@ -41,8 +41,7 @@ namespace ymfm
 //*********************************************************
 
 // three different keyon sources; actual keyon is an OR over all of these
-enum keyon_type : uint32_t
-{
+enum {
 	KEYON_NORMAL = 0,
 	KEYON_RHYTHM = 1,
 	KEYON_CSM = 2
@@ -123,15 +122,10 @@ public:
 	int32_t compute_noise_volume(uint32_t am_offset) const;
 
 	// key state control
-	void keyonoff(uint32_t on, keyon_type type);
+	void keyonoff(uint32_t on, uint32_t type);
 
 	// return a reference to our registers
 	RegisterType &regs() const { return m_regs; }
-
-	// simple getters for debugging
-	envelope_state debug_eg_state() const { return m_env_state; }
-	uint16_t debug_eg_attenuation() const { return m_env_attenuation; }
-	opdata_cache &debug_cache() { return m_cache; }
 
 	// start the attack phase
 	void start_attack(bool is_restart = false);
@@ -153,7 +147,7 @@ public:
 	uint32_t m_opoffs;                     // operator offset in registers
 	uint32_t m_phase;                      // current phase value (10.10 format)
 	uint16_t m_env_attenuation;            // computed envelope attenuation (4.6 format)
-	envelope_state m_env_state;            // current envelope state
+	uint32_t m_env_state;                  // current envelope state
 	uint8_t m_ssg_inverted;                // non-zero if the output should be inverted (bit 0)
 	uint8_t m_key_state;                   // current key state: on or off (bit 0)
 	uint8_t m_keyon_live;                  // live key on state (bit 0 = direct, bit 1 = rhythm, bit 2 = CSM)
@@ -190,7 +184,7 @@ public:
 	}
 
 	// signal key on/off to our operators
-	void keyonoff(uint32_t states, keyon_type type, uint32_t chnum);
+	void keyonoff(uint32_t states, uint32_t type, uint32_t chnum);
 
 	// prepare prior to clocking
 	bool prepare();

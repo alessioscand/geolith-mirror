@@ -370,7 +370,7 @@ int32_t fm_operator<RegisterType>::compute_noise_volume(uint32_t am_offset) cons
 //-------------------------------------------------
 
 template<class RegisterType>
-void fm_operator<RegisterType>::keyonoff(uint32_t on, keyon_type type)
+void fm_operator<RegisterType>::keyonoff(uint32_t on, uint32_t type)
 {
 	m_keyon_live = (m_keyon_live & ~(1 << int(type))) | (bitfield(on, 0) << int(type));
 }
@@ -678,7 +678,7 @@ void fm_channel<RegisterType>::reset()
 //-------------------------------------------------
 
 template<class RegisterType>
-void fm_channel<RegisterType>::keyonoff(uint32_t states, keyon_type type, uint32_t chnum)
+void fm_channel<RegisterType>::keyonoff(uint32_t states, uint32_t type, uint32_t chnum)
 {
 	for (uint32_t opnum = 0; opnum < array_size(m_op); opnum++)
 		if (m_op[opnum] != nullptr)

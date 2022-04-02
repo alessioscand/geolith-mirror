@@ -54,6 +54,17 @@ enum {
 	ACCESS_CLASSES
 };
 
+// various envelope states
+enum {
+	EG_DEPRESS = 0,		// OPLL only; set EG_HAS_DEPRESS to enable
+	EG_ATTACK = 1,
+	EG_DECAY = 2,
+	EG_SUSTAIN = 3,
+	EG_RELEASE = 4,
+	EG_REVERB = 5,		// OPQ/OPZ only; set EG_HAS_REVERB to enable
+	EG_STATES = 6
+};
+
 extern "C" {
 // the chip implementation calls this whenever data is read from outside
 // of the chip; our responsibility is to provide the data requested
@@ -134,22 +145,6 @@ constexpr uint32_t array_size(ArrayType (&array)[ArraySize])
 {
 	return ArraySize;
 }
-
-//*********************************************************
-//  HELPER CLASSES
-//*********************************************************
-
-// various envelope states
-enum envelope_state : uint32_t
-{
-	EG_DEPRESS = 0,		// OPLL only; set EG_HAS_DEPRESS to enable
-	EG_ATTACK = 1,
-	EG_DECAY = 2,
-	EG_SUSTAIN = 3,
-	EG_RELEASE = 4,
-	EG_REVERB = 5,		// OPQ/OPZ only; set EG_HAS_REVERB to enable
-	EG_STATES = 6
-};
 
 
 //*********************************************************
