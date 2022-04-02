@@ -31,12 +31,6 @@
 #ifndef YMFM_H
 #define YMFM_H
 
-#pragma once
-
-#ifdef _MSC_VER
- #define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
