@@ -71,38 +71,15 @@ void adpcm_b_engine_write(uint32_t regnum, uint8_t data);
 // status
 uint8_t adpcm_b_engine_status(void);
 
-namespace ymfm
-{
-
 //*********************************************************
 //  INTERFACE CLASSES
 //*********************************************************
 
-// forward declarations
-struct adpcm_a_engine;
-
 // ======================> adpcm_a_channel
-
 struct adpcm_a_channel
 {
-	// constructor
-	adpcm_a_channel(uint32_t choffs, uint32_t addrshift);
-
-	// reset the channel state
-	void reset();
-
-	// signal key on/off
-	void keyonoff(bool on);
-
-	// master clockingfunction
-	bool clock();
-
-	// return the computed output value, with panning applied
-	void output(int32_t *output) const;
-
-	// internal state
-	uint32_t const m_choffs;              // channel offset
-	uint32_t const m_address_shift;       // address bits shift-left
+	uint32_t m_choffs;                    // channel offset
+	uint32_t m_address_shift;             // address bits shift-left
 	uint32_t m_playing;                   // currently playing?
 	uint32_t m_curnibble;                 // index of the current nibble
 	uint32_t m_curbyte;                   // current byte of data
@@ -111,11 +88,7 @@ struct adpcm_a_channel
 	int32_t m_step_index;                 // index in the stepping table
 };
 
-
-}
-
 // ======================> adpcm_b_channel
-
 struct adpcm_b_channel
 {
 	uint32_t m_address_shift;       // address bits shift-left
@@ -129,6 +102,5 @@ struct adpcm_b_channel
 	int32_t m_prev_accum;           // previous accumulator (for linear interp)
 	int32_t m_adpcm_step;           // next forecast
 };
-
 
 #endif // YMFM_ADPCM_H

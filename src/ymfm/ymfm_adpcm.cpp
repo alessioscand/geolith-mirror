@@ -48,7 +48,7 @@ static uint8_t m_regdata_a[REGISTERS_A];         // register data
 static uint8_t m_regdata_b[REGISTERS_B];         // register data
 
 // internal state
-static ymfm::adpcm_a_channel *m_channel_a[CHANNELS_A]; // array of channels
+static adpcm_a_channel m_channel_a[CHANNELS_A];  // array of channels
 static adpcm_b_channel m_channel_b;              // channel
 
 //*********************************************************
@@ -128,9 +128,6 @@ static inline uint32_t adpcm_a_registers_ch_end(uint32_t choffs) {
 	return m_regdata_a[choffs + 0x20] | (m_regdata_a[choffs + 0x28] << 8);
 }
 
-namespace ymfm
-{
-
 //*********************************************************
 // ADPCM "A" CHANNEL
 //*********************************************************
@@ -139,31 +136,30 @@ namespace ymfm
 //  adpcm_a_channel - constructor
 //-------------------------------------------------
 
-adpcm_a_channel::adpcm_a_channel(uint32_t choffs, uint32_t addrshift) :
-	m_choffs(choffs),
-	m_address_shift(addrshift),
-	m_playing(0),
-	m_curnibble(0),
-	m_curbyte(0),
-	m_curaddress(0),
-	m_accumulator(0),
-	m_step_index(0)
+static inline void adpcm_a_channel_init(uint32_t choffs)
 {
+	m_channel_a[choffs].m_choffs = choffs;
+	m_channel_a[choffs].m_address_shift =8;
+	m_channel_a[choffs].m_playing = 0;
+	m_channel_a[choffs].m_curnibble = 0;
+	m_channel_a[choffs].m_curbyte = 0;
+	m_channel_a[choffs].m_curaddress = 0;
+	m_channel_a[choffs].m_accumulator = 0;
+	m_channel_a[choffs].m_step_index = 0;
 }
-
 
 //-------------------------------------------------
 //  reset - reset the channel state
 //-------------------------------------------------
 
-void adpcm_a_channel::reset()
+static inline void adpcm_a_channel_reset(uint32_t choffs)
 {
-	m_playing = 0;
-	m_curnibble = 0;
-	m_curbyte = 0;
-	m_curaddress = 0;
-	m_accumulator = 0;
-	m_step_index = 0;
+	m_channel_a[choffs].m_playing = 0;
+	m_channel_a[choffs].m_curnibble = 0;
+	m_channel_a[choffs].m_curbyte = 0;
+	m_channel_a[choffs].m_curaddress = 0;
+	m_channel_a[choffs].m_accumulator = 0;
+	m_channel_a[choffs].m_step_index = 0;
 }
 
 
@@ -171,17 +167,19 @@ void adpcm_a_channel::reset()
 //  keyonoff - signal key on/off
 //-------------------------------------------------
 
-void adpcm_a_channel::keyonoff(bool on)
+static inline void adpcm_a_channel_keyonoff(uint32_t choffs, bool on)
 {
 	// QUESTION: repeated key ons restart the sample?
-	m_playing = on;
-	if (m_playing)
+	m_channel_a[choffs].m_playing = on;
+	if (m_channel_a[choffs].m_playing)
 	{
-		m_curaddress = adpcm_a_registers_ch_start(m_choffs) << m_address_shift;
-		m_curnibble = 0;
-		m_curbyte = 0;
-		m_accumulator = 0;
-		m_step_index = 0;
+		m_channel_a[choffs].m_curaddress =
+			adpcm_a_registers_ch_start(m_channel_a[choffs].m_choffs) <<
+			m_channel_a[choffs].m_address_shift;
+		m_channel_a[choffs].m_curnibble = 0;
+		m_channel_a[choffs].m_curbyte = 0;
+		m_channel_a[choffs].m_accumulator = 0;
+		m_channel_a[choffs].m_step_index = 0;
 	}
 }
 
@@ -190,18 +188,18 @@ void adpcm_a_channel::keyonoff(bool on)
 //  clock - master clocking function
 //-------------------------------------------------
 
-bool adpcm_a_channel::clock()
+bool adpcm_a_channel_clock(uint32_t choffs)
 {
 	// if not playing, just output 0
-	if (m_playing == 0)
+	if (m_channel_a[choffs].m_playing == 0)
 	{
-		m_accumulator = 0;
+		m_channel_a[choffs].m_accumulator = 0;
 		return false;
 	}
 
 	// if we're about to read nibble 0, fetch the data
 	uint8_t data;
-	if (m_curnibble == 0)
+	if (m_channel_a[choffs].m_curnibble == 0)
 	{
 		// stop when we hit the end address; apparently only low 20 bits are used for
 		// comparison on the YM2610: this affects sample playback in some games, for
@@ -211,23 +209,27 @@ bool adpcm_a_channel::clock()
 		// note also: end address is inclusive, so wait until we are about to fetch
 		// the sample just after the end before stopping; this is needed for nitd's
 		// jump sound, for example
-		uint32_t end = (adpcm_a_registers_ch_end(m_choffs) + 1) << m_address_shift;
-		if (((m_curaddress ^ end) & 0xfffff) == 0)
+		uint32_t end =
+			(adpcm_a_registers_ch_end(m_channel_a[choffs].m_choffs) + 1) <<
+			m_channel_a[choffs].m_address_shift;
+
+		if (((m_channel_a[choffs].m_curaddress ^ end) & 0xfffff) == 0)
 		{
-			m_playing = m_accumulator = 0;
+			m_channel_a[choffs].m_playing = m_channel_a[choffs].m_accumulator = 0;
 			return true;
 		}
 
-		m_curbyte = ymfm_external_read(ACCESS_ADPCM_A, m_curaddress++);
-		data = m_curbyte >> 4;
-		m_curnibble = 1;
+		m_channel_a[choffs].m_curbyte =
+			ymfm_external_read(ACCESS_ADPCM_A, m_channel_a[choffs].m_curaddress++);
+		data = m_channel_a[choffs].m_curbyte >> 4;
+		m_channel_a[choffs].m_curnibble = 1;
 	}
 
 	// otherwise just extract from the previosuly-fetched byte
 	else
 	{
-		data = m_curbyte & 0xf;
-		m_curnibble = 0;
+		data = m_channel_a[choffs].m_curbyte & 0xf;
+		m_channel_a[choffs].m_curnibble = 0;
 	}
 
 	// compute the ADPCM delta
@@ -241,16 +243,17 @@ bool adpcm_a_channel::clock()
 		449, 494,  544,  598,  658,  724,  796,
 		876, 963, 1060, 1166, 1282, 1411, 1552
 	};
-	int32_t delta = (2 * bitfield(data, 0, 3) + 1) * s_steps[m_step_index] / 8;
+	int32_t delta = (2 * bitfield(data, 0, 3) + 1) * s_steps[m_channel_a[choffs].m_step_index] / 8;
 	if (bitfield(data, 3, 1))
 		delta = -delta;
 
 	// the 12-bit accumulator wraps on the ym2610 and ym2608 (like the msm5205)
-	m_accumulator = (m_accumulator + delta) & 0xfff;
+	m_channel_a[choffs].m_accumulator = (m_channel_a[choffs].m_accumulator + delta) & 0xfff;
 
 	// adjust ADPCM step
 	static int8_t const s_step_inc[8] = { -1, -1, -1, -1, 2, 5, 7, 9 };
-	m_step_index = clamp(m_step_index + s_step_inc[bitfield(data, 0, 3)], 0, 48);
+	m_channel_a[choffs].m_step_index =
+		clamp(m_channel_a[choffs].m_step_index + s_step_inc[bitfield(data, 0, 3)], 0, 48);
 
 	return false;
 }
@@ -261,10 +264,10 @@ bool adpcm_a_channel::clock()
 //  panning applied
 //-------------------------------------------------
 
-void adpcm_a_channel::output(int32_t *output) const
+static inline void adpcm_a_channel_output(uint32_t choffs, int32_t *output)
 {
 	// volume combines instrument and total levels
-	int vol = (adpcm_a_registers_ch_instrument_level(m_choffs) ^ 0x1f) +
+	int vol = (adpcm_a_registers_ch_instrument_level(m_channel_a[choffs].m_choffs) ^ 0x1f) +
 		(adpcm_a_registers_total_level() ^ 0x3f);
 
 	// if combined is maximum, don't add to outputs
@@ -278,15 +281,13 @@ void adpcm_a_channel::output(int32_t *output) const
 
 	// m_accumulator is a 12-bit value; shift up to sign-extend;
 	// the downshift is incorporated into 'shift'
-	int16_t value = ((int16_t(m_accumulator << 4) * mul) >> shift) & ~3;
+	int16_t value = ((int16_t(m_channel_a[choffs].m_accumulator << 4) * mul) >> shift) & ~3;
 
 	// apply to left/right as appropriate
-	if (adpcm_a_registers_ch_pan_left(m_choffs))
+	if (adpcm_a_registers_ch_pan_left(m_channel_a[choffs].m_choffs))
 		output[0] += value;
-	if (adpcm_a_registers_ch_pan_right(m_choffs))
+	if (adpcm_a_registers_ch_pan_right(m_channel_a[choffs].m_choffs))
 		output[1] += value;
-}
-
 }
 
 
@@ -302,7 +303,7 @@ void adpcm_a_engine_init(void)
 {
 	// create the channels
 	for (int chnum = 0; chnum < CHANNELS_A; chnum++)
-		m_channel_a[chnum] = new ymfm::adpcm_a_channel(chnum, 8);
+		adpcm_a_channel_init(chnum);
 }
 
 
@@ -317,7 +318,7 @@ void adpcm_a_engine_reset(void)
 
 	// reset each channel
 	for (int i = 0; i < CHANNELS_A; ++i)
-		m_channel_a[i]->reset();
+		adpcm_a_channel_reset(i);
 }
 
 
@@ -331,7 +332,7 @@ uint32_t adpcm_a_engine_clock(uint32_t chanmask)
 	uint32_t result = 0;
 	for (int chnum = 0; chnum < CHANNELS_A; chnum++)
 		if (bitfield(chanmask, chnum, 1))
-			if (m_channel_a[chnum]->clock())
+			if (adpcm_a_channel_clock(chnum))
 				result |= 1 << chnum;
 
 	// return the bitmask of completed samples
@@ -351,7 +352,7 @@ void adpcm_a_engine_output(int32_t *output, uint32_t chanmask)
 	// compute the output of each channel
 	for (int chnum = 0; chnum < CHANNELS_A; chnum++)
 		if (bitfield(chanmask, chnum, 1))
-			m_channel_a[chnum]->output(output);
+			adpcm_a_channel_output(chnum, output);
 }
 
 
@@ -369,7 +370,7 @@ void adpcm_a_engine_write(uint32_t regnum, uint8_t data)
 	if (regnum == 0x00)
 		for (int chnum = 0; chnum < CHANNELS_A; chnum++)
 			if (bitfield(data, chnum, 1))
-				m_channel_a[chnum]->keyonoff(bitfield(~data, 7, 1));
+				adpcm_a_channel_keyonoff(chnum, bitfield(~data, 7, 1));
 }
 
 //*********************************************************
