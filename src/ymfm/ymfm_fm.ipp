@@ -605,7 +605,7 @@ void fm_operator<RegisterType>::clock_phase(int32_t lfo_raw_pm)
 {
 	// read from the cache, or recalculate if PM active
 	uint32_t phase_step = m_cache.phase_step;
-	if (phase_step == opdata_cache::PHASE_STEP_DYNAMIC)
+	if (phase_step == PHASE_STEP_DYNAMIC)
 		phase_step = m_regs.compute_phase_step(m_choffs, m_opoffs, m_cache, lfo_raw_pm);
 
 	// finally apply the step to the current phase value

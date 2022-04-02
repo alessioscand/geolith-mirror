@@ -295,7 +295,7 @@ void opn_registers_base::cache_operator_data(uint32_t choffs, uint32_t opoffs, o
 	if (lfo_enable() == 0 || ch_lfo_pm_sens(choffs) == 0)
 		cache.phase_step = compute_phase_step(choffs, opoffs, cache, 0);
 	else
-		cache.phase_step = opdata_cache::PHASE_STEP_DYNAMIC;
+		cache.phase_step = PHASE_STEP_DYNAMIC;
 
 	// total level, scaled by 8
 	cache.total_level = op_total_level(opoffs) << 3;

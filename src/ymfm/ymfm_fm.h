@@ -31,7 +31,9 @@
 #ifndef YMFM_FM_H
 #define YMFM_FM_H
 
-#pragma once
+// set phase_step to this value to recalculate it each sample; needed
+// in the case of PM LFO changes
+#define PHASE_STEP_DYNAMIC 1
 
 namespace ymfm
 {
@@ -59,10 +61,6 @@ enum {
 // and remains static during subsequent sound generation
 struct opdata_cache
 {
-	// set phase_step to this value to recalculate it each sample; needed
-	// in the case of PM LFO changes
-	static constexpr uint32_t PHASE_STEP_DYNAMIC = 1;
-
 	uint16_t const *waveform;         // base of sine table
 	uint32_t phase_step;              // phase step, or PHASE_STEP_DYNAMIC if PM is active
 	uint32_t total_level;             // total level * 8 + KSL
