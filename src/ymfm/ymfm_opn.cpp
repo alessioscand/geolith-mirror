@@ -406,7 +406,7 @@ std::string opn_registers_base::log_keyon(uint32_t choffs, uint32_t opoffs)
 
 	return buffer;
 }
-
+}
 
 
 //*********************************************************
@@ -446,10 +446,10 @@ void ssg_resampler::clock_and_add(int32_t &sum0, int32_t &sum1, int32_t &sum2, i
 //  divisor to the final result
 //-------------------------------------------------
 
-void ssg_resampler::write_to_output(ymfm::ymfm_output<3> *output, int32_t sum0, int32_t sum1, int32_t sum2, int32_t divisor)
+void ssg_resampler::write_to_output(int32_t *output, int32_t sum0, int32_t sum1, int32_t sum2, int32_t divisor)
 {
 	// mixing to one, apply a 2/3 factor to prevent overflow
-	output->data[2] = (sum0 + sum1 + sum2) * 2 / (3 * divisor);
+	output[2] = (sum0 + sum1 + sum2) * 2 / (3 * divisor);
 
 	// track the sample index here
 	m_sampindex++;
@@ -460,10 +460,10 @@ void ssg_resampler::write_to_output(ymfm::ymfm_output<3> *output, int32_t sum0, 
 //  ssg_resampler - constructor
 //-------------------------------------------------
 
-ssg_resampler::ssg_resampler() :
-	m_sampindex(0),
-	m_resampler(&ssg_resampler::resample_nop)
+ssg_resampler::ssg_resampler()
 {
+	m_sampindex = 0;
+	m_resampler = &ssg_resampler::resample_nop;
 	m_last[0] = m_last[1] = m_last[2] = 0;
 }
 
@@ -482,20 +482,26 @@ void ssg_resampler::configure(uint8_t outsamples, uint8_t srcsamples)
 }
 
 
+void ssg_resampler::resample(int32_t *output)
+{
+	(this->*m_resampler)(output);
+}
+
+
 //-------------------------------------------------
 //  resample_2_1 - resample SSG output to the
 //  target at a rate of 1 SSG sample to every
 //  2 output samples
 //-------------------------------------------------
 
-void ssg_resampler::resample_2_1(ymfm::ymfm_output<3> *output)
+void ssg_resampler::resample_2_1(int32_t *output)
 {
 	if (m_sampindex % 2 == 0)
 	{
 		ssg_engine_clock();
 		ssg_engine_output(m_last);
 	}
-	write_to_output(output, m_last[0], m_last[1], m_last[2]);
+	write_to_output(output, m_last[0], m_last[1], m_last[2], 1);
 }
 
 
@@ -505,7 +511,7 @@ void ssg_resampler::resample_2_1(ymfm::ymfm_output<3> *output)
 //  2 output samples
 //-------------------------------------------------
 
-void ssg_resampler::resample_2_9(ymfm::ymfm_output<3> *output)
+void ssg_resampler::resample_2_9(int32_t *output)
 {
 	int32_t sum0 = 0, sum1 = 0, sum2 = 0;
 	if (bitfield(m_sampindex, 0) != 0)
@@ -524,11 +530,14 @@ void ssg_resampler::resample_2_9(ymfm::ymfm_output<3> *output)
 //  resample_nop - no-op resampler
 //-------------------------------------------------
 
-void ssg_resampler::resample_nop(ymfm::ymfm_output<3> *output)
+void ssg_resampler::resample_nop(int32_t *output)
 {
 	// nothing to do except increment the sample index
 	++m_sampindex;
 }
+
+
+namespace ymfm {
 
 //*********************************************************
 //  YM2610
@@ -798,7 +807,7 @@ void ym2610::generate(output_data *output)
 	output->data[1] = m_last_fm.data[1];
 
 	// resample the SSG as configured
-	m_ssg_resampler.resample(output);
+	m_ssg_resampler.resample(output->data);
 }
 
 
