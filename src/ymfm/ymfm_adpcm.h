@@ -31,7 +31,9 @@
 #ifndef YMFM_ADPCM_H
 #define YMFM_ADPCM_H
 
-#include "ymfm.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // ======================> adpcm_a_engine
 // init
@@ -102,5 +104,9 @@ struct adpcm_b_channel
 	int32_t m_prev_accum;           // previous accumulator (for linear interp)
 	int32_t m_adpcm_step;           // next forecast
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // YMFM_ADPCM_H

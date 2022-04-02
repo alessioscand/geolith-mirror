@@ -28,6 +28,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <stdint.h>
 #include <string.h>
 
 #include "ymfm_adpcm.h"
@@ -50,6 +51,38 @@ static uint8_t m_regdata_b[REGISTERS_B];         // register data
 // internal state
 static adpcm_a_channel m_channel_a[CHANNELS_A];  // array of channels
 static adpcm_b_channel m_channel_b;              // channel
+
+//*********************************************************
+// FIXME - put this somewhere common after total conversion
+//         to C is done
+//*********************************************************
+enum {
+	ACCESS_IO = 0,
+	ACCESS_ADPCM_A,
+	ACCESS_ADPCM_B,
+	ACCESS_PCM,
+	ACCESS_CLASSES
+};
+extern "C" {
+extern uint8_t ymfm_external_read(uint32_t type, uint32_t address);
+
+extern void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data);
+}
+static inline uint32_t bitfield(uint32_t value, int start, int length = 1)
+{
+	return (value >> start) & ((1 << length) - 1);
+}
+
+static inline int32_t clamp(int32_t value, int32_t minval, int32_t maxval)
+{
+	if (value < minval)
+		return minval;
+	if (value > maxval)
+		return maxval;
+	return value;
+}
+//*********************************************************
+
 
 //*********************************************************
 // ADPCM "A" REGISTERS
