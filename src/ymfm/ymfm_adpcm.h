@@ -78,7 +78,7 @@ uint8_t adpcm_b_engine_status(void);
 //*********************************************************
 
 // ======================> adpcm_a_channel
-struct adpcm_a_channel
+typedef struct _adpcm_a_channel
 {
 	uint32_t m_choffs;                    // channel offset
 	uint32_t m_address_shift;             // address bits shift-left
@@ -88,10 +88,10 @@ struct adpcm_a_channel
 	uint32_t m_curaddress;                // current address
 	int32_t m_accumulator;                // accumulator
 	int32_t m_step_index;                 // index in the stepping table
-};
+} adpcm_a_channel;
 
 // ======================> adpcm_b_channel
-struct adpcm_b_channel
+typedef struct _adpcm_b_channel
 {
 	uint32_t m_address_shift;       // address bits shift-left
 	uint32_t m_status;              // currently playing?
@@ -103,7 +103,7 @@ struct adpcm_b_channel
 	int32_t m_accumulator;          // accumulator
 	int32_t m_prev_accum;           // previous accumulator (for linear interp)
 	int32_t m_adpcm_step;           // next forecast
-};
+} adpcm_b_channel;
 
 #ifdef __cplusplus
 }

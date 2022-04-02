@@ -28,6 +28,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -63,12 +64,12 @@ enum {
 	ACCESS_PCM,
 	ACCESS_CLASSES
 };
-extern "C" {
+
 extern uint8_t ymfm_external_read(uint32_t type, uint32_t address);
 
 extern void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data);
-}
-static inline uint32_t bitfield(uint32_t value, int start, int length = 1)
+
+static inline uint32_t bitfield(uint32_t value, int start, int length)
 {
 	return (value >> start) & ((1 << length) - 1);
 }
@@ -314,7 +315,7 @@ static inline void adpcm_a_channel_output(uint32_t choffs, int32_t *output)
 
 	// m_accumulator is a 12-bit value; shift up to sign-extend;
 	// the downshift is incorporated into 'shift'
-	int16_t value = ((int16_t(m_channel_a[choffs].m_accumulator << 4) * mul) >> shift) & ~3;
+	int16_t value = (((int16_t)(m_channel_a[choffs].m_accumulator << 4) * mul) >> shift) & ~3;
 
 	// apply to left/right as appropriate
 	if (adpcm_a_registers_ch_pan_left(m_channel_a[choffs].m_choffs))
@@ -654,7 +655,7 @@ static inline void adpcm_b_channel_clock(void)
 
 	// otherwise, advance the step
 	uint32_t position = m_channel_b.m_position + adpcm_b_registers_delta_n();
-	m_channel_b.m_position = uint16_t(position);
+	m_channel_b.m_position = (uint16_t)position;
 	if (position < 0x10000)
 		return;
 
@@ -691,7 +692,7 @@ static inline void adpcm_b_channel_clock(void)
 	}
 
 	// extract the nibble from our current byte
-	uint8_t data = uint8_t(m_channel_b.m_curbyte << (4 * m_channel_b.m_curnibble)) >> 4;
+	uint8_t data = (uint8_t)(m_channel_b.m_curbyte << (4 * m_channel_b.m_curnibble)) >> 4;
 	m_channel_b.m_curnibble ^= 1;
 
 	// if CPU-driven and we just processed the last nibble, copy the next byte and request more
@@ -727,11 +728,11 @@ static inline void adpcm_b_channel_output(int32_t *output, uint32_t rshift)
 {
 	// do a linear interpolation between samples
 	int32_t result = (m_channel_b.m_prev_accum *
-		int32_t((m_channel_b.m_position ^ 0xffff) + 1) +
-		m_channel_b.m_accumulator * int32_t(m_channel_b.m_position)) >> 16;
+		(int32_t)((m_channel_b.m_position ^ 0xffff) + 1) +
+		m_channel_b.m_accumulator * (int32_t)(m_channel_b.m_position)) >> 16;
 
 	// apply volume (level) in a linear fashion and reduce
-	result = (result * int32_t(adpcm_b_registers_level())) >> (8 + rshift);
+	result = (result * (int32_t)(adpcm_b_registers_level())) >> (8 + rshift);
 
 	// apply to left/right
 	if (adpcm_b_registers_pan_left())
