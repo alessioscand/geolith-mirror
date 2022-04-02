@@ -307,18 +307,11 @@ public:
 	// compute sample rate
 	uint32_t sample_rate(uint32_t baseclock) const { return baseclock / (m_clock_prescale * OPERATORS); }
 
-	// return the owning device
-	ymfm_interface &intf() const { return m_intf; }
-
 	// return a reference to our registers
 	RegisterType &regs() { return m_regs; }
 
 	// invalidate any caches
 	void invalidate_caches() { m_modified_channels = RegisterType::ALL_CHANNELS; }
-
-	// simple getters for debugging
-	fm_channel<RegisterType> *debug_channel(uint32_t index) const { return m_channel[index].get(); }
-	fm_operator<RegisterType> *debug_operator(uint32_t index) const { return m_operator[index].get(); }
 
 	// timer callback; called by the interface when a timer fires
 	virtual void engine_timer_expired(uint32_t tnum) override;

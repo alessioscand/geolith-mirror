@@ -380,24 +380,24 @@ struct ssg_resampler
 	void configure(uint8_t outsamples, uint8_t srcsamples);
 
 	// resample
-	void resample(ymfm::ymfm_output<3> *output, uint32_t numsamples)
+	void resample(ymfm::ymfm_output<3> *output)
 	{
-		(this->*m_resampler)(output, numsamples);
+		(this->*m_resampler)(output);
 	}
 
 	// resample SSG output to the target at a rate of 1 SSG sample
 	// to every 2 output samples
-	void resample_2_1(ymfm::ymfm_output<3> *output, uint32_t numsamples);
+	void resample_2_1(ymfm::ymfm_output<3> *output);
 
 	// resample SSG output to the target at a rate of 9 SSG samples
 	// to every 2 output samples
-	void resample_2_9(ymfm::ymfm_output<3> *output, uint32_t numsamples);
+	void resample_2_9(ymfm::ymfm_output<3> *output);
 
 	// no-op resampler
-	void resample_nop(ymfm::ymfm_output<3> *output, uint32_t numsamples);
+	void resample_nop(ymfm::ymfm_output<3> *output);
 
 	// define a pointer type
-	using resample_func = void (ssg_resampler::*)(ymfm::ymfm_output<3> *output, uint32_t numsamples);
+	using resample_func = void (ssg_resampler::*)(ymfm::ymfm_output<3> *output);
 
 	// internal state
 	uint32_t m_sampindex;
@@ -456,7 +456,7 @@ struct ym2610
 	void write(uint32_t offset, uint8_t data);
 
 	// generate one sample of sound
-	void generate(output_data *output, uint32_t numsamples = 1);
+	void generate(output_data *output);
 
 	// internal helpers
 	void update_prescale();
@@ -505,10 +505,10 @@ struct ym2612
 	void write(uint32_t offset, uint8_t data);
 
 	// generate one sample of sound
-	void generate(output_data *output, uint32_t numsamples = 1);
+	void generate(output_data *output);
 
 	// generate one sample of YM3438 sound
-	void generate3438(output_data *output, uint32_t numsamples = 1);
+	void generate3438(output_data *output);
 
 	// internal state
 	uint16_t m_address;              // address register
