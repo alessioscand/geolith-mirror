@@ -35,6 +35,11 @@
 
 #define STATUS_EOS 0x01 // FIXME: This is defined twice (ADPCM B)
 
+// ======================> ssg_resampler
+static void (*ssg_resampler_resample)(int32_t*);
+static uint32_t m_ssg_resampler_sampindex;
+static int32_t m_ssg_resampler_last[3];
+
 // simulate the DAC discontinuity (YM2612)
 static inline int32_t dac_discontinuity(int32_t value)
 {
@@ -418,11 +423,11 @@ std::string opn_registers_base::log_keyon(uint32_t choffs, uint32_t opoffs)
 //  value to the sums, applying the given scale
 //-------------------------------------------------
 
-void ssg_resampler::add_last(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale)
+static inline void ssg_resampler_add_last(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale)
 {
-	sum0 += m_last[0] * scale;
-	sum1 += m_last[1] * scale;
-	sum2 += m_last[2] * scale;
+	sum0 += m_ssg_resampler_last[0] * scale;
+	sum1 += m_ssg_resampler_last[1] * scale;
+	sum2 += m_ssg_resampler_last[2] * scale;
 }
 
 
@@ -432,11 +437,11 @@ void ssg_resampler::add_last(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_
 //  given scale
 //-------------------------------------------------
 
-void ssg_resampler::clock_and_add(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale)
+static inline void ssg_resampler_clock_and_add(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale)
 {
 	ssg_engine_clock();
-	ssg_engine_output(m_last);
-	add_last(sum0, sum1, sum2, scale);
+	ssg_engine_output(m_ssg_resampler_last);
+	ssg_resampler_add_last(sum0, sum1, sum2, scale);
 }
 
 
@@ -446,45 +451,13 @@ void ssg_resampler::clock_and_add(int32_t &sum0, int32_t &sum1, int32_t &sum2, i
 //  divisor to the final result
 //-------------------------------------------------
 
-void ssg_resampler::write_to_output(int32_t *output, int32_t sum0, int32_t sum1, int32_t sum2, int32_t divisor)
+static inline void ssg_resampler_write_to_output(int32_t *output, int32_t sum0, int32_t sum1, int32_t sum2, int32_t divisor)
 {
 	// mixing to one, apply a 2/3 factor to prevent overflow
 	output[2] = (sum0 + sum1 + sum2) * 2 / (3 * divisor);
 
 	// track the sample index here
-	m_sampindex++;
-}
-
-
-//-------------------------------------------------
-//  ssg_resampler - constructor
-//-------------------------------------------------
-
-ssg_resampler::ssg_resampler()
-{
-	m_sampindex = 0;
-	m_resampler = &ssg_resampler::resample_nop;
-	m_last[0] = m_last[1] = m_last[2] = 0;
-}
-
-//-------------------------------------------------
-//  configure - configure a new ratio
-//-------------------------------------------------
-
-void ssg_resampler::configure(uint8_t outsamples, uint8_t srcsamples)
-{
-	switch (outsamples * 10 + srcsamples)
-	{
-		case 2*10 + 1:	/* 2:1 */	m_resampler = &ssg_resampler::resample_2_1; break;
-		case 2*10 + 9:	/* 2:9 */	m_resampler = &ssg_resampler::resample_2_9; break;
-		default: assert(false); break;
-	}
-}
-
-
-void ssg_resampler::resample(int32_t *output)
-{
-	(this->*m_resampler)(output);
+	m_ssg_resampler_sampindex++;
 }
 
 
@@ -494,14 +467,15 @@ void ssg_resampler::resample(int32_t *output)
 //  2 output samples
 //-------------------------------------------------
 
-void ssg_resampler::resample_2_1(int32_t *output)
+static void ssg_resampler_resample_2_1(int32_t *output)
 {
-	if (m_sampindex % 2 == 0)
+	if (m_ssg_resampler_sampindex % 2 == 0)
 	{
 		ssg_engine_clock();
-		ssg_engine_output(m_last);
+		ssg_engine_output(m_ssg_resampler_last);
 	}
-	write_to_output(output, m_last[0], m_last[1], m_last[2], 1);
+	ssg_resampler_write_to_output(output, m_ssg_resampler_last[0],
+		m_ssg_resampler_last[1], m_ssg_resampler_last[2], 1);
 }
 
 
@@ -511,18 +485,18 @@ void ssg_resampler::resample_2_1(int32_t *output)
 //  2 output samples
 //-------------------------------------------------
 
-void ssg_resampler::resample_2_9(int32_t *output)
+static void ssg_resampler_resample_2_9(int32_t *output)
 {
 	int32_t sum0 = 0, sum1 = 0, sum2 = 0;
-	if (bitfield(m_sampindex, 0) != 0)
-		add_last(sum0, sum1, sum2, 1);
-	clock_and_add(sum0, sum1, sum2, 2);
-	clock_and_add(sum0, sum1, sum2, 2);
-	clock_and_add(sum0, sum1, sum2, 2);
-	clock_and_add(sum0, sum1, sum2, 2);
-	if (bitfield(m_sampindex, 0) == 0)
-		clock_and_add(sum0, sum1, sum2, 1);
-	write_to_output(output, sum0, sum1, sum2, 9);
+	if (bitfield(m_ssg_resampler_sampindex, 0) != 0)
+		ssg_resampler_add_last(sum0, sum1, sum2, 1);
+	ssg_resampler_clock_and_add(sum0, sum1, sum2, 2);
+	ssg_resampler_clock_and_add(sum0, sum1, sum2, 2);
+	ssg_resampler_clock_and_add(sum0, sum1, sum2, 2);
+	ssg_resampler_clock_and_add(sum0, sum1, sum2, 2);
+	if (bitfield(m_ssg_resampler_sampindex, 0) == 0)
+		ssg_resampler_clock_and_add(sum0, sum1, sum2, 1);
+	ssg_resampler_write_to_output(output, sum0, sum1, sum2, 9);
 }
 
 
@@ -530,10 +504,37 @@ void ssg_resampler::resample_2_9(int32_t *output)
 //  resample_nop - no-op resampler
 //-------------------------------------------------
 
-void ssg_resampler::resample_nop(int32_t *output)
+static void ssg_resampler_resample_nop(int32_t *output)
 {
 	// nothing to do except increment the sample index
-	++m_sampindex;
+	++m_ssg_resampler_sampindex;
+}
+
+
+//-------------------------------------------------
+//  ssg_resampler - init
+//-------------------------------------------------
+
+static inline void ssg_resampler_init(void)
+{
+	m_ssg_resampler_sampindex = 0;
+	ssg_resampler_resample = &ssg_resampler_resample_nop;
+	m_ssg_resampler_last[0] = m_ssg_resampler_last[1] = m_ssg_resampler_last[2] = 0;
+}
+
+
+//-------------------------------------------------
+//  configure - configure a new ratio
+//-------------------------------------------------
+
+static inline void ssg_resampler_configure(uint8_t outsamples, uint8_t srcsamples)
+{
+	switch (outsamples * 10 + srcsamples)
+	{
+		case 2*10 + 1:	/* 2:1 */	ssg_resampler_resample = &ssg_resampler_resample_2_1; break;
+		case 2*10 + 9:	/* 2:9 */	ssg_resampler_resample = &ssg_resampler_resample_2_9; break;
+		default: assert(false); break;
+	}
 }
 
 
@@ -553,10 +554,10 @@ ym2610::ym2610(ymfm_interface &intf, uint8_t channel_mask) :
 	m_fm_mask(channel_mask),
 	m_eos_status(0x00),
 	m_flag_mask(EOS_FLAGS_MASK),
-	m_fm(intf),
-	m_ssg_resampler()
+	m_fm(intf)
 {
 	ssg_engine_init();
+	ssg_resampler_init();
 	adpcm_a_engine_init();
 	adpcm_b_engine_init();
 	update_prescale();
@@ -801,13 +802,13 @@ void ym2610::write(uint32_t offset, uint8_t data)
 void ym2610::generate(output_data *output)
 {
 	// FM output is just repeated the prescale number of times
-	if (m_ssg_resampler.sampindex() % m_fm_samples_per_output == 0)
+	if (m_ssg_resampler_sampindex % m_fm_samples_per_output == 0)
 		clock_fm_and_adpcm();
 	output->data[0] = m_last_fm.data[0];
 	output->data[1] = m_last_fm.data[1];
 
 	// resample the SSG as configured
-	m_ssg_resampler.resample(output->data);
+	ssg_resampler_resample(output->data);
 }
 
 
@@ -828,12 +829,12 @@ void ym2610::update_prescale()
 	if (m_fidelity == OPN_FIDELITY_MIN || m_fidelity == OPN_FIDELITY_MED)
 	{
 		m_fm_samples_per_output = 1;
-		m_ssg_resampler.configure(2, 9);
+		ssg_resampler_configure(2, 9);
 	}
 	else
 	{
 		m_fm_samples_per_output = 9;
-		m_ssg_resampler.configure(2, 1);
+		ssg_resampler_configure(2, 1);
 	}
 }
 

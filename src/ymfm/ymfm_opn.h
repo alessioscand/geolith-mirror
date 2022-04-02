@@ -353,52 +353,7 @@ enum opn_fidelity : uint8_t
 	OPN_FIDELITY_DEFAULT = OPN_FIDELITY_MAX
 };
 
-}
 
-// ======================> ssg_resampler
-
-struct ssg_resampler
-{
-	// helper to add the last computed value to the sums, applying the given scale
-	void add_last(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale);
-
-	// helper to clock a new value and then add it to the sums, applying the given scale
-	void clock_and_add(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale);
-
-	// helper to write the sums to the appropriate outputs, applying the given
-	// divisor to the final result
-	void write_to_output(int32_t *output, int32_t sum0, int32_t sum1, int32_t sum2, int32_t divisor);
-
-	// constructor
-	ssg_resampler();
-
-	// get the current sample index
-	uint32_t sampindex() const { return m_sampindex; }
-
-	// configure the ratio
-	void configure(uint8_t outsamples, uint8_t srcsamples);
-
-	// resample
-	void resample(int32_t *output);
-
-	// resample SSG output to the target at a rate of 1 SSG sample
-	// to every 2 output samples
-	void resample_2_1(int32_t *output);
-
-	// resample SSG output to the target at a rate of 9 SSG samples
-	// to every 2 output samples
-	void resample_2_9(int32_t *output);
-
-	// no-op resampler
-	void resample_nop(int32_t *output);
-
-	// internal state
-	uint32_t m_sampindex;
-	void (ssg_resampler::*m_resampler)(int32_t*);
-	int32_t m_last[3];
-};
-
-namespace ymfm {
 // ======================> ym2610/ym2610b
 
 struct ym2610
@@ -464,7 +419,6 @@ struct ym2610
 	uint8_t m_flag_mask;                // flag mask control
 	fm_engine::output_data m_last_fm;   // last FM output
 	fm_engine m_fm;                     // core FM engine
-	ssg_resampler m_ssg_resampler;      // SSG resampler helper
 };
 
 
