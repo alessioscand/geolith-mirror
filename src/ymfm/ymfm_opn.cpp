@@ -862,12 +862,16 @@ void ym2610::clock_fm_and_adpcm()
 		m_eos_status = (m_eos_status & ~0xc0) | live_eos | (live_eos << 1);
 
 	// update the FM content; OPNB is 13-bit with no intermediate clipping
-	m_fm.output(m_last_fm.clear(), 1, 32767, m_fm_mask);
+	m_last_fm.data[0] = m_last_fm.data[1] = m_last_fm.data[2] = 0;
+	m_fm.output(m_last_fm, 1, 32767, m_fm_mask);
 
 	// mix in the ADPCM and clamp
 	adpcm_a_engine_output(m_last_fm.data, 0x3f);
 	adpcm_b_engine_output(m_last_fm.data, 1);
-	m_last_fm.clamp16();
+
+	m_last_fm.data[0] = clamp(m_last_fm.data[0], -32768, 32767);
+	m_last_fm.data[1] = clamp(m_last_fm.data[1], -32768, 32767);
+	m_last_fm.data[2] = clamp(m_last_fm.data[2], -32768, 32767);
 }
 
 
@@ -1054,14 +1058,15 @@ void ym2612::generate(output_data *output)
 	m_fm.clock(fm_engine::ALL_CHANNELS);
 
 	// sum individual channels to apply DAC discontinuity on each
-	output->clear();
+	output->data[0] = output->data[1] = 0;
 	output_data temp;
 
 	// first do FM-only channels; OPN2 is 9-bit with intermediate clipping
 	int const last_fm_channel = m_dac_enable ? 5 : 6;
 	for (int chan = 0; chan < last_fm_channel; chan++)
 	{
-		m_fm.output(temp.clear(), 5, 256, 1 << chan);
+		temp.data[0] = temp.data[1] = 0;
+		m_fm.output(temp, 5, 256, 1 << chan);
 		output->data[0] += dac_discontinuity(temp.data[0]);
 		output->data[1] += dac_discontinuity(temp.data[1]);
 	}
@@ -1097,7 +1102,8 @@ void ym2612::generate3438(output_data *output)
 	if (!m_dac_enable)
 	{
 		// DAC disabled: all 6 channels sum together
-		m_fm.output(output->clear(), 5, 256, fm_engine::ALL_CHANNELS);
+		output->data[0] = output->data[1] = 0;
+		m_fm.output(*output, 5, 256, fm_engine::ALL_CHANNELS);
 	}
 	else
 	{
