@@ -133,6 +133,14 @@ void opn_registers::operator_map(operator_mapping &dest) const
 	dest = s_fixed_map;
 }
 
+//-------------------------------------------------
+//  read - handle reads to the register array
+//-------------------------------------------------
+
+uint8_t opn_registers::read(uint16_t index) {
+	return m_regdata[index];
+}
+
 
 //-------------------------------------------------
 //  write - handle writes to the register array

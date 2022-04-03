@@ -231,6 +231,20 @@ inline int32_t opn_lfo_pm_phase_adjustment(uint32_t fnum_bits, uint32_t pm_sensi
 }
 
 
+// map channel number to register offset
+static inline uint32_t channel_offset(uint32_t chnum)
+{
+	assert(chnum < opn_registers::CHANNELS);
+	return (chnum % 3) + 0x100 * (chnum / 3);
+}
+
+// map operator number to register offset
+static inline uint32_t operator_offset(uint32_t opnum)
+{
+	assert(opnum < opn_registers::OPERATORS);
+	return (opnum % 12) + ((opnum % 12) / 3) + 0x100 * (opnum / 12);
+}
+
 //*********************************************************
 //  FM OPERATOR
 //*********************************************************
@@ -268,11 +282,33 @@ void fm_operator::reset()
 }
 
 
+// return the operator/channel offset
+uint32_t fm_operator::opoffs(void) {
+	return m_opoffs;
+}
+
+
+uint32_t fm_operator::choffs(void) {
+	return m_choffs;
+}
+
+
+// set the current channel
+void fm_operator::set_choffs(uint32_t choffs) {
+	m_choffs = choffs;
+}
+
+
+uint32_t fm_operator::phase(void) {
+	return m_phase >> 10;
+}
+
+
 //-------------------------------------------------
 //  prepare - prepare for clocking
 //-------------------------------------------------
 
-bool fm_operator::prepare()
+bool fm_operator::prepare(void)
 {
 	// cache the data
 	m_regs.cache_operator_data(m_choffs, m_opoffs, m_cache);
@@ -311,7 +347,7 @@ void fm_operator::clock(uint32_t env_counter, int32_t lfo_raw_pm)
 //  modulation and an AM LFO offset
 //-------------------------------------------------
 
-int32_t fm_operator::compute_volume(uint32_t phase, uint32_t am_offset) const
+int32_t fm_operator::compute_volume(uint32_t phase, uint32_t am_offset)
 {
 	// the low 10 bits of phase represents a full 2*PI period over
 	// the full sin wave
@@ -340,7 +376,7 @@ int32_t fm_operator::compute_volume(uint32_t phase, uint32_t am_offset) const
 //  noise input value and an AM offset
 //-------------------------------------------------
 
-int32_t fm_operator::compute_noise_volume(uint32_t am_offset) const
+int32_t fm_operator::compute_noise_volume(uint32_t am_offset)
 {
 	// application manual says the logarithmic transform is not applied here, so we
 	// just use the raw envelope attenuation, inverted (since 0 attenuation should be
@@ -439,7 +475,7 @@ void fm_operator::clock_keystate(uint32_t keystate)
 			if (opn_registers::EG_HAS_DEPRESS && m_env_attenuation < 0x200)
 				m_env_state = EG_DEPRESS;
 			else
-				start_attack();
+				start_attack(false);
 		}
 
 		// otherwise, start the release
@@ -568,7 +604,7 @@ void fm_operator::clock_envelope(uint32_t env_counter)
 
 		// transition from depress to attack
 		if (opn_registers::EG_HAS_DEPRESS && m_env_state == EG_DEPRESS && m_env_attenuation >= 0x200)
-			start_attack();
+			start_attack(false);
 
 		// transition from release to reverb, should switch at -18dB
 		if (opn_registers::EG_HAS_REVERB && m_env_state == EG_RELEASE && m_env_attenuation >= 0xc0)
@@ -600,7 +636,7 @@ void fm_operator::clock_phase(int32_t lfo_raw_pm)
 //  attenuation of the envelope
 //-------------------------------------------------
 
-uint32_t fm_operator::envelope_attenuation(uint32_t am_offset) const
+uint32_t fm_operator::envelope_attenuation(uint32_t am_offset)
 {
 	uint32_t result = m_env_attenuation >> m_cache.eg_shift;
 
@@ -642,11 +678,25 @@ fm_channel::fm_channel(uint32_t choffs)
 //  reset - reset the channel state
 //-------------------------------------------------
 
-void fm_channel::reset()
+void fm_channel::reset(void)
 {
 	// reset our data
 	m_feedback[0] = m_feedback[1] = 0;
 	m_feedback_in = 0;
+}
+
+
+// return the channel offset
+uint32_t fm_channel::choffs(void) {
+	return m_choffs;
+}
+
+// assign operators
+void fm_channel::assign(uint32_t index, fm_operator *op) {
+	assert(index < 4);
+	m_op[index] = op;
+	if (op != nullptr)
+		op->set_choffs(m_choffs);
 }
 
 
@@ -666,7 +716,7 @@ void fm_channel::keyonoff(uint32_t states, uint32_t type, uint32_t chnum)
 //  prepare - prepare for clocking
 //-------------------------------------------------
 
-bool fm_channel::prepare()
+bool fm_channel::prepare(void)
 {
 	uint32_t active_mask = 0;
 
@@ -703,7 +753,7 @@ void fm_channel::clock(uint32_t env_counter, int32_t lfo_raw_pm)
 //  which vary between different implementations
 //-------------------------------------------------
 
-void fm_channel::output_2op(int32_t *output, uint32_t rshift, int32_t clipmax) const
+void fm_channel::output_2op(int32_t *output, uint32_t rshift, int32_t clipmax)
 {
 	// The first 2 operators should be populated
 	assert(m_op[0] != nullptr);
@@ -756,7 +806,7 @@ void fm_channel::output_2op(int32_t *output, uint32_t rshift, int32_t clipmax) c
 //  which vary between different implementations
 //-------------------------------------------------
 
-void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax) const
+void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax)
 {
 	// all 4 operators should be populated
 	assert(m_op[0] != nullptr);
@@ -860,6 +910,33 @@ void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax) c
 }
 
 
+// are we a 4-operator channel or a 2-operator one?
+bool fm_channel::is4op(void) {
+	if (opn_registers::DYNAMIC_OPS)
+		return (m_op[2] != nullptr);
+	return (opn_registers::OPERATORS / opn_registers::CHANNELS == 4);
+}
+
+// helper to add values to the outputs based on channel enables
+void fm_channel::add_to_output(uint32_t choffs, int32_t *output, int32_t value) {
+	// create these constants to appease overzealous compilers checking array
+	// bounds in unreachable code (looking at you, clang)
+	constexpr int out0_index = 0;
+	constexpr int out1_index = 1 % opn_registers::OUTPUTS;
+	constexpr int out2_index = 2 % opn_registers::OUTPUTS;
+	constexpr int out3_index = 3 % opn_registers::OUTPUTS;
+
+	if (opn_registers::OUTPUTS == 1 || m_regs.ch_output_0(choffs))
+		output[out0_index] += value;
+	if (opn_registers::OUTPUTS >= 2 && m_regs.ch_output_1(choffs))
+		output[out1_index] += value;
+	if (opn_registers::OUTPUTS >= 3 && m_regs.ch_output_2(choffs))
+		output[out2_index] += value;
+	if (opn_registers::OUTPUTS >= 4 && m_regs.ch_output_3(choffs))
+		output[out3_index] += value;
+}
+
+
 //*********************************************************
 //  FM ENGINE BASE
 //*********************************************************
@@ -885,11 +962,11 @@ fm_engine::fm_engine()
 
 	// create the channels
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-		m_channel[chnum] = new fm_channel(opn_registers::channel_offset(chnum));
+		m_channel[chnum] = new fm_channel(channel_offset(chnum));
 
 	// create the operators
 	for (uint32_t opnum = 0; opnum < OPERATORS; opnum++)
-		m_operator[opnum] = new fm_operator(opn_registers::operator_offset(opnum));
+		m_operator[opnum] = new fm_operator(operator_offset(opnum));
 
 	// do the initial operator assignment
 	assign_operators();
@@ -900,7 +977,7 @@ fm_engine::fm_engine()
 //  reset - reset the overall state
 //-------------------------------------------------
 
-void fm_engine::reset()
+void fm_engine::reset(void)
 {
 	// reset all status bits
 	set_reset_status(0, 0xff);
@@ -976,7 +1053,7 @@ uint32_t fm_engine::clock(uint32_t chanmask)
 //  channels
 //-------------------------------------------------
 
-void fm_engine::output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_t chanmask) const
+void fm_engine::output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_t chanmask)
 {
 	// mask out some channels for debug purposes
 	chanmask &= 0xffffffff;
@@ -1040,9 +1117,49 @@ void fm_engine::write(uint16_t regnum, uint8_t data)
 //  status flags
 //-------------------------------------------------
 
-uint8_t fm_engine::status() const
+uint8_t fm_engine::status(void)
 {
 	return m_status & ~STATUS_BUSY;
+}
+
+
+// set/reset bits in the status register, updating the IRQ status
+uint8_t fm_engine::set_reset_status(uint8_t set, uint8_t reset)
+{
+	m_status = (m_status | set) & ~(reset | STATUS_BUSY);
+	ymfm_sync_check_interrupts();
+	return m_status;
+}
+
+
+// set the IRQ mask
+void fm_engine::set_irq_mask(uint8_t mask) {
+	m_irq_mask = mask;
+	ymfm_sync_check_interrupts();
+}
+
+
+// return the current clock prescale
+uint32_t fm_engine::clock_prescale(void) {
+	return m_clock_prescale;
+}
+
+
+// set prescale factor (2/3/6)
+void fm_engine::set_clock_prescale(uint32_t prescale) {
+	m_clock_prescale = prescale;
+}
+
+
+// compute sample rate
+uint32_t fm_engine::sample_rate(uint32_t baseclock) {
+	return baseclock / (m_clock_prescale * OPERATORS);
+}
+
+
+// invalidate any caches
+void fm_engine::invalidate_caches(void) {
+	m_modified_channels = opn_registers::ALL_CHANNELS;
 }
 
 

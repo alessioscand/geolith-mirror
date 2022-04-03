@@ -192,26 +192,12 @@ struct opn_registers
 	// reset to initial state
 	void reset();
 
-	// map channel number to register offset
-	static inline uint32_t channel_offset(uint32_t chnum)
-	{
-		assert(chnum < CHANNELS);
-		return (chnum % 3) + 0x100 * (chnum / 3);
-	}
-
-	// map operator number to register offset
-	static inline uint32_t operator_offset(uint32_t opnum)
-	{
-		assert(opnum < OPERATORS);
-		return (opnum % 12) + ((opnum % 12) / 3) + 0x100 * (opnum / 12);
-	}
-
 	// return an array of operator indices for each channel
 	struct operator_mapping { uint32_t chan[CHANNELS]; };
 	void operator_map(operator_mapping &dest) const;
 
 	// read a register value
-	uint8_t read(uint16_t index) const { return m_regdata[index]; }
+	uint8_t read(uint16_t index);
 
 	// handle writes to the register array
 	bool write(uint16_t index, uint8_t data, uint32_t &chan, uint32_t &opmask);
@@ -290,15 +276,14 @@ extern opn_registers m_regs; // register accessor
 //*********************************************************
 
 // forward declarations
-class fm_engine;
+struct fm_engine;
 
 // ======================> fm_operator
 
 // fm_operator represents an FM operator (or "slot" in FM parlance), which
 // produces an output sine wave modulated by an envelope
-class fm_operator
+struct fm_operator
 {
-public:
 	// "quiet" value, used to optimize when we can skip doing working
 	static constexpr uint32_t EG_QUIET = 0x200;
 
@@ -306,35 +291,35 @@ public:
 	fm_operator(uint32_t opoffs);
 
 	// reset the operator state
-	void reset();
+	void reset(void);
 
 	// return the operator/channel offset
-	uint32_t opoffs() const { return m_opoffs; }
-	uint32_t choffs() const { return m_choffs; }
+	uint32_t opoffs(void);
+	uint32_t choffs(void);
 
 	// set the current channel
-	void set_choffs(uint32_t choffs) { m_choffs = choffs; }
+	void set_choffs(uint32_t choffs);
 
 	// prepare prior to clocking
-	bool prepare();
+	bool prepare(void);
 
 	// master clocking function
 	void clock(uint32_t env_counter, int32_t lfo_raw_pm);
 
 	// return the current phase value
-	uint32_t phase() const { return m_phase >> 10; }
+	uint32_t phase(void);
 
 	// compute operator volume
-	int32_t compute_volume(uint32_t phase, uint32_t am_offset) const;
+	int32_t compute_volume(uint32_t phase, uint32_t am_offset);
 
 	// compute volume for the OPM noise channel
-	int32_t compute_noise_volume(uint32_t am_offset) const;
+	int32_t compute_noise_volume(uint32_t am_offset);
 
 	// key state control
 	void keyonoff(uint32_t on, uint32_t type);
 
 	// start the attack phase
-	void start_attack(bool is_restart = false);
+	void start_attack(bool is_restart);
 
 	// start the release phase
 	void start_release();
@@ -346,7 +331,7 @@ public:
 	void clock_phase(int32_t lfo_raw_pm);
 
 	// return effective attenuation of the envelope
-	uint32_t envelope_attenuation(uint32_t am_offset) const;
+	uint32_t envelope_attenuation(uint32_t am_offset);
 
 	// internal state
 	uint32_t m_choffs;                     // channel offset in registers
@@ -365,73 +350,44 @@ public:
 
 // fm_channel represents an FM channel which combines the output of 2 or 4
 // operators into a final result
-class fm_channel
+struct fm_channel
 {
-public:
 	// constructor
 	fm_channel(uint32_t choffs);
 
 	// reset the channel state
-	void reset();
+	void reset(void);
 
 	// return the channel offset
-	uint32_t choffs() const { return m_choffs; }
+	uint32_t choffs(void);
 
 	// assign operators
-	void assign(uint32_t index, fm_operator *op)
-	{
-		assert(index < 4);
-		m_op[index] = op;
-		if (op != nullptr)
-			op->set_choffs(m_choffs);
-	}
+	void assign(uint32_t index, fm_operator *op);
 
 	// signal key on/off to our operators
 	void keyonoff(uint32_t states, uint32_t type, uint32_t chnum);
 
 	// prepare prior to clocking
-	bool prepare();
+	bool prepare(void);
 
 	// master clocking function
 	void clock(uint32_t env_counter, int32_t lfo_raw_pm);
 
 	// specific 2-operator and 4-operator output handlers
-	void output_2op(int32_t *output, uint32_t rshift, int32_t clipmax) const;
-	void output_4op(int32_t *output, uint32_t rshift, int32_t clipmax) const;
+	void output_2op(int32_t *output, uint32_t rshift, int32_t clipmax);
+	void output_4op(int32_t *output, uint32_t rshift, int32_t clipmax);
 
 	// are we a 4-operator channel or a 2-operator one?
-	bool is4op() const
-	{
-		if (opn_registers::DYNAMIC_OPS)
-			return (m_op[2] != nullptr);
-		return (opn_registers::OPERATORS / opn_registers::CHANNELS == 4);
-	}
+	bool is4op(void);
 
 	// helper to add values to the outputs based on channel enables
-	void add_to_output(uint32_t choffs, int32_t *output, int32_t value) const
-	{
-		// create these constants to appease overzealous compilers checking array
-		// bounds in unreachable code (looking at you, clang)
-		constexpr int out0_index = 0;
-		constexpr int out1_index = 1 % opn_registers::OUTPUTS;
-		constexpr int out2_index = 2 % opn_registers::OUTPUTS;
-		constexpr int out3_index = 3 % opn_registers::OUTPUTS;
-
-		if (opn_registers::OUTPUTS == 1 || m_regs.ch_output_0(choffs))
-			output[out0_index] += value;
-		if (opn_registers::OUTPUTS >= 2 && m_regs.ch_output_1(choffs))
-			output[out1_index] += value;
-		if (opn_registers::OUTPUTS >= 3 && m_regs.ch_output_2(choffs))
-			output[out2_index] += value;
-		if (opn_registers::OUTPUTS >= 4 && m_regs.ch_output_3(choffs))
-			output[out3_index] += value;
-	}
+	void add_to_output(uint32_t choffs, int32_t *output, int32_t value);
 
 	// internal state
-	uint32_t m_choffs;                     // channel offset in registers
-	int16_t m_feedback[2];                 // feedback memory for operator 1
-	mutable int16_t m_feedback_in;         // next input value for op 1 feedback (set in output)
-	fm_operator *m_op[4];                  // up to 4 operators
+	uint32_t m_choffs;     // channel offset in registers
+	int16_t m_feedback[2]; // feedback memory for operator 1
+	int16_t m_feedback_in; // next input value for op 1 feedback (set in output)
+	fm_operator *m_op[4];  // up to 4 operators
 };
 
 
@@ -440,9 +396,8 @@ public:
 // fm_engine represents a set of operators and channels which together
 // form a Yamaha FM core; chips that implement other engines (ADPCM, wavetable,
 // etc) take this output and combine it with the others externally
-class fm_engine
+struct fm_engine
 {
-public:
 	// expose some constants from the registers
 	static constexpr uint32_t OUTPUTS = opn_registers::OUTPUTS;
 	static constexpr uint32_t CHANNELS = opn_registers::CHANNELS;
@@ -465,36 +420,31 @@ public:
 	uint32_t clock(uint32_t chanmask);
 
 	// compute sum of channel outputs
-	void output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_t chanmask) const;
+	void output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_t chanmask);
 
 	// write to the OPN registers
 	void write(uint16_t regnum, uint8_t data);
 
 	// return the current status
-	uint8_t status() const;
+	uint8_t status(void);
 
 	// set/reset bits in the status register, updating the IRQ status
-	uint8_t set_reset_status(uint8_t set, uint8_t reset)
-	{
-		m_status = (m_status | set) & ~(reset | STATUS_BUSY);
-		ymfm_sync_check_interrupts();
-		return m_status;
-	}
+	uint8_t set_reset_status(uint8_t set, uint8_t reset);
 
 	// set the IRQ mask
-	void set_irq_mask(uint8_t mask) { m_irq_mask = mask; ymfm_sync_check_interrupts(); }
+	void set_irq_mask(uint8_t mask);
 
 	// return the current clock prescale
-	uint32_t clock_prescale() const { return m_clock_prescale; }
+	uint32_t clock_prescale(void);
 
 	// set prescale factor (2/3/6)
-	void set_clock_prescale(uint32_t prescale) { m_clock_prescale = prescale; }
+	void set_clock_prescale(uint32_t prescale);
 
 	// compute sample rate
-	uint32_t sample_rate(uint32_t baseclock) const { return baseclock / (m_clock_prescale * OPERATORS); }
+	uint32_t sample_rate(uint32_t baseclock);
 
 	// invalidate any caches
-	void invalidate_caches() { m_modified_channels = opn_registers::ALL_CHANNELS; }
+	void invalidate_caches(void);
 
 	// timer callback; called by the interface when a timer fires
 	void engine_timer_expired(uint32_t tnum);
