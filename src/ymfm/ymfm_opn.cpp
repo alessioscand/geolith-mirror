@@ -35,7 +35,11 @@
 
 #define STATUS_EOS 0x01 // FIXME: This is defined twice (ADPCM B)
 
-opn_registers m_regs;
+// opn_registers internal state
+static uint32_t m_lfo_counter;               // LFO counter
+static uint8_t m_lfo_am;                     // current LFO AM value
+static uint8_t m_regdata[REGISTERS];         // register data
+static uint16_t m_waveform[WAVEFORMS][WAVEFORM_LENGTH]; // waveforms
 
 // ======================> ssg_resampler
 static void (*ssg_resampler_resample)(int32_t*);
@@ -45,7 +49,7 @@ static int32_t m_ssg_resampler_last[3];
 // return a bitfield extracted from a byte
 static inline uint32_t byte(uint32_t offset, uint32_t start, uint32_t count, uint32_t extra_offset)
 {
-	return bitfield(m_regs.m_regdata[offset + extra_offset], start, count);
+	return bitfield(m_regdata[offset + extra_offset], start, count);
 }
 
 // return a bitfield extracted from a pair of bytes, MSBs listed first
@@ -186,12 +190,12 @@ uint32_t opn_registers_op_ssg_eg_mode(uint32_t opoffs)                 { return 
 //-------------------------------------------------
 
 void opn_registers_init(void) {
-	m_regs.m_lfo_counter = 0;
-	m_regs.m_lfo_am = 0;
+	m_lfo_counter = 0;
+	m_lfo_am = 0;
 
 	// create the waveforms
 	for (uint32_t index = 0; index < WAVEFORM_LENGTH; index++)
-		m_regs.m_waveform[0][index] = abs_sin_attenuation(index) | (bitfield(index, 9) << 15);
+		m_waveform[0][index] = abs_sin_attenuation(index) | (bitfield(index, 9) << 15);
 }
 
 
@@ -201,11 +205,11 @@ void opn_registers_init(void) {
 
 void opn_registers_reset(void)
 {
-	memset(&(m_regs.m_regdata[0]), 0, REGISTERS);
+	memset(&(m_regdata[0]), 0, REGISTERS);
 	// enable output on both channels by default
-	m_regs.m_regdata[0xb4] = m_regs.m_regdata[0xb5] =
-	m_regs.m_regdata[0xb6] = m_regs.m_regdata[0x1b4] =
-	m_regs.m_regdata[0x1b5] = m_regs.m_regdata[0x1b6] = 0xc0;
+	m_regdata[0xb4] = m_regdata[0xb5] =
+	m_regdata[0xb6] = m_regdata[0x1b4] =
+	m_regdata[0x1b5] = m_regdata[0x1b6] = 0xc0;
 }
 
 
@@ -240,7 +244,7 @@ void opn_registers_operator_map(operator_mapping &dest)
 //-------------------------------------------------
 
 uint8_t opn_registers_read(uint16_t index) {
-	return m_regs.m_regdata[index];
+	return m_regdata[index];
 }
 
 
@@ -261,18 +265,18 @@ bool opn_registers_write(uint16_t index, uint8_t data, uint32_t &channel, uint32
 
 		// writes to the upper half just latch (only low 6 bits matter)
 		if (bitfield(index, 2))
-			m_regs.m_regdata[latchindex] = data | 0x80;
+			m_regdata[latchindex] = data | 0x80;
 
 		// writes to the lower half only commit if the latch is there
-		else if (bitfield(m_regs.m_regdata[latchindex], 7))
+		else if (bitfield(m_regdata[latchindex], 7))
 		{
-			m_regs.m_regdata[index | 4] = m_regs.m_regdata[latchindex] & 0x3f;
-			m_regs.m_regdata[latchindex] = 0;
+			m_regdata[index | 4] = m_regdata[latchindex] & 0x3f;
+			m_regdata[latchindex] = 0;
 		}
 	}
 
 	// everything else is normal
-	m_regs.m_regdata[index] = data;
+	m_regdata[index] = data;
 
 	// handle writes to the key on index
 	if (index == 0x28)
@@ -302,15 +306,15 @@ int32_t opn_registers_clock_noise_and_lfo(void)
 	// if LFO not enabled (not present on OPN), quick exit with 0s
 	if (!opn_registers_lfo_enable())
 	{
-		m_regs.m_lfo_counter = 0;
-		m_regs.m_lfo_am = 0;
+		m_lfo_counter = 0;
+		m_lfo_am = 0;
 		return 0;
 	}
 
 	// this table is based on converting the frequencies in the applications
 	// manual to clock dividers, based on the assumption of a 7-bit LFO value
 	static uint8_t const lfo_max_count[8] = { 109, 78, 72, 68, 63, 45, 9, 6 };
-	uint32_t subcount = uint8_t(m_regs.m_lfo_counter++);
+	uint32_t subcount = uint8_t(m_lfo_counter++);
 
 	// when we cross the divider count, add enough to zero it and cause an
 	// increment at bit 8; the 7-bit value lives from bits 8-14
@@ -319,30 +323,30 @@ int32_t opn_registers_clock_noise_and_lfo(void)
 		// note: to match the published values this should be 0x100 - subcount;
 		// however, tests on the hardware and nuked bear out an off-by-one
 		// error exists that causes the max LFO rate to be faster than published
-		m_regs.m_lfo_counter += 0x101 - subcount;
+		m_lfo_counter += 0x101 - subcount;
 	}
 
 	// AM value is 7 bits, staring at bit 8; grab the low 6 directly
-	m_regs.m_lfo_am = bitfield(m_regs.m_lfo_counter, 8, 6);
+	m_lfo_am = bitfield(m_lfo_counter, 8, 6);
 
 	// first half of the AM period (bit 6 == 0) is inverted
-	if (bitfield(m_regs.m_lfo_counter, 8+6) == 0)
-		m_regs.m_lfo_am ^= 0x3f;
+	if (bitfield(m_lfo_counter, 8+6) == 0)
+		m_lfo_am ^= 0x3f;
 
 	// PM value is 5 bits, starting at bit 10; grab the low 3 directly
-	int32_t pm = bitfield(m_regs.m_lfo_counter, 10, 3);
+	int32_t pm = bitfield(m_lfo_counter, 10, 3);
 
 	// PM is reflected based on bit 3
-	if (bitfield(m_regs.m_lfo_counter, 10+3))
+	if (bitfield(m_lfo_counter, 10+3))
 		pm ^= 7;
 
 	// PM is negated based on bit 4
-	return bitfield(m_regs.m_lfo_counter, 10+4) ? -pm : pm;
+	return bitfield(m_lfo_counter, 10+4) ? -pm : pm;
 }
 
 
 void opn_registers_reset_lfo(void) {
-	m_regs.m_lfo_counter = 0;
+	m_lfo_counter = 0;
 }
 
 // return LFO/noise states
@@ -369,7 +373,7 @@ uint32_t opn_registers_lfo_am_offset(uint32_t choffs)
 
 	// raw LFO AM value on OPN is 0-3F, scale that up by a factor of 2
 	// (giving 7 bits) before applying the final shift
-	return (m_regs.m_lfo_am << 1) >> am_shift;
+	return (m_lfo_am << 1) >> am_shift;
 }
 
 
@@ -381,7 +385,7 @@ uint32_t opn_registers_lfo_am_offset(uint32_t choffs)
 void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_cache &cache)
 {
 	// set up the easy stuff
-	cache.waveform = &(m_regs.m_waveform[0][0]);
+	cache.waveform = &(m_waveform[0][0]);
 
 	// get frequency from the channel
 	uint32_t block_freq = cache.block_freq = opn_registers_ch_block_freq(choffs);

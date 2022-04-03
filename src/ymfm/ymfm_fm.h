@@ -118,16 +118,6 @@ struct opdata_cache
 	uint8_t eg_shift = 0;             // envelope shift amount
 };
 
-struct opn_registers
-{
-	// internal state
-	uint32_t m_lfo_counter;               // LFO counter
-	uint8_t m_lfo_am;                     // current LFO AM value
-	uint8_t m_regdata[REGISTERS];         // register data
-	uint16_t m_waveform[WAVEFORMS][WAVEFORM_LENGTH]; // waveforms
-};
-
-extern opn_registers m_regs; // register accessor
 
 //*********************************************************
 //  CORE ENGINE CLASSES
