@@ -930,33 +930,30 @@ void fm_channel::add_to_output(uint32_t choffs, int32_t *output, int32_t value) 
 //  fm_engine - constructor
 //-------------------------------------------------
 
-fm_engine::fm_engine()
+void fm_engine_init(void)
 {
-	m_env_counter = 0;
-	m_status = 0;
-	m_clock_prescale = DEFAULT_PRESCALE;
-	m_irq_mask = STATUS_TIMERA | STATUS_TIMERB;
-	m_irq_state = 0;
-	m_timer_running[0] = m_timer_running[1] = 0;
-	m_active_channels = ALL_CHANNELS;
-	m_modified_channels = ALL_CHANNELS;
-	m_prepare_count = 0;
-
-	// inform the interface of their engine
-	m_engine = this;
+	m_fm.m_env_counter = 0;
+	m_fm.m_status = 0;
+	m_fm.m_clock_prescale = DEFAULT_PRESCALE;
+	m_fm.m_irq_mask = STATUS_TIMERA | STATUS_TIMERB;
+	m_fm.m_irq_state = 0;
+	m_fm.m_timer_running[0] = m_fm.m_timer_running[1] = 0;
+	m_fm.m_active_channels = ALL_CHANNELS;
+	m_fm.m_modified_channels = ALL_CHANNELS;
+	m_fm.m_prepare_count = 0;
 
 	opn_registers_init();
 
 	// create the channels
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-		m_channel[chnum] = new fm_channel(channel_offset(chnum));
+		m_fm.m_channel[chnum] = new fm_channel(channel_offset(chnum));
 
 	// create the operators
 	for (uint32_t opnum = 0; opnum < OPERATORS; opnum++)
-		m_operator[opnum] = new fm_operator(operator_offset(opnum));
+		m_fm.m_operator[opnum] = new fm_operator(operator_offset(opnum));
 
 	// do the initial operator assignment
-	assign_operators();
+	m_fm.assign_operators();
 }
 
 

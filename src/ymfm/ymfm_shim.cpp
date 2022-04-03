@@ -41,7 +41,7 @@ static int divisor;
 static int32_t output[3];
 
 static ym2610 *chip;
-fm_engine *m_engine;
+fm_engine m_fm;
 
 extern "C" {
 uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
@@ -62,11 +62,11 @@ void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data) {
 }
 
 void ymfm_sync_mode_write(uint8_t data) {
-    m_engine->engine_mode_write(data);
+    m_fm.engine_mode_write(data);
 }
 
 void ymfm_sync_check_interrupts(void) {
-    m_engine->engine_check_interrupts();
+    m_fm.engine_check_interrupts();
 }
 
 void ymfm_set_timer(uint32_t tnum, int32_t duration) {
@@ -101,7 +101,7 @@ static inline void ymfm_shim_timer_tick(void) {
         if (timer[i] < 0)
             continue;
         else if (--timer[i] == 0)
-            m_engine->engine_timer_expired(i);
+            m_fm.engine_timer_expired(i);
     }
 }
 
@@ -115,6 +115,7 @@ void ymfm_shim_init(void) {
     divisor = 144; // 144 for medium fidelity, 16 for high
     chip = new ym2610();
     chip->set_fidelity(OPN_FIDELITY_MED);
+    fm_engine_init();
 }
 
 void ymfm_shim_deinit(void) {

@@ -202,7 +202,6 @@ struct ym2610
 	uint8_t m_eos_status;               // end-of-sample signals
 	uint8_t m_flag_mask;                // flag mask control
 	int32_t m_last_fm[3];               // last FM output
-	fm_engine m_fm;                     // core FM engine
 };
 
 
@@ -241,7 +240,6 @@ struct ym2612
 	uint16_t m_address;              // address register
 	uint16_t m_dac_data;             // 9-bit DAC data
 	uint8_t m_dac_enable;            // DAC enabled?
-	fm_engine m_fm;                  // core FM engine
 };
 
 

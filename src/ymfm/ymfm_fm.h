@@ -239,9 +239,6 @@ struct fm_channel
 // etc) take this output and combine it with the others externally
 struct fm_engine
 {
-	// constructor
-	fm_engine();
-
 	// reset the overall state
 	void reset();
 
@@ -305,6 +302,8 @@ struct fm_engine
 	fm_operator *m_operator[OPERATORS]; // operator pointers
 };
 
-extern fm_engine *m_engine;
+extern fm_engine m_fm;
+
+void fm_engine_init(void);
 
 #endif // YMFM_FM_H
