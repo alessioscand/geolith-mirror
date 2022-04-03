@@ -485,13 +485,13 @@ static inline void ssg_resampler_configure(uint8_t outsamples, uint8_t srcsample
 //-------------------------------------------------
 
 ym2610::ym2610(ymfm_interface &intf) :
-	m_fidelity(OPN_FIDELITY_MAX),
-	m_address(0),
-	m_fm_mask(0x36),
-	m_eos_status(0x00),
-	m_flag_mask(EOS_FLAGS_MASK),
 	m_fm(intf)
 {
+	m_fidelity = OPN_FIDELITY_MAX;
+	m_address = 0;
+	m_fm_mask = 0x36;
+	m_eos_status = 0x00;
+	m_flag_mask = EOS_FLAGS_MASK;
 	ssg_engine_init();
 	ssg_resampler_init();
 	adpcm_a_engine_init();
@@ -849,11 +849,11 @@ void ym2610::clock_fm_and_adpcm()
 //-------------------------------------------------
 
 ym2612::ym2612(ymfm_interface &intf) :
-	m_address(0),
-	m_dac_data(0),
-	m_dac_enable(0),
 	m_fm(intf)
 {
+	m_address = 0;
+	m_dac_data = 0;
+	m_dac_enable = 0;
 }
 
 

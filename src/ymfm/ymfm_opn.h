@@ -160,7 +160,7 @@ struct ym2610
 	// internal state
 	uint32_t m_fidelity;                // configured fidelity
 	uint16_t m_address;                 // address register
-	uint8_t const m_fm_mask;            // FM channel mask
+	uint8_t m_fm_mask;                  // FM channel mask
 	uint8_t m_fm_samples_per_output;    // how many samples to repeat
 	uint8_t m_eos_status;               // end-of-sample signals
 	uint8_t m_flag_mask;                // flag mask control
