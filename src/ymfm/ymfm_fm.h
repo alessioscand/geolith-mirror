@@ -220,10 +220,10 @@ struct opn_registers
 	int32_t clock_noise_and_lfo();
 
 	// reset the LFO
-	void reset_lfo() { m_lfo_counter = 0; }
+	void reset_lfo(void);
 
 	// return the AM offset from LFO for the given channel
-	uint32_t lfo_am_offset(uint32_t choffs) const;
+	uint32_t lfo_am_offset(uint32_t choffs);
 
 	// return LFO/noise states
 	uint32_t noise_state() const { return 0; }
@@ -235,58 +235,46 @@ struct opn_registers
 	uint32_t compute_phase_step(uint32_t choffs, uint32_t opoffs, opdata_cache const &cache, int32_t lfo_raw_pm);
 
 	// system-wide registers
-	uint32_t test() const                       { return byte(0x21, 0, 8); }
-	uint32_t lfo_enable() const                 { return byte(0x22, 3, 1); }
-	uint32_t lfo_rate() const                   { return byte(0x22, 0, 3); }
-	uint32_t timer_a_value() const              { return word(0x24, 0, 8, 0x25, 0, 2); }
-	uint32_t timer_b_value() const              { return byte(0x26, 0, 8); }
-	uint32_t csm() const                        { return (byte(0x27, 6, 2) == 2); }
-	uint32_t multi_freq() const                 { return (byte(0x27, 6, 2) != 0); }
-	uint32_t reset_timer_b() const              { return byte(0x27, 5, 1); }
-	uint32_t reset_timer_a() const              { return byte(0x27, 4, 1); }
-	uint32_t enable_timer_b() const             { return byte(0x27, 3, 1); }
-	uint32_t enable_timer_a() const             { return byte(0x27, 2, 1); }
-	uint32_t load_timer_b() const               { return byte(0x27, 1, 1); }
-	uint32_t load_timer_a() const               { return byte(0x27, 0, 1); }
-	uint32_t multi_block_freq(uint32_t num) const    { return word(0xac, 0, 6, 0xa8, 0, 8, num); }
+	uint32_t test();
+	uint32_t lfo_enable();
+	uint32_t lfo_rate();
+	uint32_t timer_a_value();
+	uint32_t timer_b_value();
+	uint32_t csm();
+	uint32_t multi_freq();
+	uint32_t reset_timer_b();
+	uint32_t reset_timer_a();
+	uint32_t enable_timer_b();
+	uint32_t enable_timer_a();
+	uint32_t load_timer_b();
+	uint32_t load_timer_a();
+	uint32_t multi_block_freq(uint32_t num);
 
 	// per-channel registers
-	uint32_t ch_block_freq(uint32_t choffs) const    { return word(0xa4, 0, 6, 0xa0, 0, 8, choffs); }
-	uint32_t ch_feedback(uint32_t choffs) const      { return byte(0xb0, 3, 3, choffs); }
-	uint32_t ch_algorithm(uint32_t choffs) const     { return byte(0xb0, 0, 3, choffs); }
-	uint32_t ch_output_any(uint32_t choffs) const    { return byte(0xb4, 6, 2, choffs); }
-	uint32_t ch_output_0(uint32_t choffs) const      { return byte(0xb4, 7, 1, choffs); }
-	uint32_t ch_output_1(uint32_t choffs) const      { return byte(0xb4, 6, 1, choffs); }
-	uint32_t ch_output_2(uint32_t choffs) const      { return 0; }
-	uint32_t ch_output_3(uint32_t choffs) const      { return 0; }
-	uint32_t ch_lfo_am_sens(uint32_t choffs) const   { return byte(0xb4, 4, 2, choffs); }
-	uint32_t ch_lfo_pm_sens(uint32_t choffs) const   { return byte(0xb4, 0, 3, choffs); }
+	uint32_t ch_block_freq(uint32_t choffs);
+	uint32_t ch_feedback(uint32_t choffs);
+	uint32_t ch_algorithm(uint32_t choffs);
+	uint32_t ch_output_any(uint32_t choffs);
+	uint32_t ch_output_0(uint32_t choffs);
+	uint32_t ch_output_1(uint32_t choffs);
+	uint32_t ch_output_2(uint32_t choffs);
+	uint32_t ch_output_3(uint32_t choffs);
+	uint32_t ch_lfo_am_sens(uint32_t choffs);
+	uint32_t ch_lfo_pm_sens(uint32_t choffs);
 
 	// per-operator registers
-	uint32_t op_detune(uint32_t opoffs) const        { return byte(0x30, 4, 3, opoffs); }
-	uint32_t op_multiple(uint32_t opoffs) const      { return byte(0x30, 0, 4, opoffs); }
-	uint32_t op_total_level(uint32_t opoffs) const   { return byte(0x40, 0, 7, opoffs); }
-	uint32_t op_ksr(uint32_t opoffs) const           { return byte(0x50, 6, 2, opoffs); }
-	uint32_t op_attack_rate(uint32_t opoffs) const   { return byte(0x50, 0, 5, opoffs); }
-	uint32_t op_decay_rate(uint32_t opoffs) const    { return byte(0x60, 0, 5, opoffs); }
-	uint32_t op_lfo_am_enable(uint32_t opoffs) const { return byte(0x60, 7, 1, opoffs); }
-	uint32_t op_sustain_rate(uint32_t opoffs) const  { return byte(0x70, 0, 5, opoffs); }
-	uint32_t op_sustain_level(uint32_t opoffs) const { return byte(0x80, 4, 4, opoffs); }
-	uint32_t op_release_rate(uint32_t opoffs) const  { return byte(0x80, 0, 4, opoffs); }
-	uint32_t op_ssg_eg_enable(uint32_t opoffs) const { return byte(0x90, 3, 1, opoffs); }
-	uint32_t op_ssg_eg_mode(uint32_t opoffs) const   { return byte(0x90, 0, 3, opoffs); }
-
-	// return a bitfield extracted from a byte
-	uint32_t byte(uint32_t offset, uint32_t start, uint32_t count, uint32_t extra_offset = 0) const
-	{
-		return bitfield(m_regdata[offset + extra_offset], start, count);
-	}
-
-	// return a bitfield extracted from a pair of bytes, MSBs listed first
-	uint32_t word(uint32_t offset1, uint32_t start1, uint32_t count1, uint32_t offset2, uint32_t start2, uint32_t count2, uint32_t extra_offset = 0) const
-	{
-		return (byte(offset1, start1, count1, extra_offset) << count2) | byte(offset2, start2, count2, extra_offset);
-	}
+	uint32_t op_detune(uint32_t opoffs);
+	uint32_t op_multiple(uint32_t opoffs);
+	uint32_t op_total_level(uint32_t opoffs);
+	uint32_t op_ksr(uint32_t opoffs);
+	uint32_t op_attack_rate(uint32_t opoffs);
+	uint32_t op_decay_rate(uint32_t opoffs);
+	uint32_t op_lfo_am_enable(uint32_t opoffs);
+	uint32_t op_sustain_rate(uint32_t opoffs);
+	uint32_t op_sustain_level(uint32_t opoffs);
+	uint32_t op_release_rate(uint32_t opoffs);
+	uint32_t op_ssg_eg_enable(uint32_t opoffs);
+	uint32_t op_ssg_eg_mode(uint32_t opoffs);
 
 	// internal state
 	uint32_t m_lfo_counter;               // LFO counter
