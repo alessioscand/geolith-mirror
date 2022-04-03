@@ -35,6 +35,8 @@
 
 #define STATUS_EOS 0x01 // FIXME: This is defined twice (ADPCM B)
 
+opn_registers m_regs;
+
 // ======================> ssg_resampler
 static void (*ssg_resampler_resample)(int32_t*);
 static uint32_t m_ssg_resampler_sampindex;

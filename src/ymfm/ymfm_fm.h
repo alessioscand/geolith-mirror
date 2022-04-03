@@ -47,7 +47,6 @@ enum {
 };
 
 
-
 //*********************************************************
 //  CORE IMPLEMENTATION
 //*********************************************************
@@ -73,9 +72,7 @@ struct opdata_cache
 //*********************************************************
 //  REGISTER CLASSES
 //*********************************************************
-
 // ======================> opn_registers
-
 //
 // OPN register map:
 //
@@ -298,6 +295,7 @@ struct opn_registers
 	uint16_t m_waveform[WAVEFORMS][WAVEFORM_LENGTH]; // waveforms
 };
 
+extern opn_registers m_regs; // register accessor
 
 //*********************************************************
 //  CORE ENGINE CLASSES
@@ -317,7 +315,7 @@ public:
 	static constexpr uint32_t EG_QUIET = 0x200;
 
 	// constructor
-	fm_operator(fm_engine &owner, uint32_t opoffs);
+	fm_operator(uint32_t opoffs);
 
 	// reset the operator state
 	void reset();
@@ -375,8 +373,6 @@ public:
 	uint8_t m_key_state;                   // current key state: on or off (bit 0)
 	uint8_t m_keyon_live;                  // live key on state (bit 0 = direct, bit 1 = rhythm, bit 2 = CSM)
 	opdata_cache m_cache;                  // cached values for performance
-	opn_registers &m_regs;                 // direct reference to registers
-	fm_engine &m_owner;                    // reference to the owning engine
 };
 
 
@@ -388,7 +384,7 @@ class fm_channel
 {
 public:
 	// constructor
-	fm_channel(fm_engine &owner, uint32_t choffs);
+	fm_channel(uint32_t choffs);
 
 	// reset the channel state
 	void reset();
@@ -454,8 +450,6 @@ public:
 	int16_t m_feedback[2];                 // feedback memory for operator 1
 	mutable int16_t m_feedback_in;         // next input value for op 1 feedback (set in output)
 	fm_operator *m_op[4];                  // up to 4 operators
-	opn_registers &m_regs;                 // direct reference to registers
-	fm_engine &m_owner;                    // reference to the owning engine
 };
 
 
@@ -549,7 +543,6 @@ public:
 	uint32_t m_active_channels;      // mask of active channels (computed by prepare)
 	uint32_t m_modified_channels;    // mask of channels that have been modified
 	uint32_t m_prepare_count;        // counter to do periodic prepare sweeps
-	opn_registers m_regs;            // register accessor
 	fm_channel *m_channel[CHANNELS]; // channel pointers
 	fm_operator *m_operator[OPERATORS]; // operator pointers
 };

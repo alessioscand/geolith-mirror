@@ -239,7 +239,7 @@ inline int32_t opn_lfo_pm_phase_adjustment(uint32_t fnum_bits, uint32_t pm_sensi
 //  fm_operator - constructor
 //-------------------------------------------------
 
-fm_operator::fm_operator(fm_engine &owner, uint32_t opoffs) :
+fm_operator::fm_operator(uint32_t opoffs) :
 	m_choffs(0),
 	m_opoffs(opoffs),
 	m_phase(0),
@@ -247,9 +247,7 @@ fm_operator::fm_operator(fm_engine &owner, uint32_t opoffs) :
 	m_env_state(EG_RELEASE),
 	m_ssg_inverted(false),
 	m_key_state(0),
-	m_keyon_live(0),
-	m_regs(owner.regs()),
-	m_owner(owner)
+	m_keyon_live(0)
 {
 }
 
@@ -631,13 +629,11 @@ uint32_t fm_operator::envelope_attenuation(uint32_t am_offset) const
 //  fm_channel - constructor
 //-------------------------------------------------
 
-fm_channel::fm_channel(fm_engine &owner, uint32_t choffs) :
+fm_channel::fm_channel(uint32_t choffs) :
 	m_choffs(choffs),
 	m_feedback{ 0, 0 },
 	m_feedback_in(0),
-	m_op{ nullptr, nullptr, nullptr, nullptr },
-	m_regs(owner.regs()),
-	m_owner(owner)
+	m_op{ nullptr, nullptr, nullptr, nullptr }
 {
 }
 
@@ -888,11 +884,11 @@ fm_engine::fm_engine() :
 
 	// create the channels
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-		m_channel[chnum] = new fm_channel(*this, opn_registers::channel_offset(chnum));
+		m_channel[chnum] = new fm_channel(opn_registers::channel_offset(chnum));
 
 	// create the operators
 	for (uint32_t opnum = 0; opnum < OPERATORS; opnum++)
-		m_operator[opnum] = new fm_operator(*this, opn_registers::operator_offset(opnum));
+		m_operator[opnum] = new fm_operator(opn_registers::operator_offset(opnum));
 
 	// do the initial operator assignment
 	assign_operators();
