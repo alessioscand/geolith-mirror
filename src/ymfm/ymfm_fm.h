@@ -118,90 +118,11 @@ struct opdata_cache
 	uint8_t eg_shift = 0;             // envelope shift amount
 };
 
-
-//*********************************************************
-//  REGISTER CLASSES
-//*********************************************************
-// ======================> opn_registers
-//
-// OPN register map:
-//
-//      System-wide registers:
-//           21 xxxxxxxx Test register
-//           22 ----x--- LFO enable [OPNA+ only]
-//              -----xxx LFO rate [OPNA+ only]
-//           24 xxxxxxxx Timer A value (upper 8 bits)
-//           25 ------xx Timer A value (lower 2 bits)
-//           26 xxxxxxxx Timer B value
-//           27 xx------ CSM/Multi-frequency mode for channel #2
-//              --x----- Reset timer B
-//              ---x---- Reset timer A
-//              ----x--- Enable timer B
-//              -----x-- Enable timer A
-//              ------x- Load timer B
-//              -------x Load timer A
-//           28 x------- Key on/off operator 4
-//              -x------ Key on/off operator 3
-//              --x----- Key on/off operator 2
-//              ---x---- Key on/off operator 1
-//              ------xx Channel select
-//
-//     Per-channel registers (channel in address bits 0-1)
-//     Note that all these apply to address+100 as well on OPNA+
-//        A0-A3 xxxxxxxx Frequency number lower 8 bits
-//        A4-A7 --xxx--- Block (0-7)
-//              -----xxx Frequency number upper 3 bits
-//        B0-B3 --xxx--- Feedback level for operator 1 (0-7)
-//              -----xxx Operator connection algorithm (0-7)
-//        B4-B7 x------- Pan left [OPNA]
-//              -x------ Pan right [OPNA]
-//              --xx---- LFO AM shift (0-3) [OPNA+ only]
-//              -----xxx LFO PM depth (0-7) [OPNA+ only]
-//
-//     Per-operator registers (channel in address bits 0-1, operator in bits 2-3)
-//     Note that all these apply to address+100 as well on OPNA+
-//        30-3F -xxx---- Detune value (0-7)
-//              ----xxxx Multiple value (0-15)
-//        40-4F -xxxxxxx Total level (0-127)
-//        50-5F xx------ Key scale rate (0-3)
-//              ---xxxxx Attack rate (0-31)
-//        60-6F x------- LFO AM enable [OPNA]
-//              ---xxxxx Decay rate (0-31)
-//        70-7F ---xxxxx Sustain rate (0-31)
-//        80-8F xxxx---- Sustain level (0-15)
-//              ----xxxx Release rate (0-15)
-//        90-9F ----x--- SSG-EG enable
-//              -----xxx SSG-EG envelope (0-7)
-//
-//     Special multi-frequency registers (channel implicitly #2; operator in address bits 0-1)
-//        A8-AB xxxxxxxx Frequency number lower 8 bits
-//        AC-AF --xxx--- Block (0-7)
-//              -----xxx Frequency number upper 3 bits
-//
-//     Internal (fake) registers:
-//        B8-BB --xxxxxx Latched frequency number upper bits (from A4-A7)
-//        BC-BF --xxxxxx Latched frequency number upper bits (from AC-AF)
-//
-
 struct opn_registers
 {
 	// return an array of operator indices for each channel
 	struct operator_mapping { uint32_t chan[CHANNELS]; };
 	void operator_map(operator_mapping &dest);
-
-	// per-operator registers
-	uint32_t op_detune(uint32_t opoffs);
-	uint32_t op_multiple(uint32_t opoffs);
-	uint32_t op_total_level(uint32_t opoffs);
-	uint32_t op_ksr(uint32_t opoffs);
-	uint32_t op_attack_rate(uint32_t opoffs);
-	uint32_t op_decay_rate(uint32_t opoffs);
-	uint32_t op_lfo_am_enable(uint32_t opoffs);
-	uint32_t op_sustain_rate(uint32_t opoffs);
-	uint32_t op_sustain_level(uint32_t opoffs);
-	uint32_t op_release_rate(uint32_t opoffs);
-	uint32_t op_ssg_eg_enable(uint32_t opoffs);
-	uint32_t op_ssg_eg_mode(uint32_t opoffs);
 
 	// internal state
 	uint32_t m_lfo_counter;               // LFO counter

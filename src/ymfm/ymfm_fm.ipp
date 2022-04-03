@@ -329,7 +329,7 @@ bool fm_operator::prepare(void)
 void fm_operator::clock(uint32_t env_counter, int32_t lfo_raw_pm)
 {
 	// clock the SSG-EG state (OPN/OPNA)
-	if (m_regs.op_ssg_eg_enable(m_opoffs))
+	if (opn_registers_op_ssg_eg_enable(m_opoffs))
 		clock_ssg_eg_state();
 
 	// clock the envelope if on an envelope cycle; env_counter is a x.2 value
@@ -417,7 +417,8 @@ void fm_operator::start_attack(bool is_restart)
 	// one of the inverted modes is specified; leave this alone on a
 	// restart, as it is managed by the clock_ssg_eg_state() code
 	if (EG_HAS_SSG && !is_restart)
-		m_ssg_inverted = m_regs.op_ssg_eg_enable(m_opoffs) & bitfield(m_regs.op_ssg_eg_mode(m_opoffs), 2);
+		m_ssg_inverted = opn_registers_op_ssg_eg_enable(m_opoffs) &
+			bitfield(opn_registers_op_ssg_eg_mode(m_opoffs), 2);
 
 	// reset the phase when we start an attack due to a key on
 	// (but not when due to an SSG-EG restart except in certain cases
@@ -505,7 +506,7 @@ void fm_operator::clock_ssg_eg_state()
 	//    101: inverted run once, hold low
 	//    110: inverted repeat, alternating between inverted/non-inverted
 	//    111: inverted run once, hold high
-	uint32_t mode = m_regs.op_ssg_eg_mode(m_opoffs);
+	uint32_t mode = opn_registers_op_ssg_eg_mode(m_opoffs);
 
 	// hold modes (1/3/5/7)
 	if (bitfield(mode, 0))
@@ -591,7 +592,7 @@ void fm_operator::clock_envelope(uint32_t env_counter)
 	else
 	{
 		// non-SSG-EG cases just apply the increment
-		if (!m_regs.op_ssg_eg_enable(m_opoffs))
+		if (!opn_registers_op_ssg_eg_enable(m_opoffs))
 			m_env_attenuation += increment;
 
 		// SSG-EG only applies if less than mid-point, and then at 4x
@@ -645,7 +646,7 @@ uint32_t fm_operator::envelope_attenuation(uint32_t am_offset)
 		result = (0x200 - result) & 0x3ff;
 
 	// add in LFO AM modulation
-	if (m_regs.op_lfo_am_enable(m_opoffs))
+	if (opn_registers_op_lfo_am_enable(m_opoffs))
 		result += am_offset;
 
 	// add in total level and KSL from the cache

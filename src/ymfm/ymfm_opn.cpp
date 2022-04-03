@@ -78,21 +78,81 @@ static inline uint32_t effective_rate(uint32_t rawrate, uint32_t ksr)
 //*********************************************************
 //  OPN/OPNA REGISTERS
 //*********************************************************
+// ======================> opn_registers
+//
+// OPN register map:
+//
+//      System-wide registers:
+//           21 xxxxxxxx Test register
+//           22 ----x--- LFO enable [OPNA+ only]
+//              -----xxx LFO rate [OPNA+ only]
+//           24 xxxxxxxx Timer A value (upper 8 bits)
+//           25 ------xx Timer A value (lower 2 bits)
+//           26 xxxxxxxx Timer B value
+//           27 xx------ CSM/Multi-frequency mode for channel #2
+//              --x----- Reset timer B
+//              ---x---- Reset timer A
+//              ----x--- Enable timer B
+//              -----x-- Enable timer A
+//              ------x- Load timer B
+//              -------x Load timer A
+//           28 x------- Key on/off operator 4
+//              -x------ Key on/off operator 3
+//              --x----- Key on/off operator 2
+//              ---x---- Key on/off operator 1
+//              ------xx Channel select
+//
+//     Per-channel registers (channel in address bits 0-1)
+//     Note that all these apply to address+100 as well on OPNA+
+//        A0-A3 xxxxxxxx Frequency number lower 8 bits
+//        A4-A7 --xxx--- Block (0-7)
+//              -----xxx Frequency number upper 3 bits
+//        B0-B3 --xxx--- Feedback level for operator 1 (0-7)
+//              -----xxx Operator connection algorithm (0-7)
+//        B4-B7 x------- Pan left [OPNA]
+//              -x------ Pan right [OPNA]
+//              --xx---- LFO AM shift (0-3) [OPNA+ only]
+//              -----xxx LFO PM depth (0-7) [OPNA+ only]
+//
+//     Per-operator registers (channel in address bits 0-1, operator in bits 2-3)
+//     Note that all these apply to address+100 as well on OPNA+
+//        30-3F -xxx---- Detune value (0-7)
+//              ----xxxx Multiple value (0-15)
+//        40-4F -xxxxxxx Total level (0-127)
+//        50-5F xx------ Key scale rate (0-3)
+//              ---xxxxx Attack rate (0-31)
+//        60-6F x------- LFO AM enable [OPNA]
+//              ---xxxxx Decay rate (0-31)
+//        70-7F ---xxxxx Sustain rate (0-31)
+//        80-8F xxxx---- Sustain level (0-15)
+//              ----xxxx Release rate (0-15)
+//        90-9F ----x--- SSG-EG enable
+//              -----xxx SSG-EG envelope (0-7)
+//
+//     Special multi-frequency registers (channel implicitly #2; operator in address bits 0-1)
+//        A8-AB xxxxxxxx Frequency number lower 8 bits
+//        AC-AF --xxx--- Block (0-7)
+//              -----xxx Frequency number upper 3 bits
+//
+//     Internal (fake) registers:
+//        B8-BB --xxxxxx Latched frequency number upper bits (from A4-A7)
+//        BC-BF --xxxxxx Latched frequency number upper bits (from AC-AF)
+//
 
 // system-wide registers
-static inline uint32_t opn_registers_test(void)         { return byte(0x21, 0, 8, 0); }
-static inline uint32_t opn_registers_lfo_enable(void)   { return byte(0x22, 3, 1, 0); }
-static inline uint32_t opn_registers_lfo_rate(void)     { return byte(0x22, 0, 3, 0); }
-uint32_t opn_registers_timer_a_value(void)              { return word(0x24, 0, 8, 0x25, 0, 2, 0); }
-uint32_t opn_registers_timer_b_value(void)              { return byte(0x26, 0, 8, 0); }
-uint32_t opn_registers_csm(void)                        { return (byte(0x27, 6, 2, 0) == 2); }
-static inline uint32_t opn_registers_multi_freq(void)   { return (byte(0x27, 6, 2, 0) != 0); }
-uint32_t opn_registers_reset_timer_b(void)              { return byte(0x27, 5, 1, 0); }
-uint32_t opn_registers_reset_timer_a(void)              { return byte(0x27, 4, 1, 0); }
-uint32_t opn_registers_enable_timer_b(void)             { return byte(0x27, 3, 1, 0); }
-uint32_t opn_registers_enable_timer_a(void)             { return byte(0x27, 2, 1, 0); }
-uint32_t opn_registers_load_timer_b(void)               { return byte(0x27, 1, 1, 0); }
-uint32_t opn_registers_load_timer_a(void)               { return byte(0x27, 0, 1, 0); }
+static inline uint32_t opn_registers_test(void)       { return byte(0x21, 0, 8, 0); }
+static inline uint32_t opn_registers_lfo_enable(void) { return byte(0x22, 3, 1, 0); }
+static inline uint32_t opn_registers_lfo_rate(void)   { return byte(0x22, 0, 3, 0); }
+uint32_t opn_registers_timer_a_value(void)            { return word(0x24, 0, 8, 0x25, 0, 2, 0); }
+uint32_t opn_registers_timer_b_value(void)            { return byte(0x26, 0, 8, 0); }
+uint32_t opn_registers_csm(void)                      { return (byte(0x27, 6, 2, 0) == 2); }
+static inline uint32_t opn_registers_multi_freq(void) { return (byte(0x27, 6, 2, 0) != 0); }
+uint32_t opn_registers_reset_timer_b(void)            { return byte(0x27, 5, 1, 0); }
+uint32_t opn_registers_reset_timer_a(void)            { return byte(0x27, 4, 1, 0); }
+uint32_t opn_registers_enable_timer_b(void)           { return byte(0x27, 3, 1, 0); }
+uint32_t opn_registers_enable_timer_a(void)           { return byte(0x27, 2, 1, 0); }
+uint32_t opn_registers_load_timer_b(void)             { return byte(0x27, 1, 1, 0); }
+uint32_t opn_registers_load_timer_a(void)             { return byte(0x27, 0, 1, 0); }
 static inline uint32_t opn_registers_multi_block_freq(uint32_t num)    { return word(0xac, 0, 6, 0xa8, 0, 8, num); }
 
 // per-channel registers
@@ -108,18 +168,18 @@ static inline uint32_t opn_registers_ch_lfo_am_sens(uint32_t choffs) { return by
 static inline uint32_t opn_registers_ch_lfo_pm_sens(uint32_t choffs) { return byte(0xb4, 0, 3, choffs); }
 
 // per-operator registers
-uint32_t opn_registers::op_detune(uint32_t opoffs)        { return byte(0x30, 4, 3, opoffs); }
-uint32_t opn_registers::op_multiple(uint32_t opoffs)      { return byte(0x30, 0, 4, opoffs); }
-uint32_t opn_registers::op_total_level(uint32_t opoffs)   { return byte(0x40, 0, 7, opoffs); }
-uint32_t opn_registers::op_ksr(uint32_t opoffs)           { return byte(0x50, 6, 2, opoffs); }
-uint32_t opn_registers::op_attack_rate(uint32_t opoffs)   { return byte(0x50, 0, 5, opoffs); }
-uint32_t opn_registers::op_decay_rate(uint32_t opoffs)    { return byte(0x60, 0, 5, opoffs); }
-uint32_t opn_registers::op_lfo_am_enable(uint32_t opoffs) { return byte(0x60, 7, 1, opoffs); }
-uint32_t opn_registers::op_sustain_rate(uint32_t opoffs)  { return byte(0x70, 0, 5, opoffs); }
-uint32_t opn_registers::op_sustain_level(uint32_t opoffs) { return byte(0x80, 4, 4, opoffs); }
-uint32_t opn_registers::op_release_rate(uint32_t opoffs)  { return byte(0x80, 0, 4, opoffs); }
-uint32_t opn_registers::op_ssg_eg_enable(uint32_t opoffs) { return byte(0x90, 3, 1, opoffs); }
-uint32_t opn_registers::op_ssg_eg_mode(uint32_t opoffs)   { return byte(0x90, 0, 3, opoffs); }
+static inline uint32_t opn_registers_op_detune(uint32_t opoffs)        { return byte(0x30, 4, 3, opoffs); }
+static inline uint32_t opn_registers_op_multiple(uint32_t opoffs)      { return byte(0x30, 0, 4, opoffs); }
+static inline uint32_t opn_registers_op_total_level(uint32_t opoffs)   { return byte(0x40, 0, 7, opoffs); }
+static inline uint32_t opn_registers_op_ksr(uint32_t opoffs)           { return byte(0x50, 6, 2, opoffs); }
+static inline uint32_t opn_registers_op_attack_rate(uint32_t opoffs)   { return byte(0x50, 0, 5, opoffs); }
+static inline uint32_t opn_registers_op_decay_rate(uint32_t opoffs)    { return byte(0x60, 0, 5, opoffs); }
+uint32_t opn_registers_op_lfo_am_enable(uint32_t opoffs)               { return byte(0x60, 7, 1, opoffs); }
+static inline uint32_t opn_registers_op_sustain_rate(uint32_t opoffs)  { return byte(0x70, 0, 5, opoffs); }
+static inline uint32_t opn_registers_op_sustain_level(uint32_t opoffs) { return byte(0x80, 4, 4, opoffs); }
+static inline uint32_t opn_registers_op_release_rate(uint32_t opoffs)  { return byte(0x80, 0, 4, opoffs); }
+uint32_t opn_registers_op_ssg_eg_enable(uint32_t opoffs)               { return byte(0x90, 3, 1, opoffs); }
+uint32_t opn_registers_op_ssg_eg_mode(uint32_t opoffs)                 { return byte(0x90, 0, 3, opoffs); }
 
 //-------------------------------------------------
 //  opn_registers - init
@@ -356,10 +416,10 @@ void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_
 	keycode |= bitfield(0xfe80, bitfield(block_freq, 7, 4));
 
 	// detune adjustment
-	cache.detune = detune_adjustment(m_regs.op_detune(opoffs), keycode);
+	cache.detune = detune_adjustment(opn_registers_op_detune(opoffs), keycode);
 
 	// multiple value, as an x.1 value (0 means 0.5)
-	cache.multiple = m_regs.op_multiple(opoffs) * 2;
+	cache.multiple = opn_registers_op_multiple(opoffs) * 2;
 	if (cache.multiple == 0)
 		cache.multiple = 1;
 
@@ -371,19 +431,19 @@ void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_
 		cache.phase_step = PHASE_STEP_DYNAMIC;
 
 	// total level, scaled by 8
-	cache.total_level = m_regs.op_total_level(opoffs) << 3;
+	cache.total_level = opn_registers_op_total_level(opoffs) << 3;
 
 	// 4-bit sustain level, but 15 means 31 so effectively 5 bits
-	cache.eg_sustain = m_regs.op_sustain_level(opoffs);
+	cache.eg_sustain = opn_registers_op_sustain_level(opoffs);
 	cache.eg_sustain |= (cache.eg_sustain + 1) & 0x10;
 	cache.eg_sustain <<= 5;
 
 	// determine KSR adjustment for enevlope rates
-	uint32_t ksrval = keycode >> (m_regs.op_ksr(opoffs) ^ 3);
-	cache.eg_rate[EG_ATTACK] = effective_rate(m_regs.op_attack_rate(opoffs) * 2, ksrval);
-	cache.eg_rate[EG_DECAY] = effective_rate(m_regs.op_decay_rate(opoffs) * 2, ksrval);
-	cache.eg_rate[EG_SUSTAIN] = effective_rate(m_regs.op_sustain_rate(opoffs) * 2, ksrval);
-	cache.eg_rate[EG_RELEASE] = effective_rate(m_regs.op_release_rate(opoffs) * 4 + 2, ksrval);
+	uint32_t ksrval = keycode >> (opn_registers_op_ksr(opoffs) ^ 3);
+	cache.eg_rate[EG_ATTACK] = effective_rate(opn_registers_op_attack_rate(opoffs) * 2, ksrval);
+	cache.eg_rate[EG_DECAY] = effective_rate(opn_registers_op_decay_rate(opoffs) * 2, ksrval);
+	cache.eg_rate[EG_SUSTAIN] = effective_rate(opn_registers_op_sustain_rate(opoffs) * 2, ksrval);
+	cache.eg_rate[EG_RELEASE] = effective_rate(opn_registers_op_release_rate(opoffs) * 4 + 2, ksrval);
 }
 
 

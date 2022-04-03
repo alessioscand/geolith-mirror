@@ -133,6 +133,10 @@ uint32_t opn_registers_ch_output_1(uint32_t choffs);
 uint32_t opn_registers_ch_output_2(uint32_t choffs);
 uint32_t opn_registers_ch_output_3(uint32_t choffs);
 
+uint32_t opn_registers_op_lfo_am_enable(uint32_t opoffs);
+uint32_t opn_registers_op_ssg_eg_enable(uint32_t opoffs);
+uint32_t opn_registers_op_ssg_eg_mode(uint32_t opoffs);
+
 void opn_registers_init(void);
 void opn_registers_reset(void);
 bool opn_registers_write(uint16_t index, uint8_t data, uint32_t &channel, uint32_t &opmask);
