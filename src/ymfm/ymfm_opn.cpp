@@ -353,64 +353,6 @@ uint32_t opn_registers_base::compute_phase_step(uint32_t choffs, uint32_t opoffs
 	return (phase_step * cache.multiple) >> 1;
 }
 
-
-//-------------------------------------------------
-//  log_keyon - log a key-on event
-//-------------------------------------------------
-
-std::string opn_registers_base::log_keyon(uint32_t choffs, uint32_t opoffs)
-{
-	uint32_t chnum = (choffs & 3) + 3 * bitfield(choffs, 8);
-	uint32_t opnum = (opoffs & 15) - ((opoffs & 15) / 4) + 12 * bitfield(opoffs, 8);
-
-	uint32_t block_freq = ch_block_freq(choffs);
-	if (multi_freq() && choffs == 2)
-	{
-		if (opoffs == 2)
-			block_freq = multi_block_freq(1);
-		else if (opoffs == 10)
-			block_freq = multi_block_freq(2);
-		else if (opoffs == 6)
-			block_freq = multi_block_freq(0);
-	}
-
-	char buffer[256];
-	char *end = &buffer[0];
-
-	end += sprintf(end, "%u.%02u freq=%04X dt=%u fb=%u alg=%X mul=%X tl=%02X ksr=%u adsr=%02X/%02X/%02X/%X sl=%X",
-		chnum, opnum,
-		block_freq,
-		op_detune(opoffs),
-		ch_feedback(choffs),
-		ch_algorithm(choffs),
-		op_multiple(opoffs),
-		op_total_level(opoffs),
-		op_ksr(opoffs),
-		op_attack_rate(opoffs),
-		op_decay_rate(opoffs),
-		op_sustain_rate(opoffs),
-		op_release_rate(opoffs),
-		op_sustain_level(opoffs));
-
-	if (OUTPUTS > 1)
-		end += sprintf(end, " out=%c%c",
-			ch_output_0(choffs) ? 'L' : '-',
-			ch_output_1(choffs) ? 'R' : '-');
-	if (op_ssg_eg_enable(opoffs))
-		end += sprintf(end, " ssg=%X", op_ssg_eg_mode(opoffs));
-	bool am = (lfo_enable() && op_lfo_am_enable(opoffs) && ch_lfo_am_sens(choffs) != 0);
-	if (am)
-		end += sprintf(end, " am=%u", ch_lfo_am_sens(choffs));
-	bool pm = (lfo_enable() && ch_lfo_pm_sens(choffs) != 0);
-	if (pm)
-		end += sprintf(end, " pm=%u", ch_lfo_pm_sens(choffs));
-	if (am || pm)
-		end += sprintf(end, " lfo=%02X", lfo_rate());
-	if (multi_freq() && choffs == 2)
-		end += sprintf(end, " multi=1");
-
-	return buffer;
-}
 }
 
 

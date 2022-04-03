@@ -206,9 +206,6 @@ struct opn_registers_base
 	// compute the phase step, given a PM value
 	uint32_t compute_phase_step(uint32_t choffs, uint32_t opoffs, opdata_cache const &cache, int32_t lfo_raw_pm);
 
-	// log a key-on event
-	std::string log_keyon(uint32_t choffs, uint32_t opoffs);
-
 	// system-wide registers
 	uint32_t test() const                       { return byte(0x21, 0, 8); }
 	uint32_t lfo_enable() const                 { return byte(0x22, 3, 1); }
