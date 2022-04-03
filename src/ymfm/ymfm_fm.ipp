@@ -242,8 +242,7 @@ inline int32_t opn_lfo_pm_phase_adjustment(uint32_t fnum_bits, uint32_t pm_sensi
 //  fm_operator - constructor
 //-------------------------------------------------
 
-template<class RegisterType>
-fm_operator<RegisterType>::fm_operator(fm_engine_base &owner, uint32_t opoffs) :
+fm_operator::fm_operator(fm_engine_base &owner, uint32_t opoffs) :
 	m_choffs(0),
 	m_opoffs(opoffs),
 	m_phase(0),
@@ -262,8 +261,7 @@ fm_operator<RegisterType>::fm_operator(fm_engine_base &owner, uint32_t opoffs) :
 //  reset - reset the channel state
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_operator<RegisterType>::reset()
+void fm_operator::reset()
 {
 	// reset our data
 	m_phase = 0;
@@ -279,8 +277,7 @@ void fm_operator<RegisterType>::reset()
 //  prepare - prepare for clocking
 //-------------------------------------------------
 
-template<class RegisterType>
-bool fm_operator<RegisterType>::prepare()
+bool fm_operator::prepare()
 {
 	// cache the data
 	m_regs.cache_operator_data(m_choffs, m_opoffs, m_cache);
@@ -290,7 +287,7 @@ bool fm_operator<RegisterType>::prepare()
 	m_keyon_live &= ~(1 << KEYON_CSM);
 
 	// we're active until we're quiet after the release
-	return (m_env_state != (RegisterType::EG_HAS_REVERB ? EG_REVERB : EG_RELEASE) || m_env_attenuation < EG_QUIET);
+	return (m_env_state != (opn_registers_base::EG_HAS_REVERB ? EG_REVERB : EG_RELEASE) || m_env_attenuation < EG_QUIET);
 }
 
 
@@ -298,8 +295,7 @@ bool fm_operator<RegisterType>::prepare()
 //  clock - master clocking function
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_operator<RegisterType>::clock(uint32_t env_counter, int32_t lfo_raw_pm)
+void fm_operator::clock(uint32_t env_counter, int32_t lfo_raw_pm)
 {
 	// clock the SSG-EG state (OPN/OPNA)
 	if (m_regs.op_ssg_eg_enable(m_opoffs))
@@ -320,8 +316,7 @@ void fm_operator<RegisterType>::clock(uint32_t env_counter, int32_t lfo_raw_pm)
 //  modulation and an AM LFO offset
 //-------------------------------------------------
 
-template<class RegisterType>
-int32_t fm_operator<RegisterType>::compute_volume(uint32_t phase, uint32_t am_offset) const
+int32_t fm_operator::compute_volume(uint32_t phase, uint32_t am_offset) const
 {
 	// the low 10 bits of phase represents a full 2*PI period over
 	// the full sin wave
@@ -331,7 +326,7 @@ int32_t fm_operator<RegisterType>::compute_volume(uint32_t phase, uint32_t am_of
 		return 0;
 
 	// get the absolute value of the sin, as attenuation, as a 4.8 fixed point value
-	uint32_t sin_attenuation = m_cache.waveform[phase & (RegisterType::WAVEFORM_LENGTH - 1)];
+	uint32_t sin_attenuation = m_cache.waveform[phase & (opn_registers_base::WAVEFORM_LENGTH - 1)];
 
 	// get the attenuation from the evelope generator as a 4.6 value, shifted up to 4.8
 	uint32_t env_attenuation = envelope_attenuation(am_offset) << 2;
@@ -350,8 +345,7 @@ int32_t fm_operator<RegisterType>::compute_volume(uint32_t phase, uint32_t am_of
 //  noise input value and an AM offset
 //-------------------------------------------------
 
-template<class RegisterType>
-int32_t fm_operator<RegisterType>::compute_noise_volume(uint32_t am_offset) const
+int32_t fm_operator::compute_noise_volume(uint32_t am_offset) const
 {
 	// application manual says the logarithmic transform is not applied here, so we
 	// just use the raw envelope attenuation, inverted (since 0 attenuation should be
@@ -369,8 +363,7 @@ int32_t fm_operator<RegisterType>::compute_noise_volume(uint32_t am_offset) cons
 //  keyonoff - signal a key on/off event
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_operator<RegisterType>::keyonoff(uint32_t on, uint32_t type)
+void fm_operator::keyonoff(uint32_t on, uint32_t type)
 {
 	m_keyon_live = (m_keyon_live & ~(1 << int(type))) | (bitfield(on, 0) << int(type));
 }
@@ -382,8 +375,7 @@ void fm_operator<RegisterType>::keyonoff(uint32_t on, uint32_t type)
 //  is complete and restarts
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_operator<RegisterType>::start_attack(bool is_restart)
+void fm_operator::start_attack(bool is_restart)
 {
 	// don't change anything if already in attack state
 	if (m_env_state == EG_ATTACK)
@@ -393,7 +385,7 @@ void fm_operator<RegisterType>::start_attack(bool is_restart)
 	// generally not inverted at start, except if SSG-EG is enabled and
 	// one of the inverted modes is specified; leave this alone on a
 	// restart, as it is managed by the clock_ssg_eg_state() code
-	if (RegisterType::EG_HAS_SSG && !is_restart)
+	if (opn_registers_base::EG_HAS_SSG && !is_restart)
 		m_ssg_inverted = m_regs.op_ssg_eg_enable(m_opoffs) & bitfield(m_regs.op_ssg_eg_mode(m_opoffs), 2);
 
 	// reset the phase when we start an attack due to a key on
@@ -413,8 +405,7 @@ void fm_operator<RegisterType>::start_attack(bool is_restart)
 //  called when a keyoff happens
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_operator<RegisterType>::start_release()
+void fm_operator::start_release()
 {
 	// don't change anything if already in release state
 	if (m_env_state >= EG_RELEASE)
@@ -423,7 +414,7 @@ void fm_operator<RegisterType>::start_release()
 
 	// if attenuation if inverted due to SSG-EG, snap the inverted attenuation
 	// as the starting point
-	if (RegisterType::EG_HAS_SSG && m_ssg_inverted)
+	if (opn_registers_base::EG_HAS_SSG && m_ssg_inverted)
 	{
 		m_env_attenuation = (0x200 - m_env_attenuation) & 0x3ff;
 		m_ssg_inverted = false;
@@ -436,8 +427,7 @@ void fm_operator<RegisterType>::start_release()
 //  the incoming keystate
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_operator<RegisterType>::clock_keystate(uint32_t keystate)
+void fm_operator::clock_keystate(uint32_t keystate)
 {
 	assert(keystate == 0 || keystate == 1);
 
@@ -451,7 +441,7 @@ void fm_operator<RegisterType>::clock_keystate(uint32_t keystate)
 		{
 			// OPLL has a DP ("depress"?) state to bring the volume
 			// down before starting the attack
-			if (RegisterType::EG_HAS_DEPRESS && m_env_attenuation < 0x200)
+			if (opn_registers_base::EG_HAS_DEPRESS && m_env_attenuation < 0x200)
 				m_env_state = EG_DEPRESS;
 			else
 				start_attack();
@@ -469,8 +459,7 @@ void fm_operator<RegisterType>::clock_keystate(uint32_t keystate)
 //  should only be called if SSG-EG is enabled
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_operator<RegisterType>::clock_ssg_eg_state()
+void fm_operator::clock_ssg_eg_state()
 {
 	// work only happens once the attenuation crosses above 0x200
 	if (!bitfield(m_env_attenuation, 9))
@@ -525,8 +514,7 @@ void fm_operator<RegisterType>::clock_ssg_eg_state()
 //  according to the given count
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_operator<RegisterType>::clock_envelope(uint32_t env_counter)
+void fm_operator::clock_envelope(uint32_t env_counter)
 {
 	// handle attack->decay transitions
 	if (m_env_state == EG_ATTACK && m_env_attenuation == 0)
@@ -584,11 +572,11 @@ void fm_operator<RegisterType>::clock_envelope(uint32_t env_counter)
 			m_env_attenuation = 0x3ff;
 
 		// transition from depress to attack
-		if (RegisterType::EG_HAS_DEPRESS && m_env_state == EG_DEPRESS && m_env_attenuation >= 0x200)
+		if (opn_registers_base::EG_HAS_DEPRESS && m_env_state == EG_DEPRESS && m_env_attenuation >= 0x200)
 			start_attack();
 
 		// transition from release to reverb, should switch at -18dB
-		if (RegisterType::EG_HAS_REVERB && m_env_state == EG_RELEASE && m_env_attenuation >= 0xc0)
+		if (opn_registers_base::EG_HAS_REVERB && m_env_state == EG_RELEASE && m_env_attenuation >= 0xc0)
 			m_env_state = EG_REVERB;
 	}
 }
@@ -600,8 +588,7 @@ void fm_operator<RegisterType>::clock_envelope(uint32_t env_counter)
 //  against the Nuked phase generator
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_operator<RegisterType>::clock_phase(int32_t lfo_raw_pm)
+void fm_operator::clock_phase(int32_t lfo_raw_pm)
 {
 	// read from the cache, or recalculate if PM active
 	uint32_t phase_step = m_cache.phase_step;
@@ -618,13 +605,12 @@ void fm_operator<RegisterType>::clock_phase(int32_t lfo_raw_pm)
 //  attenuation of the envelope
 //-------------------------------------------------
 
-template<class RegisterType>
-uint32_t fm_operator<RegisterType>::envelope_attenuation(uint32_t am_offset) const
+uint32_t fm_operator::envelope_attenuation(uint32_t am_offset) const
 {
 	uint32_t result = m_env_attenuation >> m_cache.eg_shift;
 
 	// invert if necessary due to SSG-EG
-	if (RegisterType::EG_HAS_SSG && m_ssg_inverted)
+	if (opn_registers_base::EG_HAS_SSG && m_ssg_inverted)
 		result = (0x200 - result) & 0x3ff;
 
 	// add in LFO AM modulation
@@ -910,7 +896,7 @@ fm_engine_base::fm_engine_base(ymfm_interface &intf) :
 
 	// create the operators
 	for (uint32_t opnum = 0; opnum < OPERATORS; opnum++)
-		m_operator[opnum] = new fm_operator<opn_registers_base>(*this, opn_registers_base::operator_offset(opnum));
+		m_operator[opnum] = new fm_operator(*this, opn_registers_base::operator_offset(opnum));
 
 	// do the initial operator assignment
 	assign_operators();
