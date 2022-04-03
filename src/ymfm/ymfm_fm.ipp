@@ -239,16 +239,16 @@ inline int32_t opn_lfo_pm_phase_adjustment(uint32_t fnum_bits, uint32_t pm_sensi
 //  fm_operator - constructor
 //-------------------------------------------------
 
-fm_operator::fm_operator(uint32_t opoffs) :
-	m_choffs(0),
-	m_opoffs(opoffs),
-	m_phase(0),
-	m_env_attenuation(0x3ff),
-	m_env_state(EG_RELEASE),
-	m_ssg_inverted(false),
-	m_key_state(0),
-	m_keyon_live(0)
+fm_operator::fm_operator(uint32_t opoffs)
 {
+	m_choffs = 0;
+	m_opoffs = opoffs;
+	m_phase = 0;
+	m_env_attenuation = 0x3ff;
+	m_env_state = EG_RELEASE;
+	m_ssg_inverted = false;
+	m_key_state = 0;
+	m_keyon_live = 0;
 }
 
 
@@ -629,12 +629,12 @@ uint32_t fm_operator::envelope_attenuation(uint32_t am_offset) const
 //  fm_channel - constructor
 //-------------------------------------------------
 
-fm_channel::fm_channel(uint32_t choffs) :
-	m_choffs(choffs),
-	m_feedback{ 0, 0 },
-	m_feedback_in(0),
-	m_op{ nullptr, nullptr, nullptr, nullptr }
+fm_channel::fm_channel(uint32_t choffs)
 {
+	m_choffs = choffs;
+	m_feedback[0] = m_feedback[1] = 0;
+	m_feedback_in = 0;
+	m_op[0] = m_op[1] = m_op[2] = m_op[3] = nullptr;
 }
 
 
@@ -868,17 +868,18 @@ void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax) c
 //  fm_engine - constructor
 //-------------------------------------------------
 
-fm_engine::fm_engine() :
-	m_env_counter(0),
-	m_status(0),
-	m_clock_prescale(opn_registers::DEFAULT_PRESCALE),
-	m_irq_mask(STATUS_TIMERA | STATUS_TIMERB),
-	m_irq_state(0),
-	m_timer_running{0,0},
-	m_active_channels(ALL_CHANNELS),
-	m_modified_channels(ALL_CHANNELS),
-	m_prepare_count(0)
+fm_engine::fm_engine()
 {
+	m_env_counter = 0;
+	m_status = 0;
+	m_clock_prescale = opn_registers::DEFAULT_PRESCALE;
+	m_irq_mask = STATUS_TIMERA | STATUS_TIMERB;
+	m_irq_state = 0;
+	m_timer_running[0] = m_timer_running[1] = 0;
+	m_active_channels = ALL_CHANNELS;
+	m_modified_channels = ALL_CHANNELS;
+	m_prepare_count = 0;
+
 	// inform the interface of their engine
 	m_engine = this;
 
