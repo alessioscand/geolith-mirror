@@ -123,9 +123,6 @@ inline int32_t clamp(int32_t value, int32_t minval, int32_t maxval)
 }
 
 
-namespace ymfm
-{
-
 //*********************************************************
 //  INTERFACE CLASSES
 //*********************************************************
@@ -184,7 +181,5 @@ public:
 	// construction time
 	ymfm_engine_callbacks *m_engine;
 };
-
-}
 
 #endif // YMFM_H

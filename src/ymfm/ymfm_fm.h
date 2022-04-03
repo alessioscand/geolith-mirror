@@ -35,9 +35,6 @@
 // in the case of PM LFO changes
 #define PHASE_STEP_DYNAMIC 1
 
-namespace ymfm
-{
-
 //*********************************************************
 //  GLOBAL ENUMERATORS
 //*********************************************************
@@ -557,7 +554,5 @@ public:
 	fm_channel *m_channel[CHANNELS]; // channel pointers
 	fm_operator *m_operator[OPERATORS]; // operator pointers
 };
-
-}
 
 #endif // YMFM_FM_H

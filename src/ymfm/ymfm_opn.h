@@ -36,9 +36,6 @@
 #include "ymfm_fm.h"
 #include "ymfm_ssg.h"
 
-namespace ymfm
-{
-
 //*********************************************************
 //  OPN IMPLEMENTATION CLASSES
 //*********************************************************
@@ -222,8 +219,6 @@ struct ym2612
 	uint8_t m_dac_enable;            // DAC enabled?
 	fm_engine m_fm;                  // core FM engine
 };
-
-}
 
 
 #endif // YMFM_OPN_H

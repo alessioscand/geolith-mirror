@@ -82,9 +82,7 @@ void ymfm_update_irq(bool asserted) {
     asserted ? cpu_z80_raise_irq(0) : cpu_z80_lower_irq();
 }
 
-using namespace ymfm;
-
-static ymfm::ymfm_interface intf;
+static ymfm_interface intf;
 static ym2610 *chip;
 
 static inline void ymfm_shim_timer_tick(void) {

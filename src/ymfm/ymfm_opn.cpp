@@ -60,8 +60,6 @@ static inline uint32_t effective_rate(uint32_t rawrate, uint32_t ksr)
 	return (rawrate == 0) ? 0 : std::min<uint32_t>(rawrate + ksr, 63);
 }
 
-namespace ymfm
-{
 
 //*********************************************************
 //  OPN/OPNA REGISTERS
@@ -353,8 +351,6 @@ uint32_t opn_registers_base::compute_phase_step(uint32_t choffs, uint32_t opoffs
 	return (phase_step * cache.multiple) >> 1;
 }
 
-}
-
 
 //*********************************************************
 //  SSG RESAMPLER
@@ -479,8 +475,6 @@ static inline void ssg_resampler_configure(uint8_t outsamples, uint8_t srcsample
 	}
 }
 
-
-namespace ymfm {
 
 //*********************************************************
 //  YM2610
@@ -1060,6 +1054,4 @@ void ym2612::generate3438(int32_t *output)
 	// multiplexed like the YM2612
 	output[0] = (output[0] * 128) / 6;
 	output[1] = (output[1] * 128) / 6;
-}
-
 }

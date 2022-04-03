@@ -28,9 +28,6 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-namespace ymfm
-{
-
 //*********************************************************
 //  GLOBAL TABLE LOOKUPS
 //*********************************************************
@@ -1180,6 +1177,4 @@ void fm_engine_base::engine_mode_write(uint8_t data)
 	// is a bit shorter
 	update_timer(1, m_regs.load_timer_b(), -(m_total_clocks & 15));
 	update_timer(0, m_regs.load_timer_a(), 0);
-}
-
 }
