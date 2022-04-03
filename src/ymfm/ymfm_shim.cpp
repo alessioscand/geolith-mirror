@@ -40,6 +40,9 @@ static int timer[2];
 static int divisor;
 static int32_t output[3];
 
+static ym2610 *chip;
+ymfm_engine_callbacks *m_engine;
+
 extern "C" {
 uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
     switch (type) {
@@ -56,6 +59,14 @@ uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
 
 void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data) {
 }
+}
+
+void ymfm_sync_mode_write(uint8_t data) {
+    m_engine->engine_mode_write(data);
+}
+
+void ymfm_sync_check_interrupts(void) {
+    m_engine->engine_check_interrupts();
 }
 
 void ymfm_set_timer(uint32_t tnum, int32_t duration) {
@@ -82,9 +93,6 @@ void ymfm_update_irq(bool asserted) {
     asserted ? cpu_z80_raise_irq(0) : cpu_z80_lower_irq();
 }
 
-static ymfm_interface intf;
-static ym2610 *chip;
-
 static inline void ymfm_shim_timer_tick(void) {
     if (busytimer)
         --busytimer;
@@ -93,7 +101,7 @@ static inline void ymfm_shim_timer_tick(void) {
         if (timer[i] < 0)
             continue;
         else if (--timer[i] == 0)
-            intf.m_engine->engine_timer_expired(i);
+            m_engine->engine_timer_expired(i);
     }
 }
 
@@ -105,7 +113,7 @@ int16_t* ymfm_shim_get_buffer(void) {
 
 void ymfm_shim_init(void) {
     divisor = 144; // 144 for medium fidelity, 16 for high
-    chip = new ym2610(intf);
+    chip = new ym2610();
     chip->set_fidelity(OPN_FIDELITY_MED);
 }
 

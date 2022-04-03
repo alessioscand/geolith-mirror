@@ -123,7 +123,7 @@ struct ym2610
 	#define EOS_FLAGS_MASK 0xbf
 
 	// constructor
-	ym2610(ymfm_interface &intf);
+	ym2610();
 
 	// configuration
 	void set_fidelity(uint32_t fidelity);
@@ -174,7 +174,7 @@ struct ym2610
 struct ym2612
 {
 	// constructor
-	ym2612(ymfm_interface &intf);
+	ym2612();
 
 	// reset
 	void reset();

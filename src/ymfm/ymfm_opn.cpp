@@ -484,8 +484,7 @@ static inline void ssg_resampler_configure(uint8_t outsamples, uint8_t srcsample
 //  ym2610 - constructor
 //-------------------------------------------------
 
-ym2610::ym2610(ymfm_interface &intf) :
-	m_fm(intf)
+ym2610::ym2610()
 {
 	m_fidelity = OPN_FIDELITY_MAX;
 	m_address = 0;
@@ -848,8 +847,7 @@ void ym2610::clock_fm_and_adpcm()
 //  ym2612 - constructor
 //-------------------------------------------------
 
-ym2612::ym2612(ymfm_interface &intf) :
-	m_fm(intf)
+ym2612::ym2612()
 {
 	m_address = 0;
 	m_dac_data = 0;

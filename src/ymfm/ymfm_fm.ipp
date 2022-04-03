@@ -872,8 +872,7 @@ void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax) c
 //  fm_engine - constructor
 //-------------------------------------------------
 
-fm_engine::fm_engine(ymfm_interface &intf) :
-	m_intf(intf),
+fm_engine::fm_engine() :
 	m_env_counter(0),
 	m_status(0),
 	m_clock_prescale(opn_registers::DEFAULT_PRESCALE),
@@ -885,7 +884,7 @@ fm_engine::fm_engine(ymfm_interface &intf) :
 	m_prepare_count(0)
 {
 	// inform the interface of their engine
-	m_intf.m_engine = this;
+	m_engine = this;
 
 	// create the channels
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
@@ -1010,7 +1009,7 @@ void fm_engine::write(uint16_t regnum, uint8_t data)
 	// schedule these writes to ensure ordering with timers
 	if (regnum == opn_registers::REG_MODE)
 	{
-		m_intf.ymfm_sync_mode_write(data);
+		ymfm_sync_mode_write(data);
 		return;
 	}
 

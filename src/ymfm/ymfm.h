@@ -59,6 +59,10 @@ enum {
 	EG_STATES = 6
 };
 
+// the following functions must be implemented by any derived classes; the
+// default implementations are sufficient for some minimal operation, but will
+// likely need to be overridden to integrate with the outside world; they are
+// all prefixed with ymfm_ to reduce the likelihood of namespace collisions
 extern "C" {
 // the chip implementation calls this whenever data is read from outside
 // of the chip; our responsibility is to provide the data requested
@@ -68,6 +72,22 @@ extern uint8_t ymfm_external_read(uint32_t type, uint32_t address);
 // of the chip; our responsibility is to pass the written data on to any consumers
 extern void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data);
 }
+
+//
+// timing and synchronizaton
+//
+
+// the chip implementation calls this when a write happens to the mode
+// register, which could affect timers and interrupts; our responsibility
+// is to ensure the system is up to date before calling the engine's
+// engine_mode_write() method
+extern void ymfm_sync_mode_write(uint8_t data);
+
+// the chip implementation calls this when the chip's status has changed,
+// which may affect the interrupt state; our responsibility is to ensure
+// the system is up to date before calling the engine's
+// engine_check_interrupts() method
+extern void ymfm_sync_check_interrupts(void);
 
 // the chip implementation calls this when one of the two internal timers
 // has changed state; our responsibility is to arrange to call the engine's
@@ -145,41 +165,8 @@ public:
 	virtual void engine_mode_write(uint8_t data) = 0;
 };
 
-
-// ======================> ymfm_interface
-
-// this class represents the interface between the fm_engine and the outside
-// world; it provides hooks for timers, synchronization, and I/O
-class ymfm_interface
-{
-public:
-	// the engine is our friend
-	friend class fm_engine;
-
-	// the following functions must be implemented by any derived classes; the
-	// default implementations are sufficient for some minimal operation, but will
-	// likely need to be overridden to integrate with the outside world; they are
-	// all prefixed with ymfm_ to reduce the likelihood of namespace collisions
-
-	//
-	// timing and synchronizaton
-	//
-
-	// the chip implementation calls this when a write happens to the mode
-	// register, which could affect timers and interrupts; our responsibility
-	// is to ensure the system is up to date before calling the engine's
-	// engine_mode_write() method
-	virtual void ymfm_sync_mode_write(uint8_t data) { m_engine->engine_mode_write(data); }
-
-	// the chip implementation calls this when the chip's status has changed,
-	// which may affect the interrupt state; our responsibility is to ensure
-	// the system is up to date before calling the engine's
-	// engine_check_interrupts() method
-	virtual void ymfm_sync_check_interrupts() { m_engine->engine_check_interrupts(); }
-
-	// pointer to engine callbacks -- this is set directly by the engine at
-	// construction time
-	ymfm_engine_callbacks *m_engine;
-};
+// pointer to engine callbacks -- this is set directly by the engine at
+// construction time
+extern ymfm_engine_callbacks *m_engine;
 
 #endif // YMFM_H

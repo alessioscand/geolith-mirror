@@ -480,7 +480,7 @@ public:
 	static constexpr uint8_t STATUS_IRQ = opn_registers::STATUS_IRQ;
 
 	// constructor
-	fm_engine(ymfm_interface &intf);
+	fm_engine();
 
 	// reset the overall state
 	void reset();
@@ -501,12 +501,12 @@ public:
 	uint8_t set_reset_status(uint8_t set, uint8_t reset)
 	{
 		m_status = (m_status | set) & ~(reset | STATUS_BUSY);
-		m_intf.ymfm_sync_check_interrupts();
+		ymfm_sync_check_interrupts();
 		return m_status;
 	}
 
 	// set the IRQ mask
-	void set_irq_mask(uint8_t mask) { m_irq_mask = mask; m_intf.ymfm_sync_check_interrupts(); }
+	void set_irq_mask(uint8_t mask) { m_irq_mask = mask; ymfm_sync_check_interrupts(); }
 
 	// return the current clock prescale
 	uint32_t clock_prescale() const { return m_clock_prescale; }
@@ -539,7 +539,6 @@ public:
 	void update_timer(uint32_t which, uint32_t enable, int32_t delta_clocks);
 
 	// internal state
-	ymfm_interface &m_intf;          // reference to the system interface
 	uint32_t m_env_counter;          // envelope counter; low 2 bits are sub-counter
 	uint8_t m_status;                // current status register
 	uint8_t m_clock_prescale;        // prescale factor (2/3/6)
