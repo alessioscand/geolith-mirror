@@ -1051,8 +1051,8 @@ void ym2612::generate(int32_t *output)
 	{
 		// DAC enabled: start with DAC value then add the first 5 channels only
 		int32_t dacval = dac_discontinuity(int16_t(m_dac_data << 7) >> 7);
-		output[0] += m_fm.regs().ch_output_0(0x102) ? dacval : dac_discontinuity(0);
-		output[1] += m_fm.regs().ch_output_1(0x102) ? dacval : dac_discontinuity(0);
+		output[0] += m_regs.ch_output_0(0x102) ? dacval : dac_discontinuity(0);
+		output[1] += m_regs.ch_output_1(0x102) ? dacval : dac_discontinuity(0);
 	}
 
 	// output is technically multiplexed rather than mixed, but that requires
@@ -1084,8 +1084,8 @@ void ym2612::generate3438(int32_t *output)
 	{
 		// DAC enabled: start with DAC value then add the first 5 channels only
 		int32_t dacval = int16_t(m_dac_data << 7) >> 7;
-		output[0] = m_fm.regs().ch_output_0(0x102) ? dacval : 0;
-		output[1] = m_fm.regs().ch_output_1(0x102) ? dacval : 0;
+		output[0] = m_regs.ch_output_0(0x102) ? dacval : 0;
+		output[1] = m_regs.ch_output_1(0x102) ? dacval : 0;
 		m_fm.output(output, 5, 256, fm_engine::ALL_CHANNELS ^ (1 << 5));
 	}
 

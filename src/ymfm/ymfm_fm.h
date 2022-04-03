@@ -345,9 +345,6 @@ public:
 	// key state control
 	void keyonoff(uint32_t on, uint32_t type);
 
-	// return a reference to our registers
-	opn_registers &regs() const { return m_regs; }
-
 	// start the attack phase
 	void start_attack(bool is_restart = false);
 
@@ -421,9 +418,6 @@ public:
 			return (m_op[2] != nullptr);
 		return (opn_registers::OPERATORS / opn_registers::CHANNELS == 4);
 	}
-
-	// return a reference to our registers
-	opn_registers &regs() const { return m_regs; }
 
 	// helper to add values to the outputs based on channel enables
 	void add_to_output(uint32_t choffs, int32_t *output, int32_t value) const
@@ -510,9 +504,6 @@ public:
 
 	// compute sample rate
 	uint32_t sample_rate(uint32_t baseclock) const { return baseclock / (m_clock_prescale * OPERATORS); }
-
-	// return a reference to our registers
-	opn_registers &regs() { return m_regs; }
 
 	// invalidate any caches
 	void invalidate_caches() { m_modified_channels = opn_registers::ALL_CHANNELS; }
