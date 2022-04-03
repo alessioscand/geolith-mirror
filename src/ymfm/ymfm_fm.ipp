@@ -648,8 +648,7 @@ uint32_t fm_operator<RegisterType>::envelope_attenuation(uint32_t am_offset) con
 //  fm_channel - constructor
 //-------------------------------------------------
 
-template<class RegisterType>
-fm_channel<RegisterType>::fm_channel(fm_engine_base &owner, uint32_t choffs) :
+fm_channel::fm_channel(fm_engine_base &owner, uint32_t choffs) :
 	m_choffs(choffs),
 	m_feedback{ 0, 0 },
 	m_feedback_in(0),
@@ -664,8 +663,7 @@ fm_channel<RegisterType>::fm_channel(fm_engine_base &owner, uint32_t choffs) :
 //  reset - reset the channel state
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_channel<RegisterType>::reset()
+void fm_channel::reset()
 {
 	// reset our data
 	m_feedback[0] = m_feedback[1] = 0;
@@ -677,8 +675,7 @@ void fm_channel<RegisterType>::reset()
 //  keyonoff - signal key on/off to our operators
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_channel<RegisterType>::keyonoff(uint32_t states, uint32_t type, uint32_t chnum)
+void fm_channel::keyonoff(uint32_t states, uint32_t type, uint32_t chnum)
 {
 	for (uint32_t opnum = 0; opnum < 4; opnum++)
 		if (m_op[opnum] != nullptr)
@@ -690,8 +687,7 @@ void fm_channel<RegisterType>::keyonoff(uint32_t states, uint32_t type, uint32_t
 //  prepare - prepare for clocking
 //-------------------------------------------------
 
-template<class RegisterType>
-bool fm_channel<RegisterType>::prepare()
+bool fm_channel::prepare()
 {
 	uint32_t active_mask = 0;
 
@@ -709,8 +705,7 @@ bool fm_channel<RegisterType>::prepare()
 //  clock - master clock of all operators
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_channel<RegisterType>::clock(uint32_t env_counter, int32_t lfo_raw_pm)
+void fm_channel::clock(uint32_t env_counter, int32_t lfo_raw_pm)
 {
 	// clock the feedback through
 	m_feedback[0] = m_feedback[1];
@@ -729,8 +724,7 @@ void fm_channel<RegisterType>::clock(uint32_t env_counter, int32_t lfo_raw_pm)
 //  which vary between different implementations
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_channel<RegisterType>::output_2op(int32_t *output, uint32_t rshift, int32_t clipmax) const
+void fm_channel::output_2op(int32_t *output, uint32_t rshift, int32_t clipmax) const
 {
 	// The first 2 operators should be populated
 	assert(m_op[0] != nullptr);
@@ -761,7 +755,7 @@ void fm_channel<RegisterType>::output_2op(int32_t *output, uint32_t rshift, int3
 	{
 		// some OPL chips use the previous sample for modulation instead of
 		// the current sample
-		opmod = (RegisterType::MODULATOR_DELAY ? m_feedback[1] : op1value) >> 1;
+		opmod = (opn_registers_base::MODULATOR_DELAY ? m_feedback[1] : op1value) >> 1;
 		result = m_op[1]->compute_volume(m_op[1]->phase() + opmod, am_offset) >> rshift;
 	}
 	else
@@ -783,8 +777,7 @@ void fm_channel<RegisterType>::output_2op(int32_t *output, uint32_t rshift, int3
 //  which vary between different implementations
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_channel<RegisterType>::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax) const
+void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax) const
 {
 	// all 4 operators should be populated
 	assert(m_op[0] != nullptr);
@@ -913,7 +906,7 @@ fm_engine_base::fm_engine_base(ymfm_interface &intf) :
 
 	// create the channels
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-		m_channel[chnum] = new fm_channel<opn_registers_base>(*this, opn_registers_base::channel_offset(chnum));
+		m_channel[chnum] = new fm_channel(*this, opn_registers_base::channel_offset(chnum));
 
 	// create the operators
 	for (uint32_t opnum = 0; opnum < OPERATORS; opnum++)

@@ -388,7 +388,6 @@ public:
 
 // fm_channel represents an FM channel which combines the output of 2 or 4
 // operators into a final result
-template<class RegisterType>
 class fm_channel
 {
 public:
@@ -556,7 +555,7 @@ public:
 	uint32_t m_modified_channels;    // mask of channels that have been modified
 	uint32_t m_prepare_count;        // counter to do periodic prepare sweeps
 	opn_registers_base m_regs;             // register accessor
-	fm_channel<opn_registers_base> *m_channel[CHANNELS]; // channel pointers
+	fm_channel *m_channel[CHANNELS]; // channel pointers
 	fm_operator<opn_registers_base> *m_operator[OPERATORS]; // operator pointers
 };
 
