@@ -35,6 +35,56 @@
 // in the case of PM LFO changes
 #define PHASE_STEP_DYNAMIC 1
 
+// OPN Register defines
+// this value is returned from the write() function for rhythm channels
+#define RHYTHM_CHANNEL 0xff
+
+// this is the size of a full sin waveform
+#define WAVEFORM_LENGTH 0x400
+
+// the following constants need to be defined per family:
+//          uint32_t OUTPUTS: The number of outputs exposed (1-4)
+//         uint32_t CHANNELS: The number of channels on the chip
+//     uint32_t ALL_CHANNELS: A bitmask of all channels
+//        uint32_t OPERATORS: The number of operators on the chip
+//        uint32_t WAVEFORMS: The number of waveforms offered
+//        uint32_t REGISTERS: The number of 8-bit registers allocated
+// uint32_t DEFAULT_PRESCALE: The starting clock prescale
+// uint32_t EG_CLOCK_DIVIDER: The clock divider of the envelope generator
+// uint32_t CSM_TRIGGER_MASK: Mask of channels to trigger in CSM mode
+//         uint32_t REG_MODE: The address of the "mode" register controlling timers
+//     uint8_t STATUS_TIMERA: Status bit to set when timer A fires
+//     uint8_t STATUS_TIMERB: Status bit to set when tiemr B fires
+//       uint8_t STATUS_BUSY: Status bit to set when the chip is busy
+//        uint8_t STATUS_IRQ: Status bit to set when an IRQ is signalled
+//
+// the following constants are uncommon:
+//          bool DYNAMIC_OPS: True if ops/channel can be changed at runtime (OPL3+)
+//       bool EG_HAS_DEPRESS: True if the chip has a DP ("depress"?) envelope stage (OPLL)
+//        bool EG_HAS_REVERB: True if the chip has a faux reverb envelope stage (OPQ/OPZ)
+//           bool EG_HAS_SSG: True if the chip has SSG envelope support (OPN)
+//      bool MODULATOR_DELAY: True if the modulator is delayed by 1 sample (OPL pre-OPL3)
+//
+#define OUTPUTS 2
+#define CHANNELS 6
+#define ALL_CHANNELS 0x3f
+#define OPERATORS 24
+#define STATUS_TIMERA 0x01
+#define STATUS_TIMERB 0x02
+#define STATUS_BUSY 0x80
+#define STATUS_IRQ 0
+#define WAVEFORMS 1
+#define REGISTERS 0x200
+#define REG_MODE 0x27
+#define DEFAULT_PRESCALE 6
+#define DYNAMIC_OPS false
+#define EG_CLOCK_DIVIDER 3
+#define EG_HAS_DEPRESS false
+#define EG_HAS_REVERB false
+#define EG_HAS_SSG true
+#define MODULATOR_DELAY false
+#define CSM_TRIGGER_MASK 4
+
 //*********************************************************
 //  GLOBAL ENUMERATORS
 //*********************************************************
@@ -135,57 +185,6 @@ struct opdata_cache
 
 struct opn_registers
 {
-	// constants
-	// this value is returned from the write() function for rhythm channels
-	static constexpr uint32_t RHYTHM_CHANNEL = 0xff;
-
-	// this is the size of a full sin waveform
-	static constexpr uint32_t WAVEFORM_LENGTH = 0x400;
-
-	//
-	// the following constants need to be defined per family:
-	//          uint32_t OUTPUTS: The number of outputs exposed (1-4)
-	//         uint32_t CHANNELS: The number of channels on the chip
-	//     uint32_t ALL_CHANNELS: A bitmask of all channels
-	//        uint32_t OPERATORS: The number of operators on the chip
-	//        uint32_t WAVEFORMS: The number of waveforms offered
-	//        uint32_t REGISTERS: The number of 8-bit registers allocated
-	// uint32_t DEFAULT_PRESCALE: The starting clock prescale
-	// uint32_t EG_CLOCK_DIVIDER: The clock divider of the envelope generator
-	// uint32_t CSM_TRIGGER_MASK: Mask of channels to trigger in CSM mode
-	//         uint32_t REG_MODE: The address of the "mode" register controlling timers
-	//     uint8_t STATUS_TIMERA: Status bit to set when timer A fires
-	//     uint8_t STATUS_TIMERB: Status bit to set when tiemr B fires
-	//       uint8_t STATUS_BUSY: Status bit to set when the chip is busy
-	//        uint8_t STATUS_IRQ: Status bit to set when an IRQ is signalled
-	//
-	// the following constants are uncommon:
-	//          bool DYNAMIC_OPS: True if ops/channel can be changed at runtime (OPL3+)
-	//       bool EG_HAS_DEPRESS: True if the chip has a DP ("depress"?) envelope stage (OPLL)
-	//        bool EG_HAS_REVERB: True if the chip has a faux reverb envelope stage (OPQ/OPZ)
-	//           bool EG_HAS_SSG: True if the chip has SSG envelope support (OPN)
-	//      bool MODULATOR_DELAY: True if the modulator is delayed by 1 sample (OPL pre-OPL3)
-	//
-	static constexpr uint32_t OUTPUTS = 2;
-	static constexpr uint32_t CHANNELS = 6;
-	static constexpr uint32_t ALL_CHANNELS = (1 << CHANNELS) - 1;
-	static constexpr uint32_t OPERATORS = CHANNELS * 4;
-	static constexpr uint32_t WAVEFORMS = 1;
-	static constexpr uint32_t REGISTERS = 0x200;
-	static constexpr uint32_t REG_MODE = 0x27;
-	static constexpr uint32_t DEFAULT_PRESCALE = 6;
-	static constexpr bool DYNAMIC_OPS = false;
-	static constexpr uint32_t EG_CLOCK_DIVIDER = 3;
-	static constexpr bool EG_HAS_DEPRESS = false;
-	static constexpr bool EG_HAS_REVERB = false;
-	static constexpr bool EG_HAS_SSG = true;
-	static constexpr bool MODULATOR_DELAY = false;
-	static constexpr uint32_t CSM_TRIGGER_MASK = 1 << 2;
-	static constexpr uint8_t STATUS_TIMERA = 0x01;
-	static constexpr uint8_t STATUS_TIMERB = 0x02;
-	static constexpr uint8_t STATUS_BUSY = 0x80;
-	static constexpr uint8_t STATUS_IRQ = 0;
-
 	// constructor
 	opn_registers();
 
@@ -398,18 +397,6 @@ struct fm_channel
 // etc) take this output and combine it with the others externally
 struct fm_engine
 {
-	// expose some constants from the registers
-	static constexpr uint32_t OUTPUTS = opn_registers::OUTPUTS;
-	static constexpr uint32_t CHANNELS = opn_registers::CHANNELS;
-	static constexpr uint32_t ALL_CHANNELS = opn_registers::ALL_CHANNELS;
-	static constexpr uint32_t OPERATORS = opn_registers::OPERATORS;
-
-	// also expose status flags for consumers that inject additional bits
-	static constexpr uint8_t STATUS_TIMERA = opn_registers::STATUS_TIMERA;
-	static constexpr uint8_t STATUS_TIMERB = opn_registers::STATUS_TIMERB;
-	static constexpr uint8_t STATUS_BUSY = opn_registers::STATUS_BUSY;
-	static constexpr uint8_t STATUS_IRQ = opn_registers::STATUS_IRQ;
-
 	// constructor
 	fm_engine();
 

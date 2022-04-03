@@ -33,7 +33,7 @@
 
 #include "ymfm_ssg.h"
 
-#define REGISTERS 0x10
+#define REGISTERS_SSG 0x10
 
 // internal state
 static uint32_t m_tone_count[3];             // current tone counter
@@ -42,7 +42,7 @@ static uint32_t m_envelope_count;            // envelope counter
 static uint32_t m_envelope_state;            // envelope state
 static uint32_t m_noise_count;               // current noise counter
 static uint32_t m_noise_state;               // current noise state
-static uint8_t m_regdata[REGISTERS];         // register data
+static uint8_t m_regdata[REGISTERS_SSG];         // register data
 
 //*********************************************************
 // FIXME - put this somewhere common after total conversion
@@ -175,7 +175,7 @@ static inline uint32_t ssg_registers_ch_amplitude(uint32_t choffs) {
 
 static inline void ssg_registers_reset(void)
 {
-	memset(&m_regdata[0], 0, REGISTERS);
+	memset(&m_regdata[0], 0, REGISTERS_SSG);
 }
 
 //-------------------------------------------------

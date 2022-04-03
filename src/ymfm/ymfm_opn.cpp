@@ -621,9 +621,9 @@ void ym2610::reset()
 
 uint8_t ym2610::read_status()
 {
-	uint8_t result = m_fm.status() & (fm_engine::STATUS_TIMERA | fm_engine::STATUS_TIMERB);
+	uint8_t result = m_fm.status() & (STATUS_TIMERA | STATUS_TIMERB);
 	if (ymfm_is_busy())
-		result |= fm_engine::STATUS_BUSY;
+		result |= STATUS_BUSY;
 	return result;
 }
 
@@ -954,7 +954,7 @@ uint8_t ym2612::read_status()
 {
 	uint8_t result = m_fm.status();
 	if (ymfm_is_busy())
-		result |= fm_engine::STATUS_BUSY;
+		result |= STATUS_BUSY;
 	return result;
 }
 
@@ -1097,7 +1097,7 @@ void ym2612::write(uint32_t offset, uint8_t data)
 void ym2612::generate(int32_t *output)
 {
 	// clock the system
-	m_fm.clock(fm_engine::ALL_CHANNELS);
+	m_fm.clock(ALL_CHANNELS);
 
 	// sum individual channels to apply DAC discontinuity on each
 	output[0] = output[1] = 0;
@@ -1138,14 +1138,14 @@ void ym2612::generate(int32_t *output)
 void ym2612::generate3438(int32_t *output)
 {
 	// clock the system
-	m_fm.clock(fm_engine::ALL_CHANNELS);
+	m_fm.clock(ALL_CHANNELS);
 
 	// first do FM-only channels; OPN2C is 9-bit with intermediate clipping
 	if (!m_dac_enable)
 	{
 		// DAC disabled: all 6 channels sum together
 		output[0] = output[1] = 0;
-		m_fm.output(output, 5, 256, fm_engine::ALL_CHANNELS);
+		m_fm.output(output, 5, 256, ALL_CHANNELS);
 	}
 	else
 	{
@@ -1153,7 +1153,7 @@ void ym2612::generate3438(int32_t *output)
 		int32_t dacval = int16_t(m_dac_data << 7) >> 7;
 		output[0] = m_regs.ch_output_0(0x102) ? dacval : 0;
 		output[1] = m_regs.ch_output_1(0x102) ? dacval : 0;
-		m_fm.output(output, 5, 256, fm_engine::ALL_CHANNELS ^ (1 << 5));
+		m_fm.output(output, 5, 256, ALL_CHANNELS ^ (1 << 5));
 	}
 
 	// YM3438 doesn't have the same DAC discontinuity, though its output is
