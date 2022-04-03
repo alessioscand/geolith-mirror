@@ -69,10 +69,11 @@ static inline uint32_t effective_rate(uint32_t rawrate, uint32_t ksr)
 //  opn_registers - constructor
 //-------------------------------------------------
 
-opn_registers::opn_registers() :
-	m_lfo_counter(0),
-	m_lfo_am(0)
+opn_registers::opn_registers()
 {
+	m_lfo_counter = 0;
+	m_lfo_am = 0;
+
 	// create the waveforms
 	for (uint32_t index = 0; index < WAVEFORM_LENGTH; index++)
 		m_waveform[0][index] = abs_sin_attenuation(index) | (bitfield(index, 9) << 15);

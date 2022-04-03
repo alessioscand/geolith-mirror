@@ -464,7 +464,7 @@ public:
 // fm_engine represents a set of operators and channels which together
 // form a Yamaha FM core; chips that implement other engines (ADPCM, wavetable,
 // etc) take this output and combine it with the others externally
-class fm_engine : public ymfm_engine_callbacks
+class fm_engine
 {
 public:
 	// expose some constants from the registers
@@ -524,13 +524,13 @@ public:
 	void invalidate_caches() { m_modified_channels = opn_registers::ALL_CHANNELS; }
 
 	// timer callback; called by the interface when a timer fires
-	virtual void engine_timer_expired(uint32_t tnum) override;
+	void engine_timer_expired(uint32_t tnum);
 
 	// check interrupts; called by the interface after synchronization
-	virtual void engine_check_interrupts() override;
+	void engine_check_interrupts();
 
 	// mode register write; called by the interface after synchronization
-	virtual void engine_mode_write(uint8_t data) override;
+	void engine_mode_write(uint8_t data);
 
 	// assign the current set of operators to channels
 	void assign_operators();
@@ -553,5 +553,7 @@ public:
 	fm_channel *m_channel[CHANNELS]; // channel pointers
 	fm_operator *m_operator[OPERATORS]; // operator pointers
 };
+
+extern fm_engine *m_engine;
 
 #endif // YMFM_FM_H

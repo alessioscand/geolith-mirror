@@ -142,31 +142,4 @@ inline int32_t clamp(int32_t value, int32_t minval, int32_t maxval)
 	return value;
 }
 
-
-//*********************************************************
-//  INTERFACE CLASSES
-//*********************************************************
-
-// ======================> ymfm_engine_callbacks
-
-// this class represents functions in the engine that the ymfm_interface
-// needs to be able to call; it is represented here as a separate interface
-// that is independent of the actual engine implementation
-class ymfm_engine_callbacks
-{
-public:
-	// timer callback; called by the interface when a timer fires
-	virtual void engine_timer_expired(uint32_t tnum) = 0;
-
-	// check interrupts; called by the interface after synchronization
-	virtual void engine_check_interrupts() = 0;
-
-	// mode register write; called by the interface after synchronization
-	virtual void engine_mode_write(uint8_t data) = 0;
-};
-
-// pointer to engine callbacks -- this is set directly by the engine at
-// construction time
-extern ymfm_engine_callbacks *m_engine;
-
 #endif // YMFM_H

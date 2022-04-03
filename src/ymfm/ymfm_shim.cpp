@@ -41,7 +41,7 @@ static int divisor;
 static int32_t output[3];
 
 static ym2610 *chip;
-ymfm_engine_callbacks *m_engine;
+fm_engine *m_engine;
 
 extern "C" {
 uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
