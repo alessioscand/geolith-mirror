@@ -243,7 +243,7 @@ inline int32_t opn_lfo_pm_phase_adjustment(uint32_t fnum_bits, uint32_t pm_sensi
 //-------------------------------------------------
 
 template<class RegisterType>
-fm_operator<RegisterType>::fm_operator(fm_engine_base<RegisterType> &owner, uint32_t opoffs) :
+fm_operator<RegisterType>::fm_operator(fm_engine_base &owner, uint32_t opoffs) :
 	m_choffs(0),
 	m_opoffs(opoffs),
 	m_phase(0),
@@ -649,7 +649,7 @@ uint32_t fm_operator<RegisterType>::envelope_attenuation(uint32_t am_offset) con
 //-------------------------------------------------
 
 template<class RegisterType>
-fm_channel<RegisterType>::fm_channel(fm_engine_base<RegisterType> &owner, uint32_t choffs) :
+fm_channel<RegisterType>::fm_channel(fm_engine_base &owner, uint32_t choffs) :
 	m_choffs(choffs),
 	m_feedback{ 0, 0 },
 	m_feedback_in(0),
@@ -896,12 +896,11 @@ void fm_channel<RegisterType>::output_4op(int32_t *output, uint32_t rshift, int3
 //  fm_engine_base - constructor
 //-------------------------------------------------
 
-template<class RegisterType>
-fm_engine_base<RegisterType>::fm_engine_base(ymfm_interface &intf) :
+fm_engine_base::fm_engine_base(ymfm_interface &intf) :
 	m_intf(intf),
 	m_env_counter(0),
 	m_status(0),
-	m_clock_prescale(RegisterType::DEFAULT_PRESCALE),
+	m_clock_prescale(opn_registers_base::DEFAULT_PRESCALE),
 	m_irq_mask(STATUS_TIMERA | STATUS_TIMERB),
 	m_irq_state(0),
 	m_timer_running{0,0},
@@ -914,11 +913,11 @@ fm_engine_base<RegisterType>::fm_engine_base(ymfm_interface &intf) :
 
 	// create the channels
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-		m_channel[chnum] = new fm_channel<RegisterType>(*this, RegisterType::channel_offset(chnum));
+		m_channel[chnum] = new fm_channel<opn_registers_base>(*this, opn_registers_base::channel_offset(chnum));
 
 	// create the operators
 	for (uint32_t opnum = 0; opnum < OPERATORS; opnum++)
-		m_operator[opnum] = new fm_operator<RegisterType>(*this, RegisterType::operator_offset(opnum));
+		m_operator[opnum] = new fm_operator<opn_registers_base>(*this, opn_registers_base::operator_offset(opnum));
 
 	// do the initial operator assignment
 	assign_operators();
@@ -929,8 +928,7 @@ fm_engine_base<RegisterType>::fm_engine_base(ymfm_interface &intf) :
 //  reset - reset the overall state
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_engine_base<RegisterType>::reset()
+void fm_engine_base::reset()
 {
 	// reset all status bits
 	set_reset_status(0, 0xff);
@@ -940,7 +938,7 @@ void fm_engine_base<RegisterType>::reset()
 
 	// explicitly write to the mode register since it has side-effects
 	// QUESTION: old cores initialize this to 0x30 -- who is right?
-	write(RegisterType::REG_MODE, 0);
+	write(opn_registers_base::REG_MODE, 0);
 
 	// reset the channels
 	for (auto &chan : m_channel)
@@ -957,8 +955,7 @@ void fm_engine_base<RegisterType>::reset()
 //  them forward one step
 //-------------------------------------------------
 
-template<class RegisterType>
-uint32_t fm_engine_base<RegisterType>::clock(uint32_t chanmask)
+uint32_t fm_engine_base::clock(uint32_t chanmask)
 {
 	// update the clock counter
 	m_total_clocks++;
@@ -968,7 +965,7 @@ uint32_t fm_engine_base<RegisterType>::clock(uint32_t chanmask)
 	if (m_modified_channels != 0 || m_prepare_count++ >= 4096)
 	{
 		// reassign operators to channels if dynamic
-		if (RegisterType::DYNAMIC_OPS)
+		if (opn_registers_base::DYNAMIC_OPS)
 			assign_operators();
 
 		// call each channel to prepare
@@ -984,10 +981,10 @@ uint32_t fm_engine_base<RegisterType>::clock(uint32_t chanmask)
 
 	// if the envelope clock divider is 1, just increment by 4;
 	// otherwise, increment by 1 and manually wrap when we reach the divide count
-	if (RegisterType::EG_CLOCK_DIVIDER == 1)
+	if (opn_registers_base::EG_CLOCK_DIVIDER == 1)
 		m_env_counter += 4;
-	else if (bitfield(++m_env_counter, 0, 2) == RegisterType::EG_CLOCK_DIVIDER)
-		m_env_counter += 4 - RegisterType::EG_CLOCK_DIVIDER;
+	else if (bitfield(++m_env_counter, 0, 2) == opn_registers_base::EG_CLOCK_DIVIDER)
+		m_env_counter += 4 - opn_registers_base::EG_CLOCK_DIVIDER;
 
 	// clock the noise generator
 	int32_t lfo_raw_pm = m_regs.clock_noise_and_lfo();
@@ -1007,8 +1004,7 @@ uint32_t fm_engine_base<RegisterType>::clock(uint32_t chanmask)
 //  channels
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_engine_base<RegisterType>::output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_t chanmask) const
+void fm_engine_base::output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_t chanmask) const
 {
 	// mask out some channels for debug purposes
 	chanmask &= 0xffffffff;
@@ -1032,12 +1028,11 @@ void fm_engine_base<RegisterType>::output(int32_t *output, uint32_t rshift, int3
 //  write - handle writes to the OPN registers
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_engine_base<RegisterType>::write(uint16_t regnum, uint8_t data)
+void fm_engine_base::write(uint16_t regnum, uint8_t data)
 {
 	// special case: writes to the mode register can impact IRQs;
 	// schedule these writes to ensure ordering with timers
-	if (regnum == RegisterType::REG_MODE)
+	if (regnum == opn_registers_base::REG_MODE)
 	{
 		m_intf.ymfm_sync_mode_write(data);
 		return;
@@ -1057,7 +1052,7 @@ void fm_engine_base<RegisterType>::write(uint16_t regnum, uint8_t data)
 			// normal channel on/off
 			m_channel[keyon_channel]->keyonoff(keyon_opmask, KEYON_NORMAL, keyon_channel);
 		}
-		else if (CHANNELS >= 9 && keyon_channel == RegisterType::RHYTHM_CHANNEL)
+		else if (CHANNELS >= 9 && keyon_channel == opn_registers_base::RHYTHM_CHANNEL)
 		{
 			// special case for the OPL rhythm channels
 			m_channel[6]->keyonoff(bitfield(keyon_opmask, 4) ? 3 : 0, KEYON_RHYTHM, 6);
@@ -1073,8 +1068,7 @@ void fm_engine_base<RegisterType>::write(uint16_t regnum, uint8_t data)
 //  status flags
 //-------------------------------------------------
 
-template<class RegisterType>
-uint8_t fm_engine_base<RegisterType>::status() const
+uint8_t fm_engine_base::status() const
 {
 	return m_status & ~STATUS_BUSY;
 }
@@ -1085,10 +1079,9 @@ uint8_t fm_engine_base<RegisterType>::status() const
 //  operators to channels and assign them all
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_engine_base<RegisterType>::assign_operators()
+void fm_engine_base::assign_operators()
 {
-	typename RegisterType::operator_mapping map;
+	typename opn_registers_base::operator_mapping map;
 	m_regs.operator_map(map);
 
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
@@ -1105,8 +1098,7 @@ void fm_engine_base<RegisterType>::assign_operators()
 //  timer
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_engine_base<RegisterType>::update_timer(uint32_t tnum, uint32_t enable, int32_t delta_clocks)
+void fm_engine_base::update_timer(uint32_t tnum, uint32_t enable, int32_t delta_clocks)
 {
 	// if the timer is live, but not currently enabled, set the timer
 	if (enable && !m_timer_running[tnum])
@@ -1136,8 +1128,7 @@ void fm_engine_base<RegisterType>::update_timer(uint32_t tnum, uint32_t enable, 
 //  status and possibly IRQs
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_engine_base<RegisterType>::engine_timer_expired(uint32_t tnum)
+void fm_engine_base::engine_timer_expired(uint32_t tnum)
 {
 	// update status
 	if (tnum == 0 && m_regs.enable_timer_a())
@@ -1148,7 +1139,7 @@ void fm_engine_base<RegisterType>::engine_timer_expired(uint32_t tnum)
 	// if timer A fired in CSM mode, trigger CSM on all relevant channels
 	if (tnum == 0 && m_regs.csm())
 		for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-			if (bitfield(RegisterType::CSM_TRIGGER_MASK, chnum))
+			if (bitfield(opn_registers_base::CSM_TRIGGER_MASK, chnum))
 				m_channel[chnum]->keyonoff(1, KEYON_CSM, chnum);
 
 	// reset
@@ -1162,8 +1153,7 @@ void fm_engine_base<RegisterType>::engine_timer_expired(uint32_t tnum)
 //  for interrupts
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_engine_base<RegisterType>::engine_check_interrupts()
+void fm_engine_base::engine_check_interrupts()
 {
 	// update the state
 	uint8_t old_state = m_irq_state;
@@ -1186,15 +1176,14 @@ void fm_engine_base<RegisterType>::engine_check_interrupts()
 //  via timer callback
 //-------------------------------------------------
 
-template<class RegisterType>
-void fm_engine_base<RegisterType>::engine_mode_write(uint8_t data)
+void fm_engine_base::engine_mode_write(uint8_t data)
 {
 	// mark all channels as modified
 	m_modified_channels = ALL_CHANNELS;
 
 	// actually write the mode register now
 	uint32_t dummy1, dummy2;
-	m_regs.write(RegisterType::REG_MODE, data, dummy1, dummy2);
+	m_regs.write(opn_registers_base::REG_MODE, data, dummy1, dummy2);
 
 	// reset IRQ status -- when written, all other bits are ignored
 	// QUESTION: should this maybe just reset the IRQ bit and not all the bits?
@@ -1202,9 +1191,9 @@ void fm_engine_base<RegisterType>::engine_mode_write(uint8_t data)
 	// reset timer status
 	uint8_t reset_mask = 0;
 	if (m_regs.reset_timer_b())
-		reset_mask |= RegisterType::STATUS_TIMERB;
+		reset_mask |= opn_registers_base::STATUS_TIMERB;
 	if (m_regs.reset_timer_a())
-		reset_mask |= RegisterType::STATUS_TIMERA;
+		reset_mask |= opn_registers_base::STATUS_TIMERA;
 	set_reset_status(0, reset_mask);
 
 	// load timers; note that timer B gets a small negative adjustment because
