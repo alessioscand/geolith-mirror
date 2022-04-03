@@ -115,6 +115,12 @@ enum {
 	OPN_FIDELITY_DEFAULT = OPN_FIDELITY_MAX
 };
 
+void opn_registers_init(void);
+void opn_registers_reset(void);
+bool opn_registers_write(uint16_t index, uint8_t data, uint32_t &channel, uint32_t &opmask);
+int32_t opn_registers_clock_noise_and_lfo(void);
+void opn_registers_reset_lfo(void);
+uint32_t opn_registers_lfo_am_offset(uint32_t choffs);
 
 // ======================> ym2610/ym2610b
 

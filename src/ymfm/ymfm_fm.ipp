@@ -760,7 +760,7 @@ void fm_channel::output_2op(int32_t *output, uint32_t rshift, int32_t clipmax)
 	assert(m_op[1] != nullptr);
 
 	// AM amount is the same across all operators; compute it once
-	uint32_t am_offset = m_regs.lfo_am_offset(m_choffs);
+	uint32_t am_offset = opn_registers_lfo_am_offset(m_choffs);
 
 	// operator 1 has optional self-feedback
 	int32_t opmod = 0;
@@ -815,7 +815,7 @@ void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax)
 	assert(m_op[3] != nullptr);
 
 	// AM amount is the same across all operators; compute it once
-	uint32_t am_offset = m_regs.lfo_am_offset(m_choffs);
+	uint32_t am_offset = opn_registers_lfo_am_offset(m_choffs);
 
 	// operator 1 has optional self-feedback
 	int32_t opmod = 0;
@@ -960,6 +960,8 @@ fm_engine::fm_engine()
 	// inform the interface of their engine
 	m_engine = this;
 
+	opn_registers_init();
+
 	// create the channels
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
 		m_channel[chnum] = new fm_channel(channel_offset(chnum));
@@ -983,7 +985,7 @@ void fm_engine::reset(void)
 	set_reset_status(0, 0xff);
 
 	// register type-specific initialization
-	m_regs.reset();
+	opn_registers_reset();
 
 	// explicitly write to the mode register since it has side-effects
 	// QUESTION: old cores initialize this to 0x30 -- who is right?
@@ -1036,7 +1038,7 @@ uint32_t fm_engine::clock(uint32_t chanmask)
 		m_env_counter += 4 - EG_CLOCK_DIVIDER;
 
 	// clock the noise generator
-	int32_t lfo_raw_pm = m_regs.clock_noise_and_lfo();
+	int32_t lfo_raw_pm = opn_registers_clock_noise_and_lfo();
 
 	// now update the state of all the channels and operators
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
@@ -1093,7 +1095,7 @@ void fm_engine::write(uint16_t regnum, uint8_t data)
 	// most writes are passive, consumed only when needed
 	uint32_t keyon_channel;
 	uint32_t keyon_opmask;
-	if (m_regs.write(regnum, data, keyon_channel, keyon_opmask))
+	if (opn_registers_write(regnum, data, keyon_channel, keyon_opmask))
 	{
 		// handle writes to the keyon register(s)
 		if (keyon_channel < CHANNELS)
@@ -1272,7 +1274,7 @@ void fm_engine::engine_mode_write(uint8_t data)
 
 	// actually write the mode register now
 	uint32_t dummy1, dummy2;
-	m_regs.write(REG_MODE, data, dummy1, dummy2);
+	opn_registers_write(REG_MODE, data, dummy1, dummy2);
 
 	// reset IRQ status -- when written, all other bits are ignored
 	// QUESTION: should this maybe just reset the IRQ bit and not all the bits?

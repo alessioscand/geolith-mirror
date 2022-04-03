@@ -185,30 +185,9 @@ struct opdata_cache
 
 struct opn_registers
 {
-	// constructor
-	opn_registers();
-
-	// reset to initial state
-	void reset();
-
 	// return an array of operator indices for each channel
 	struct operator_mapping { uint32_t chan[CHANNELS]; };
-	void operator_map(operator_mapping &dest) const;
-
-	// read a register value
-	uint8_t read(uint16_t index);
-
-	// handle writes to the register array
-	bool write(uint16_t index, uint8_t data, uint32_t &chan, uint32_t &opmask);
-
-	// clock the noise and LFO, if present, returning LFO PM value
-	int32_t clock_noise_and_lfo();
-
-	// reset the LFO
-	void reset_lfo(void);
-
-	// return the AM offset from LFO for the given channel
-	uint32_t lfo_am_offset(uint32_t choffs);
+	void operator_map(operator_mapping &dest);
 
 	// return LFO/noise states
 	uint32_t noise_state() const { return 0; }
