@@ -484,10 +484,10 @@ static inline void ssg_resampler_configure(uint8_t outsamples, uint8_t srcsample
 //  ym2610 - constructor
 //-------------------------------------------------
 
-ym2610::ym2610(ymfm_interface &intf, uint8_t channel_mask) :
+ym2610::ym2610(ymfm_interface &intf) :
 	m_fidelity(OPN_FIDELITY_MAX),
 	m_address(0),
-	m_fm_mask(channel_mask),
+	m_fm_mask(0x36),
 	m_eos_status(0x00),
 	m_flag_mask(EOS_FLAGS_MASK),
 	m_fm(intf)
@@ -496,6 +496,34 @@ ym2610::ym2610(ymfm_interface &intf, uint8_t channel_mask) :
 	ssg_resampler_init();
 	adpcm_a_engine_init();
 	adpcm_b_engine_init();
+	update_prescale();
+}
+
+
+// pass-through helpers
+uint32_t ym2610::sample_rate(uint32_t input_clock) {
+	switch (m_fidelity)
+	{
+		case OPN_FIDELITY_MIN:	return input_clock / 144;
+		case OPN_FIDELITY_MED:	return input_clock / 144;
+		default:
+		case OPN_FIDELITY_MAX:	return input_clock / 16;
+	}
+}
+
+
+uint32_t ym2610::ssg_effective_clock(uint32_t input_clock) {
+	return input_clock / 4;
+}
+
+
+void ym2610::invalidate_caches(void) {
+	m_fm.invalidate_caches();
+}
+
+
+void ym2610::set_fidelity(uint32_t fidelity) {
+	m_fidelity = fidelity;
 	update_prescale();
 }
 
@@ -826,6 +854,16 @@ ym2612::ym2612(ymfm_interface &intf) :
 	m_dac_enable(0),
 	m_fm(intf)
 {
+}
+
+
+uint32_t ym2612::sample_rate(uint32_t input_clock) {
+	return m_fm.sample_rate(input_clock);
+}
+
+
+void ym2612::invalidate_caches(void) {
+	m_fm.invalidate_caches();
 }
 
 

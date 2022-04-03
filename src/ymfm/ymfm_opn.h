@@ -123,27 +123,18 @@ struct ym2610
 	#define EOS_FLAGS_MASK 0xbf
 
 	// constructor
-	ym2610(ymfm_interface &intf, uint8_t channel_mask = 0x36);
+	ym2610(ymfm_interface &intf);
 
 	// configuration
-	void set_fidelity(uint32_t fidelity) { m_fidelity = fidelity; update_prescale(); }
+	void set_fidelity(uint32_t fidelity);
 
 	// reset
 	void reset();
 
 	// pass-through helpers
-	uint32_t sample_rate(uint32_t input_clock) const
-	{
-		switch (m_fidelity)
-		{
-			case OPN_FIDELITY_MIN:	return input_clock / 144;
-			case OPN_FIDELITY_MED:	return input_clock / 144;
-			default:
-			case OPN_FIDELITY_MAX:	return input_clock / 16;
-		}
-	}
-	uint32_t ssg_effective_clock(uint32_t input_clock) const { return input_clock / 4; }
-	void invalidate_caches() { m_fm.invalidate_caches(); }
+	uint32_t sample_rate(uint32_t input_clock);
+	uint32_t ssg_effective_clock(uint32_t input_clock);
+	void invalidate_caches(void);
 
 	// read access
 	uint8_t read_status();
@@ -189,8 +180,8 @@ struct ym2612
 	void reset();
 
 	// pass-through helpers
-	uint32_t sample_rate(uint32_t input_clock) const { return m_fm.sample_rate(input_clock); }
-	void invalidate_caches() { m_fm.invalidate_caches(); }
+	uint32_t sample_rate(uint32_t input_clock);
+	void invalidate_caches(void);
 
 	// read access
 	uint8_t read_status();
