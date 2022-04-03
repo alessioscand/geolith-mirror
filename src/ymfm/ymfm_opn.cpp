@@ -66,10 +66,10 @@ static inline uint32_t effective_rate(uint32_t rawrate, uint32_t ksr)
 //*********************************************************
 
 //-------------------------------------------------
-//  opn_registers_base - constructor
+//  opn_registers - constructor
 //-------------------------------------------------
 
-opn_registers_base::opn_registers_base() :
+opn_registers::opn_registers() :
 	m_lfo_counter(0),
 	m_lfo_am(0)
 {
@@ -83,7 +83,7 @@ opn_registers_base::opn_registers_base() :
 //  reset - reset to initial state
 //-------------------------------------------------
 
-void opn_registers_base::reset()
+void opn_registers::reset()
 {
 	memset(&m_regdata[0], 0, REGISTERS);
 	// enable output on both channels by default
@@ -97,7 +97,7 @@ void opn_registers_base::reset()
 //  indices for each channel; for OPN this is fixed
 //-------------------------------------------------
 
-void opn_registers_base::operator_map(operator_mapping &dest) const
+void opn_registers::operator_map(operator_mapping &dest) const
 {
 	// Note that the channel index order is 0,2,1,3, so we bitswap the index.
 	//
@@ -123,7 +123,7 @@ void opn_registers_base::operator_map(operator_mapping &dest) const
 //  write - handle writes to the register array
 //-------------------------------------------------
 
-bool opn_registers_base::write(uint16_t index, uint8_t data, uint32_t &channel, uint32_t &opmask)
+bool opn_registers::write(uint16_t index, uint8_t data, uint32_t &channel, uint32_t &opmask)
 {
 	assert(index < REGISTERS);
 
@@ -170,7 +170,7 @@ bool opn_registers_base::write(uint16_t index, uint8_t data, uint32_t &channel, 
 //  computations
 //-------------------------------------------------
 
-int32_t opn_registers_base::clock_noise_and_lfo()
+int32_t opn_registers::clock_noise_and_lfo()
 {
 	// OPN has no noise generation
 
@@ -221,7 +221,7 @@ int32_t opn_registers_base::clock_noise_and_lfo()
 //  for the given channel
 //-------------------------------------------------
 
-uint32_t opn_registers_base::lfo_am_offset(uint32_t choffs) const
+uint32_t opn_registers::lfo_am_offset(uint32_t choffs) const
 {
 	// shift value for AM sensitivity is [7, 3, 1, 0],
 	// mapping to values of [0, 1.4, 5.9, and 11.8dB]
@@ -243,7 +243,7 @@ uint32_t opn_registers_base::lfo_am_offset(uint32_t choffs) const
 //  with prefetched data
 //-------------------------------------------------
 
-void opn_registers_base::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_cache &cache)
+void opn_registers::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_cache &cache)
 {
 	// set up the easy stuff
 	cache.waveform = &m_waveform[0][0];
@@ -316,7 +316,7 @@ void opn_registers_base::cache_operator_data(uint32_t choffs, uint32_t opoffs, o
 //  compute_phase_step - compute the phase step
 //-------------------------------------------------
 
-uint32_t opn_registers_base::compute_phase_step(uint32_t choffs, uint32_t opoffs, opdata_cache const &cache, int32_t lfo_raw_pm)
+uint32_t opn_registers::compute_phase_step(uint32_t choffs, uint32_t opoffs, opdata_cache const &cache, int32_t lfo_raw_pm)
 {
 	// OPN phase calculation has only a single detune parameter
 	// and uses FNUMs instead of keycodes

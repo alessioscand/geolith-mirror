@@ -74,7 +74,7 @@ struct opdata_cache
 //  REGISTER CLASSES
 //*********************************************************
 
-// ======================> opn_registers_base
+// ======================> opn_registers
 
 //
 // OPN register map:
@@ -136,7 +136,7 @@ struct opdata_cache
 //        BC-BF --xxxxxx Latched frequency number upper bits (from AC-AF)
 //
 
-struct opn_registers_base
+struct opn_registers
 {
 	// constants
 	// this value is returned from the write() function for rhythm channels
@@ -190,7 +190,7 @@ struct opn_registers_base
 	static constexpr uint8_t STATUS_IRQ = 0;
 
 	// constructor
-	opn_registers_base();
+	opn_registers();
 
 	// reset to initial state
 	void reset();
@@ -348,7 +348,7 @@ public:
 	void keyonoff(uint32_t on, uint32_t type);
 
 	// return a reference to our registers
-	opn_registers_base &regs() const { return m_regs; }
+	opn_registers &regs() const { return m_regs; }
 
 	// start the attack phase
 	void start_attack(bool is_restart = false);
@@ -375,8 +375,8 @@ public:
 	uint8_t m_key_state;                   // current key state: on or off (bit 0)
 	uint8_t m_keyon_live;                  // live key on state (bit 0 = direct, bit 1 = rhythm, bit 2 = CSM)
 	opdata_cache m_cache;                  // cached values for performance
-	opn_registers_base &m_regs;            // direct reference to registers
-	fm_engine &m_owner;               // reference to the owning engine
+	opn_registers &m_regs;                 // direct reference to registers
+	fm_engine &m_owner;                    // reference to the owning engine
 };
 
 
@@ -421,13 +421,13 @@ public:
 	// are we a 4-operator channel or a 2-operator one?
 	bool is4op() const
 	{
-		if (opn_registers_base::DYNAMIC_OPS)
+		if (opn_registers::DYNAMIC_OPS)
 			return (m_op[2] != nullptr);
-		return (opn_registers_base::OPERATORS / opn_registers_base::CHANNELS == 4);
+		return (opn_registers::OPERATORS / opn_registers::CHANNELS == 4);
 	}
 
 	// return a reference to our registers
-	opn_registers_base &regs() const { return m_regs; }
+	opn_registers &regs() const { return m_regs; }
 
 	// helper to add values to the outputs based on channel enables
 	void add_to_output(uint32_t choffs, int32_t *output, int32_t value) const
@@ -435,17 +435,17 @@ public:
 		// create these constants to appease overzealous compilers checking array
 		// bounds in unreachable code (looking at you, clang)
 		constexpr int out0_index = 0;
-		constexpr int out1_index = 1 % opn_registers_base::OUTPUTS;
-		constexpr int out2_index = 2 % opn_registers_base::OUTPUTS;
-		constexpr int out3_index = 3 % opn_registers_base::OUTPUTS;
+		constexpr int out1_index = 1 % opn_registers::OUTPUTS;
+		constexpr int out2_index = 2 % opn_registers::OUTPUTS;
+		constexpr int out3_index = 3 % opn_registers::OUTPUTS;
 
-		if (opn_registers_base::OUTPUTS == 1 || m_regs.ch_output_0(choffs))
+		if (opn_registers::OUTPUTS == 1 || m_regs.ch_output_0(choffs))
 			output[out0_index] += value;
-		if (opn_registers_base::OUTPUTS >= 2 && m_regs.ch_output_1(choffs))
+		if (opn_registers::OUTPUTS >= 2 && m_regs.ch_output_1(choffs))
 			output[out1_index] += value;
-		if (opn_registers_base::OUTPUTS >= 3 && m_regs.ch_output_2(choffs))
+		if (opn_registers::OUTPUTS >= 3 && m_regs.ch_output_2(choffs))
 			output[out2_index] += value;
-		if (opn_registers_base::OUTPUTS >= 4 && m_regs.ch_output_3(choffs))
+		if (opn_registers::OUTPUTS >= 4 && m_regs.ch_output_3(choffs))
 			output[out3_index] += value;
 	}
 
@@ -454,8 +454,8 @@ public:
 	int16_t m_feedback[2];                 // feedback memory for operator 1
 	mutable int16_t m_feedback_in;         // next input value for op 1 feedback (set in output)
 	fm_operator *m_op[4];                  // up to 4 operators
-	opn_registers_base &m_regs;            // direct reference to registers
-	fm_engine &m_owner;               // reference to the owning engine
+	opn_registers &m_regs;                 // direct reference to registers
+	fm_engine &m_owner;                    // reference to the owning engine
 };
 
 
@@ -468,16 +468,16 @@ class fm_engine : public ymfm_engine_callbacks
 {
 public:
 	// expose some constants from the registers
-	static constexpr uint32_t OUTPUTS = opn_registers_base::OUTPUTS;
-	static constexpr uint32_t CHANNELS = opn_registers_base::CHANNELS;
-	static constexpr uint32_t ALL_CHANNELS = opn_registers_base::ALL_CHANNELS;
-	static constexpr uint32_t OPERATORS = opn_registers_base::OPERATORS;
+	static constexpr uint32_t OUTPUTS = opn_registers::OUTPUTS;
+	static constexpr uint32_t CHANNELS = opn_registers::CHANNELS;
+	static constexpr uint32_t ALL_CHANNELS = opn_registers::ALL_CHANNELS;
+	static constexpr uint32_t OPERATORS = opn_registers::OPERATORS;
 
 	// also expose status flags for consumers that inject additional bits
-	static constexpr uint8_t STATUS_TIMERA = opn_registers_base::STATUS_TIMERA;
-	static constexpr uint8_t STATUS_TIMERB = opn_registers_base::STATUS_TIMERB;
-	static constexpr uint8_t STATUS_BUSY = opn_registers_base::STATUS_BUSY;
-	static constexpr uint8_t STATUS_IRQ = opn_registers_base::STATUS_IRQ;
+	static constexpr uint8_t STATUS_TIMERA = opn_registers::STATUS_TIMERA;
+	static constexpr uint8_t STATUS_TIMERB = opn_registers::STATUS_TIMERB;
+	static constexpr uint8_t STATUS_BUSY = opn_registers::STATUS_BUSY;
+	static constexpr uint8_t STATUS_IRQ = opn_registers::STATUS_IRQ;
 
 	// constructor
 	fm_engine(ymfm_interface &intf);
@@ -518,10 +518,10 @@ public:
 	uint32_t sample_rate(uint32_t baseclock) const { return baseclock / (m_clock_prescale * OPERATORS); }
 
 	// return a reference to our registers
-	opn_registers_base &regs() { return m_regs; }
+	opn_registers &regs() { return m_regs; }
 
 	// invalidate any caches
-	void invalidate_caches() { m_modified_channels = opn_registers_base::ALL_CHANNELS; }
+	void invalidate_caches() { m_modified_channels = opn_registers::ALL_CHANNELS; }
 
 	// timer callback; called by the interface when a timer fires
 	virtual void engine_timer_expired(uint32_t tnum) override;
@@ -550,7 +550,7 @@ public:
 	uint32_t m_active_channels;      // mask of active channels (computed by prepare)
 	uint32_t m_modified_channels;    // mask of channels that have been modified
 	uint32_t m_prepare_count;        // counter to do periodic prepare sweeps
-	opn_registers_base m_regs;       // register accessor
+	opn_registers m_regs;            // register accessor
 	fm_channel *m_channel[CHANNELS]; // channel pointers
 	fm_operator *m_operator[OPERATORS]; // operator pointers
 };
