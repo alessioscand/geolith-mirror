@@ -122,8 +122,6 @@ struct ym2610
 {
 	#define EOS_FLAGS_MASK 0xbf
 
-	using fm_engine = fm_engine_base;
-
 	// constructor
 	ym2610(ymfm_interface &intf, uint8_t channel_mask = 0x36);
 
@@ -184,8 +182,6 @@ struct ym2610
 
 struct ym2612
 {
-	using fm_engine = fm_engine_base;
-
 	// constructor
 	ym2612(ymfm_interface &intf);
 

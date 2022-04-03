@@ -239,7 +239,7 @@ inline int32_t opn_lfo_pm_phase_adjustment(uint32_t fnum_bits, uint32_t pm_sensi
 //  fm_operator - constructor
 //-------------------------------------------------
 
-fm_operator::fm_operator(fm_engine_base &owner, uint32_t opoffs) :
+fm_operator::fm_operator(fm_engine &owner, uint32_t opoffs) :
 	m_choffs(0),
 	m_opoffs(opoffs),
 	m_phase(0),
@@ -631,7 +631,7 @@ uint32_t fm_operator::envelope_attenuation(uint32_t am_offset) const
 //  fm_channel - constructor
 //-------------------------------------------------
 
-fm_channel::fm_channel(fm_engine_base &owner, uint32_t choffs) :
+fm_channel::fm_channel(fm_engine &owner, uint32_t choffs) :
 	m_choffs(choffs),
 	m_feedback{ 0, 0 },
 	m_feedback_in(0),
@@ -869,10 +869,10 @@ void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax) c
 //*********************************************************
 
 //-------------------------------------------------
-//  fm_engine_base - constructor
+//  fm_engine - constructor
 //-------------------------------------------------
 
-fm_engine_base::fm_engine_base(ymfm_interface &intf) :
+fm_engine::fm_engine(ymfm_interface &intf) :
 	m_intf(intf),
 	m_env_counter(0),
 	m_status(0),
@@ -904,7 +904,7 @@ fm_engine_base::fm_engine_base(ymfm_interface &intf) :
 //  reset - reset the overall state
 //-------------------------------------------------
 
-void fm_engine_base::reset()
+void fm_engine::reset()
 {
 	// reset all status bits
 	set_reset_status(0, 0xff);
@@ -931,7 +931,7 @@ void fm_engine_base::reset()
 //  them forward one step
 //-------------------------------------------------
 
-uint32_t fm_engine_base::clock(uint32_t chanmask)
+uint32_t fm_engine::clock(uint32_t chanmask)
 {
 	// update the clock counter
 	m_total_clocks++;
@@ -980,7 +980,7 @@ uint32_t fm_engine_base::clock(uint32_t chanmask)
 //  channels
 //-------------------------------------------------
 
-void fm_engine_base::output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_t chanmask) const
+void fm_engine::output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_t chanmask) const
 {
 	// mask out some channels for debug purposes
 	chanmask &= 0xffffffff;
@@ -1004,7 +1004,7 @@ void fm_engine_base::output(int32_t *output, uint32_t rshift, int32_t clipmax, u
 //  write - handle writes to the OPN registers
 //-------------------------------------------------
 
-void fm_engine_base::write(uint16_t regnum, uint8_t data)
+void fm_engine::write(uint16_t regnum, uint8_t data)
 {
 	// special case: writes to the mode register can impact IRQs;
 	// schedule these writes to ensure ordering with timers
@@ -1044,7 +1044,7 @@ void fm_engine_base::write(uint16_t regnum, uint8_t data)
 //  status flags
 //-------------------------------------------------
 
-uint8_t fm_engine_base::status() const
+uint8_t fm_engine::status() const
 {
 	return m_status & ~STATUS_BUSY;
 }
@@ -1055,7 +1055,7 @@ uint8_t fm_engine_base::status() const
 //  operators to channels and assign them all
 //-------------------------------------------------
 
-void fm_engine_base::assign_operators()
+void fm_engine::assign_operators()
 {
 	typename opn_registers_base::operator_mapping map;
 	m_regs.operator_map(map);
@@ -1074,7 +1074,7 @@ void fm_engine_base::assign_operators()
 //  timer
 //-------------------------------------------------
 
-void fm_engine_base::update_timer(uint32_t tnum, uint32_t enable, int32_t delta_clocks)
+void fm_engine::update_timer(uint32_t tnum, uint32_t enable, int32_t delta_clocks)
 {
 	// if the timer is live, but not currently enabled, set the timer
 	if (enable && !m_timer_running[tnum])
@@ -1104,7 +1104,7 @@ void fm_engine_base::update_timer(uint32_t tnum, uint32_t enable, int32_t delta_
 //  status and possibly IRQs
 //-------------------------------------------------
 
-void fm_engine_base::engine_timer_expired(uint32_t tnum)
+void fm_engine::engine_timer_expired(uint32_t tnum)
 {
 	// update status
 	if (tnum == 0 && m_regs.enable_timer_a())
@@ -1129,7 +1129,7 @@ void fm_engine_base::engine_timer_expired(uint32_t tnum)
 //  for interrupts
 //-------------------------------------------------
 
-void fm_engine_base::engine_check_interrupts()
+void fm_engine::engine_check_interrupts()
 {
 	// update the state
 	uint8_t old_state = m_irq_state;
@@ -1152,7 +1152,7 @@ void fm_engine_base::engine_check_interrupts()
 //  via timer callback
 //-------------------------------------------------
 
-void fm_engine_base::engine_mode_write(uint8_t data)
+void fm_engine::engine_mode_write(uint8_t data)
 {
 	// mark all channels as modified
 	m_modified_channels = ALL_CHANNELS;

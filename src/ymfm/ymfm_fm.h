@@ -304,7 +304,7 @@ struct opn_registers_base
 //*********************************************************
 
 // forward declarations
-class fm_engine_base;
+class fm_engine;
 
 // ======================> fm_operator
 
@@ -317,7 +317,7 @@ public:
 	static constexpr uint32_t EG_QUIET = 0x200;
 
 	// constructor
-	fm_operator(fm_engine_base &owner, uint32_t opoffs);
+	fm_operator(fm_engine &owner, uint32_t opoffs);
 
 	// reset the operator state
 	void reset();
@@ -376,7 +376,7 @@ public:
 	uint8_t m_keyon_live;                  // live key on state (bit 0 = direct, bit 1 = rhythm, bit 2 = CSM)
 	opdata_cache m_cache;                  // cached values for performance
 	opn_registers_base &m_regs;            // direct reference to registers
-	fm_engine_base &m_owner;               // reference to the owning engine
+	fm_engine &m_owner;               // reference to the owning engine
 };
 
 
@@ -388,7 +388,7 @@ class fm_channel
 {
 public:
 	// constructor
-	fm_channel(fm_engine_base &owner, uint32_t choffs);
+	fm_channel(fm_engine &owner, uint32_t choffs);
 
 	// reset the channel state
 	void reset();
@@ -455,16 +455,16 @@ public:
 	mutable int16_t m_feedback_in;         // next input value for op 1 feedback (set in output)
 	fm_operator *m_op[4];                  // up to 4 operators
 	opn_registers_base &m_regs;            // direct reference to registers
-	fm_engine_base &m_owner;               // reference to the owning engine
+	fm_engine &m_owner;               // reference to the owning engine
 };
 
 
-// ======================> fm_engine_base
+// ======================> fm_engine
 
-// fm_engine_base represents a set of operators and channels which together
+// fm_engine represents a set of operators and channels which together
 // form a Yamaha FM core; chips that implement other engines (ADPCM, wavetable,
 // etc) take this output and combine it with the others externally
-class fm_engine_base : public ymfm_engine_callbacks
+class fm_engine : public ymfm_engine_callbacks
 {
 public:
 	// expose some constants from the registers
@@ -480,7 +480,7 @@ public:
 	static constexpr uint8_t STATUS_IRQ = opn_registers_base::STATUS_IRQ;
 
 	// constructor
-	fm_engine_base(ymfm_interface &intf);
+	fm_engine(ymfm_interface &intf);
 
 	// reset the overall state
 	void reset();

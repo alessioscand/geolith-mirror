@@ -154,7 +154,7 @@ class ymfm_interface
 {
 public:
 	// the engine is our friend
-	friend class fm_engine_base;
+	friend class fm_engine;
 
 	// the following functions must be implemented by any derived classes; the
 	// default implementations are sufficient for some minimal operation, but will
