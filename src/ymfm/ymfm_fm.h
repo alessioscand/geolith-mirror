@@ -141,10 +141,6 @@ struct fm_operator
 	// reset the operator state
 	void reset(void);
 
-	// return the operator/channel offset
-	uint32_t opoffs(void);
-	uint32_t choffs(void);
-
 	// set the current channel
 	void set_choffs(uint32_t choffs);
 
@@ -205,9 +201,6 @@ struct fm_channel
 
 	// reset the channel state
 	void reset(void);
-
-	// return the channel offset
-	uint32_t choffs(void);
 
 	// assign operators
 	void assign(uint32_t index, fm_operator *op);

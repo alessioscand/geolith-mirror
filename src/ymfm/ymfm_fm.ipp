@@ -282,17 +282,6 @@ void fm_operator::reset()
 }
 
 
-// return the operator/channel offset
-uint32_t fm_operator::opoffs(void) {
-	return m_opoffs;
-}
-
-
-uint32_t fm_operator::choffs(void) {
-	return m_choffs;
-}
-
-
 // set the current channel
 void fm_operator::set_choffs(uint32_t choffs) {
 	m_choffs = choffs;
@@ -686,11 +675,6 @@ void fm_channel::reset(void)
 	m_feedback_in = 0;
 }
 
-
-// return the channel offset
-uint32_t fm_channel::choffs(void) {
-	return m_choffs;
-}
 
 // assign operators
 void fm_channel::assign(uint32_t index, fm_operator *op) {
