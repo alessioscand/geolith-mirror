@@ -311,7 +311,7 @@ uint32_t fm_operator::phase(void) {
 bool fm_operator::prepare(void)
 {
 	// cache the data
-	m_regs.cache_operator_data(m_choffs, m_opoffs, m_cache);
+	opn_registers_cache_operator_data(m_choffs, m_opoffs, m_cache);
 
 	// clock the key state
 	clock_keystate(uint32_t(m_keyon_live != 0));
@@ -386,7 +386,7 @@ int32_t fm_operator::compute_noise_volume(uint32_t am_offset)
 	// QUESTION: is AM applied still?
 
 	// negate based on the noise state
-	return bitfield(m_regs.noise_state(), 0) ? -result : result;
+	return bitfield(opn_registers_noise_state(), 0) ? -result : result;
 }
 
 
@@ -624,7 +624,7 @@ void fm_operator::clock_phase(int32_t lfo_raw_pm)
 	// read from the cache, or recalculate if PM active
 	uint32_t phase_step = m_cache.phase_step;
 	if (phase_step == PHASE_STEP_DYNAMIC)
-		phase_step = m_regs.compute_phase_step(m_choffs, m_opoffs, m_cache, lfo_raw_pm);
+		phase_step = opn_registers_compute_phase_step(m_choffs, m_opoffs, m_cache, lfo_raw_pm);
 
 	// finally apply the step to the current phase value
 	m_phase += phase_step;
@@ -1195,7 +1195,8 @@ void fm_engine::update_timer(uint32_t tnum, uint32_t enable, int32_t delta_clock
 	if (enable && !m_timer_running[tnum])
 	{
 		// period comes from the registers, and is different for each
-		uint32_t period = (tnum == 0) ? (1024 - m_regs.timer_a_value()) : 16 * (256 - m_regs.timer_b_value());
+		uint32_t period = (tnum == 0) ? (1024 - opn_registers_timer_a_value()) :
+			16 * (256 - opn_registers_timer_b_value());
 
 		// caller can also specify a delta to account for other effects
 		period += delta_clocks;
@@ -1222,13 +1223,13 @@ void fm_engine::update_timer(uint32_t tnum, uint32_t enable, int32_t delta_clock
 void fm_engine::engine_timer_expired(uint32_t tnum)
 {
 	// update status
-	if (tnum == 0 && m_regs.enable_timer_a())
+	if (tnum == 0 && opn_registers_enable_timer_a())
 		set_reset_status(STATUS_TIMERA, 0);
-	else if (tnum == 1 && m_regs.enable_timer_b())
+	else if (tnum == 1 && opn_registers_enable_timer_b())
 		set_reset_status(STATUS_TIMERB, 0);
 
 	// if timer A fired in CSM mode, trigger CSM on all relevant channels
-	if (tnum == 0 && m_regs.csm())
+	if (tnum == 0 && opn_registers_csm())
 		for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
 			if (bitfield(CSM_TRIGGER_MASK, chnum))
 				m_channel[chnum]->keyonoff(1, KEYON_CSM, chnum);
@@ -1281,15 +1282,15 @@ void fm_engine::engine_mode_write(uint8_t data)
 	//   That is, check_interrupts would only set, this would only clear?
 	// reset timer status
 	uint8_t reset_mask = 0;
-	if (m_regs.reset_timer_b())
+	if (opn_registers_reset_timer_b())
 		reset_mask |= STATUS_TIMERB;
-	if (m_regs.reset_timer_a())
+	if (opn_registers_reset_timer_a())
 		reset_mask |= STATUS_TIMERA;
 	set_reset_status(0, reset_mask);
 
 	// load timers; note that timer B gets a small negative adjustment because
 	// the *16 multiplier is free-running, so the first tick of the clock
 	// is a bit shorter
-	update_timer(1, m_regs.load_timer_b(), -(m_total_clocks & 15));
-	update_timer(0, m_regs.load_timer_a(), 0);
+	update_timer(1, opn_registers_load_timer_b(), -(m_total_clocks & 15));
+	update_timer(0, opn_registers_load_timer_a(), 0);
 }

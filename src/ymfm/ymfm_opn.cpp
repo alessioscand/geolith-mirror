@@ -79,6 +79,48 @@ static inline uint32_t effective_rate(uint32_t rawrate, uint32_t ksr)
 //  OPN/OPNA REGISTERS
 //*********************************************************
 
+// system-wide registers
+static inline uint32_t opn_registers_test(void)         { return byte(0x21, 0, 8, 0); }
+static inline uint32_t opn_registers_lfo_enable(void)   { return byte(0x22, 3, 1, 0); }
+static inline uint32_t opn_registers_lfo_rate(void)     { return byte(0x22, 0, 3, 0); }
+uint32_t opn_registers_timer_a_value(void)              { return word(0x24, 0, 8, 0x25, 0, 2, 0); }
+uint32_t opn_registers_timer_b_value(void)              { return byte(0x26, 0, 8, 0); }
+uint32_t opn_registers_csm(void)                        { return (byte(0x27, 6, 2, 0) == 2); }
+static inline uint32_t opn_registers_multi_freq(void)   { return (byte(0x27, 6, 2, 0) != 0); }
+uint32_t opn_registers_reset_timer_b(void)              { return byte(0x27, 5, 1, 0); }
+uint32_t opn_registers_reset_timer_a(void)              { return byte(0x27, 4, 1, 0); }
+uint32_t opn_registers_enable_timer_b(void)             { return byte(0x27, 3, 1, 0); }
+uint32_t opn_registers_enable_timer_a(void)             { return byte(0x27, 2, 1, 0); }
+uint32_t opn_registers_load_timer_b(void)               { return byte(0x27, 1, 1, 0); }
+uint32_t opn_registers_load_timer_a(void)               { return byte(0x27, 0, 1, 0); }
+static inline uint32_t opn_registers_multi_block_freq(uint32_t num)    { return word(0xac, 0, 6, 0xa8, 0, 8, num); }
+
+// per-channel registers
+uint32_t opn_registers::ch_block_freq(uint32_t choffs)    { return word(0xa4, 0, 6, 0xa0, 0, 8, choffs); }
+uint32_t opn_registers::ch_feedback(uint32_t choffs)      { return byte(0xb0, 3, 3, choffs); }
+uint32_t opn_registers::ch_algorithm(uint32_t choffs)     { return byte(0xb0, 0, 3, choffs); }
+uint32_t opn_registers::ch_output_any(uint32_t choffs)    { return byte(0xb4, 6, 2, choffs); }
+uint32_t opn_registers::ch_output_0(uint32_t choffs)      { return byte(0xb4, 7, 1, choffs); }
+uint32_t opn_registers::ch_output_1(uint32_t choffs)      { return byte(0xb4, 6, 1, choffs); }
+uint32_t opn_registers::ch_output_2(uint32_t choffs)      { return 0; }
+uint32_t opn_registers::ch_output_3(uint32_t choffs)      { return 0; }
+uint32_t opn_registers::ch_lfo_am_sens(uint32_t choffs)   { return byte(0xb4, 4, 2, choffs); }
+uint32_t opn_registers::ch_lfo_pm_sens(uint32_t choffs)   { return byte(0xb4, 0, 3, choffs); }
+
+// per-operator registers
+uint32_t opn_registers::op_detune(uint32_t opoffs)        { return byte(0x30, 4, 3, opoffs); }
+uint32_t opn_registers::op_multiple(uint32_t opoffs)      { return byte(0x30, 0, 4, opoffs); }
+uint32_t opn_registers::op_total_level(uint32_t opoffs)   { return byte(0x40, 0, 7, opoffs); }
+uint32_t opn_registers::op_ksr(uint32_t opoffs)           { return byte(0x50, 6, 2, opoffs); }
+uint32_t opn_registers::op_attack_rate(uint32_t opoffs)   { return byte(0x50, 0, 5, opoffs); }
+uint32_t opn_registers::op_decay_rate(uint32_t opoffs)    { return byte(0x60, 0, 5, opoffs); }
+uint32_t opn_registers::op_lfo_am_enable(uint32_t opoffs) { return byte(0x60, 7, 1, opoffs); }
+uint32_t opn_registers::op_sustain_rate(uint32_t opoffs)  { return byte(0x70, 0, 5, opoffs); }
+uint32_t opn_registers::op_sustain_level(uint32_t opoffs) { return byte(0x80, 4, 4, opoffs); }
+uint32_t opn_registers::op_release_rate(uint32_t opoffs)  { return byte(0x80, 0, 4, opoffs); }
+uint32_t opn_registers::op_ssg_eg_enable(uint32_t opoffs) { return byte(0x90, 3, 1, opoffs); }
+uint32_t opn_registers::op_ssg_eg_mode(uint32_t opoffs)   { return byte(0x90, 0, 3, opoffs); }
+
 //-------------------------------------------------
 //  opn_registers - init
 //-------------------------------------------------
@@ -198,7 +240,7 @@ int32_t opn_registers_clock_noise_and_lfo(void)
 	// OPN has no noise generation
 
 	// if LFO not enabled (not present on OPN), quick exit with 0s
-	if (!m_regs.lfo_enable())
+	if (!opn_registers_lfo_enable())
 	{
 		m_regs.m_lfo_counter = 0;
 		m_regs.m_lfo_am = 0;
@@ -212,7 +254,7 @@ int32_t opn_registers_clock_noise_and_lfo(void)
 
 	// when we cross the divider count, add enough to zero it and cause an
 	// increment at bit 8; the 7-bit value lives from bits 8-14
-	if (subcount >= lfo_max_count[m_regs.lfo_rate()])
+	if (subcount >= lfo_max_count[opn_registers_lfo_rate()])
 	{
 		// note: to match the published values this should be 0x100 - subcount;
 		// however, tests on the hardware and nuked bear out an off-by-one
@@ -243,6 +285,11 @@ void opn_registers_reset_lfo(void) {
 	m_regs.m_lfo_counter = 0;
 }
 
+// return LFO/noise states
+uint32_t opn_registers_noise_state(void) {
+	return 0;
+}
+
 
 //-------------------------------------------------
 //  lfo_am_offset - return the AM offset from LFO
@@ -271,24 +318,24 @@ uint32_t opn_registers_lfo_am_offset(uint32_t choffs)
 //  with prefetched data
 //-------------------------------------------------
 
-void opn_registers::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_cache &cache)
+void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_cache &cache)
 {
 	// set up the easy stuff
-	cache.waveform = &m_waveform[0][0];
+	cache.waveform = &(m_regs.m_waveform[0][0]);
 
 	// get frequency from the channel
-	uint32_t block_freq = cache.block_freq = ch_block_freq(choffs);
+	uint32_t block_freq = cache.block_freq = m_regs.ch_block_freq(choffs);
 
 	// if multi-frequency mode is enabled and this is channel 2,
 	// fetch one of the special frequencies
-	if (multi_freq() && choffs == 2)
+	if (opn_registers_multi_freq() && choffs == 2)
 	{
 		if (opoffs == 2)
-			block_freq = cache.block_freq = multi_block_freq(1);
+			block_freq = cache.block_freq = opn_registers_multi_block_freq(1);
 		else if (opoffs == 10)
-			block_freq = cache.block_freq = multi_block_freq(2);
+			block_freq = cache.block_freq = opn_registers_multi_block_freq(2);
 		else if (opoffs == 6)
-			block_freq = cache.block_freq = multi_block_freq(0);
+			block_freq = cache.block_freq = opn_registers_multi_block_freq(0);
 	}
 
 	// compute the keycode: block_freq is:
@@ -309,34 +356,34 @@ void opn_registers::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata
 	keycode |= bitfield(0xfe80, bitfield(block_freq, 7, 4));
 
 	// detune adjustment
-	cache.detune = detune_adjustment(op_detune(opoffs), keycode);
+	cache.detune = detune_adjustment(m_regs.op_detune(opoffs), keycode);
 
 	// multiple value, as an x.1 value (0 means 0.5)
-	cache.multiple = op_multiple(opoffs) * 2;
+	cache.multiple = m_regs.op_multiple(opoffs) * 2;
 	if (cache.multiple == 0)
 		cache.multiple = 1;
 
 	// phase step, or PHASE_STEP_DYNAMIC if PM is active; this depends on
 	// block_freq, detune, and multiple, so compute it after we've done those
-	if (lfo_enable() == 0 || ch_lfo_pm_sens(choffs) == 0)
-		cache.phase_step = compute_phase_step(choffs, opoffs, cache, 0);
+	if (opn_registers_lfo_enable() == 0 || m_regs.ch_lfo_pm_sens(choffs) == 0)
+		cache.phase_step = opn_registers_compute_phase_step(choffs, opoffs, cache, 0);
 	else
 		cache.phase_step = PHASE_STEP_DYNAMIC;
 
 	// total level, scaled by 8
-	cache.total_level = op_total_level(opoffs) << 3;
+	cache.total_level = m_regs.op_total_level(opoffs) << 3;
 
 	// 4-bit sustain level, but 15 means 31 so effectively 5 bits
-	cache.eg_sustain = op_sustain_level(opoffs);
+	cache.eg_sustain = m_regs.op_sustain_level(opoffs);
 	cache.eg_sustain |= (cache.eg_sustain + 1) & 0x10;
 	cache.eg_sustain <<= 5;
 
 	// determine KSR adjustment for enevlope rates
-	uint32_t ksrval = keycode >> (op_ksr(opoffs) ^ 3);
-	cache.eg_rate[EG_ATTACK] = effective_rate(op_attack_rate(opoffs) * 2, ksrval);
-	cache.eg_rate[EG_DECAY] = effective_rate(op_decay_rate(opoffs) * 2, ksrval);
-	cache.eg_rate[EG_SUSTAIN] = effective_rate(op_sustain_rate(opoffs) * 2, ksrval);
-	cache.eg_rate[EG_RELEASE] = effective_rate(op_release_rate(opoffs) * 4 + 2, ksrval);
+	uint32_t ksrval = keycode >> (m_regs.op_ksr(opoffs) ^ 3);
+	cache.eg_rate[EG_ATTACK] = effective_rate(m_regs.op_attack_rate(opoffs) * 2, ksrval);
+	cache.eg_rate[EG_DECAY] = effective_rate(m_regs.op_decay_rate(opoffs) * 2, ksrval);
+	cache.eg_rate[EG_SUSTAIN] = effective_rate(m_regs.op_sustain_rate(opoffs) * 2, ksrval);
+	cache.eg_rate[EG_RELEASE] = effective_rate(m_regs.op_release_rate(opoffs) * 4 + 2, ksrval);
 }
 
 
@@ -344,7 +391,7 @@ void opn_registers::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata
 //  compute_phase_step - compute the phase step
 //-------------------------------------------------
 
-uint32_t opn_registers::compute_phase_step(uint32_t choffs, uint32_t opoffs, opdata_cache const &cache, int32_t lfo_raw_pm)
+uint32_t opn_registers_compute_phase_step(uint32_t choffs, uint32_t opoffs, opdata_cache const &cache, int32_t lfo_raw_pm)
 {
 	// OPN phase calculation has only a single detune parameter
 	// and uses FNUMs instead of keycodes
@@ -353,7 +400,7 @@ uint32_t opn_registers::compute_phase_step(uint32_t choffs, uint32_t opoffs, opd
 	uint32_t fnum = bitfield(cache.block_freq, 0, 11) << 1;
 
 	// if there's a non-zero PM sensitivity, compute the adjustment
-	uint32_t pm_sensitivity = ch_lfo_pm_sens(choffs);
+	uint32_t pm_sensitivity = m_regs.ch_lfo_pm_sens(choffs);
 	if (pm_sensitivity != 0)
 	{
 		// apply the phase adjustment based on the upper 7 bits
@@ -379,48 +426,6 @@ uint32_t opn_registers::compute_phase_step(uint32_t choffs, uint32_t opoffs, opd
 	return (phase_step * cache.multiple) >> 1;
 }
 
-
-// system-wide registers
-uint32_t opn_registers::test()                       { return byte(0x21, 0, 8, 0); }
-uint32_t opn_registers::lfo_enable()                 { return byte(0x22, 3, 1, 0); }
-uint32_t opn_registers::lfo_rate()                   { return byte(0x22, 0, 3, 0); }
-uint32_t opn_registers::timer_a_value()              { return word(0x24, 0, 8, 0x25, 0, 2, 0); }
-uint32_t opn_registers::timer_b_value()              { return byte(0x26, 0, 8, 0); }
-uint32_t opn_registers::csm()                        { return (byte(0x27, 6, 2, 0) == 2); }
-uint32_t opn_registers::multi_freq()                 { return (byte(0x27, 6, 2, 0) != 0); }
-uint32_t opn_registers::reset_timer_b()              { return byte(0x27, 5, 1, 0); }
-uint32_t opn_registers::reset_timer_a()              { return byte(0x27, 4, 1, 0); }
-uint32_t opn_registers::enable_timer_b()             { return byte(0x27, 3, 1, 0); }
-uint32_t opn_registers::enable_timer_a()             { return byte(0x27, 2, 1, 0); }
-uint32_t opn_registers::load_timer_b()               { return byte(0x27, 1, 1, 0); }
-uint32_t opn_registers::load_timer_a()               { return byte(0x27, 0, 1, 0); }
-uint32_t opn_registers::multi_block_freq(uint32_t num)    { return word(0xac, 0, 6, 0xa8, 0, 8, num); }
-
-// per-channel registers
-uint32_t opn_registers::ch_block_freq(uint32_t choffs)    { return word(0xa4, 0, 6, 0xa0, 0, 8, choffs); }
-uint32_t opn_registers::ch_feedback(uint32_t choffs)      { return byte(0xb0, 3, 3, choffs); }
-uint32_t opn_registers::ch_algorithm(uint32_t choffs)     { return byte(0xb0, 0, 3, choffs); }
-uint32_t opn_registers::ch_output_any(uint32_t choffs)    { return byte(0xb4, 6, 2, choffs); }
-uint32_t opn_registers::ch_output_0(uint32_t choffs)      { return byte(0xb4, 7, 1, choffs); }
-uint32_t opn_registers::ch_output_1(uint32_t choffs)      { return byte(0xb4, 6, 1, choffs); }
-uint32_t opn_registers::ch_output_2(uint32_t choffs)      { return 0; }
-uint32_t opn_registers::ch_output_3(uint32_t choffs)      { return 0; }
-uint32_t opn_registers::ch_lfo_am_sens(uint32_t choffs)   { return byte(0xb4, 4, 2, choffs); }
-uint32_t opn_registers::ch_lfo_pm_sens(uint32_t choffs)   { return byte(0xb4, 0, 3, choffs); }
-
-// per-operator registers
-uint32_t opn_registers::op_detune(uint32_t opoffs)        { return byte(0x30, 4, 3, opoffs); }
-uint32_t opn_registers::op_multiple(uint32_t opoffs)      { return byte(0x30, 0, 4, opoffs); }
-uint32_t opn_registers::op_total_level(uint32_t opoffs)   { return byte(0x40, 0, 7, opoffs); }
-uint32_t opn_registers::op_ksr(uint32_t opoffs)           { return byte(0x50, 6, 2, opoffs); }
-uint32_t opn_registers::op_attack_rate(uint32_t opoffs)   { return byte(0x50, 0, 5, opoffs); }
-uint32_t opn_registers::op_decay_rate(uint32_t opoffs)    { return byte(0x60, 0, 5, opoffs); }
-uint32_t opn_registers::op_lfo_am_enable(uint32_t opoffs) { return byte(0x60, 7, 1, opoffs); }
-uint32_t opn_registers::op_sustain_rate(uint32_t opoffs)  { return byte(0x70, 0, 5, opoffs); }
-uint32_t opn_registers::op_sustain_level(uint32_t opoffs) { return byte(0x80, 4, 4, opoffs); }
-uint32_t opn_registers::op_release_rate(uint32_t opoffs)  { return byte(0x80, 0, 4, opoffs); }
-uint32_t opn_registers::op_ssg_eg_enable(uint32_t opoffs) { return byte(0x90, 3, 1, opoffs); }
-uint32_t opn_registers::op_ssg_eg_mode(uint32_t opoffs)   { return byte(0x90, 0, 3, opoffs); }
 
 //*********************************************************
 //  SSG RESAMPLER

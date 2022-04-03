@@ -189,31 +189,6 @@ struct opn_registers
 	struct operator_mapping { uint32_t chan[CHANNELS]; };
 	void operator_map(operator_mapping &dest);
 
-	// return LFO/noise states
-	uint32_t noise_state() const { return 0; }
-
-	// caching helpers
-	void cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_cache &cache);
-
-	// compute the phase step, given a PM value
-	uint32_t compute_phase_step(uint32_t choffs, uint32_t opoffs, opdata_cache const &cache, int32_t lfo_raw_pm);
-
-	// system-wide registers
-	uint32_t test();
-	uint32_t lfo_enable();
-	uint32_t lfo_rate();
-	uint32_t timer_a_value();
-	uint32_t timer_b_value();
-	uint32_t csm();
-	uint32_t multi_freq();
-	uint32_t reset_timer_b();
-	uint32_t reset_timer_a();
-	uint32_t enable_timer_b();
-	uint32_t enable_timer_a();
-	uint32_t load_timer_b();
-	uint32_t load_timer_a();
-	uint32_t multi_block_freq(uint32_t num);
-
 	// per-channel registers
 	uint32_t ch_block_freq(uint32_t choffs);
 	uint32_t ch_feedback(uint32_t choffs);
