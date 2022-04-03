@@ -118,13 +118,20 @@ enum {
 uint32_t opn_registers_timer_a_value(void);
 uint32_t opn_registers_timer_b_value(void);
 uint32_t opn_registers_csm(void);
-
 uint32_t opn_registers_reset_timer_b(void);
 uint32_t opn_registers_reset_timer_a(void);
 uint32_t opn_registers_enable_timer_b(void);
 uint32_t opn_registers_enable_timer_a(void);
 uint32_t opn_registers_load_timer_b(void);
 uint32_t opn_registers_load_timer_a(void);
+
+uint32_t opn_registers_ch_feedback(uint32_t choffs);
+uint32_t opn_registers_ch_algorithm(uint32_t choffs);
+uint32_t opn_registers_ch_output_any(uint32_t choffs);
+uint32_t opn_registers_ch_output_0(uint32_t choffs);
+uint32_t opn_registers_ch_output_1(uint32_t choffs);
+uint32_t opn_registers_ch_output_2(uint32_t choffs);
+uint32_t opn_registers_ch_output_3(uint32_t choffs);
 
 void opn_registers_init(void);
 void opn_registers_reset(void);

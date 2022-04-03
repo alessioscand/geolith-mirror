@@ -764,7 +764,7 @@ void fm_channel::output_2op(int32_t *output, uint32_t rshift, int32_t clipmax)
 
 	// operator 1 has optional self-feedback
 	int32_t opmod = 0;
-	uint32_t feedback = m_regs.ch_feedback(m_choffs);
+	uint32_t feedback = opn_registers_ch_feedback(m_choffs);
 	if (feedback != 0)
 		opmod = (m_feedback[0] + m_feedback[1]) >> (10 - feedback);
 
@@ -773,14 +773,14 @@ void fm_channel::output_2op(int32_t *output, uint32_t rshift, int32_t clipmax)
 
 	// now that the feedback has been computed, skip the rest if all volumes
 	// are clear; no need to do all this work for nothing
-	if (m_regs.ch_output_any(m_choffs) == 0)
+	if (opn_registers_ch_output_any(m_choffs) == 0)
 		return;
 
 	// Algorithms for two-operator case:
 	//    0: O1 -> O2 -> out
 	//    1: (O1 + O2) -> out
 	int32_t result;
-	if (bitfield(m_regs.ch_algorithm(m_choffs), 0) == 0)
+	if (bitfield(opn_registers_ch_algorithm(m_choffs), 0) == 0)
 	{
 		// some OPL chips use the previous sample for modulation instead of
 		// the current sample
@@ -819,7 +819,7 @@ void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax)
 
 	// operator 1 has optional self-feedback
 	int32_t opmod = 0;
-	uint32_t feedback = m_regs.ch_feedback(m_choffs);
+	uint32_t feedback = opn_registers_ch_feedback(m_choffs);
 	if (feedback != 0)
 		opmod = (m_feedback[0] + m_feedback[1]) >> (10 - feedback);
 
@@ -828,7 +828,7 @@ void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax)
 
 	// now that the feedback has been computed, skip the rest if all volumes
 	// are clear; no need to do all this work for nothing
-	if (m_regs.ch_output_any(m_choffs) == 0)
+	if (opn_registers_ch_output_any(m_choffs) == 0)
 		return;
 
 	// OPM/OPN offer 8 different connection algorithms for 4 operators,
@@ -871,7 +871,7 @@ void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax)
 		ALGORITHM(1,0,3, 0,1,0),    // 10: ((O1 -> O2) + (O3 -> O4)) -> out (O2+O4) [same as 4]
 		ALGORITHM(0,2,0, 1,0,1)     // 11: (O1 + (O2 -> O3) + O4) -> out (O1+O3+O4) [unique]
 	};
-	uint32_t algorithm_ops = s_algorithm_ops[m_regs.ch_algorithm(m_choffs)];
+	uint32_t algorithm_ops = s_algorithm_ops[opn_registers_ch_algorithm(m_choffs)];
 
 	// populate the opout table
 	int16_t opout[8];
@@ -926,13 +926,13 @@ void fm_channel::add_to_output(uint32_t choffs, int32_t *output, int32_t value) 
 	constexpr int out2_index = 2 % OUTPUTS;
 	constexpr int out3_index = 3 % OUTPUTS;
 
-	if (OUTPUTS == 1 || m_regs.ch_output_0(choffs))
+	if (OUTPUTS == 1 || opn_registers_ch_output_0(choffs))
 		output[out0_index] += value;
-	if (OUTPUTS >= 2 && m_regs.ch_output_1(choffs))
+	if (OUTPUTS >= 2 && opn_registers_ch_output_1(choffs))
 		output[out1_index] += value;
-	if (OUTPUTS >= 3 && m_regs.ch_output_2(choffs))
+	if (OUTPUTS >= 3 && opn_registers_ch_output_2(choffs))
 		output[out2_index] += value;
-	if (OUTPUTS >= 4 && m_regs.ch_output_3(choffs))
+	if (OUTPUTS >= 4 && opn_registers_ch_output_3(choffs))
 		output[out3_index] += value;
 }
 

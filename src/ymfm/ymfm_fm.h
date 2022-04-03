@@ -189,18 +189,6 @@ struct opn_registers
 	struct operator_mapping { uint32_t chan[CHANNELS]; };
 	void operator_map(operator_mapping &dest);
 
-	// per-channel registers
-	uint32_t ch_block_freq(uint32_t choffs);
-	uint32_t ch_feedback(uint32_t choffs);
-	uint32_t ch_algorithm(uint32_t choffs);
-	uint32_t ch_output_any(uint32_t choffs);
-	uint32_t ch_output_0(uint32_t choffs);
-	uint32_t ch_output_1(uint32_t choffs);
-	uint32_t ch_output_2(uint32_t choffs);
-	uint32_t ch_output_3(uint32_t choffs);
-	uint32_t ch_lfo_am_sens(uint32_t choffs);
-	uint32_t ch_lfo_pm_sens(uint32_t choffs);
-
 	// per-operator registers
 	uint32_t op_detune(uint32_t opoffs);
 	uint32_t op_multiple(uint32_t opoffs);

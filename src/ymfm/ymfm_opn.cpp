@@ -96,16 +96,16 @@ uint32_t opn_registers_load_timer_a(void)               { return byte(0x27, 0, 1
 static inline uint32_t opn_registers_multi_block_freq(uint32_t num)    { return word(0xac, 0, 6, 0xa8, 0, 8, num); }
 
 // per-channel registers
-uint32_t opn_registers::ch_block_freq(uint32_t choffs)    { return word(0xa4, 0, 6, 0xa0, 0, 8, choffs); }
-uint32_t opn_registers::ch_feedback(uint32_t choffs)      { return byte(0xb0, 3, 3, choffs); }
-uint32_t opn_registers::ch_algorithm(uint32_t choffs)     { return byte(0xb0, 0, 3, choffs); }
-uint32_t opn_registers::ch_output_any(uint32_t choffs)    { return byte(0xb4, 6, 2, choffs); }
-uint32_t opn_registers::ch_output_0(uint32_t choffs)      { return byte(0xb4, 7, 1, choffs); }
-uint32_t opn_registers::ch_output_1(uint32_t choffs)      { return byte(0xb4, 6, 1, choffs); }
-uint32_t opn_registers::ch_output_2(uint32_t choffs)      { return 0; }
-uint32_t opn_registers::ch_output_3(uint32_t choffs)      { return 0; }
-uint32_t opn_registers::ch_lfo_am_sens(uint32_t choffs)   { return byte(0xb4, 4, 2, choffs); }
-uint32_t opn_registers::ch_lfo_pm_sens(uint32_t choffs)   { return byte(0xb4, 0, 3, choffs); }
+static inline uint32_t opn_registers_ch_block_freq(uint32_t choffs)  { return word(0xa4, 0, 6, 0xa0, 0, 8, choffs); }
+uint32_t opn_registers_ch_feedback(uint32_t choffs)                  { return byte(0xb0, 3, 3, choffs); }
+uint32_t opn_registers_ch_algorithm(uint32_t choffs)                 { return byte(0xb0, 0, 3, choffs); }
+uint32_t opn_registers_ch_output_any(uint32_t choffs)                { return byte(0xb4, 6, 2, choffs); }
+uint32_t opn_registers_ch_output_0(uint32_t choffs)                  { return byte(0xb4, 7, 1, choffs); }
+uint32_t opn_registers_ch_output_1(uint32_t choffs)                  { return byte(0xb4, 6, 1, choffs); }
+uint32_t opn_registers_ch_output_2(uint32_t choffs)                  { return 0; }
+uint32_t opn_registers_ch_output_3(uint32_t choffs)                  { return 0; }
+static inline uint32_t opn_registers_ch_lfo_am_sens(uint32_t choffs) { return byte(0xb4, 4, 2, choffs); }
+static inline uint32_t opn_registers_ch_lfo_pm_sens(uint32_t choffs) { return byte(0xb4, 0, 3, choffs); }
 
 // per-operator registers
 uint32_t opn_registers::op_detune(uint32_t opoffs)        { return byte(0x30, 4, 3, opoffs); }
@@ -300,7 +300,7 @@ uint32_t opn_registers_lfo_am_offset(uint32_t choffs)
 {
 	// shift value for AM sensitivity is [7, 3, 1, 0],
 	// mapping to values of [0, 1.4, 5.9, and 11.8dB]
-	uint32_t am_shift = (1 << (m_regs.ch_lfo_am_sens(choffs) ^ 3)) - 1;
+	uint32_t am_shift = (1 << (opn_registers_ch_lfo_am_sens(choffs) ^ 3)) - 1;
 
 	// QUESTION: max sensitivity should give 11.8dB range, but this value
 	// is directly added to an x.8 attenuation value, which will only give
@@ -324,7 +324,7 @@ void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_
 	cache.waveform = &(m_regs.m_waveform[0][0]);
 
 	// get frequency from the channel
-	uint32_t block_freq = cache.block_freq = m_regs.ch_block_freq(choffs);
+	uint32_t block_freq = cache.block_freq = opn_registers_ch_block_freq(choffs);
 
 	// if multi-frequency mode is enabled and this is channel 2,
 	// fetch one of the special frequencies
@@ -365,7 +365,7 @@ void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_
 
 	// phase step, or PHASE_STEP_DYNAMIC if PM is active; this depends on
 	// block_freq, detune, and multiple, so compute it after we've done those
-	if (opn_registers_lfo_enable() == 0 || m_regs.ch_lfo_pm_sens(choffs) == 0)
+	if (opn_registers_lfo_enable() == 0 || opn_registers_ch_lfo_pm_sens(choffs) == 0)
 		cache.phase_step = opn_registers_compute_phase_step(choffs, opoffs, cache, 0);
 	else
 		cache.phase_step = PHASE_STEP_DYNAMIC;
@@ -400,7 +400,7 @@ uint32_t opn_registers_compute_phase_step(uint32_t choffs, uint32_t opoffs, opda
 	uint32_t fnum = bitfield(cache.block_freq, 0, 11) << 1;
 
 	// if there's a non-zero PM sensitivity, compute the adjustment
-	uint32_t pm_sensitivity = m_regs.ch_lfo_pm_sens(choffs);
+	uint32_t pm_sensitivity = opn_registers_ch_lfo_pm_sens(choffs);
 	if (pm_sensitivity != 0)
 	{
 		// apply the phase adjustment based on the upper 7 bits
@@ -1123,8 +1123,8 @@ void ym2612::generate(int32_t *output)
 	{
 		// DAC enabled: start with DAC value then add the first 5 channels only
 		int32_t dacval = dac_discontinuity(int16_t(m_dac_data << 7) >> 7);
-		output[0] += m_regs.ch_output_0(0x102) ? dacval : dac_discontinuity(0);
-		output[1] += m_regs.ch_output_1(0x102) ? dacval : dac_discontinuity(0);
+		output[0] += opn_registers_ch_output_0(0x102) ? dacval : dac_discontinuity(0);
+		output[1] += opn_registers_ch_output_1(0x102) ? dacval : dac_discontinuity(0);
 	}
 
 	// output is technically multiplexed rather than mixed, but that requires
@@ -1156,8 +1156,8 @@ void ym2612::generate3438(int32_t *output)
 	{
 		// DAC enabled: start with DAC value then add the first 5 channels only
 		int32_t dacval = int16_t(m_dac_data << 7) >> 7;
-		output[0] = m_regs.ch_output_0(0x102) ? dacval : 0;
-		output[1] = m_regs.ch_output_1(0x102) ? dacval : 0;
+		output[0] = opn_registers_ch_output_0(0x102) ? dacval : 0;
+		output[1] = opn_registers_ch_output_1(0x102) ? dacval : 0;
 		m_fm.output(output, 5, 256, ALL_CHANNELS ^ (1 << 5));
 	}
 
