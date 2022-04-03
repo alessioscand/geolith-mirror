@@ -1173,8 +1173,8 @@ void fm_engine::invalidate_caches(void) {
 
 void fm_engine::assign_operators()
 {
-	typename opn_registers::operator_mapping map;
-	m_regs.operator_map(map);
+	operator_mapping map;
+	opn_registers_operator_map(map);
 
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
 		for (uint32_t index = 0; index < 4; index++)

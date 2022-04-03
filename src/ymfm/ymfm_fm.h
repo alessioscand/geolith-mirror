@@ -120,10 +120,6 @@ struct opdata_cache
 
 struct opn_registers
 {
-	// return an array of operator indices for each channel
-	struct operator_mapping { uint32_t chan[CHANNELS]; };
-	void operator_map(operator_mapping &dest);
-
 	// internal state
 	uint32_t m_lfo_counter;               // LFO counter
 	uint8_t m_lfo_am;                     // current LFO AM value

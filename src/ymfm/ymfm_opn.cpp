@@ -214,7 +214,7 @@ void opn_registers_reset(void)
 //  indices for each channel; for OPN this is fixed
 //-------------------------------------------------
 
-void opn_registers::operator_map(operator_mapping &dest)
+void opn_registers_operator_map(operator_mapping &dest)
 {
 	// Note that the channel index order is 0,2,1,3, so we bitswap the index.
 	//
