@@ -28,6 +28,8 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "ymfm_opn.h"
@@ -87,7 +89,7 @@ static inline uint32_t operator_list(uint8_t o1, uint8_t o2, uint8_t o3, uint8_t
 // raw value is 0, and clamping to 63
 static inline uint32_t effective_rate(uint32_t rawrate, uint32_t ksr)
 {
-	return (rawrate == 0) ? 0 : std::min<uint32_t>(rawrate + ksr, 63);
+	return (rawrate == 0) ? 0 : (rawrate + ksr < 63) ? rawrate + ksr : 63;
 }
 
 
@@ -264,7 +266,7 @@ uint8_t opn_registers_read(uint16_t index) {
 //  write - handle writes to the register array
 //-------------------------------------------------
 
-bool opn_registers_write(uint16_t index, uint8_t data, uint32_t &channel, uint32_t &opmask)
+bool opn_registers_write(uint16_t index, uint8_t data, uint32_t *channel, uint32_t *opmask)
 {
 	assert(index < REGISTERS);
 
@@ -293,12 +295,12 @@ bool opn_registers_write(uint16_t index, uint8_t data, uint32_t &channel, uint32
 	// handle writes to the key on index
 	if (index == 0x28)
 	{
-		channel = bitfield(data, 0, 2);
-		if (channel == 3)
+		*channel = bitfield(data, 0, 2);
+		if (*channel == 3)
 			return false;
 
-		channel += bitfield(data, 2, 1) * 3;
-		opmask = bitfield(data, 4, 4);
+		*channel += bitfield(data, 2, 1) * 3;
+		*opmask = bitfield(data, 4, 4);
 		return true;
 	}
 	return false;
@@ -394,24 +396,24 @@ uint32_t opn_registers_lfo_am_offset(uint32_t choffs)
 //  with prefetched data
 //-------------------------------------------------
 
-void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_cache &cache)
+void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_cache *cache)
 {
 	// set up the easy stuff
-	cache.waveform = &(m_waveform[0][0]);
+	cache->waveform = &(m_waveform[0][0]);
 
 	// get frequency from the channel
-	uint32_t block_freq = cache.block_freq = opn_registers_ch_block_freq(choffs);
+	uint32_t block_freq = cache->block_freq = opn_registers_ch_block_freq(choffs);
 
 	// if multi-frequency mode is enabled and this is channel 2,
 	// fetch one of the special frequencies
 	if (opn_registers_multi_freq() && choffs == 2)
 	{
 		if (opoffs == 2)
-			block_freq = cache.block_freq = opn_registers_multi_block_freq(1);
+			block_freq = cache->block_freq = opn_registers_multi_block_freq(1);
 		else if (opoffs == 10)
-			block_freq = cache.block_freq = opn_registers_multi_block_freq(2);
+			block_freq = cache->block_freq = opn_registers_multi_block_freq(2);
 		else if (opoffs == 6)
-			block_freq = cache.block_freq = opn_registers_multi_block_freq(0);
+			block_freq = cache->block_freq = opn_registers_multi_block_freq(0);
 	}
 
 	// compute the keycode: block_freq is:
@@ -432,34 +434,34 @@ void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_
 	keycode |= bitfield(0xfe80, bitfield(block_freq, 7, 4), 1);
 
 	// detune adjustment
-	cache.detune = detune_adjustment(opn_registers_op_detune(opoffs), keycode);
+	cache->detune = detune_adjustment(opn_registers_op_detune(opoffs), keycode);
 
 	// multiple value, as an x.1 value (0 means 0.5)
-	cache.multiple = opn_registers_op_multiple(opoffs) * 2;
-	if (cache.multiple == 0)
-		cache.multiple = 1;
+	cache->multiple = opn_registers_op_multiple(opoffs) * 2;
+	if (cache->multiple == 0)
+		cache->multiple = 1;
 
 	// phase step, or PHASE_STEP_DYNAMIC if PM is active; this depends on
 	// block_freq, detune, and multiple, so compute it after we've done those
 	if (opn_registers_lfo_enable() == 0 || opn_registers_ch_lfo_pm_sens(choffs) == 0)
-		cache.phase_step = opn_registers_compute_phase_step(choffs, opoffs, cache, 0);
+		cache->phase_step = opn_registers_compute_phase_step(choffs, opoffs, cache, 0);
 	else
-		cache.phase_step = PHASE_STEP_DYNAMIC;
+		cache->phase_step = PHASE_STEP_DYNAMIC;
 
 	// total level, scaled by 8
-	cache.total_level = opn_registers_op_total_level(opoffs) << 3;
+	cache->total_level = opn_registers_op_total_level(opoffs) << 3;
 
 	// 4-bit sustain level, but 15 means 31 so effectively 5 bits
-	cache.eg_sustain = opn_registers_op_sustain_level(opoffs);
-	cache.eg_sustain |= (cache.eg_sustain + 1) & 0x10;
-	cache.eg_sustain <<= 5;
+	cache->eg_sustain = opn_registers_op_sustain_level(opoffs);
+	cache->eg_sustain |= (cache->eg_sustain + 1) & 0x10;
+	cache->eg_sustain <<= 5;
 
 	// determine KSR adjustment for enevlope rates
 	uint32_t ksrval = keycode >> (opn_registers_op_ksr(opoffs) ^ 3);
-	cache.eg_rate[EG_ATTACK] = effective_rate(opn_registers_op_attack_rate(opoffs) * 2, ksrval);
-	cache.eg_rate[EG_DECAY] = effective_rate(opn_registers_op_decay_rate(opoffs) * 2, ksrval);
-	cache.eg_rate[EG_SUSTAIN] = effective_rate(opn_registers_op_sustain_rate(opoffs) * 2, ksrval);
-	cache.eg_rate[EG_RELEASE] = effective_rate(opn_registers_op_release_rate(opoffs) * 4 + 2, ksrval);
+	cache->eg_rate[EG_ATTACK] = effective_rate(opn_registers_op_attack_rate(opoffs) * 2, ksrval);
+	cache->eg_rate[EG_DECAY] = effective_rate(opn_registers_op_decay_rate(opoffs) * 2, ksrval);
+	cache->eg_rate[EG_SUSTAIN] = effective_rate(opn_registers_op_sustain_rate(opoffs) * 2, ksrval);
+	cache->eg_rate[EG_RELEASE] = effective_rate(opn_registers_op_release_rate(opoffs) * 4 + 2, ksrval);
 }
 
 
@@ -467,13 +469,13 @@ void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_
 //  compute_phase_step - compute the phase step
 //-------------------------------------------------
 
-uint32_t opn_registers_compute_phase_step(uint32_t choffs, uint32_t opoffs, opdata_cache const &cache, int32_t lfo_raw_pm)
+uint32_t opn_registers_compute_phase_step(uint32_t choffs, uint32_t opoffs, const opdata_cache *cache, int32_t lfo_raw_pm)
 {
 	// OPN phase calculation has only a single detune parameter
 	// and uses FNUMs instead of keycodes
 
 	// extract frequency number (low 11 bits of block_freq)
-	uint32_t fnum = bitfield(cache.block_freq, 0, 11) << 1;
+	uint32_t fnum = bitfield(cache->block_freq, 0, 11) << 1;
 
 	// if there's a non-zero PM sensitivity, compute the adjustment
 	uint32_t pm_sensitivity = opn_registers_ch_lfo_pm_sens(choffs);
@@ -481,25 +483,25 @@ uint32_t opn_registers_compute_phase_step(uint32_t choffs, uint32_t opoffs, opda
 	{
 		// apply the phase adjustment based on the upper 7 bits
 		// of FNUM and the PM depth parameters
-		fnum += opn_lfo_pm_phase_adjustment(bitfield(cache.block_freq, 4, 7), pm_sensitivity, lfo_raw_pm);
+		fnum += opn_lfo_pm_phase_adjustment(bitfield(cache->block_freq, 4, 7), pm_sensitivity, lfo_raw_pm);
 
 		// keep fnum to 12 bits
 		fnum &= 0xfff;
 	}
 
 	// apply block shift to compute phase step
-	uint32_t block = bitfield(cache.block_freq, 11, 3);
+	uint32_t block = bitfield(cache->block_freq, 11, 3);
 	uint32_t phase_step = (fnum << block) >> 2;
 
 	// apply detune based on the keycode
-	phase_step += cache.detune;
+	phase_step += cache->detune;
 
 	// clamp to 17 bits in case detune overflows
 	// QUESTION: is this specific to the YM2612/3438?
 	phase_step &= 0x1ffff;
 
 	// apply frequency multiplier (which is cached as an x.1 value)
-	return (phase_step * cache.multiple) >> 1;
+	return (phase_step * cache->multiple) >> 1;
 }
 
 
@@ -512,11 +514,11 @@ uint32_t opn_registers_compute_phase_step(uint32_t choffs, uint32_t opoffs, opda
 //  value to the sums, applying the given scale
 //-------------------------------------------------
 
-static inline void ssg_resampler_add_last(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale)
+static inline void ssg_resampler_add_last(int32_t *sum0, int32_t *sum1, int32_t *sum2, int32_t scale)
 {
-	sum0 += m_ssg_resampler_last[0] * scale;
-	sum1 += m_ssg_resampler_last[1] * scale;
-	sum2 += m_ssg_resampler_last[2] * scale;
+	*sum0 += m_ssg_resampler_last[0] * scale;
+	*sum1 += m_ssg_resampler_last[1] * scale;
+	*sum2 += m_ssg_resampler_last[2] * scale;
 }
 
 
@@ -526,7 +528,7 @@ static inline void ssg_resampler_add_last(int32_t &sum0, int32_t &sum1, int32_t 
 //  given scale
 //-------------------------------------------------
 
-static inline void ssg_resampler_clock_and_add(int32_t &sum0, int32_t &sum1, int32_t &sum2, int32_t scale)
+static inline void ssg_resampler_clock_and_add(int32_t *sum0, int32_t *sum1, int32_t *sum2, int32_t scale)
 {
 	ssg_engine_clock();
 	ssg_engine_output(m_ssg_resampler_last);
@@ -578,13 +580,13 @@ static void ssg_resampler_resample_2_9(int32_t *output)
 {
 	int32_t sum0 = 0, sum1 = 0, sum2 = 0;
 	if (bitfield(m_ssg_resampler_sampindex, 0, 1) != 0)
-		ssg_resampler_add_last(sum0, sum1, sum2, 1);
-	ssg_resampler_clock_and_add(sum0, sum1, sum2, 2);
-	ssg_resampler_clock_and_add(sum0, sum1, sum2, 2);
-	ssg_resampler_clock_and_add(sum0, sum1, sum2, 2);
-	ssg_resampler_clock_and_add(sum0, sum1, sum2, 2);
+		ssg_resampler_add_last(&sum0, &sum1, &sum2, 1);
+	ssg_resampler_clock_and_add(&sum0, &sum1, &sum2, 2);
+	ssg_resampler_clock_and_add(&sum0, &sum1, &sum2, 2);
+	ssg_resampler_clock_and_add(&sum0, &sum1, &sum2, 2);
+	ssg_resampler_clock_and_add(&sum0, &sum1, &sum2, 2);
 	if (bitfield(m_ssg_resampler_sampindex, 0, 1) == 0)
-		ssg_resampler_clock_and_add(sum0, sum1, sum2, 1);
+		ssg_resampler_clock_and_add(&sum0, &sum1, &sum2, 1);
 	ssg_resampler_write_to_output(output, sum0, sum1, sum2, 9);
 }
 

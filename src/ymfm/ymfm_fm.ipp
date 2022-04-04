@@ -405,7 +405,7 @@ void fm_operator_clock_keystate(fm_operator *op, uint32_t keystate)
 bool fm_operator_prepare(fm_operator *op)
 {
 	// cache the data
-	opn_registers_cache_operator_data(op->m_choffs, op->m_opoffs, op->m_cache);
+	opn_registers_cache_operator_data(op->m_choffs, op->m_opoffs, &(op->m_cache));
 
 	// clock the key state
 	fm_operator_clock_keystate(op, uint32_t(op->m_keyon_live != 0));
@@ -639,7 +639,7 @@ void fm_operator_clock_phase(fm_operator *op, int32_t lfo_raw_pm)
 	// read from the cache, or recalculate if PM active
 	uint32_t phase_step = op->m_cache.phase_step;
 	if (phase_step == PHASE_STEP_DYNAMIC)
-		phase_step = opn_registers_compute_phase_step(op->m_choffs, op->m_opoffs, op->m_cache, lfo_raw_pm);
+		phase_step = opn_registers_compute_phase_step(op->m_choffs, op->m_opoffs, &(op->m_cache), lfo_raw_pm);
 
 	// finally apply the step to the current phase value
 	op->m_phase += phase_step;
@@ -1094,7 +1094,7 @@ void fm_engine_write(uint16_t regnum, uint8_t data)
 	// most writes are passive, consumed only when needed
 	uint32_t keyon_channel;
 	uint32_t keyon_opmask;
-	if (opn_registers_write(regnum, data, keyon_channel, keyon_opmask))
+	if (opn_registers_write(regnum, data, &keyon_channel, &keyon_opmask))
 	{
 		// handle writes to the keyon register(s)
 		if (keyon_channel < CHANNELS)
@@ -1269,7 +1269,7 @@ void fm_engine_mode_write(uint8_t data)
 
 	// actually write the mode register now
 	uint32_t dummy1, dummy2;
-	opn_registers_write(REG_MODE, data, dummy1, dummy2);
+	opn_registers_write(REG_MODE, data, &dummy1, &dummy2);
 
 	// reset IRQ status -- when written, all other bits are ignored
 	// QUESTION: should this maybe just reset the IRQ bit and not all the bits?

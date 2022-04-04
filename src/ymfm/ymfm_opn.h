@@ -145,13 +145,13 @@ uint32_t opn_registers_op_ssg_eg_mode(uint32_t opoffs);
 
 void opn_registers_init(void);
 void opn_registers_reset(void);
-bool opn_registers_write(uint16_t index, uint8_t data, uint32_t &channel, uint32_t &opmask);
+bool opn_registers_write(uint16_t index, uint8_t data, uint32_t *channel, uint32_t *opmask);
 int32_t opn_registers_clock_noise_and_lfo(void);
 void opn_registers_reset_lfo(void);
 uint32_t opn_registers_lfo_am_offset(uint32_t choffs);
 uint32_t opn_registers_noise_state(void);
-void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_cache &cache);
-uint32_t opn_registers_compute_phase_step(uint32_t choffs, uint32_t opoffs, opdata_cache const &cache, int32_t lfo_raw_pm);
+void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_cache *cache);
+uint32_t opn_registers_compute_phase_step(uint32_t choffs, uint32_t opoffs, const opdata_cache *cache, int32_t lfo_raw_pm);
 
 // ======================> ym2610/ym2610b
 
