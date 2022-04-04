@@ -5,9 +5,6 @@ CC ?= cc
 CFLAGS ?= -O2
 FLAGS := -std=c11 -Wall -Wextra -Wshadow -pedantic
 
-CXX ?= c++
-CXXFLAGS ?= -O2 -fPIC -std=c++14
-
 DEPDIR := $(SOURCEDIR)/deps
 SRCDIR := $(SOURCEDIR)/src
 
@@ -53,6 +50,8 @@ endif
 CSRCS := m68k/m68kcpu.c \
 	m68k/m68kops.c \
 	ymfm/ymfm_adpcm.c \
+	ymfm/ymfm_opn.c \
+	ymfm/ymfm_shim.c \
 	ymfm/ymfm_ssg.c \
 	z80/z80.c \
 	emu.c \
@@ -69,9 +68,6 @@ CSRCS := m68k/m68kcpu.c \
 	unzip.c \
 	video.c \
 	jg.c
-
-CXXSRCS := ymfm/ymfm_opn.cpp \
-	ymfm/ymfm_shim.cpp
 
 ifneq ($(USE_VENDORED_SPEEXDSP), 0)
 	Q_SPEEXDSP :=
@@ -99,7 +95,6 @@ OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o)) \
 # Compiler command
 COMPILE = $(strip $(1) $(CPPFLAGS) $(PIC) $(2) -c $< -o $@)
 COMPILE_C = $(call COMPILE, $(CC) $(CFLAGS) $(CFLAGS_JG), $(1))
-COMPILE_CXX = $(call COMPILE, $(CXX) $(CXXFLAGS), $(1))
 
 # Info command
 COMPILE_INFO = $(info $(subst $(SOURCEDIR)/,,$(1)))
@@ -107,7 +102,6 @@ COMPILE_INFO = $(info $(subst $(SOURCEDIR)/,,$(1)))
 # Core commands
 BUILD_JG = $(call COMPILE_C, $(FLAGS) $(INCLUDES) $(CFLAGS_JG))
 BUILD_MAIN = $(call COMPILE_C, $(FLAGS) $(INCLUDES))
-BUILD_YMFM = $(call COMPILE_CXX, $(INCLUDES))
 
 -include config.mak
 .PHONY: all clean install install-strip uninstall
@@ -122,10 +116,6 @@ $(OBJDIR)/%.o: $(DEPDIR)/%.c $(OBJDIR)/.tag
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(OBJDIR)/.tag
 	$(call COMPILE_INFO, $(BUILD_MAIN))
 	@$(BUILD_MAIN)
-
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(OBJDIR)/.tag
-	$(call COMPILE_INFO, $(BUILD_YMFM))
-	@$(BUILD_YMFM)
 
 $(OBJDIR)/%.o: $(SOURCEDIR)/%.c $(OBJDIR)/.tag
 	$(call COMPILE_INFO, $(BUILD_JG))

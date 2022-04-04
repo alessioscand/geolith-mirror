@@ -33,7 +33,7 @@
 #include <string.h>
 
 #include "ymfm_opn.h"
-#include "ymfm_fm.ipp"
+#include "ymfm_fm.inc"
 
 #define STATUS_EOS 0x01 // FIXME: This is defined twice (ADPCM B)
 #define EOS_FLAGS_MASK 0xbf
@@ -295,7 +295,7 @@ int32_t opn_registers_clock_noise_and_lfo(void)
 	// this table is based on converting the frequencies in the applications
 	// manual to clock dividers, based on the assumption of a 7-bit LFO value
 	static uint8_t const lfo_max_count[8] = { 109, 78, 72, 68, 63, 45, 9, 6 };
-	uint32_t subcount = uint8_t(m_lfo_counter++);
+	uint32_t subcount = (uint8_t)(m_lfo_counter++);
 
 	// when we cross the divider count, add enough to zero it and cause an
 	// increment at bit 8; the 7-bit value lives from bits 8-14
@@ -1166,7 +1166,7 @@ void ym2612_generate(int32_t *output)
 	if (m_dac_enable)
 	{
 		// DAC enabled: start with DAC value then add the first 5 channels only
-		int32_t dacval = dac_discontinuity(int16_t(m_dac_data << 7) >> 7);
+		int32_t dacval = dac_discontinuity((int16_t)(m_dac_data << 7) >> 7);
 		output[0] += opn_registers_ch_output_0(0x102) ? dacval : dac_discontinuity(0);
 		output[1] += opn_registers_ch_output_1(0x102) ? dacval : dac_discontinuity(0);
 	}
@@ -1199,7 +1199,7 @@ void ym2612_generate3438(int32_t *output)
 	else
 	{
 		// DAC enabled: start with DAC value then add the first 5 channels only
-		int32_t dacval = int16_t(m_dac_data << 7) >> 7;
+		int32_t dacval = (int16_t)(m_dac_data << 7) >> 7;
 		output[0] = opn_registers_ch_output_0(0x102) ? dacval : 0;
 		output[1] = opn_registers_ch_output_1(0x102) ? dacval : 0;
 		fm_engine_output(output, 5, 256, ALL_CHANNELS ^ (1 << 5));

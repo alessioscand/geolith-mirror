@@ -22,13 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "ymfm.h"
 #include "ymfm_opn.h"
 #include "ymfm_shim.h"
 
-extern "C" {
-    #include "memory.h"
-}
+#include "memory.h"
 
 #define SIZE_YMBUF 2048
 
@@ -40,7 +41,6 @@ static int timer[2];
 static int divisor;
 static int32_t output[3];
 
-extern "C" {
 uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
     switch (type) {
         case ACCESS_ADPCM_A:
@@ -55,7 +55,6 @@ uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
 }
 
 void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data) {
-}
 }
 
 void ymfm_sync_mode_write(uint8_t data) {

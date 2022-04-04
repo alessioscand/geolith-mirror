@@ -108,7 +108,7 @@ enum {
 
 // this class holds data that is computed once at the start of clocking
 // and remains static during subsequent sound generation
-struct opdata_cache
+typedef struct _opdata_cache
 {
 	uint16_t const *waveform;         // base of sine table
 	uint32_t phase_step;              // phase step, or PHASE_STEP_DYNAMIC if PM is active
@@ -119,7 +119,7 @@ struct opdata_cache
 	uint32_t eg_sustain;              // sustain level, shifted up to envelope values
 	uint8_t eg_rate[EG_STATES];       // envelope rate, including KSR
 	uint8_t eg_shift;                 // envelope shift amount
-};
+} opdata_cache;
 
 
 //*********************************************************

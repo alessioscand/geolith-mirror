@@ -34,10 +34,6 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <algorithm>
-#include <memory>
-#include <string>
-#include <vector>
 
 // external I/O access classes
 enum {
@@ -63,7 +59,7 @@ enum {
 // default implementations are sufficient for some minimal operation, but will
 // likely need to be overridden to integrate with the outside world; they are
 // all prefixed with ymfm_ to reduce the likelihood of namespace collisions
-extern "C" {
+
 // the chip implementation calls this whenever data is read from outside
 // of the chip; our responsibility is to provide the data requested
 extern uint8_t ymfm_external_read(uint32_t type, uint32_t address);
@@ -71,7 +67,6 @@ extern uint8_t ymfm_external_read(uint32_t type, uint32_t address);
 // the chip implementation calls this whenever data is written outside
 // of the chip; our responsibility is to pass the written data on to any consumers
 extern void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data);
-}
 
 //
 // timing and synchronizaton

@@ -408,7 +408,7 @@ bool fm_operator_prepare(fm_operator *op)
 	opn_registers_cache_operator_data(op->m_choffs, op->m_opoffs, &(op->m_cache));
 
 	// clock the key state
-	fm_operator_clock_keystate(op, uint32_t(op->m_keyon_live != 0));
+	fm_operator_clock_keystate(op, (uint32_t)(op->m_keyon_live != 0));
 	op->m_keyon_live &= ~(1 << KEYON_CSM);
 
 	// we're active until we're quiet after the release
@@ -496,7 +496,7 @@ int32_t fm_operator_compute_noise_volume(fm_operator *op, uint32_t am_offset)
 
 void fm_operator_keyonoff(fm_operator *op, uint32_t on, uint32_t type)
 {
-	op->m_keyon_live = (op->m_keyon_live & ~(1 << int(type))) | (bitfield(on, 0, 1) << int(type));
+	op->m_keyon_live = (op->m_keyon_live & ~(1 << (int)(type))) | (bitfield(on, 0, 1) << (int)(type));
 }
 
 
@@ -678,7 +678,7 @@ void fm_channel_init(fm_channel *ch, uint32_t choffs)
 	ch->m_choffs = choffs;
 	ch->m_feedback[0] = ch->m_feedback[1] = 0;
 	ch->m_feedback_in = 0;
-	ch->m_op[0] = ch->m_op[1] = ch->m_op[2] = ch->m_op[3] = nullptr;
+	ch->m_op[0] = ch->m_op[1] = ch->m_op[2] = ch->m_op[3] = NULL;
 }
 
 
@@ -698,7 +698,7 @@ void fm_channel_reset(fm_channel *ch)
 void fm_channel_assign(fm_channel *ch, uint32_t index, fm_operator *op) {
 	assert(index < 4);
 	ch->m_op[index] = op;
-	if (op != nullptr)
+	if (op != NULL)
 		fm_operator_set_choffs(op, ch->m_choffs);
 }
 
@@ -710,7 +710,7 @@ void fm_channel_assign(fm_channel *ch, uint32_t index, fm_operator *op) {
 void fm_channel_keyonoff(fm_channel *ch, uint32_t states, uint32_t type, uint32_t chnum)
 {
 	for (uint32_t opnum = 0; opnum < 4; opnum++)
-		if (ch->m_op[opnum] != nullptr)
+		if (ch->m_op[opnum] != NULL)
 			fm_operator_keyonoff(ch->m_op[opnum], bitfield(states, opnum, 1), type);
 }
 
@@ -725,7 +725,7 @@ bool fm_channel_prepare(fm_channel *ch)
 
 	// prepare all operators and determine if they are active
 	for (uint32_t opnum = 0; opnum < 4; opnum++)
-		if (ch->m_op[opnum] != nullptr)
+		if (ch->m_op[opnum] != NULL)
 			if (fm_operator_prepare(ch->m_op[opnum]))
 				active_mask |= 1 << opnum;
 
@@ -744,7 +744,7 @@ void fm_channel_clock(fm_channel *ch, uint32_t env_counter, int32_t lfo_raw_pm)
 	ch->m_feedback[1] = ch->m_feedback_in;
 
 	for (uint32_t opnum = 0; opnum < 4; opnum++)
-		if (ch->m_op[opnum] != nullptr)
+		if (ch->m_op[opnum] != NULL)
 			fm_operator_clock(ch->m_op[opnum], env_counter, lfo_raw_pm);
 }
 
@@ -777,8 +777,8 @@ void fm_channel_add_to_output(fm_channel *ch, uint32_t choffs, int32_t *output, 
 void fm_channel_output_2op(fm_channel *ch, int32_t *output, uint32_t rshift, int32_t clipmax)
 {
 	// The first 2 operators should be populated
-	assert(ch->m_op[0] != nullptr);
-	assert(ch->m_op[1] != nullptr);
+	assert(ch->m_op[0] != NULL);
+	assert(ch->m_op[1] != NULL);
 
 	// AM amount is the same across all operators; compute it once
 	uint32_t am_offset = opn_registers_lfo_am_offset(ch->m_choffs);
@@ -830,10 +830,10 @@ void fm_channel_output_2op(fm_channel *ch, int32_t *output, uint32_t rshift, int
 void fm_channel_output_4op(fm_channel *ch, int32_t *output, uint32_t rshift, int32_t clipmax)
 {
 	// all 4 operators should be populated
-	assert(ch->m_op[0] != nullptr);
-	assert(ch->m_op[1] != nullptr);
-	assert(ch->m_op[2] != nullptr);
-	assert(ch->m_op[3] != nullptr);
+	assert(ch->m_op[0] != NULL);
+	assert(ch->m_op[1] != NULL);
+	assert(ch->m_op[2] != NULL);
+	assert(ch->m_op[3] != NULL);
 
 	// AM amount is the same across all operators; compute it once
 	uint32_t am_offset = opn_registers_lfo_am_offset(ch->m_choffs);
@@ -934,7 +934,7 @@ void fm_channel_output_4op(fm_channel *ch, int32_t *output, uint32_t rshift, int
 // are we a 4-operator channel or a 2-operator one?
 bool fm_channel_is4op(fm_channel *ch) {
 	if (DYNAMIC_OPS)
-		return (ch->m_op[2] != nullptr);
+		return (ch->m_op[2] != NULL);
 	return (OPERATORS / CHANNELS == 4);
 }
 
@@ -1193,7 +1193,7 @@ void fm_engine_assign_operators(void)
 		{
 			uint32_t opnum = bitfield(map.chan[chnum], 8 * index, 8);
 			fm_channel_assign(&m_channel[chnum], index, (opnum == 0xff) ?
-				nullptr : &m_operator[opnum]);
+				NULL : &m_operator[opnum]);
 		}
 }
 
