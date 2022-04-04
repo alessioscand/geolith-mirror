@@ -151,7 +151,7 @@ void opn_registers_reset_lfo(void);
 uint32_t opn_registers_lfo_am_offset(uint32_t choffs);
 uint32_t opn_registers_noise_state(void);
 void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_cache *cache);
-uint32_t opn_registers_compute_phase_step(uint32_t choffs, uint32_t opoffs, const opdata_cache *cache, int32_t lfo_raw_pm);
+uint32_t opn_registers_compute_phase_step(uint32_t choffs, const opdata_cache *cache, int32_t lfo_raw_pm);
 
 // ======================> ym2610/ym2610b
 

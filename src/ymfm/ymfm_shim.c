@@ -61,6 +61,7 @@ uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
 }
 
 void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data) {
+    if (type || address || data) { }
 }
 
 void ymfm_sync_mode_write(uint8_t data) {

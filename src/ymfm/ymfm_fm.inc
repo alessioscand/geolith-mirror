@@ -640,7 +640,7 @@ void fm_operator_clock_phase(fm_operator *op, int32_t lfo_raw_pm)
 	// read from the cache, or recalculate if PM active
 	uint32_t phase_step = op->m_cache.phase_step;
 	if (phase_step == PHASE_STEP_DYNAMIC)
-		phase_step = opn_registers_compute_phase_step(op->m_choffs, op->m_opoffs, &(op->m_cache), lfo_raw_pm);
+		phase_step = opn_registers_compute_phase_step(op->m_choffs, &(op->m_cache), lfo_raw_pm);
 
 	// finally apply the step to the current phase value
 	op->m_phase += phase_step;
@@ -708,7 +708,7 @@ void fm_channel_assign(fm_channel *ch, uint32_t index, fm_operator *op) {
 //  keyonoff - signal key on/off to our operators
 //-------------------------------------------------
 
-void fm_channel_keyonoff(fm_channel *ch, uint32_t states, uint32_t type, uint32_t chnum)
+void fm_channel_keyonoff(fm_channel *ch, uint32_t states, uint32_t type)
 {
 	for (uint32_t opnum = 0; opnum < 4; opnum++)
 		if (ch->m_op[opnum] != NULL)
@@ -751,7 +751,7 @@ void fm_channel_clock(fm_channel *ch, uint32_t env_counter, int32_t lfo_raw_pm)
 
 
 // helper to add values to the outputs based on channel enables
-void fm_channel_add_to_output(fm_channel *ch, uint32_t choffs, int32_t *output, int32_t value) {
+void fm_channel_add_to_output(uint32_t choffs, int32_t *output, int32_t value) {
 	int out0_index = 0;
 	int out1_index = 1 % OUTPUTS;
 	int out2_index = 2 % OUTPUTS;
@@ -817,7 +817,7 @@ void fm_channel_output_2op(fm_channel *ch, int32_t *output, uint32_t rshift, int
 	}
 
 	// add to the output
-	fm_channel_add_to_output(ch, ch->m_choffs, output, result);
+	fm_channel_add_to_output(ch->m_choffs, output, result);
 }
 
 
@@ -928,7 +928,7 @@ void fm_channel_output_4op(fm_channel *ch, int32_t *output, uint32_t rshift, int
 		result = clamp(result + (opout[3] >> rshift), clipmin, clipmax);
 
 	// add to the output
-	fm_channel_add_to_output(ch, ch->m_choffs, output, result);
+	fm_channel_add_to_output(ch->m_choffs, output, result);
 }
 
 
@@ -1102,7 +1102,7 @@ void fm_engine_write(uint16_t regnum, uint8_t data)
 		{
 			// normal channel on/off
 			fm_channel_keyonoff(&m_channel[keyon_channel], keyon_opmask,
-				KEYON_NORMAL, keyon_channel);
+				KEYON_NORMAL);
 		}
 	}
 }
@@ -1247,7 +1247,7 @@ void fm_engine_timer_expired(uint32_t tnum)
 	if (tnum == 0 && opn_registers_csm())
 		for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
 			if (bitfield(CSM_TRIGGER_MASK, chnum, 1))
-				fm_channel_keyonoff(&m_channel[chnum], 1, KEYON_CSM, chnum);
+				fm_channel_keyonoff(&m_channel[chnum], 1, KEYON_CSM);
 
 	// reset
 	m_timer_running[tnum] = false;

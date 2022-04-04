@@ -174,8 +174,8 @@ uint32_t opn_registers_ch_algorithm(uint32_t choffs)                 { return by
 uint32_t opn_registers_ch_output_any(uint32_t choffs)                { return byte(0xb4, 6, 2, choffs); }
 uint32_t opn_registers_ch_output_0(uint32_t choffs)                  { return byte(0xb4, 7, 1, choffs); }
 uint32_t opn_registers_ch_output_1(uint32_t choffs)                  { return byte(0xb4, 6, 1, choffs); }
-uint32_t opn_registers_ch_output_2(uint32_t choffs)                  { return 0; }
-uint32_t opn_registers_ch_output_3(uint32_t choffs)                  { return 0; }
+uint32_t opn_registers_ch_output_2(uint32_t choffs)                  { (void)choffs; return 0; }
+uint32_t opn_registers_ch_output_3(uint32_t choffs)                  { (void)choffs; return 0; }
 static inline uint32_t opn_registers_ch_lfo_am_sens(uint32_t choffs) { return byte(0xb4, 4, 2, choffs); }
 static inline uint32_t opn_registers_ch_lfo_pm_sens(uint32_t choffs) { return byte(0xb4, 0, 3, choffs); }
 
@@ -412,7 +412,7 @@ void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_
 	// phase step, or PHASE_STEP_DYNAMIC if PM is active; this depends on
 	// block_freq, detune, and multiple, so compute it after we've done those
 	if (opn_registers_lfo_enable() == 0 || opn_registers_ch_lfo_pm_sens(choffs) == 0)
-		cache->phase_step = opn_registers_compute_phase_step(choffs, opoffs, cache, 0);
+		cache->phase_step = opn_registers_compute_phase_step(choffs, cache, 0);
 	else
 		cache->phase_step = PHASE_STEP_DYNAMIC;
 
@@ -437,7 +437,7 @@ void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_
 //  compute_phase_step - compute the phase step
 //-------------------------------------------------
 
-uint32_t opn_registers_compute_phase_step(uint32_t choffs, uint32_t opoffs, const opdata_cache *cache, int32_t lfo_raw_pm)
+uint32_t opn_registers_compute_phase_step(uint32_t choffs, const opdata_cache *cache, int32_t lfo_raw_pm)
 {
 	// OPN phase calculation has only a single detune parameter
 	// and uses FNUMs instead of keycodes
@@ -565,6 +565,8 @@ static void ssg_resampler_resample_2_9(int32_t *output)
 
 static void ssg_resampler_resample_nop(int32_t *output)
 {
+	if (output) { }
+
 	// nothing to do except increment the sample index
 	++m_ssg_resampler_sampindex;
 }
