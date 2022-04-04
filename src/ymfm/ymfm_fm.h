@@ -129,47 +129,8 @@ struct opdata_cache
 
 // fm_operator represents an FM operator (or "slot" in FM parlance), which
 // produces an output sine wave modulated by an envelope
-struct fm_operator
+typedef struct _fm_operator
 {
-	// reset the operator state
-	void reset(void);
-
-	// set the current channel
-	void set_choffs(uint32_t choffs);
-
-	// prepare prior to clocking
-	bool prepare(void);
-
-	// master clocking function
-	void clock(uint32_t env_counter, int32_t lfo_raw_pm);
-
-	// return the current phase value
-	uint32_t phase(void);
-
-	// compute operator volume
-	int32_t compute_volume(uint32_t phase, uint32_t am_offset);
-
-	// compute volume for the OPM noise channel
-	int32_t compute_noise_volume(uint32_t am_offset);
-
-	// key state control
-	void keyonoff(uint32_t on, uint32_t type);
-
-	// start the attack phase
-	void start_attack(bool is_restart);
-
-	// start the release phase
-	void start_release();
-
-	// clock phases
-	void clock_keystate(uint32_t keystate);
-	void clock_ssg_eg_state();
-	void clock_envelope(uint32_t env_counter);
-	void clock_phase(int32_t lfo_raw_pm);
-
-	// return effective attenuation of the envelope
-	uint32_t envelope_attenuation(uint32_t am_offset);
-
 	// internal state
 	uint32_t m_choffs;                     // channel offset in registers
 	uint32_t m_opoffs;                     // operator offset in registers
@@ -180,7 +141,7 @@ struct fm_operator
 	uint8_t m_key_state;                   // current key state: on or off (bit 0)
 	uint8_t m_keyon_live;                  // live key on state (bit 0 = direct, bit 1 = rhythm, bit 2 = CSM)
 	opdata_cache m_cache;                  // cached values for performance
-};
+} fm_operator;
 
 
 // ======================> fm_channel

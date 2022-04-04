@@ -289,26 +289,112 @@ void fm_operator_init(fm_operator *op, uint32_t opoffs)
 //  reset - reset the channel state
 //-------------------------------------------------
 
-void fm_operator::reset()
+void fm_operator_reset(fm_operator *op)
 {
 	// reset our data
-	m_phase = 0;
-	m_env_attenuation = 0x3ff;
-	m_env_state = EG_RELEASE;
-	m_ssg_inverted = 0;
-	m_key_state = 0;
-	m_keyon_live = 0;
+	op->m_phase = 0;
+	op->m_env_attenuation = 0x3ff;
+	op->m_env_state = EG_RELEASE;
+	op->m_ssg_inverted = 0;
+	op->m_key_state = 0;
+	op->m_keyon_live = 0;
 }
 
 
 // set the current channel
-void fm_operator::set_choffs(uint32_t choffs) {
-	m_choffs = choffs;
+void fm_operator_set_choffs(fm_operator *op, uint32_t choffs) {
+	op->m_choffs = choffs;
 }
 
 
-uint32_t fm_operator::phase(void) {
-	return m_phase >> 10;
+uint32_t fm_operator_phase(fm_operator *op) {
+	return op->m_phase >> 10;
+}
+
+
+//-------------------------------------------------
+//  start_attack - start the attack phase; called
+//  when a keyon happens or when an SSG-EG cycle
+//  is complete and restarts
+//-------------------------------------------------
+
+void fm_operator_start_attack(fm_operator *op, bool is_restart)
+{
+	// don't change anything if already in attack state
+	if (op->m_env_state == EG_ATTACK)
+		return;
+	op->m_env_state = EG_ATTACK;
+
+	// generally not inverted at start, except if SSG-EG is enabled and
+	// one of the inverted modes is specified; leave this alone on a
+	// restart, as it is managed by the clock_ssg_eg_state() code
+	if (EG_HAS_SSG && !is_restart)
+		op->m_ssg_inverted = opn_registers_op_ssg_eg_enable(op->m_opoffs) &
+			bitfield(opn_registers_op_ssg_eg_mode(op->m_opoffs), 2);
+
+	// reset the phase when we start an attack due to a key on
+	// (but not when due to an SSG-EG restart except in certain cases
+	// managed directly by the SSG-EG code)
+	if (!is_restart)
+		op->m_phase = 0;
+
+	// if the attack rate >= 62 then immediately go to max attenuation
+	if (op->m_cache.eg_rate[EG_ATTACK] >= 62)
+		op->m_env_attenuation = 0;
+}
+
+
+//-------------------------------------------------
+//  start_release - start the release phase;
+//  called when a keyoff happens
+//-------------------------------------------------
+
+void fm_operator_start_release(fm_operator *op)
+{
+	// don't change anything if already in release state
+	if (op->m_env_state >= EG_RELEASE)
+		return;
+	op->m_env_state = EG_RELEASE;
+
+	// if attenuation if inverted due to SSG-EG, snap the inverted attenuation
+	// as the starting point
+	if (EG_HAS_SSG && op->m_ssg_inverted)
+	{
+		op->m_env_attenuation = (0x200 - op->m_env_attenuation) & 0x3ff;
+		op->m_ssg_inverted = false;
+	}
+}
+
+
+//-------------------------------------------------
+//  clock_keystate - clock the keystate to match
+//  the incoming keystate
+//-------------------------------------------------
+
+void fm_operator_clock_keystate(fm_operator *op, uint32_t keystate)
+{
+	assert(keystate == 0 || keystate == 1);
+
+	// has the key changed?
+	if ((keystate ^ op->m_key_state) != 0)
+	{
+		op->m_key_state = keystate;
+
+		// if the key has turned on, start the attack
+		if (keystate != 0)
+		{
+			// OPLL has a DP ("depress"?) state to bring the volume
+			// down before starting the attack
+			if (EG_HAS_DEPRESS && op->m_env_attenuation < 0x200)
+				op->m_env_state = EG_DEPRESS;
+			else
+				fm_operator_start_attack(op, false);
+		}
+
+		// otherwise, start the release
+		else
+			fm_operator_start_release(op);
+	}
 }
 
 
@@ -316,36 +402,42 @@ uint32_t fm_operator::phase(void) {
 //  prepare - prepare for clocking
 //-------------------------------------------------
 
-bool fm_operator::prepare(void)
+bool fm_operator_prepare(fm_operator *op)
 {
 	// cache the data
-	opn_registers_cache_operator_data(m_choffs, m_opoffs, m_cache);
+	opn_registers_cache_operator_data(op->m_choffs, op->m_opoffs, op->m_cache);
 
 	// clock the key state
-	clock_keystate(uint32_t(m_keyon_live != 0));
-	m_keyon_live &= ~(1 << KEYON_CSM);
+	fm_operator_clock_keystate(op, uint32_t(op->m_keyon_live != 0));
+	op->m_keyon_live &= ~(1 << KEYON_CSM);
 
 	// we're active until we're quiet after the release
-	return (m_env_state != (EG_HAS_REVERB ? EG_REVERB : EG_RELEASE) || m_env_attenuation < EG_QUIET);
+	return (op->m_env_state != (EG_HAS_REVERB ? EG_REVERB : EG_RELEASE) || op->m_env_attenuation < EG_QUIET);
 }
 
 
 //-------------------------------------------------
-//  clock - master clocking function
+//  envelope_attenuation - return the effective
+//  attenuation of the envelope
 //-------------------------------------------------
 
-void fm_operator::clock(uint32_t env_counter, int32_t lfo_raw_pm)
+uint32_t fm_operator_envelope_attenuation(fm_operator *op, uint32_t am_offset)
 {
-	// clock the SSG-EG state (OPN/OPNA)
-	if (opn_registers_op_ssg_eg_enable(m_opoffs))
-		clock_ssg_eg_state();
+	uint32_t result = op->m_env_attenuation >> op->m_cache.eg_shift;
 
-	// clock the envelope if on an envelope cycle; env_counter is a x.2 value
-	if (bitfield(env_counter, 0, 2) == 0)
-		clock_envelope(env_counter >> 2);
+	// invert if necessary due to SSG-EG
+	if (EG_HAS_SSG && op->m_ssg_inverted)
+		result = (0x200 - result) & 0x3ff;
 
-	// clock the phase
-	clock_phase(lfo_raw_pm);
+	// add in LFO AM modulation
+	if (opn_registers_op_lfo_am_enable(op->m_opoffs))
+		result += am_offset;
+
+	// add in total level and KSL from the cache
+	result += op->m_cache.total_level;
+
+	// clamp to max, apply shift, and return
+	return (result < 0x3ff) ? result : 0x3ff;
 }
 
 
@@ -355,20 +447,20 @@ void fm_operator::clock(uint32_t env_counter, int32_t lfo_raw_pm)
 //  modulation and an AM LFO offset
 //-------------------------------------------------
 
-int32_t fm_operator::compute_volume(uint32_t phase, uint32_t am_offset)
+int32_t fm_operator_compute_volume(fm_operator *op, uint32_t phase, uint32_t am_offset)
 {
 	// the low 10 bits of phase represents a full 2*PI period over
 	// the full sin wave
 
 	// early out if the envelope is effectively off
-	if (m_env_attenuation > EG_QUIET)
+	if (op->m_env_attenuation > EG_QUIET)
 		return 0;
 
 	// get the absolute value of the sin, as attenuation, as a 4.8 fixed point value
-	uint32_t sin_attenuation = m_cache.waveform[phase & (WAVEFORM_LENGTH - 1)];
+	uint32_t sin_attenuation = op->m_cache.waveform[phase & (WAVEFORM_LENGTH - 1)];
 
 	// get the attenuation from the evelope generator as a 4.6 value, shifted up to 4.8
-	uint32_t env_attenuation = envelope_attenuation(am_offset) << 2;
+	uint32_t env_attenuation = fm_operator_envelope_attenuation(op, am_offset) << 2;
 
 	// combine into a 5.8 value, then convert from attenuation to 13-bit linear volume
 	int32_t result = attenuation_to_volume((sin_attenuation & 0x7fff) + env_attenuation);
@@ -384,12 +476,12 @@ int32_t fm_operator::compute_volume(uint32_t phase, uint32_t am_offset)
 //  noise input value and an AM offset
 //-------------------------------------------------
 
-int32_t fm_operator::compute_noise_volume(uint32_t am_offset)
+int32_t fm_operator_compute_noise_volume(fm_operator *op, uint32_t am_offset)
 {
 	// application manual says the logarithmic transform is not applied here, so we
 	// just use the raw envelope attenuation, inverted (since 0 attenuation should be
 	// maximum), and shift it up from a 10-bit value to an 11-bit value
-	int32_t result = (envelope_attenuation(am_offset) ^ 0x3ff) << 1;
+	int32_t result = (fm_operator_envelope_attenuation(op, am_offset) ^ 0x3ff) << 1;
 
 	// QUESTION: is AM applied still?
 
@@ -402,95 +494,9 @@ int32_t fm_operator::compute_noise_volume(uint32_t am_offset)
 //  keyonoff - signal a key on/off event
 //-------------------------------------------------
 
-void fm_operator::keyonoff(uint32_t on, uint32_t type)
+void fm_operator_keyonoff(fm_operator *op, uint32_t on, uint32_t type)
 {
-	m_keyon_live = (m_keyon_live & ~(1 << int(type))) | (bitfield(on, 0) << int(type));
-}
-
-
-//-------------------------------------------------
-//  start_attack - start the attack phase; called
-//  when a keyon happens or when an SSG-EG cycle
-//  is complete and restarts
-//-------------------------------------------------
-
-void fm_operator::start_attack(bool is_restart)
-{
-	// don't change anything if already in attack state
-	if (m_env_state == EG_ATTACK)
-		return;
-	m_env_state = EG_ATTACK;
-
-	// generally not inverted at start, except if SSG-EG is enabled and
-	// one of the inverted modes is specified; leave this alone on a
-	// restart, as it is managed by the clock_ssg_eg_state() code
-	if (EG_HAS_SSG && !is_restart)
-		m_ssg_inverted = opn_registers_op_ssg_eg_enable(m_opoffs) &
-			bitfield(opn_registers_op_ssg_eg_mode(m_opoffs), 2);
-
-	// reset the phase when we start an attack due to a key on
-	// (but not when due to an SSG-EG restart except in certain cases
-	// managed directly by the SSG-EG code)
-	if (!is_restart)
-		m_phase = 0;
-
-	// if the attack rate >= 62 then immediately go to max attenuation
-	if (m_cache.eg_rate[EG_ATTACK] >= 62)
-		m_env_attenuation = 0;
-}
-
-
-//-------------------------------------------------
-//  start_release - start the release phase;
-//  called when a keyoff happens
-//-------------------------------------------------
-
-void fm_operator::start_release()
-{
-	// don't change anything if already in release state
-	if (m_env_state >= EG_RELEASE)
-		return;
-	m_env_state = EG_RELEASE;
-
-	// if attenuation if inverted due to SSG-EG, snap the inverted attenuation
-	// as the starting point
-	if (EG_HAS_SSG && m_ssg_inverted)
-	{
-		m_env_attenuation = (0x200 - m_env_attenuation) & 0x3ff;
-		m_ssg_inverted = false;
-	}
-}
-
-
-//-------------------------------------------------
-//  clock_keystate - clock the keystate to match
-//  the incoming keystate
-//-------------------------------------------------
-
-void fm_operator::clock_keystate(uint32_t keystate)
-{
-	assert(keystate == 0 || keystate == 1);
-
-	// has the key changed?
-	if ((keystate ^ m_key_state) != 0)
-	{
-		m_key_state = keystate;
-
-		// if the key has turned on, start the attack
-		if (keystate != 0)
-		{
-			// OPLL has a DP ("depress"?) state to bring the volume
-			// down before starting the attack
-			if (EG_HAS_DEPRESS && m_env_attenuation < 0x200)
-				m_env_state = EG_DEPRESS;
-			else
-				start_attack(false);
-		}
-
-		// otherwise, start the release
-		else
-			start_release();
-	}
+	op->m_keyon_live = (op->m_keyon_live & ~(1 << int(type))) | (bitfield(on, 0) << int(type));
 }
 
 
@@ -499,10 +505,10 @@ void fm_operator::clock_keystate(uint32_t keystate)
 //  should only be called if SSG-EG is enabled
 //-------------------------------------------------
 
-void fm_operator::clock_ssg_eg_state()
+void fm_operator_clock_ssg_eg_state(fm_operator *op)
 {
 	// work only happens once the attenuation crosses above 0x200
-	if (!bitfield(m_env_attenuation, 9))
+	if (!bitfield(op->m_env_attenuation, 9))
 		return;
 
 	// 8 SSG-EG modes:
@@ -514,38 +520,38 @@ void fm_operator::clock_ssg_eg_state()
 	//    101: inverted run once, hold low
 	//    110: inverted repeat, alternating between inverted/non-inverted
 	//    111: inverted run once, hold high
-	uint32_t mode = opn_registers_op_ssg_eg_mode(m_opoffs);
+	uint32_t mode = opn_registers_op_ssg_eg_mode(op->m_opoffs);
 
 	// hold modes (1/3/5/7)
 	if (bitfield(mode, 0))
 	{
 		// set the inverted flag to the end state (0 for modes 1/7, 1 for modes 3/5)
-		m_ssg_inverted = bitfield(mode, 2) ^ bitfield(mode, 1);
+		op->m_ssg_inverted = bitfield(mode, 2) ^ bitfield(mode, 1);
 
 		// if holding, force the attenuation to the expected value once we're
 		// past the attack phase
-		if (m_env_state != EG_ATTACK)
-			m_env_attenuation = m_ssg_inverted ? 0x200 : 0x3ff;
+		if (op->m_env_state != EG_ATTACK)
+			op->m_env_attenuation = op->m_ssg_inverted ? 0x200 : 0x3ff;
 	}
 
 	// continuous modes (0/2/4/6)
 	else
 	{
 		// toggle invert in alternating mode (even in attack state)
-		m_ssg_inverted ^= bitfield(mode, 1);
+		op->m_ssg_inverted ^= bitfield(mode, 1);
 
 		// restart attack if in decay/sustain states
-		if (m_env_state == EG_DECAY || m_env_state == EG_SUSTAIN)
-			start_attack(true);
+		if (op->m_env_state == EG_DECAY || op->m_env_state == EG_SUSTAIN)
+			fm_operator_start_attack(op, true);
 
 		// phase is reset to 0 in modes 0/4
 		if (bitfield(mode, 1) == 0)
-			m_phase = 0;
+			op->m_phase = 0;
 	}
 
 	// in all modes, once we hit release state, attenuation is forced to maximum
-	if (m_env_state == EG_RELEASE)
-		m_env_attenuation = 0x3ff;
+	if (op->m_env_state == EG_RELEASE)
+		op->m_env_attenuation = 0x3ff;
 }
 
 
@@ -554,22 +560,22 @@ void fm_operator::clock_ssg_eg_state()
 //  according to the given count
 //-------------------------------------------------
 
-void fm_operator::clock_envelope(uint32_t env_counter)
+void fm_operator_clock_envelope(fm_operator *op, uint32_t env_counter)
 {
 	// handle attack->decay transitions
-	if (m_env_state == EG_ATTACK && m_env_attenuation == 0)
-		m_env_state = EG_DECAY;
+	if (op->m_env_state == EG_ATTACK && op->m_env_attenuation == 0)
+		op->m_env_state = EG_DECAY;
 
 	// handle decay->sustain transitions; it is important to do this immediately
 	// after the attack->decay transition above in the event that the sustain level
 	// is set to 0 (in which case we will skip right to sustain without doing any
 	// decay); as an example where this can be heard, check the cymbals sound
 	// in channel 0 of shinobi's test mode sound #5
-	if (m_env_state == EG_DECAY && m_env_attenuation >= m_cache.eg_sustain)
-		m_env_state = EG_SUSTAIN;
+	if (op->m_env_state == EG_DECAY && op->m_env_attenuation >= op->m_cache.eg_sustain)
+		op->m_env_state = EG_SUSTAIN;
 
 	// fetch the appropriate 6-bit rate value from the cache
-	uint32_t rate = m_cache.eg_rate[m_env_state];
+	uint32_t rate = op->m_cache.eg_rate[op->m_env_state];
 
 	// compute the rate shift value; this is the shift needed to
 	// apply to the env_counter such that it becomes a 5.11 fixed
@@ -586,38 +592,38 @@ void fm_operator::clock_envelope(uint32_t env_counter)
 	uint32_t increment = attenuation_increment(rate, relevant_bits);
 
 	// attack is the only one that increases
-	if (m_env_state == EG_ATTACK)
+	if (op->m_env_state == EG_ATTACK)
 	{
 		// glitch means that attack rates of 62/63 don't increment if
 		// changed after the initial key on (where they are handled
 		// specially); nukeykt confirms this happens on OPM, OPN, OPL/OPLL
 		// at least so assuming it is true for everyone
 		if (rate < 62)
-			m_env_attenuation += (~m_env_attenuation * increment) >> 4;
+			op->m_env_attenuation += (~op->m_env_attenuation * increment) >> 4;
 	}
 
 	// all other cases are similar
 	else
 	{
 		// non-SSG-EG cases just apply the increment
-		if (!opn_registers_op_ssg_eg_enable(m_opoffs))
-			m_env_attenuation += increment;
+		if (!opn_registers_op_ssg_eg_enable(op->m_opoffs))
+			op->m_env_attenuation += increment;
 
 		// SSG-EG only applies if less than mid-point, and then at 4x
-		else if (m_env_attenuation < 0x200)
-			m_env_attenuation += 4 * increment;
+		else if (op->m_env_attenuation < 0x200)
+			op->m_env_attenuation += 4 * increment;
 
 		// clamp the final attenuation
-		if (m_env_attenuation >= 0x400)
-			m_env_attenuation = 0x3ff;
+		if (op->m_env_attenuation >= 0x400)
+			op->m_env_attenuation = 0x3ff;
 
 		// transition from depress to attack
-		if (EG_HAS_DEPRESS && m_env_state == EG_DEPRESS && m_env_attenuation >= 0x200)
-			start_attack(false);
+		if (EG_HAS_DEPRESS && op->m_env_state == EG_DEPRESS && op->m_env_attenuation >= 0x200)
+			fm_operator_start_attack(op, false);
 
 		// transition from release to reverb, should switch at -18dB
-		if (EG_HAS_REVERB && m_env_state == EG_RELEASE && m_env_attenuation >= 0xc0)
-			m_env_state = EG_REVERB;
+		if (EG_HAS_REVERB && op->m_env_state == EG_RELEASE && op->m_env_attenuation >= 0xc0)
+			op->m_env_state = EG_REVERB;
 	}
 }
 
@@ -628,42 +634,35 @@ void fm_operator::clock_envelope(uint32_t env_counter)
 //  against the Nuked phase generator
 //-------------------------------------------------
 
-void fm_operator::clock_phase(int32_t lfo_raw_pm)
+void fm_operator_clock_phase(fm_operator *op, int32_t lfo_raw_pm)
 {
 	// read from the cache, or recalculate if PM active
-	uint32_t phase_step = m_cache.phase_step;
+	uint32_t phase_step = op->m_cache.phase_step;
 	if (phase_step == PHASE_STEP_DYNAMIC)
-		phase_step = opn_registers_compute_phase_step(m_choffs, m_opoffs, m_cache, lfo_raw_pm);
+		phase_step = opn_registers_compute_phase_step(op->m_choffs, op->m_opoffs, op->m_cache, lfo_raw_pm);
 
 	// finally apply the step to the current phase value
-	m_phase += phase_step;
+	op->m_phase += phase_step;
 }
 
 
 //-------------------------------------------------
-//  envelope_attenuation - return the effective
-//  attenuation of the envelope
+//  clock - master clocking function
 //-------------------------------------------------
 
-uint32_t fm_operator::envelope_attenuation(uint32_t am_offset)
+void fm_operator_clock(fm_operator *op, uint32_t env_counter, int32_t lfo_raw_pm)
 {
-	uint32_t result = m_env_attenuation >> m_cache.eg_shift;
+	// clock the SSG-EG state (OPN/OPNA)
+	if (opn_registers_op_ssg_eg_enable(op->m_opoffs))
+		fm_operator_clock_ssg_eg_state(op);
 
-	// invert if necessary due to SSG-EG
-	if (EG_HAS_SSG && m_ssg_inverted)
-		result = (0x200 - result) & 0x3ff;
+	// clock the envelope if on an envelope cycle; env_counter is a x.2 value
+	if (bitfield(env_counter, 0, 2) == 0)
+		fm_operator_clock_envelope(op, env_counter >> 2);
 
-	// add in LFO AM modulation
-	if (opn_registers_op_lfo_am_enable(m_opoffs))
-		result += am_offset;
-
-	// add in total level and KSL from the cache
-	result += m_cache.total_level;
-
-	// clamp to max, apply shift, and return
-	return std::min<uint32_t>(result, 0x3ff);
+	// clock the phase
+	fm_operator_clock_phase(op, lfo_raw_pm);
 }
-
 
 
 //*********************************************************
@@ -700,7 +699,7 @@ void fm_channel_assign(fm_channel *ch, uint32_t index, fm_operator *op) {
 	assert(index < 4);
 	ch->m_op[index] = op;
 	if (op != nullptr)
-		op->set_choffs(ch->m_choffs);
+		fm_operator_set_choffs(op, ch->m_choffs);
 }
 
 
@@ -712,7 +711,7 @@ void fm_channel_keyonoff(fm_channel *ch, uint32_t states, uint32_t type, uint32_
 {
 	for (uint32_t opnum = 0; opnum < 4; opnum++)
 		if (ch->m_op[opnum] != nullptr)
-			ch->m_op[opnum]->keyonoff(bitfield(states, opnum), type);
+			fm_operator_keyonoff(ch->m_op[opnum], bitfield(states, opnum), type);
 }
 
 
@@ -727,7 +726,7 @@ bool fm_channel_prepare(fm_channel *ch)
 	// prepare all operators and determine if they are active
 	for (uint32_t opnum = 0; opnum < 4; opnum++)
 		if (ch->m_op[opnum] != nullptr)
-			if (ch->m_op[opnum]->prepare())
+			if (fm_operator_prepare(ch->m_op[opnum]))
 				active_mask |= 1 << opnum;
 
 	return (active_mask != 0);
@@ -746,7 +745,7 @@ void fm_channel_clock(fm_channel *ch, uint32_t env_counter, int32_t lfo_raw_pm)
 
 	for (uint32_t opnum = 0; opnum < 4; opnum++)
 		if (ch->m_op[opnum] != nullptr)
-			ch->m_op[opnum]->clock(env_counter, lfo_raw_pm);
+			fm_operator_clock(ch->m_op[opnum], env_counter, lfo_raw_pm);
 }
 
 
@@ -791,7 +790,7 @@ void fm_channel_output_2op(fm_channel *ch, int32_t *output, uint32_t rshift, int
 		opmod = (ch->m_feedback[0] + ch->m_feedback[1]) >> (10 - feedback);
 
 	// compute the 14-bit volume/value of operator 1 and update the feedback
-	int32_t op1value = ch->m_feedback_in = ch->m_op[0]->compute_volume(ch->m_op[0]->phase() + opmod, am_offset);
+	int32_t op1value = ch->m_feedback_in = fm_operator_compute_volume(ch->m_op[0], fm_operator_phase(ch->m_op[0]) + opmod, am_offset);
 
 	// now that the feedback has been computed, skip the rest if all volumes
 	// are clear; no need to do all this work for nothing
@@ -807,11 +806,11 @@ void fm_channel_output_2op(fm_channel *ch, int32_t *output, uint32_t rshift, int
 		// some OPL chips use the previous sample for modulation instead of
 		// the current sample
 		opmod = (MODULATOR_DELAY ? ch->m_feedback[1] : op1value) >> 1;
-		result = ch->m_op[1]->compute_volume(ch->m_op[1]->phase() + opmod, am_offset) >> rshift;
+		result = fm_operator_compute_volume(ch->m_op[1], fm_operator_phase(ch->m_op[1]) + opmod, am_offset) >> rshift;
 	}
 	else
 	{
-		result = op1value + (ch->m_op[1]->compute_volume(ch->m_op[1]->phase(), am_offset) >> rshift);
+		result = op1value + (fm_operator_compute_volume(ch->m_op[1], fm_operator_phase(ch->m_op[1]), am_offset) >> rshift);
 		int32_t clipmin = -clipmax - 1;
 		result = clamp(result, clipmin, clipmax);
 	}
@@ -846,7 +845,7 @@ void fm_channel_output_4op(fm_channel *ch, int32_t *output, uint32_t rshift, int
 		opmod = (ch->m_feedback[0] + ch->m_feedback[1]) >> (10 - feedback);
 
 	// compute the 14-bit volume/value of operator 1 and update the feedback
-	int32_t op1value = ch->m_feedback_in = ch->m_op[0]->compute_volume(ch->m_op[0]->phase() + opmod, am_offset);
+	int32_t op1value = ch->m_feedback_in = fm_operator_compute_volume(ch->m_op[0], fm_operator_phase(ch->m_op[0]) + opmod, am_offset);
 
 	// now that the feedback has been computed, skip the rest if all volumes
 	// are clear; no need to do all this work for nothing
@@ -902,12 +901,12 @@ void fm_channel_output_4op(fm_channel *ch, int32_t *output, uint32_t rshift, int
 
 	// compute the 14-bit volume/value of operator 2
 	opmod = opout[bitfield(algorithm_ops, 0, 1)] >> 1;
-	opout[2] = ch->m_op[1]->compute_volume(ch->m_op[1]->phase() + opmod, am_offset);
+	opout[2] = fm_operator_compute_volume(ch->m_op[1], fm_operator_phase(ch->m_op[1]) + opmod, am_offset);
 	opout[5] = opout[1] + opout[2];
 
 	// compute the 14-bit volume/value of operator 3
 	opmod = opout[bitfield(algorithm_ops, 1, 3)] >> 1;
-	opout[3] = ch->m_op[2]->compute_volume(ch->m_op[2]->phase() + opmod, am_offset);
+	opout[3] = fm_operator_compute_volume(ch->m_op[2], fm_operator_phase(ch->m_op[2]) + opmod, am_offset);
 	opout[6] = opout[1] + opout[3];
 	opout[7] = opout[2] + opout[3];
 
@@ -915,7 +914,7 @@ void fm_channel_output_4op(fm_channel *ch, int32_t *output, uint32_t rshift, int
 	// value on the OPM; all algorithms consume OP4 output at a minimum
 	int32_t result;
 	opmod = opout[bitfield(algorithm_ops, 4, 3)] >> 1;
-	result = ch->m_op[3]->compute_volume(ch->m_op[3]->phase() + opmod, am_offset);
+	result = fm_operator_compute_volume(ch->m_op[3], fm_operator_phase(ch->m_op[3]) + opmod, am_offset);
 	result >>= rshift;
 
 	// optionally add OP1, OP2, OP3
@@ -997,7 +996,7 @@ void fm_engine_reset(void)
 
 	// reset the operators
 	for (int i = 0; i < OPERATORS; ++i)
-		m_operator[i].reset();
+		fm_operator_reset(&m_operator[i]);
 }
 
 
