@@ -93,7 +93,7 @@ OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o))
 
 # Compiler command
 COMPILE = $(strip $(1) $(CPPFLAGS) $(PIC) $(2) -c $< -o $@)
-COMPILE_C = $(call COMPILE, $(CC) $(CFLAGS) $(CFLAGS_JG), $(1))
+COMPILE_C = $(call COMPILE, $(CC) $(CFLAGS), $(1))
 
 # Info command
 COMPILE_INFO = $(info $(subst $(SOURCEDIR)/,,$(1)))
