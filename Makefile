@@ -89,8 +89,7 @@ MKDIRS := m68k speex ymfm z80
 OBJDIR := objs
 
 # List of object files
-OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o)) \
-	$(patsubst %,$(OBJDIR)/%,$(CXXSRCS:.cpp=.o))
+OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o))
 
 # Compiler command
 COMPILE = $(strip $(1) $(CPPFLAGS) $(PIC) $(2) -c $< -o $@)
