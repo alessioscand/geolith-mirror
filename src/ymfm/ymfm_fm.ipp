@@ -28,6 +28,25 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+// ======================> fm_engine
+
+// fm_engine represents a set of operators and channels which together
+// form a Yamaha FM core; chips that implement other engines (ADPCM, wavetable,
+// etc) take this output and combine it with the others externally
+// internal state
+static uint32_t m_env_counter;          // envelope counter; low 2 bits are sub-counter
+static uint8_t m_status;                // current status register
+static uint8_t m_clock_prescale;        // prescale factor (2/3/6)
+static uint8_t m_irq_mask;              // mask of which bits signal IRQs
+static uint8_t m_irq_state;             // current IRQ state
+static uint8_t m_timer_running[2];      // current timer running state
+static uint8_t m_total_clocks;          // low 8 bits of the total number of clocks processed
+static uint32_t m_active_channels;      // mask of active channels (computed by prepare)
+static uint32_t m_modified_channels;    // mask of channels that have been modified
+static uint32_t m_prepare_count;        // counter to do periodic prepare sweeps
+static fm_channel *m_channel[CHANNELS]; // channel pointers
+static fm_operator *m_operator[OPERATORS]; // operator pointers
+
 //*********************************************************
 //  GLOBAL TABLE LOOKUPS
 //*********************************************************
@@ -932,28 +951,28 @@ void fm_channel::add_to_output(uint32_t choffs, int32_t *output, int32_t value) 
 
 void fm_engine_init(void)
 {
-	m_fm.m_env_counter = 0;
-	m_fm.m_status = 0;
-	m_fm.m_clock_prescale = DEFAULT_PRESCALE;
-	m_fm.m_irq_mask = STATUS_TIMERA | STATUS_TIMERB;
-	m_fm.m_irq_state = 0;
-	m_fm.m_timer_running[0] = m_fm.m_timer_running[1] = 0;
-	m_fm.m_active_channels = ALL_CHANNELS;
-	m_fm.m_modified_channels = ALL_CHANNELS;
-	m_fm.m_prepare_count = 0;
+	m_env_counter = 0;
+	m_status = 0;
+	m_clock_prescale = DEFAULT_PRESCALE;
+	m_irq_mask = STATUS_TIMERA | STATUS_TIMERB;
+	m_irq_state = 0;
+	m_timer_running[0] = m_timer_running[1] = 0;
+	m_active_channels = ALL_CHANNELS;
+	m_modified_channels = ALL_CHANNELS;
+	m_prepare_count = 0;
 
 	opn_registers_init();
 
 	// create the channels
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-		m_fm.m_channel[chnum] = new fm_channel(channel_offset(chnum));
+		m_channel[chnum] = new fm_channel(channel_offset(chnum));
 
 	// create the operators
 	for (uint32_t opnum = 0; opnum < OPERATORS; opnum++)
-		m_fm.m_operator[opnum] = new fm_operator(operator_offset(opnum));
+		m_operator[opnum] = new fm_operator(operator_offset(opnum));
 
 	// do the initial operator assignment
-	m_fm.assign_operators();
+	fm_engine_assign_operators();
 }
 
 
@@ -961,25 +980,25 @@ void fm_engine_init(void)
 //  reset - reset the overall state
 //-------------------------------------------------
 
-void fm_engine::reset(void)
+void fm_engine_reset(void)
 {
 	// reset all status bits
-	set_reset_status(0, 0xff);
+	fm_engine_set_reset_status(0, 0xff);
 
 	// register type-specific initialization
 	opn_registers_reset();
 
 	// explicitly write to the mode register since it has side-effects
 	// QUESTION: old cores initialize this to 0x30 -- who is right?
-	write(REG_MODE, 0);
+	fm_engine_write(REG_MODE, 0);
 
 	// reset the channels
-	for (auto &chan : m_channel)
-		chan->reset();
+	for (int i = 0; i < CHANNELS; ++i)
+		m_channel[i]->reset();
 
 	// reset the operators
-	for (auto &op : m_operator)
-		op->reset();
+	for (int i = 0; i < OPERATORS; ++i)
+		m_operator[i]->reset();
 }
 
 
@@ -988,7 +1007,7 @@ void fm_engine::reset(void)
 //  them forward one step
 //-------------------------------------------------
 
-uint32_t fm_engine::clock(uint32_t chanmask)
+uint32_t fm_engine_clock(uint32_t chanmask)
 {
 	// update the clock counter
 	m_total_clocks++;
@@ -999,7 +1018,7 @@ uint32_t fm_engine::clock(uint32_t chanmask)
 	{
 		// reassign operators to channels if dynamic
 		if (DYNAMIC_OPS)
-			assign_operators();
+			fm_engine_assign_operators();
 
 		// call each channel to prepare
 		m_active_channels = 0;
@@ -1037,7 +1056,7 @@ uint32_t fm_engine::clock(uint32_t chanmask)
 //  channels
 //-------------------------------------------------
 
-void fm_engine::output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_t chanmask)
+void fm_engine_output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_t chanmask)
 {
 	// mask out some channels for debug purposes
 	chanmask &= 0xffffffff;
@@ -1061,7 +1080,7 @@ void fm_engine::output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32
 //  write - handle writes to the OPN registers
 //-------------------------------------------------
 
-void fm_engine::write(uint16_t regnum, uint8_t data)
+void fm_engine_write(uint16_t regnum, uint8_t data)
 {
 	// special case: writes to the mode register can impact IRQs;
 	// schedule these writes to ensure ordering with timers
@@ -1085,13 +1104,6 @@ void fm_engine::write(uint16_t regnum, uint8_t data)
 			// normal channel on/off
 			m_channel[keyon_channel]->keyonoff(keyon_opmask, KEYON_NORMAL, keyon_channel);
 		}
-		else if (CHANNELS >= 9 && keyon_channel == RHYTHM_CHANNEL)
-		{
-			// special case for the OPL rhythm channels
-			m_channel[6]->keyonoff(bitfield(keyon_opmask, 4) ? 3 : 0, KEYON_RHYTHM, 6);
-			m_channel[7]->keyonoff(bitfield(keyon_opmask, 0) | (bitfield(keyon_opmask, 3) << 1), KEYON_RHYTHM, 7);
-			m_channel[8]->keyonoff(bitfield(keyon_opmask, 2) | (bitfield(keyon_opmask, 1) << 1), KEYON_RHYTHM, 8);
-		}
 	}
 }
 
@@ -1101,14 +1113,14 @@ void fm_engine::write(uint16_t regnum, uint8_t data)
 //  status flags
 //-------------------------------------------------
 
-uint8_t fm_engine::status(void)
+uint8_t fm_engine_status(void)
 {
 	return m_status & ~STATUS_BUSY;
 }
 
 
 // set/reset bits in the status register, updating the IRQ status
-uint8_t fm_engine::set_reset_status(uint8_t set, uint8_t reset)
+uint8_t fm_engine_set_reset_status(uint8_t set, uint8_t reset)
 {
 	m_status = (m_status | set) & ~(reset | STATUS_BUSY);
 	ymfm_sync_check_interrupts();
@@ -1117,32 +1129,32 @@ uint8_t fm_engine::set_reset_status(uint8_t set, uint8_t reset)
 
 
 // set the IRQ mask
-void fm_engine::set_irq_mask(uint8_t mask) {
+void fm_engine_set_irq_mask(uint8_t mask) {
 	m_irq_mask = mask;
 	ymfm_sync_check_interrupts();
 }
 
 
 // return the current clock prescale
-uint32_t fm_engine::clock_prescale(void) {
+uint32_t fm_engine_clock_prescale(void) {
 	return m_clock_prescale;
 }
 
 
 // set prescale factor (2/3/6)
-void fm_engine::set_clock_prescale(uint32_t prescale) {
+void fm_engine_set_clock_prescale(uint32_t prescale) {
 	m_clock_prescale = prescale;
 }
 
 
 // compute sample rate
-uint32_t fm_engine::sample_rate(uint32_t baseclock) {
+uint32_t fm_engine_sample_rate(uint32_t baseclock) {
 	return baseclock / (m_clock_prescale * OPERATORS);
 }
 
 
 // invalidate any caches
-void fm_engine::invalidate_caches(void) {
+void fm_engine_invalidate_caches(void) {
 	m_modified_channels = ALL_CHANNELS;
 }
 
@@ -1152,7 +1164,7 @@ void fm_engine::invalidate_caches(void) {
 //  operators to channels and assign them all
 //-------------------------------------------------
 
-void fm_engine::assign_operators()
+void fm_engine_assign_operators(void)
 {
 	operator_mapping map;
 	opn_registers_operator_map(map);
@@ -1171,7 +1183,7 @@ void fm_engine::assign_operators()
 //  timer
 //-------------------------------------------------
 
-void fm_engine::update_timer(uint32_t tnum, uint32_t enable, int32_t delta_clocks)
+void fm_engine_update_timer(uint32_t tnum, uint32_t enable, int32_t delta_clocks)
 {
 	// if the timer is live, but not currently enabled, set the timer
 	if (enable && !m_timer_running[tnum])
@@ -1202,13 +1214,13 @@ void fm_engine::update_timer(uint32_t tnum, uint32_t enable, int32_t delta_clock
 //  status and possibly IRQs
 //-------------------------------------------------
 
-void fm_engine::engine_timer_expired(uint32_t tnum)
+void fm_engine_timer_expired(uint32_t tnum)
 {
 	// update status
 	if (tnum == 0 && opn_registers_enable_timer_a())
-		set_reset_status(STATUS_TIMERA, 0);
+		fm_engine_set_reset_status(STATUS_TIMERA, 0);
 	else if (tnum == 1 && opn_registers_enable_timer_b())
-		set_reset_status(STATUS_TIMERB, 0);
+		fm_engine_set_reset_status(STATUS_TIMERB, 0);
 
 	// if timer A fired in CSM mode, trigger CSM on all relevant channels
 	if (tnum == 0 && opn_registers_csm())
@@ -1218,7 +1230,7 @@ void fm_engine::engine_timer_expired(uint32_t tnum)
 
 	// reset
 	m_timer_running[tnum] = false;
-	update_timer(tnum, 1, 0);
+	fm_engine_update_timer(tnum, 1, 0);
 }
 
 
@@ -1227,7 +1239,7 @@ void fm_engine::engine_timer_expired(uint32_t tnum)
 //  for interrupts
 //-------------------------------------------------
 
-void fm_engine::engine_check_interrupts()
+void fm_engine_check_interrupts(void)
 {
 	// update the state
 	uint8_t old_state = m_irq_state;
@@ -1250,7 +1262,7 @@ void fm_engine::engine_check_interrupts()
 //  via timer callback
 //-------------------------------------------------
 
-void fm_engine::engine_mode_write(uint8_t data)
+void fm_engine_mode_write(uint8_t data)
 {
 	// mark all channels as modified
 	m_modified_channels = ALL_CHANNELS;
@@ -1268,11 +1280,11 @@ void fm_engine::engine_mode_write(uint8_t data)
 		reset_mask |= STATUS_TIMERB;
 	if (opn_registers_reset_timer_a())
 		reset_mask |= STATUS_TIMERA;
-	set_reset_status(0, reset_mask);
+	fm_engine_set_reset_status(0, reset_mask);
 
 	// load timers; note that timer B gets a small negative adjustment because
 	// the *16 multiplier is free-running, so the first tick of the clock
 	// is a bit shorter
-	update_timer(1, opn_registers_load_timer_b(), -(m_total_clocks & 15));
-	update_timer(0, opn_registers_load_timer_a(), 0);
+	fm_engine_update_timer(1, opn_registers_load_timer_b(), -(m_total_clocks & 15));
+	fm_engine_update_timer(0, opn_registers_load_timer_a(), 0);
 }

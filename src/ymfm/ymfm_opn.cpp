@@ -656,7 +656,7 @@ uint32_t ym2610::ssg_effective_clock(uint32_t input_clock) {
 
 
 void ym2610::invalidate_caches(void) {
-	m_fm.invalidate_caches();
+	fm_engine_invalidate_caches();
 }
 
 
@@ -673,7 +673,7 @@ void ym2610::set_fidelity(uint32_t fidelity) {
 void ym2610::reset()
 {
 	// reset the engines
-	m_fm.reset();
+	fm_engine_reset();
 	ssg_engine_reset();
 	adpcm_a_engine_reset();
 	adpcm_b_engine_reset();
@@ -690,7 +690,7 @@ void ym2610::reset()
 
 uint8_t ym2610::read_status()
 {
-	uint8_t result = m_fm.status() & (STATUS_TIMERA | STATUS_TIMERB);
+	uint8_t result = fm_engine_status() & (STATUS_TIMERA | STATUS_TIMERB);
 	if (ymfm_is_busy())
 		result |= STATUS_BUSY;
 	return result;
@@ -822,11 +822,11 @@ void ym2610::write_data(uint8_t data)
 	else
 	{
 		// 1D-FF: write to FM
-		m_fm.write(m_address, data);
+		fm_engine_write(m_address, data);
 	}
 
 	// mark busy for a bit
-	ymfm_set_busy_end(32 * m_fm.clock_prescale());
+	ymfm_set_busy_end(32 * fm_engine_clock_prescale());
 }
 
 
@@ -861,11 +861,11 @@ void ym2610::write_data_hi(uint8_t data)
 	else
 	{
 		// 130-1FF: write to FM
-		m_fm.write(m_address, data);
+		fm_engine_write(m_address, data);
 	}
 
 	// mark busy for a bit
-	ymfm_set_busy_end(32 * m_fm.clock_prescale());
+	ymfm_set_busy_end(32 * fm_engine_clock_prescale());
 }
 
 
@@ -948,7 +948,7 @@ void ym2610::update_prescale()
 void ym2610::clock_fm_and_adpcm()
 {
 	// clock the system
-	uint32_t env_counter = m_fm.clock(m_fm_mask);
+	uint32_t env_counter = fm_engine_clock(m_fm_mask);
 
 	// clock the ADPCM-A engine on every envelope cycle
 	if (bitfield(env_counter, 0, 2) == 0)
@@ -965,7 +965,7 @@ void ym2610::clock_fm_and_adpcm()
 
 	// update the FM content; OPNB is 13-bit with no intermediate clipping
 	m_last_fm[0] = m_last_fm[1] = m_last_fm[2] = 0;
-	m_fm.output(m_last_fm, 1, 32767, m_fm_mask);
+	fm_engine_output(m_last_fm, 1, 32767, m_fm_mask);
 
 	// mix in the ADPCM and clamp
 	adpcm_a_engine_output(m_last_fm, 0x3f);
@@ -995,12 +995,12 @@ ym2612::ym2612()
 
 
 uint32_t ym2612::sample_rate(uint32_t input_clock) {
-	return m_fm.sample_rate(input_clock);
+	return fm_engine_sample_rate(input_clock);
 }
 
 
 void ym2612::invalidate_caches(void) {
-	m_fm.invalidate_caches();
+	fm_engine_invalidate_caches();
 }
 
 
@@ -1011,7 +1011,7 @@ void ym2612::invalidate_caches(void) {
 void ym2612::reset()
 {
 	// reset the engines
-	m_fm.reset();
+	fm_engine_reset();
 }
 
 
@@ -1021,7 +1021,7 @@ void ym2612::reset()
 
 uint8_t ym2612::read_status()
 {
-	uint8_t result = m_fm.status();
+	uint8_t result = fm_engine_status();
 	if (ymfm_is_busy())
 		result |= STATUS_BUSY;
 	return result;
@@ -1092,11 +1092,11 @@ void ym2612::write_data(uint8_t data)
 	else
 	{
 		// 00-29, 2D-FF: write to FM
-		m_fm.write(m_address, data);
+		fm_engine_write(m_address, data);
 	}
 
 	// mark busy for a bit
-	ymfm_set_busy_end(32 * m_fm.clock_prescale());
+	ymfm_set_busy_end(32 * fm_engine_clock_prescale());
 }
 
 
@@ -1124,10 +1124,10 @@ void ym2612::write_data_hi(uint8_t data)
 		return;
 
 	// 100-1FF: write to FM
-	m_fm.write(m_address, data);
+	fm_engine_write(m_address, data);
 
 	// mark busy for a bit
-	ymfm_set_busy_end(32 * m_fm.clock_prescale());
+	ymfm_set_busy_end(32 * fm_engine_clock_prescale());
 }
 
 
@@ -1166,7 +1166,7 @@ void ym2612::write(uint32_t offset, uint8_t data)
 void ym2612::generate(int32_t *output)
 {
 	// clock the system
-	m_fm.clock(ALL_CHANNELS);
+	fm_engine_clock(ALL_CHANNELS);
 
 	// sum individual channels to apply DAC discontinuity on each
 	output[0] = output[1] = 0;
@@ -1177,7 +1177,7 @@ void ym2612::generate(int32_t *output)
 	for (int chan = 0; chan < last_fm_channel; chan++)
 	{
 		temp[0] = temp[1] = 0;
-		m_fm.output(temp, 5, 256, 1 << chan);
+		fm_engine_output(temp, 5, 256, 1 << chan);
 		output[0] += dac_discontinuity(temp[0]);
 		output[1] += dac_discontinuity(temp[1]);
 	}
@@ -1207,14 +1207,14 @@ void ym2612::generate(int32_t *output)
 void ym2612::generate3438(int32_t *output)
 {
 	// clock the system
-	m_fm.clock(ALL_CHANNELS);
+	fm_engine_clock(ALL_CHANNELS);
 
 	// first do FM-only channels; OPN2C is 9-bit with intermediate clipping
 	if (!m_dac_enable)
 	{
 		// DAC disabled: all 6 channels sum together
 		output[0] = output[1] = 0;
-		m_fm.output(output, 5, 256, ALL_CHANNELS);
+		fm_engine_output(output, 5, 256, ALL_CHANNELS);
 	}
 	else
 	{
@@ -1222,7 +1222,7 @@ void ym2612::generate3438(int32_t *output)
 		int32_t dacval = int16_t(m_dac_data << 7) >> 7;
 		output[0] = opn_registers_ch_output_0(0x102) ? dacval : 0;
 		output[1] = opn_registers_ch_output_1(0x102) ? dacval : 0;
-		m_fm.output(output, 5, 256, ALL_CHANNELS ^ (1 << 5));
+		fm_engine_output(output, 5, 256, ALL_CHANNELS ^ (1 << 5));
 	}
 
 	// YM3438 doesn't have the same DAC discontinuity, though its output is

@@ -232,78 +232,55 @@ struct fm_channel
 };
 
 
-// ======================> fm_engine
-
-// fm_engine represents a set of operators and channels which together
-// form a Yamaha FM core; chips that implement other engines (ADPCM, wavetable,
-// etc) take this output and combine it with the others externally
-struct fm_engine
-{
-	// reset the overall state
-	void reset();
-
-	// master clocking function
-	uint32_t clock(uint32_t chanmask);
-
-	// compute sum of channel outputs
-	void output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_t chanmask);
-
-	// write to the OPN registers
-	void write(uint16_t regnum, uint8_t data);
-
-	// return the current status
-	uint8_t status(void);
-
-	// set/reset bits in the status register, updating the IRQ status
-	uint8_t set_reset_status(uint8_t set, uint8_t reset);
-
-	// set the IRQ mask
-	void set_irq_mask(uint8_t mask);
-
-	// return the current clock prescale
-	uint32_t clock_prescale(void);
-
-	// set prescale factor (2/3/6)
-	void set_clock_prescale(uint32_t prescale);
-
-	// compute sample rate
-	uint32_t sample_rate(uint32_t baseclock);
-
-	// invalidate any caches
-	void invalidate_caches(void);
-
-	// timer callback; called by the interface when a timer fires
-	void engine_timer_expired(uint32_t tnum);
-
-	// check interrupts; called by the interface after synchronization
-	void engine_check_interrupts();
-
-	// mode register write; called by the interface after synchronization
-	void engine_mode_write(uint8_t data);
-
-	// assign the current set of operators to channels
-	void assign_operators();
-
-	// update the state of the given timer
-	void update_timer(uint32_t which, uint32_t enable, int32_t delta_clocks);
-
-	// internal state
-	uint32_t m_env_counter;          // envelope counter; low 2 bits are sub-counter
-	uint8_t m_status;                // current status register
-	uint8_t m_clock_prescale;        // prescale factor (2/3/6)
-	uint8_t m_irq_mask;              // mask of which bits signal IRQs
-	uint8_t m_irq_state;             // current IRQ state
-	uint8_t m_timer_running[2];      // current timer running state
-	uint8_t m_total_clocks;          // low 8 bits of the total number of clocks processed
-	uint32_t m_active_channels;      // mask of active channels (computed by prepare)
-	uint32_t m_modified_channels;    // mask of channels that have been modified
-	uint32_t m_prepare_count;        // counter to do periodic prepare sweeps
-	fm_channel *m_channel[CHANNELS]; // channel pointers
-	fm_operator *m_operator[OPERATORS]; // operator pointers
-};
-
-extern fm_engine m_fm;
-
+// init
 void fm_engine_init(void);
+
+// reset the overall state
+void fm_engine_reset(void);
+
+// master clocking function
+uint32_t fm_engine_clock(uint32_t chanmask);
+
+// compute sum of channel outputs
+void fm_engine_output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_t chanmask);
+
+// write to the OPN registers
+void fm_engine_write(uint16_t regnum, uint8_t data);
+
+// return the current status
+uint8_t fm_engine_status(void);
+
+// set/reset bits in the status register, updating the IRQ status
+uint8_t fm_engine_set_reset_status(uint8_t set, uint8_t reset);
+
+// set the IRQ mask
+void fm_engine_set_irq_mask(uint8_t mask);
+
+// return the current clock prescale
+uint32_t fm_engine_clock_prescale(void);
+
+// set prescale factor (2/3/6)
+void fm_engine_set_clock_prescale(uint32_t prescale);
+
+// compute sample rate
+uint32_t fm_engine_sample_rate(uint32_t baseclock);
+
+// invalidate any caches
+void fm_engine_invalidate_caches(void);
+
+// timer callback; called by the interface when a timer fires
+void fm_engine_timer_expired(uint32_t tnum);
+
+// check interrupts; called by the interface after synchronization
+void fm_engine_check_interrupts(void);
+
+// mode register write; called by the interface after synchronization
+void fm_engine_mode_write(uint8_t data);
+
+// assign the current set of operators to channels
+void fm_engine_assign_operators(void);
+
+// update the state of the given timer
+void fm_engine_update_timer(uint32_t which, uint32_t enable, int32_t delta_clocks);
 
 #endif // YMFM_FM_H
