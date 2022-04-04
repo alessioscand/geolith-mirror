@@ -44,8 +44,8 @@ static uint8_t m_total_clocks;          // low 8 bits of the total number of clo
 static uint32_t m_active_channels;      // mask of active channels (computed by prepare)
 static uint32_t m_modified_channels;    // mask of channels that have been modified
 static uint32_t m_prepare_count;        // counter to do periodic prepare sweeps
-static fm_channel *m_channel[CHANNELS]; // channel pointers
-static fm_operator *m_operator[OPERATORS]; // operator pointers
+static fm_channel m_channel[CHANNELS];  // channels
+static fm_operator m_operator[OPERATORS]; // operators
 
 //*********************************************************
 //  GLOBAL TABLE LOOKUPS
@@ -269,19 +269,19 @@ static inline uint32_t operator_offset(uint32_t opnum)
 //*********************************************************
 
 //-------------------------------------------------
-//  fm_operator - constructor
+//  fm_operator - init
 //-------------------------------------------------
 
-fm_operator::fm_operator(uint32_t opoffs)
+void fm_operator_init(fm_operator *op, uint32_t opoffs)
 {
-	m_choffs = 0;
-	m_opoffs = opoffs;
-	m_phase = 0;
-	m_env_attenuation = 0x3ff;
-	m_env_state = EG_RELEASE;
-	m_ssg_inverted = false;
-	m_key_state = 0;
-	m_keyon_live = 0;
+	op->m_choffs = 0;
+	op->m_opoffs = opoffs;
+	op->m_phase = 0;
+	op->m_env_attenuation = 0x3ff;
+	op->m_env_state = EG_RELEASE;
+	op->m_ssg_inverted = false;
+	op->m_key_state = 0;
+	op->m_keyon_live = 0;
 }
 
 
@@ -671,15 +671,15 @@ uint32_t fm_operator::envelope_attenuation(uint32_t am_offset)
 //*********************************************************
 
 //-------------------------------------------------
-//  fm_channel - constructor
+//  fm_channel - init
 //-------------------------------------------------
 
-fm_channel::fm_channel(uint32_t choffs)
+void fm_channel_init(fm_channel *ch, uint32_t choffs)
 {
-	m_choffs = choffs;
-	m_feedback[0] = m_feedback[1] = 0;
-	m_feedback_in = 0;
-	m_op[0] = m_op[1] = m_op[2] = m_op[3] = nullptr;
+	ch->m_choffs = choffs;
+	ch->m_feedback[0] = ch->m_feedback[1] = 0;
+	ch->m_feedback_in = 0;
+	ch->m_op[0] = ch->m_op[1] = ch->m_op[2] = ch->m_op[3] = nullptr;
 }
 
 
@@ -946,7 +946,7 @@ void fm_channel::add_to_output(uint32_t choffs, int32_t *output, int32_t value) 
 //*********************************************************
 
 //-------------------------------------------------
-//  fm_engine - constructor
+//  fm_engine - init
 //-------------------------------------------------
 
 void fm_engine_init(void)
@@ -965,11 +965,11 @@ void fm_engine_init(void)
 
 	// create the channels
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-		m_channel[chnum] = new fm_channel(channel_offset(chnum));
+		fm_channel_init(&m_channel[chnum], channel_offset(chnum));
 
 	// create the operators
 	for (uint32_t opnum = 0; opnum < OPERATORS; opnum++)
-		m_operator[opnum] = new fm_operator(operator_offset(opnum));
+		fm_operator_init(&m_operator[opnum], operator_offset(opnum));
 
 	// do the initial operator assignment
 	fm_engine_assign_operators();
@@ -994,11 +994,11 @@ void fm_engine_reset(void)
 
 	// reset the channels
 	for (int i = 0; i < CHANNELS; ++i)
-		m_channel[i]->reset();
+		m_channel[i].reset();
 
 	// reset the operators
 	for (int i = 0; i < OPERATORS; ++i)
-		m_operator[i]->reset();
+		m_operator[i].reset();
 }
 
 
@@ -1024,7 +1024,7 @@ uint32_t fm_engine_clock(uint32_t chanmask)
 		m_active_channels = 0;
 		for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
 			if (bitfield(chanmask, chnum))
-				if (m_channel[chnum]->prepare())
+				if (m_channel[chnum].prepare())
 					m_active_channels |= 1 << chnum;
 
 		// reset the modified channels and prepare count
@@ -1044,7 +1044,7 @@ uint32_t fm_engine_clock(uint32_t chanmask)
 	// now update the state of all the channels and operators
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
 		if (bitfield(chanmask, chnum))
-			m_channel[chnum]->clock(m_env_counter, lfo_raw_pm);
+			m_channel[chnum].clock(m_env_counter, lfo_raw_pm);
 
 	// return the envelope counter as it is used to clock ADPCM-A
 	return m_env_counter;
@@ -1068,10 +1068,10 @@ void fm_engine_output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
 		if (bitfield(chanmask, chnum))
 		{
-			if (m_channel[chnum]->is4op())
-				m_channel[chnum]->output_4op(output, rshift, clipmax);
+			if (m_channel[chnum].is4op())
+				m_channel[chnum].output_4op(output, rshift, clipmax);
 			else
-				m_channel[chnum]->output_2op(output, rshift, clipmax);
+				m_channel[chnum].output_2op(output, rshift, clipmax);
 		}
 }
 
@@ -1102,7 +1102,7 @@ void fm_engine_write(uint16_t regnum, uint8_t data)
 		if (keyon_channel < CHANNELS)
 		{
 			// normal channel on/off
-			m_channel[keyon_channel]->keyonoff(keyon_opmask, KEYON_NORMAL, keyon_channel);
+			m_channel[keyon_channel].keyonoff(keyon_opmask, KEYON_NORMAL, keyon_channel);
 		}
 	}
 }
@@ -1173,7 +1173,7 @@ void fm_engine_assign_operators(void)
 		for (uint32_t index = 0; index < 4; index++)
 		{
 			uint32_t opnum = bitfield(map.chan[chnum], 8 * index, 8);
-			m_channel[chnum]->assign(index, (opnum == 0xff) ? nullptr : m_operator[opnum]);
+			m_channel[chnum].assign(index, (opnum == 0xff) ? nullptr : &m_operator[opnum]);
 		}
 }
 
@@ -1226,7 +1226,7 @@ void fm_engine_timer_expired(uint32_t tnum)
 	if (tnum == 0 && opn_registers_csm())
 		for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
 			if (bitfield(CSM_TRIGGER_MASK, chnum))
-				m_channel[chnum]->keyonoff(1, KEYON_CSM, chnum);
+				m_channel[chnum].keyonoff(1, KEYON_CSM, chnum);
 
 	// reset
 	m_timer_running[tnum] = false;

@@ -85,6 +85,9 @@
 #define MODULATOR_DELAY false
 #define CSM_TRIGGER_MASK 4
 
+// "quiet" value, used to optimize when we can skip doing working
+#define EG_QUIET 0x200
+
 //*********************************************************
 //  GLOBAL ENUMERATORS
 //*********************************************************
@@ -122,22 +125,12 @@ struct opdata_cache
 //*********************************************************
 //  CORE ENGINE CLASSES
 //*********************************************************
-
-// forward declarations
-struct fm_engine;
-
 // ======================> fm_operator
 
 // fm_operator represents an FM operator (or "slot" in FM parlance), which
 // produces an output sine wave modulated by an envelope
 struct fm_operator
 {
-	// "quiet" value, used to optimize when we can skip doing working
-	static constexpr uint32_t EG_QUIET = 0x200;
-
-	// constructor
-	fm_operator(uint32_t opoffs);
-
 	// reset the operator state
 	void reset(void);
 
@@ -196,9 +189,6 @@ struct fm_operator
 // operators into a final result
 struct fm_channel
 {
-	// constructor
-	fm_channel(uint32_t choffs);
-
 	// reset the channel state
 	void reset(void);
 
