@@ -8,6 +8,11 @@ Gngeo JG
 --------
 Gngeo JG is an emulator for the Neo Geo.
 
+This is a fork of Gngeo 0.8.1 with many things rewritten or replaced. The CPUs
+were entirely replaced, as was the YM2610 emulation code, which is now a C
+translation of YMFM (the same code used in MAME). Timing was also completely
+rewritten, and the standalone interface code was removed.
+
 This repository lives at https://gitlab.com/jgemu/gngeo
 
 Compiling
@@ -58,6 +63,7 @@ Speex Resampler (BSD-3-Clause)
   Copyright (c) 2003, 2007, 2008 Xiph.org Foundation
   See source files in deps/speex/ (https://github.com/xiph/speexdsp)
 
-YMFM (BSD-3-Clause)
+YMFM-C (BSD-3-Clause)
   Copyright (c) 2021 Aaron Giles
+  Copyright (c) 2022 Rupert Carmichael
   See source files in src/ymfm
