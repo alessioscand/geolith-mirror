@@ -1,0 +1,4 @@
+*.c gitlab-language=C
+*.c linguist-language=C
+*.inc gitlab-language=C
+*.inc linguist-language=C
