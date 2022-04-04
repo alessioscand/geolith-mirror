@@ -187,39 +187,14 @@ struct fm_operator
 
 // fm_channel represents an FM channel which combines the output of 2 or 4
 // operators into a final result
-struct fm_channel
+typedef struct _fm_channel
 {
-	// reset the channel state
-	void reset(void);
-
-	// assign operators
-	void assign(uint32_t index, fm_operator *op);
-
-	// signal key on/off to our operators
-	void keyonoff(uint32_t states, uint32_t type, uint32_t chnum);
-
-	// prepare prior to clocking
-	bool prepare(void);
-
-	// master clocking function
-	void clock(uint32_t env_counter, int32_t lfo_raw_pm);
-
-	// specific 2-operator and 4-operator output handlers
-	void output_2op(int32_t *output, uint32_t rshift, int32_t clipmax);
-	void output_4op(int32_t *output, uint32_t rshift, int32_t clipmax);
-
-	// are we a 4-operator channel or a 2-operator one?
-	bool is4op(void);
-
-	// helper to add values to the outputs based on channel enables
-	void add_to_output(uint32_t choffs, int32_t *output, int32_t value);
-
 	// internal state
 	uint32_t m_choffs;     // channel offset in registers
 	int16_t m_feedback[2]; // feedback memory for operator 1
 	int16_t m_feedback_in; // next input value for op 1 feedback (set in output)
 	fm_operator *m_op[4];  // up to 4 operators
-};
+} fm_channel;
 
 
 // init

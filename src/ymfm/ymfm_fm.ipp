@@ -687,20 +687,20 @@ void fm_channel_init(fm_channel *ch, uint32_t choffs)
 //  reset - reset the channel state
 //-------------------------------------------------
 
-void fm_channel::reset(void)
+void fm_channel_reset(fm_channel *ch)
 {
 	// reset our data
-	m_feedback[0] = m_feedback[1] = 0;
-	m_feedback_in = 0;
+	ch->m_feedback[0] = ch->m_feedback[1] = 0;
+	ch->m_feedback_in = 0;
 }
 
 
 // assign operators
-void fm_channel::assign(uint32_t index, fm_operator *op) {
+void fm_channel_assign(fm_channel *ch, uint32_t index, fm_operator *op) {
 	assert(index < 4);
-	m_op[index] = op;
+	ch->m_op[index] = op;
 	if (op != nullptr)
-		op->set_choffs(m_choffs);
+		op->set_choffs(ch->m_choffs);
 }
 
 
@@ -708,11 +708,11 @@ void fm_channel::assign(uint32_t index, fm_operator *op) {
 //  keyonoff - signal key on/off to our operators
 //-------------------------------------------------
 
-void fm_channel::keyonoff(uint32_t states, uint32_t type, uint32_t chnum)
+void fm_channel_keyonoff(fm_channel *ch, uint32_t states, uint32_t type, uint32_t chnum)
 {
 	for (uint32_t opnum = 0; opnum < 4; opnum++)
-		if (m_op[opnum] != nullptr)
-			m_op[opnum]->keyonoff(bitfield(states, opnum), type);
+		if (ch->m_op[opnum] != nullptr)
+			ch->m_op[opnum]->keyonoff(bitfield(states, opnum), type);
 }
 
 
@@ -720,14 +720,14 @@ void fm_channel::keyonoff(uint32_t states, uint32_t type, uint32_t chnum)
 //  prepare - prepare for clocking
 //-------------------------------------------------
 
-bool fm_channel::prepare(void)
+bool fm_channel_prepare(fm_channel *ch)
 {
 	uint32_t active_mask = 0;
 
 	// prepare all operators and determine if they are active
 	for (uint32_t opnum = 0; opnum < 4; opnum++)
-		if (m_op[opnum] != nullptr)
-			if (m_op[opnum]->prepare())
+		if (ch->m_op[opnum] != nullptr)
+			if (ch->m_op[opnum]->prepare())
 				active_mask |= 1 << opnum;
 
 	return (active_mask != 0);
@@ -738,15 +738,33 @@ bool fm_channel::prepare(void)
 //  clock - master clock of all operators
 //-------------------------------------------------
 
-void fm_channel::clock(uint32_t env_counter, int32_t lfo_raw_pm)
+void fm_channel_clock(fm_channel *ch, uint32_t env_counter, int32_t lfo_raw_pm)
 {
 	// clock the feedback through
-	m_feedback[0] = m_feedback[1];
-	m_feedback[1] = m_feedback_in;
+	ch->m_feedback[0] = ch->m_feedback[1];
+	ch->m_feedback[1] = ch->m_feedback_in;
 
 	for (uint32_t opnum = 0; opnum < 4; opnum++)
-		if (m_op[opnum] != nullptr)
-			m_op[opnum]->clock(env_counter, lfo_raw_pm);
+		if (ch->m_op[opnum] != nullptr)
+			ch->m_op[opnum]->clock(env_counter, lfo_raw_pm);
+}
+
+
+// helper to add values to the outputs based on channel enables
+void fm_channel_add_to_output(fm_channel *ch, uint32_t choffs, int32_t *output, int32_t value) {
+	int out0_index = 0;
+	int out1_index = 1 % OUTPUTS;
+	int out2_index = 2 % OUTPUTS;
+	int out3_index = 3 % OUTPUTS;
+
+	if (OUTPUTS == 1 || opn_registers_ch_output_0(choffs))
+		output[out0_index] += value;
+	if (OUTPUTS >= 2 && opn_registers_ch_output_1(choffs))
+		output[out1_index] += value;
+	if (OUTPUTS >= 3 && opn_registers_ch_output_2(choffs))
+		output[out2_index] += value;
+	if (OUTPUTS >= 4 && opn_registers_ch_output_3(choffs))
+		output[out3_index] += value;
 }
 
 
@@ -757,49 +775,49 @@ void fm_channel::clock(uint32_t env_counter, int32_t lfo_raw_pm)
 //  which vary between different implementations
 //-------------------------------------------------
 
-void fm_channel::output_2op(int32_t *output, uint32_t rshift, int32_t clipmax)
+void fm_channel_output_2op(fm_channel *ch, int32_t *output, uint32_t rshift, int32_t clipmax)
 {
 	// The first 2 operators should be populated
-	assert(m_op[0] != nullptr);
-	assert(m_op[1] != nullptr);
+	assert(ch->m_op[0] != nullptr);
+	assert(ch->m_op[1] != nullptr);
 
 	// AM amount is the same across all operators; compute it once
-	uint32_t am_offset = opn_registers_lfo_am_offset(m_choffs);
+	uint32_t am_offset = opn_registers_lfo_am_offset(ch->m_choffs);
 
 	// operator 1 has optional self-feedback
 	int32_t opmod = 0;
-	uint32_t feedback = opn_registers_ch_feedback(m_choffs);
+	uint32_t feedback = opn_registers_ch_feedback(ch->m_choffs);
 	if (feedback != 0)
-		opmod = (m_feedback[0] + m_feedback[1]) >> (10 - feedback);
+		opmod = (ch->m_feedback[0] + ch->m_feedback[1]) >> (10 - feedback);
 
 	// compute the 14-bit volume/value of operator 1 and update the feedback
-	int32_t op1value = m_feedback_in = m_op[0]->compute_volume(m_op[0]->phase() + opmod, am_offset);
+	int32_t op1value = ch->m_feedback_in = ch->m_op[0]->compute_volume(ch->m_op[0]->phase() + opmod, am_offset);
 
 	// now that the feedback has been computed, skip the rest if all volumes
 	// are clear; no need to do all this work for nothing
-	if (opn_registers_ch_output_any(m_choffs) == 0)
+	if (opn_registers_ch_output_any(ch->m_choffs) == 0)
 		return;
 
 	// Algorithms for two-operator case:
 	//    0: O1 -> O2 -> out
 	//    1: (O1 + O2) -> out
 	int32_t result;
-	if (bitfield(opn_registers_ch_algorithm(m_choffs), 0) == 0)
+	if (bitfield(opn_registers_ch_algorithm(ch->m_choffs), 0) == 0)
 	{
 		// some OPL chips use the previous sample for modulation instead of
 		// the current sample
-		opmod = (MODULATOR_DELAY ? m_feedback[1] : op1value) >> 1;
-		result = m_op[1]->compute_volume(m_op[1]->phase() + opmod, am_offset) >> rshift;
+		opmod = (MODULATOR_DELAY ? ch->m_feedback[1] : op1value) >> 1;
+		result = ch->m_op[1]->compute_volume(ch->m_op[1]->phase() + opmod, am_offset) >> rshift;
 	}
 	else
 	{
-		result = op1value + (m_op[1]->compute_volume(m_op[1]->phase(), am_offset) >> rshift);
+		result = op1value + (ch->m_op[1]->compute_volume(ch->m_op[1]->phase(), am_offset) >> rshift);
 		int32_t clipmin = -clipmax - 1;
 		result = clamp(result, clipmin, clipmax);
 	}
 
 	// add to the output
-	add_to_output(m_choffs, output, result);
+	fm_channel_add_to_output(ch, ch->m_choffs, output, result);
 }
 
 
@@ -810,29 +828,29 @@ void fm_channel::output_2op(int32_t *output, uint32_t rshift, int32_t clipmax)
 //  which vary between different implementations
 //-------------------------------------------------
 
-void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax)
+void fm_channel_output_4op(fm_channel *ch, int32_t *output, uint32_t rshift, int32_t clipmax)
 {
 	// all 4 operators should be populated
-	assert(m_op[0] != nullptr);
-	assert(m_op[1] != nullptr);
-	assert(m_op[2] != nullptr);
-	assert(m_op[3] != nullptr);
+	assert(ch->m_op[0] != nullptr);
+	assert(ch->m_op[1] != nullptr);
+	assert(ch->m_op[2] != nullptr);
+	assert(ch->m_op[3] != nullptr);
 
 	// AM amount is the same across all operators; compute it once
-	uint32_t am_offset = opn_registers_lfo_am_offset(m_choffs);
+	uint32_t am_offset = opn_registers_lfo_am_offset(ch->m_choffs);
 
 	// operator 1 has optional self-feedback
 	int32_t opmod = 0;
-	uint32_t feedback = opn_registers_ch_feedback(m_choffs);
+	uint32_t feedback = opn_registers_ch_feedback(ch->m_choffs);
 	if (feedback != 0)
-		opmod = (m_feedback[0] + m_feedback[1]) >> (10 - feedback);
+		opmod = (ch->m_feedback[0] + ch->m_feedback[1]) >> (10 - feedback);
 
 	// compute the 14-bit volume/value of operator 1 and update the feedback
-	int32_t op1value = m_feedback_in = m_op[0]->compute_volume(m_op[0]->phase() + opmod, am_offset);
+	int32_t op1value = ch->m_feedback_in = ch->m_op[0]->compute_volume(ch->m_op[0]->phase() + opmod, am_offset);
 
 	// now that the feedback has been computed, skip the rest if all volumes
 	// are clear; no need to do all this work for nothing
-	if (opn_registers_ch_output_any(m_choffs) == 0)
+	if (opn_registers_ch_output_any(ch->m_choffs) == 0)
 		return;
 
 	// OPM/OPN offer 8 different connection algorithms for 4 operators,
@@ -875,7 +893,7 @@ void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax)
 		ALGORITHM(1,0,3, 0,1,0),    // 10: ((O1 -> O2) + (O3 -> O4)) -> out (O2+O4) [same as 4]
 		ALGORITHM(0,2,0, 1,0,1)     // 11: (O1 + (O2 -> O3) + O4) -> out (O1+O3+O4) [unique]
 	};
-	uint32_t algorithm_ops = s_algorithm_ops[opn_registers_ch_algorithm(m_choffs)];
+	uint32_t algorithm_ops = s_algorithm_ops[opn_registers_ch_algorithm(ch->m_choffs)];
 
 	// populate the opout table
 	int16_t opout[8];
@@ -884,12 +902,12 @@ void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax)
 
 	// compute the 14-bit volume/value of operator 2
 	opmod = opout[bitfield(algorithm_ops, 0, 1)] >> 1;
-	opout[2] = m_op[1]->compute_volume(m_op[1]->phase() + opmod, am_offset);
+	opout[2] = ch->m_op[1]->compute_volume(ch->m_op[1]->phase() + opmod, am_offset);
 	opout[5] = opout[1] + opout[2];
 
 	// compute the 14-bit volume/value of operator 3
 	opmod = opout[bitfield(algorithm_ops, 1, 3)] >> 1;
-	opout[3] = m_op[2]->compute_volume(m_op[2]->phase() + opmod, am_offset);
+	opout[3] = ch->m_op[2]->compute_volume(ch->m_op[2]->phase() + opmod, am_offset);
 	opout[6] = opout[1] + opout[3];
 	opout[7] = opout[2] + opout[3];
 
@@ -897,7 +915,7 @@ void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax)
 	// value on the OPM; all algorithms consume OP4 output at a minimum
 	int32_t result;
 	opmod = opout[bitfield(algorithm_ops, 4, 3)] >> 1;
-	result = m_op[3]->compute_volume(m_op[3]->phase() + opmod, am_offset);
+	result = ch->m_op[3]->compute_volume(ch->m_op[3]->phase() + opmod, am_offset);
 	result >>= rshift;
 
 	// optionally add OP1, OP2, OP3
@@ -910,34 +928,15 @@ void fm_channel::output_4op(int32_t *output, uint32_t rshift, int32_t clipmax)
 		result = clamp(result + (opout[3] >> rshift), clipmin, clipmax);
 
 	// add to the output
-	add_to_output(m_choffs, output, result);
+	fm_channel_add_to_output(ch, ch->m_choffs, output, result);
 }
 
 
 // are we a 4-operator channel or a 2-operator one?
-bool fm_channel::is4op(void) {
+bool fm_channel_is4op(fm_channel *ch) {
 	if (DYNAMIC_OPS)
-		return (m_op[2] != nullptr);
+		return (ch->m_op[2] != nullptr);
 	return (OPERATORS / CHANNELS == 4);
-}
-
-// helper to add values to the outputs based on channel enables
-void fm_channel::add_to_output(uint32_t choffs, int32_t *output, int32_t value) {
-	// create these constants to appease overzealous compilers checking array
-	// bounds in unreachable code (looking at you, clang)
-	constexpr int out0_index = 0;
-	constexpr int out1_index = 1 % OUTPUTS;
-	constexpr int out2_index = 2 % OUTPUTS;
-	constexpr int out3_index = 3 % OUTPUTS;
-
-	if (OUTPUTS == 1 || opn_registers_ch_output_0(choffs))
-		output[out0_index] += value;
-	if (OUTPUTS >= 2 && opn_registers_ch_output_1(choffs))
-		output[out1_index] += value;
-	if (OUTPUTS >= 3 && opn_registers_ch_output_2(choffs))
-		output[out2_index] += value;
-	if (OUTPUTS >= 4 && opn_registers_ch_output_3(choffs))
-		output[out3_index] += value;
 }
 
 
@@ -994,7 +993,7 @@ void fm_engine_reset(void)
 
 	// reset the channels
 	for (int i = 0; i < CHANNELS; ++i)
-		m_channel[i].reset();
+		fm_channel_reset(&m_channel[i]);
 
 	// reset the operators
 	for (int i = 0; i < OPERATORS; ++i)
@@ -1024,7 +1023,7 @@ uint32_t fm_engine_clock(uint32_t chanmask)
 		m_active_channels = 0;
 		for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
 			if (bitfield(chanmask, chnum))
-				if (m_channel[chnum].prepare())
+				if (fm_channel_prepare(&m_channel[chnum]))
 					m_active_channels |= 1 << chnum;
 
 		// reset the modified channels and prepare count
@@ -1044,7 +1043,7 @@ uint32_t fm_engine_clock(uint32_t chanmask)
 	// now update the state of all the channels and operators
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
 		if (bitfield(chanmask, chnum))
-			m_channel[chnum].clock(m_env_counter, lfo_raw_pm);
+			fm_channel_clock(&m_channel[chnum], m_env_counter, lfo_raw_pm);
 
 	// return the envelope counter as it is used to clock ADPCM-A
 	return m_env_counter;
@@ -1068,10 +1067,10 @@ void fm_engine_output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
 		if (bitfield(chanmask, chnum))
 		{
-			if (m_channel[chnum].is4op())
-				m_channel[chnum].output_4op(output, rshift, clipmax);
+			if (fm_channel_is4op(&m_channel[chnum]))
+				fm_channel_output_4op(&m_channel[chnum], output, rshift, clipmax);
 			else
-				m_channel[chnum].output_2op(output, rshift, clipmax);
+				fm_channel_output_2op(&m_channel[chnum], output, rshift, clipmax);
 		}
 }
 
@@ -1102,7 +1101,8 @@ void fm_engine_write(uint16_t regnum, uint8_t data)
 		if (keyon_channel < CHANNELS)
 		{
 			// normal channel on/off
-			m_channel[keyon_channel].keyonoff(keyon_opmask, KEYON_NORMAL, keyon_channel);
+			fm_channel_keyonoff(&m_channel[keyon_channel], keyon_opmask,
+				KEYON_NORMAL, keyon_channel);
 		}
 	}
 }
@@ -1173,7 +1173,8 @@ void fm_engine_assign_operators(void)
 		for (uint32_t index = 0; index < 4; index++)
 		{
 			uint32_t opnum = bitfield(map.chan[chnum], 8 * index, 8);
-			m_channel[chnum].assign(index, (opnum == 0xff) ? nullptr : &m_operator[opnum]);
+			fm_channel_assign(&m_channel[chnum], index, (opnum == 0xff) ?
+				nullptr : &m_operator[opnum]);
 		}
 }
 
@@ -1226,7 +1227,7 @@ void fm_engine_timer_expired(uint32_t tnum)
 	if (tnum == 0 && opn_registers_csm())
 		for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
 			if (bitfield(CSM_TRIGGER_MASK, chnum))
-				m_channel[chnum].keyonoff(1, KEYON_CSM, chnum);
+				fm_channel_keyonoff(&m_channel[chnum], 1, KEYON_CSM, chnum);
 
 	// reset
 	m_timer_running[tnum] = false;
