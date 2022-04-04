@@ -119,7 +119,6 @@ enum {
 typedef struct _operator_mapping {
 	uint32_t chan[CHANNELS];
 } operator_mapping;
-void opn_registers_operator_map(operator_mapping &dest);
 
 uint32_t opn_registers_timer_a_value(void);
 uint32_t opn_registers_timer_b_value(void);

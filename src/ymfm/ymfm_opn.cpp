@@ -78,13 +78,6 @@ static inline int32_t dac_discontinuity(int32_t value)
 	return (value < 0) ? (value - 2) : (value + 3);
 }
 
-// helper to encode four operator numbers into a 32-bit value in the
-// operator maps for each register class
-static inline uint32_t operator_list(uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4)
-{
-	return o1 | (o2 << 8) | (o3 << 16) | (o4 << 24);
-}
-
 // helper to apply KSR to the raw ADSR rate, ignoring ksr if the
 // raw value is 0, and clamping to 63
 static inline uint32_t effective_rate(uint32_t rawrate, uint32_t ksr)
@@ -226,32 +219,6 @@ void opn_registers_reset(void)
 	m_regdata[0x1b5] = m_regdata[0x1b6] = 0xc0;
 }
 
-
-//-------------------------------------------------
-//  operator_map - return an array of operator
-//  indices for each channel; for OPN this is fixed
-//-------------------------------------------------
-
-void opn_registers_operator_map(operator_mapping &dest)
-{
-	// Note that the channel index order is 0,2,1,3, so we bitswap the index.
-	//
-	// This is because the order in the map is:
-	//    carrier 1, carrier 2, modulator 1, modulator 2
-	//
-	// But when wiring up the connections, the more natural order is:
-	//    carrier 1, modulator 1, carrier 2, modulator 2
-	static const operator_mapping s_fixed_map =
-	{ {
-		operator_list(  0,  6,  3,  9 ),  // Channel 0 operators
-		operator_list(  1,  7,  4, 10 ),  // Channel 1 operators
-		operator_list(  2,  8,  5, 11 ),  // Channel 2 operators
-		operator_list( 12, 18, 15, 21 ),  // Channel 3 operators
-		operator_list( 13, 19, 16, 22 ),  // Channel 4 operators
-		operator_list( 14, 20, 17, 23 ),  // Channel 5 operators
-	} };
-	dest = s_fixed_map;
-}
 
 //-------------------------------------------------
 //  read - handle reads to the register array

@@ -1163,10 +1163,30 @@ void fm_engine_invalidate_caches(void) {
 //  operators to channels and assign them all
 //-------------------------------------------------
 
+// helper to encode four operator numbers into a 32-bit value in the
+// operator maps for each register class
+static inline uint32_t operator_list(uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4)
+{
+	return o1 | (o2 << 8) | (o3 << 16) | (o4 << 24);
+}
+
 void fm_engine_assign_operators(void)
 {
+	// Note that the channel index order is 0,2,1,3, so we bitswap the index.
+	//
+	// This is because the order in the map is:
+	//    carrier 1, carrier 2, modulator 1, modulator 2
+	//
+	// But when wiring up the connections, the more natural order is:
+	//    carrier 1, modulator 1, carrier 2, modulator 2
 	operator_mapping map;
-	opn_registers_operator_map(map);
+
+	map.chan[0] = operator_list(  0,  6,  3,  9 );  // Channel 0 operators
+	map.chan[1] = operator_list(  1,  7,  4, 10 );  // Channel 1 operators
+	map.chan[2] = operator_list(  2,  8,  5, 11 );  // Channel 2 operators
+	map.chan[3] = operator_list( 12, 18, 15, 21 );  // Channel 3 operators
+	map.chan[4] = operator_list( 13, 19, 16, 22 );  // Channel 4 operators
+	map.chan[5] = operator_list( 14, 20, 17, 23 );  // Channel 5 operators
 
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
 		for (uint32_t index = 0; index < 4; index++)
