@@ -118,7 +118,7 @@ struct opdata_cache
 	uint32_t multiple;                // multiple value (x.1, used to compute phase_step)
 	uint32_t eg_sustain;              // sustain level, shifted up to envelope values
 	uint8_t eg_rate[EG_STATES];       // envelope rate, including KSR
-	uint8_t eg_shift = 0;             // envelope shift amount
+	uint8_t eg_shift;                 // envelope shift amount
 };
 
 

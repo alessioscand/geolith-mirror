@@ -122,7 +122,7 @@ extern void ymfm_update_irq(bool asserted);
 //  'length' bits
 //-------------------------------------------------
 
-inline uint32_t bitfield(uint32_t value, int start, int length = 1)
+inline uint32_t bitfield(uint32_t value, int start, int length)
 {
 	return (value >> start) & ((1 << length) - 1);
 }

@@ -85,7 +85,7 @@ inline uint32_t abs_sin_attenuation(uint32_t input)
 
 	// if the top bit is set, we're in the second half of the curve
 	// which is a mirror image, so invert the index
-	if (bitfield(input, 8))
+	if (bitfield(input, 8, 1))
 		input = ~input;
 
 	// return the value from the table
@@ -206,7 +206,7 @@ inline int32_t detune_adjustment(uint32_t detune, uint32_t keycode)
 		{ 0,  8, 16, 22 },  { 0,  8, 16, 22 },  { 0,  8, 16, 22 },  { 0,  8, 16, 22 }
 	};
 	int32_t result = s_detune_adjustment[keycode][detune & 3];
-	return bitfield(detune, 2) ? -result : result;
+	return bitfield(detune, 2, 1) ? -result : result;
 }
 
 
@@ -330,7 +330,7 @@ void fm_operator_start_attack(fm_operator *op, bool is_restart)
 	// restart, as it is managed by the clock_ssg_eg_state() code
 	if (EG_HAS_SSG && !is_restart)
 		op->m_ssg_inverted = opn_registers_op_ssg_eg_enable(op->m_opoffs) &
-			bitfield(opn_registers_op_ssg_eg_mode(op->m_opoffs), 2);
+			bitfield(opn_registers_op_ssg_eg_mode(op->m_opoffs), 2, 1);
 
 	// reset the phase when we start an attack due to a key on
 	// (but not when due to an SSG-EG restart except in certain cases
@@ -466,7 +466,7 @@ int32_t fm_operator_compute_volume(fm_operator *op, uint32_t phase, uint32_t am_
 	int32_t result = attenuation_to_volume((sin_attenuation & 0x7fff) + env_attenuation);
 
 	// negate if in the negative part of the sin wave (sign bit gives 14 bits)
-	return bitfield(sin_attenuation, 15) ? -result : result;
+	return bitfield(sin_attenuation, 15, 1) ? -result : result;
 }
 
 
@@ -486,7 +486,7 @@ int32_t fm_operator_compute_noise_volume(fm_operator *op, uint32_t am_offset)
 	// QUESTION: is AM applied still?
 
 	// negate based on the noise state
-	return bitfield(opn_registers_noise_state(), 0) ? -result : result;
+	return bitfield(opn_registers_noise_state(), 0, 1) ? -result : result;
 }
 
 
@@ -496,7 +496,7 @@ int32_t fm_operator_compute_noise_volume(fm_operator *op, uint32_t am_offset)
 
 void fm_operator_keyonoff(fm_operator *op, uint32_t on, uint32_t type)
 {
-	op->m_keyon_live = (op->m_keyon_live & ~(1 << int(type))) | (bitfield(on, 0) << int(type));
+	op->m_keyon_live = (op->m_keyon_live & ~(1 << int(type))) | (bitfield(on, 0, 1) << int(type));
 }
 
 
@@ -508,7 +508,7 @@ void fm_operator_keyonoff(fm_operator *op, uint32_t on, uint32_t type)
 void fm_operator_clock_ssg_eg_state(fm_operator *op)
 {
 	// work only happens once the attenuation crosses above 0x200
-	if (!bitfield(op->m_env_attenuation, 9))
+	if (!bitfield(op->m_env_attenuation, 9, 1))
 		return;
 
 	// 8 SSG-EG modes:
@@ -523,10 +523,10 @@ void fm_operator_clock_ssg_eg_state(fm_operator *op)
 	uint32_t mode = opn_registers_op_ssg_eg_mode(op->m_opoffs);
 
 	// hold modes (1/3/5/7)
-	if (bitfield(mode, 0))
+	if (bitfield(mode, 0, 1))
 	{
 		// set the inverted flag to the end state (0 for modes 1/7, 1 for modes 3/5)
-		op->m_ssg_inverted = bitfield(mode, 2) ^ bitfield(mode, 1);
+		op->m_ssg_inverted = bitfield(mode, 2, 1) ^ bitfield(mode, 1, 1);
 
 		// if holding, force the attenuation to the expected value once we're
 		// past the attack phase
@@ -538,14 +538,14 @@ void fm_operator_clock_ssg_eg_state(fm_operator *op)
 	else
 	{
 		// toggle invert in alternating mode (even in attack state)
-		op->m_ssg_inverted ^= bitfield(mode, 1);
+		op->m_ssg_inverted ^= bitfield(mode, 1, 1);
 
 		// restart attack if in decay/sustain states
 		if (op->m_env_state == EG_DECAY || op->m_env_state == EG_SUSTAIN)
 			fm_operator_start_attack(op, true);
 
 		// phase is reset to 0 in modes 0/4
-		if (bitfield(mode, 1) == 0)
+		if (bitfield(mode, 1, 1) == 0)
 			op->m_phase = 0;
 	}
 
@@ -711,7 +711,7 @@ void fm_channel_keyonoff(fm_channel *ch, uint32_t states, uint32_t type, uint32_
 {
 	for (uint32_t opnum = 0; opnum < 4; opnum++)
 		if (ch->m_op[opnum] != nullptr)
-			fm_operator_keyonoff(ch->m_op[opnum], bitfield(states, opnum), type);
+			fm_operator_keyonoff(ch->m_op[opnum], bitfield(states, opnum, 1), type);
 }
 
 
@@ -801,7 +801,7 @@ void fm_channel_output_2op(fm_channel *ch, int32_t *output, uint32_t rshift, int
 	//    0: O1 -> O2 -> out
 	//    1: (O1 + O2) -> out
 	int32_t result;
-	if (bitfield(opn_registers_ch_algorithm(ch->m_choffs), 0) == 0)
+	if (bitfield(opn_registers_ch_algorithm(ch->m_choffs), 0, 1) == 0)
 	{
 		// some OPL chips use the previous sample for modulation instead of
 		// the current sample
@@ -919,11 +919,11 @@ void fm_channel_output_4op(fm_channel *ch, int32_t *output, uint32_t rshift, int
 
 	// optionally add OP1, OP2, OP3
 	int32_t clipmin = -clipmax - 1;
-	if (bitfield(algorithm_ops, 7) != 0)
+	if (bitfield(algorithm_ops, 7, 1) != 0)
 		result = clamp(result + (opout[1] >> rshift), clipmin, clipmax);
-	if (bitfield(algorithm_ops, 8) != 0)
+	if (bitfield(algorithm_ops, 8, 1) != 0)
 		result = clamp(result + (opout[2] >> rshift), clipmin, clipmax);
-	if (bitfield(algorithm_ops, 9) != 0)
+	if (bitfield(algorithm_ops, 9, 1) != 0)
 		result = clamp(result + (opout[3] >> rshift), clipmin, clipmax);
 
 	// add to the output
@@ -1021,7 +1021,7 @@ uint32_t fm_engine_clock(uint32_t chanmask)
 		// call each channel to prepare
 		m_active_channels = 0;
 		for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-			if (bitfield(chanmask, chnum))
+			if (bitfield(chanmask, chnum, 1))
 				if (fm_channel_prepare(&m_channel[chnum]))
 					m_active_channels |= 1 << chnum;
 
@@ -1041,7 +1041,7 @@ uint32_t fm_engine_clock(uint32_t chanmask)
 
 	// now update the state of all the channels and operators
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-		if (bitfield(chanmask, chnum))
+		if (bitfield(chanmask, chnum, 1))
 			fm_channel_clock(&m_channel[chnum], m_env_counter, lfo_raw_pm);
 
 	// return the envelope counter as it is used to clock ADPCM-A
@@ -1064,7 +1064,7 @@ void fm_engine_output(int32_t *output, uint32_t rshift, int32_t clipmax, uint32_
 
 	// sum over all the desired channels
 	for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-		if (bitfield(chanmask, chnum))
+		if (bitfield(chanmask, chnum, 1))
 		{
 			if (fm_channel_is4op(&m_channel[chnum]))
 				fm_channel_output_4op(&m_channel[chnum], output, rshift, clipmax);
@@ -1225,7 +1225,7 @@ void fm_engine_timer_expired(uint32_t tnum)
 	// if timer A fired in CSM mode, trigger CSM on all relevant channels
 	if (tnum == 0 && opn_registers_csm())
 		for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
-			if (bitfield(CSM_TRIGGER_MASK, chnum))
+			if (bitfield(CSM_TRIGGER_MASK, chnum, 1))
 				fm_channel_keyonoff(&m_channel[chnum], 1, KEYON_CSM, chnum);
 
 	// reset

@@ -207,7 +207,7 @@ void opn_registers_init(void) {
 
 	// create the waveforms
 	for (uint32_t index = 0; index < WAVEFORM_LENGTH; index++)
-		m_waveform[0][index] = abs_sin_attenuation(index) | (bitfield(index, 9) << 15);
+		m_waveform[0][index] = abs_sin_attenuation(index) | (bitfield(index, 9, 1) << 15);
 }
 
 
@@ -272,15 +272,15 @@ bool opn_registers_write(uint16_t index, uint8_t data, uint32_t &channel, uint32
 	// borrow unused registers 0xb8-bf/0x1b8-bf as temporary holding locations
 	if ((index & 0xf0) == 0xa0)
 	{
-		uint32_t latchindex = 0xb8 | (bitfield(index, 3) << 2) | bitfield(index, 0, 2);
+		uint32_t latchindex = 0xb8 | (bitfield(index, 3, 1) << 2) | bitfield(index, 0, 2);
 		latchindex |= index & 0x100;
 
 		// writes to the upper half just latch (only low 6 bits matter)
-		if (bitfield(index, 2))
+		if (bitfield(index, 2, 1))
 			m_regdata[latchindex] = data | 0x80;
 
 		// writes to the lower half only commit if the latch is there
-		else if (bitfield(m_regdata[latchindex], 7))
+		else if (bitfield(m_regdata[latchindex], 7, 1))
 		{
 			m_regdata[index | 4] = m_regdata[latchindex] & 0x3f;
 			m_regdata[latchindex] = 0;
@@ -342,18 +342,18 @@ int32_t opn_registers_clock_noise_and_lfo(void)
 	m_lfo_am = bitfield(m_lfo_counter, 8, 6);
 
 	// first half of the AM period (bit 6 == 0) is inverted
-	if (bitfield(m_lfo_counter, 8+6) == 0)
+	if (bitfield(m_lfo_counter, 8+6, 1) == 0)
 		m_lfo_am ^= 0x3f;
 
 	// PM value is 5 bits, starting at bit 10; grab the low 3 directly
 	int32_t pm = bitfield(m_lfo_counter, 10, 3);
 
 	// PM is reflected based on bit 3
-	if (bitfield(m_lfo_counter, 10+3))
+	if (bitfield(m_lfo_counter, 10+3, 1))
 		pm ^= 7;
 
 	// PM is negated based on bit 4
-	return bitfield(m_lfo_counter, 10+4) ? -pm : pm;
+	return bitfield(m_lfo_counter, 10+4, 1) ? -pm : pm;
 }
 
 
@@ -429,7 +429,7 @@ void opn_registers_cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_
 	//   (F11 & (F10 | F9 | F8)) | (!F11 & F10 & F9 & F8)
 	//
 	// for speed, we just look it up in a 16-bit constant
-	keycode |= bitfield(0xfe80, bitfield(block_freq, 7, 4));
+	keycode |= bitfield(0xfe80, bitfield(block_freq, 7, 4), 1);
 
 	// detune adjustment
 	cache.detune = detune_adjustment(opn_registers_op_detune(opoffs), keycode);
@@ -577,13 +577,13 @@ static void ssg_resampler_resample_2_1(int32_t *output)
 static void ssg_resampler_resample_2_9(int32_t *output)
 {
 	int32_t sum0 = 0, sum1 = 0, sum2 = 0;
-	if (bitfield(m_ssg_resampler_sampindex, 0) != 0)
+	if (bitfield(m_ssg_resampler_sampindex, 0, 1) != 0)
 		ssg_resampler_add_last(sum0, sum1, sum2, 1);
 	ssg_resampler_clock_and_add(sum0, sum1, sum2, 2);
 	ssg_resampler_clock_and_add(sum0, sum1, sum2, 2);
 	ssg_resampler_clock_and_add(sum0, sum1, sum2, 2);
 	ssg_resampler_clock_and_add(sum0, sum1, sum2, 2);
-	if (bitfield(m_ssg_resampler_sampindex, 0) == 0)
+	if (bitfield(m_ssg_resampler_sampindex, 0, 1) == 0)
 		ssg_resampler_clock_and_add(sum0, sum1, sum2, 1);
 	ssg_resampler_write_to_output(output, sum0, sum1, sum2, 9);
 }
@@ -832,7 +832,7 @@ void ym2610_write_address(uint8_t data)
 void ym2610_write_data(uint8_t data)
 {
 	// ignore if paired with upper address
-	if (bitfield(m_address, 8))
+	if (bitfield(m_address, 8, 1))
 		return;
 
 	if (m_address < 0x0e)
@@ -889,7 +889,7 @@ void ym2610_write_address_hi(uint8_t data)
 void ym2610_write_data_hi(uint8_t data)
 {
 	// ignore if paired with upper address
-	if (!bitfield(m_address, 8))
+	if (!bitfield(m_address, 8, 1))
 		return;
 
 	if (m_address < 0x130)
@@ -1082,7 +1082,7 @@ void ym2612_write_address(uint8_t data)
 void ym2612_write_data(uint8_t data)
 {
 	// ignore if paired with upper address
-	if (bitfield(m_address, 8))
+	if (bitfield(m_address, 8, 1))
 		return;
 
 	if (m_address == 0x2a)
@@ -1093,12 +1093,12 @@ void ym2612_write_data(uint8_t data)
 	else if (m_address == 0x2b)
 	{
 		// 2B: DAC enable (bit 7)
-		m_dac_enable = bitfield(data, 7);
+		m_dac_enable = bitfield(data, 7, 1);
 	}
 	else if (m_address == 0x2c)
 	{
 		// 2C: test/low DAC bit
-		m_dac_data = (m_dac_data & ~1) | bitfield(data, 3);
+		m_dac_data = (m_dac_data & ~1) | bitfield(data, 3, 1);
 	}
 	else
 	{
@@ -1131,7 +1131,7 @@ void ym2612_write_address_hi(uint8_t data)
 void ym2612_write_data_hi(uint8_t data)
 {
 	// ignore if paired with upper address
-	if (!bitfield(m_address, 8))
+	if (!bitfield(m_address, 8, 1))
 		return;
 
 	// 100-1FF: write to FM
