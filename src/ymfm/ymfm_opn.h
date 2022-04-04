@@ -155,92 +155,28 @@ uint32_t opn_registers_compute_phase_step(uint32_t choffs, uint32_t opoffs, opda
 
 // ======================> ym2610/ym2610b
 
-struct ym2610
-{
-	#define EOS_FLAGS_MASK 0xbf
-
-	// constructor
-	ym2610();
-
-	// configuration
-	void set_fidelity(uint32_t fidelity);
-
-	// reset
-	void reset();
-
-	// pass-through helpers
-	uint32_t sample_rate(uint32_t input_clock);
-	uint32_t ssg_effective_clock(uint32_t input_clock);
-	void invalidate_caches(void);
-
-	// read access
-	uint8_t read_status();
-	uint8_t read_data();
-	uint8_t read_status_hi();
-	uint8_t read_data_hi();
-	uint8_t read(uint32_t offset);
-
-	// write access
-	void write_address(uint8_t data);
-	void write_data(uint8_t data);
-	void write_address_hi(uint8_t data);
-	void write_data_hi(uint8_t data);
-	void write(uint32_t offset, uint8_t data);
-
-	// generate one sample of sound
-	void generate(int32_t *output);
-
-	// internal helpers
-	void update_prescale();
-	void clock_fm_and_adpcm();
-
-	// internal state
-	uint32_t m_fidelity;                // configured fidelity
-	uint16_t m_address;                 // address register
-	uint8_t m_fm_mask;                  // FM channel mask
-	uint8_t m_fm_samples_per_output;    // how many samples to repeat
-	uint8_t m_eos_status;               // end-of-sample signals
-	uint8_t m_flag_mask;                // flag mask control
-	int32_t m_last_fm[3];               // last FM output
-};
+void ym2610_init(void);
+void ym2610_set_fidelity(uint32_t fidelity);
+void ym2610_reset(void);
+uint32_t ym2610_sample_rate(uint32_t input_clock);
+uint32_t ym2610_ssg_effective_clock(uint32_t input_clock);
+void ym2610_invalidate_caches(void);
+uint8_t ym2610_read(uint32_t offset);
+void ym2610_write(uint32_t offset, uint8_t data);
+void ym2610_generate(int32_t *output);
 
 
 // ======================> ym2612
 
-struct ym2612
-{
-	// constructor
-	ym2612();
+void ym2612_reset(void);
+uint32_t ym2612_sample_rate(uint32_t input_clock);
+void ym2612_invalidate_caches(void);
+uint8_t ym2612_read(uint32_t offset);
+void ym2612_write(uint32_t offset, uint8_t data);
 
-	// reset
-	void reset();
+void ym2612_init(void);
 
-	// pass-through helpers
-	uint32_t sample_rate(uint32_t input_clock);
-	void invalidate_caches(void);
-
-	// read access
-	uint8_t read_status();
-	uint8_t read(uint32_t offset);
-
-	// write access
-	void write_address(uint8_t data);
-	void write_data(uint8_t data);
-	void write_address_hi(uint8_t data);
-	void write_data_hi(uint8_t data);
-	void write(uint32_t offset, uint8_t data);
-
-	// generate one sample of sound
-	void generate(int32_t *output);
-
-	// generate one sample of YM3438 sound
-	void generate3438(int32_t *output);
-
-	// internal state
-	uint16_t m_address;              // address register
-	uint16_t m_dac_data;             // 9-bit DAC data
-	uint8_t m_dac_enable;            // DAC enabled?
-};
-
+void ym2612_generate(int32_t *output);
+void ym2612_generate3438(int32_t *output);
 
 #endif // YMFM_OPN_H

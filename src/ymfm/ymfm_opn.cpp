@@ -34,12 +34,24 @@
 #include "ymfm_fm.ipp"
 
 #define STATUS_EOS 0x01 // FIXME: This is defined twice (ADPCM B)
+#define EOS_FLAGS_MASK 0xbf
 
 // opn_registers internal state
 static uint32_t m_lfo_counter;               // LFO counter
 static uint8_t m_lfo_am;                     // current LFO AM value
 static uint8_t m_regdata[REGISTERS];         // register data
 static uint16_t m_waveform[WAVEFORMS][WAVEFORM_LENGTH]; // waveforms
+
+// opn internal state
+static uint32_t m_fidelity;                // configured fidelity
+static uint16_t m_address;                 // address register
+static uint8_t m_fm_mask;                  // FM channel mask
+static uint8_t m_fm_samples_per_output;    // how many samples to repeat
+static uint8_t m_eos_status;               // end-of-sample signals
+static uint8_t m_flag_mask;                // flag mask control
+static int32_t m_last_fm[3];               // last FM output
+static uint16_t m_dac_data;             // 9-bit DAC data
+static uint8_t m_dac_enable;            // DAC enabled?
 
 // ======================> ssg_resampler
 static void (*ssg_resampler_resample)(int32_t*);
@@ -620,10 +632,37 @@ static inline void ssg_resampler_configure(uint8_t outsamples, uint8_t srcsample
 //*********************************************************
 
 //-------------------------------------------------
-//  ym2610 - constructor
+//  update_prescale - update the prescale value,
+//  recomputing derived values
 //-------------------------------------------------
 
-ym2610::ym2610()
+void ym2610_update_prescale(void)
+{
+	// Fidelity:   ---- minimum ----    ---- medium -----    ---- maximum-----
+	//              rate = clock/144     rate = clock/144     rate = clock/16
+	// Prescale    FM rate  SSG rate    FM rate  SSG rate    FM rate  SSG rate
+	//     6          1:1     2:9          1:1     2:9         9:1     2:1
+
+	// compute the number of FM samples per output sample, and select the
+	// resampler function
+	if (m_fidelity == OPN_FIDELITY_MIN || m_fidelity == OPN_FIDELITY_MED)
+	{
+		m_fm_samples_per_output = 1;
+		ssg_resampler_configure(2, 9);
+	}
+	else
+	{
+		m_fm_samples_per_output = 9;
+		ssg_resampler_configure(2, 1);
+	}
+}
+
+
+//-------------------------------------------------
+//  ym2610 - init
+//-------------------------------------------------
+
+void ym2610_init(void)
 {
 	m_fidelity = OPN_FIDELITY_MAX;
 	m_address = 0;
@@ -634,12 +673,12 @@ ym2610::ym2610()
 	ssg_resampler_init();
 	adpcm_a_engine_init();
 	adpcm_b_engine_init();
-	update_prescale();
+	ym2610_update_prescale();
 }
 
 
 // pass-through helpers
-uint32_t ym2610::sample_rate(uint32_t input_clock) {
+uint32_t ym2610_sample_rate(uint32_t input_clock) {
 	switch (m_fidelity)
 	{
 		case OPN_FIDELITY_MIN:	return input_clock / 144;
@@ -650,19 +689,19 @@ uint32_t ym2610::sample_rate(uint32_t input_clock) {
 }
 
 
-uint32_t ym2610::ssg_effective_clock(uint32_t input_clock) {
+uint32_t ym2610_ssg_effective_clock(uint32_t input_clock) {
 	return input_clock / 4;
 }
 
 
-void ym2610::invalidate_caches(void) {
+void ym2610_invalidate_caches(void) {
 	fm_engine_invalidate_caches();
 }
 
 
-void ym2610::set_fidelity(uint32_t fidelity) {
+void ym2610_set_fidelity(uint32_t fidelity) {
 	m_fidelity = fidelity;
-	update_prescale();
+	ym2610_update_prescale();
 }
 
 
@@ -670,7 +709,7 @@ void ym2610::set_fidelity(uint32_t fidelity) {
 //  reset - reset the system
 //-------------------------------------------------
 
-void ym2610::reset()
+void ym2610_reset()
 {
 	// reset the engines
 	fm_engine_reset();
@@ -688,7 +727,7 @@ void ym2610::reset()
 //  read_status - read the status register
 //-------------------------------------------------
 
-uint8_t ym2610::read_status()
+uint8_t ym2610_read_status()
 {
 	uint8_t result = fm_engine_status() & (STATUS_TIMERA | STATUS_TIMERB);
 	if (ymfm_is_busy())
@@ -701,7 +740,7 @@ uint8_t ym2610::read_status()
 //  read_data - read the data register
 //-------------------------------------------------
 
-uint8_t ym2610::read_data()
+uint8_t ym2610_read_data()
 {
 	uint8_t result = 0;
 	if (m_address < 0x0e)
@@ -728,7 +767,7 @@ uint8_t ym2610::read_data()
 //  register
 //-------------------------------------------------
 
-uint8_t ym2610::read_status_hi()
+uint8_t ym2610_read_status_hi()
 {
 	return m_eos_status & m_flag_mask;
 }
@@ -738,7 +777,7 @@ uint8_t ym2610::read_status_hi()
 //  read_data_hi - read the upper data register
 //-------------------------------------------------
 
-uint8_t ym2610::read_data_hi()
+uint8_t ym2610_read_data_hi()
 {
 	uint8_t result = 0;
 	return result;
@@ -749,25 +788,25 @@ uint8_t ym2610::read_data_hi()
 //  read - handle a read from the device
 //-------------------------------------------------
 
-uint8_t ym2610::read(uint32_t offset)
+uint8_t ym2610_read(uint32_t offset)
 {
 	uint8_t result = 0;
 	switch (offset & 3)
 	{
 		case 0: // status port, YM2203 compatible
-			result = read_status();
+			result = ym2610_read_status();
 			break;
 
 		case 1: // data port (only SSG)
-			result = read_data();
+			result = ym2610_read_data();
 			break;
 
 		case 2: // status port, extended
-			result = read_status_hi();
+			result = ym2610_read_status_hi();
 			break;
 
 		case 3: // ADPCM-B data
-			result = read_data_hi();
+			result = ym2610_read_data_hi();
 			break;
 	}
 	return result;
@@ -779,7 +818,7 @@ uint8_t ym2610::read(uint32_t offset)
 //  register
 //-------------------------------------------------
 
-void ym2610::write_address(uint8_t data)
+void ym2610_write_address(uint8_t data)
 {
 	// just set the address
 	m_address = data;
@@ -790,7 +829,7 @@ void ym2610::write_address(uint8_t data)
 //  write - handle a write to the data register
 //-------------------------------------------------
 
-void ym2610::write_data(uint8_t data)
+void ym2610_write_data(uint8_t data)
 {
 	// ignore if paired with upper address
 	if (bitfield(m_address, 8))
@@ -835,7 +874,7 @@ void ym2610::write_data(uint8_t data)
 //  address register
 //-------------------------------------------------
 
-void ym2610::write_address_hi(uint8_t data)
+void ym2610_write_address_hi(uint8_t data)
 {
 	// just set the address
 	m_address = 0x100 | data;
@@ -847,7 +886,7 @@ void ym2610::write_address_hi(uint8_t data)
 //  data register
 //-------------------------------------------------
 
-void ym2610::write_data_hi(uint8_t data)
+void ym2610_write_data_hi(uint8_t data)
 {
 	// ignore if paired with upper address
 	if (!bitfield(m_address, 8))
@@ -874,69 +913,25 @@ void ym2610::write_data_hi(uint8_t data)
 //  interface
 //-------------------------------------------------
 
-void ym2610::write(uint32_t offset, uint8_t data)
+void ym2610_write(uint32_t offset, uint8_t data)
 {
 	switch (offset & 3)
 	{
 		case 0: // address port
-			write_address(data);
+			ym2610_write_address(data);
 			break;
 
 		case 1: // data port
-			write_data(data);
+			ym2610_write_data(data);
 			break;
 
 		case 2: // upper address port
-			write_address_hi(data);
+			ym2610_write_address_hi(data);
 			break;
 
 		case 3: // upper data port
-			write_data_hi(data);
+			ym2610_write_data_hi(data);
 			break;
-	}
-}
-
-
-//-------------------------------------------------
-//  generate - generate one sample of sound
-//-------------------------------------------------
-
-void ym2610::generate(int32_t *output)
-{
-	// FM output is just repeated the prescale number of times
-	if (m_ssg_resampler_sampindex % m_fm_samples_per_output == 0)
-		clock_fm_and_adpcm();
-	output[0] = m_last_fm[0];
-	output[1] = m_last_fm[1];
-
-	// resample the SSG as configured
-	ssg_resampler_resample(output);
-}
-
-
-//-------------------------------------------------
-//  update_prescale - update the prescale value,
-//  recomputing derived values
-//-------------------------------------------------
-
-void ym2610::update_prescale()
-{
-	// Fidelity:   ---- minimum ----    ---- medium -----    ---- maximum-----
-	//              rate = clock/144     rate = clock/144     rate = clock/16
-	// Prescale    FM rate  SSG rate    FM rate  SSG rate    FM rate  SSG rate
-	//     6          1:1     2:9          1:1     2:9         9:1     2:1
-
-	// compute the number of FM samples per output sample, and select the
-	// resampler function
-	if (m_fidelity == OPN_FIDELITY_MIN || m_fidelity == OPN_FIDELITY_MED)
-	{
-		m_fm_samples_per_output = 1;
-		ssg_resampler_configure(2, 9);
-	}
-	else
-	{
-		m_fm_samples_per_output = 9;
-		ssg_resampler_configure(2, 1);
 	}
 }
 
@@ -945,7 +940,7 @@ void ym2610::update_prescale()
 //  clock_fm_and_adpcm - clock FM and ADPCM state
 //-------------------------------------------------
 
-void ym2610::clock_fm_and_adpcm()
+void ym2610_clock_fm_and_adpcm()
 {
 	// clock the system
 	uint32_t env_counter = fm_engine_clock(m_fm_mask);
@@ -977,6 +972,22 @@ void ym2610::clock_fm_and_adpcm()
 }
 
 
+//-------------------------------------------------
+//  generate - generate one sample of sound
+//-------------------------------------------------
+
+void ym2610_generate(int32_t *output)
+{
+	// FM output is just repeated the prescale number of times
+	if (m_ssg_resampler_sampindex % m_fm_samples_per_output == 0)
+		ym2610_clock_fm_and_adpcm();
+	output[0] = m_last_fm[0];
+	output[1] = m_last_fm[1];
+
+	// resample the SSG as configured
+	ssg_resampler_resample(output);
+}
+
 
 //*********************************************************
 //  YM2612
@@ -986,7 +997,7 @@ void ym2610::clock_fm_and_adpcm()
 //  ym2612 - constructor
 //-------------------------------------------------
 
-ym2612::ym2612()
+void ym2612_init(void)
 {
 	m_address = 0;
 	m_dac_data = 0;
@@ -994,12 +1005,12 @@ ym2612::ym2612()
 }
 
 
-uint32_t ym2612::sample_rate(uint32_t input_clock) {
+uint32_t ym2612_sample_rate(uint32_t input_clock) {
 	return fm_engine_sample_rate(input_clock);
 }
 
 
-void ym2612::invalidate_caches(void) {
+void ym2612_invalidate_caches(void) {
 	fm_engine_invalidate_caches();
 }
 
@@ -1008,7 +1019,7 @@ void ym2612::invalidate_caches(void) {
 //  reset - reset the system
 //-------------------------------------------------
 
-void ym2612::reset()
+void ym2612_reset(void)
 {
 	// reset the engines
 	fm_engine_reset();
@@ -1019,7 +1030,7 @@ void ym2612::reset()
 //  read_status - read the status register
 //-------------------------------------------------
 
-uint8_t ym2612::read_status()
+uint8_t ym2612_read_status()
 {
 	uint8_t result = fm_engine_status();
 	if (ymfm_is_busy())
@@ -1032,13 +1043,13 @@ uint8_t ym2612::read_status()
 //  read - handle a read from the device
 //-------------------------------------------------
 
-uint8_t ym2612::read(uint32_t offset)
+uint8_t ym2612_read(uint32_t offset)
 {
 	uint8_t result = 0;
 	switch (offset & 3)
 	{
 		case 0: // status port, YM2203 compatible
-			result = read_status();
+			result = ym2612_read_status();
 			break;
 
 		case 1: // data port (unused)
@@ -1056,7 +1067,7 @@ uint8_t ym2612::read(uint32_t offset)
 //  register
 //-------------------------------------------------
 
-void ym2612::write_address(uint8_t data)
+void ym2612_write_address(uint8_t data)
 {
 	// just set the address
 	m_address = data;
@@ -1068,7 +1079,7 @@ void ym2612::write_address(uint8_t data)
 //  register
 //-------------------------------------------------
 
-void ym2612::write_data(uint8_t data)
+void ym2612_write_data(uint8_t data)
 {
 	// ignore if paired with upper address
 	if (bitfield(m_address, 8))
@@ -1105,7 +1116,7 @@ void ym2612::write_data(uint8_t data)
 //  address register
 //-------------------------------------------------
 
-void ym2612::write_address_hi(uint8_t data)
+void ym2612_write_address_hi(uint8_t data)
 {
 	// just set the address
 	m_address = 0x100 | data;
@@ -1117,7 +1128,7 @@ void ym2612::write_address_hi(uint8_t data)
 //  data register
 //-------------------------------------------------
 
-void ym2612::write_data_hi(uint8_t data)
+void ym2612_write_data_hi(uint8_t data)
 {
 	// ignore if paired with upper address
 	if (!bitfield(m_address, 8))
@@ -1136,24 +1147,24 @@ void ym2612::write_data_hi(uint8_t data)
 //  interface
 //-------------------------------------------------
 
-void ym2612::write(uint32_t offset, uint8_t data)
+void ym2612_write(uint32_t offset, uint8_t data)
 {
 	switch (offset & 3)
 	{
 		case 0: // address port
-			write_address(data);
+			ym2612_write_address(data);
 			break;
 
 		case 1: // data port
-			write_data(data);
+			ym2612_write_data(data);
 			break;
 
 		case 2: // upper address port
-			write_address_hi(data);
+			ym2612_write_address_hi(data);
 			break;
 
 		case 3: // upper data port
-			write_data_hi(data);
+			ym2612_write_data_hi(data);
 			break;
 	}
 }
@@ -1163,7 +1174,7 @@ void ym2612::write(uint32_t offset, uint8_t data)
 //  generate - generate one sample of sound
 //-------------------------------------------------
 
-void ym2612::generate(int32_t *output)
+void ym2612_generate(int32_t *output)
 {
 	// clock the system
 	fm_engine_clock(ALL_CHANNELS);
@@ -1204,7 +1215,7 @@ void ym2612::generate(int32_t *output)
 //  generate - generate one sample of YM3438 sound
 //-------------------------------------------------
 
-void ym2612::generate3438(int32_t *output)
+void ym2612_generate3438(int32_t *output)
 {
 	// clock the system
 	fm_engine_clock(ALL_CHANNELS);

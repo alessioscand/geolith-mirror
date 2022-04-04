@@ -40,8 +40,6 @@ static int timer[2];
 static int divisor;
 static int32_t output[3];
 
-static ym2610 *chip;
-
 extern "C" {
 uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
     switch (type) {
@@ -112,31 +110,29 @@ int16_t* ymfm_shim_get_buffer(void) {
 
 void ymfm_shim_init(void) {
     divisor = 144; // 144 for medium fidelity, 16 for high
-    chip = new ym2610();
-    chip->set_fidelity(OPN_FIDELITY_MED);
+    ym2610_init();
+    ym2610_set_fidelity(OPN_FIDELITY_MED);
     fm_engine_init();
 }
 
 void ymfm_shim_deinit(void) {
-    if (chip)
-        delete chip;
 }
 
 void ymfm_shim_reset(void) {
-    chip->reset();
+    ym2610_reset();
 }
 
 uint8_t ymfm_shim_rd(uint16_t addr) {
-    return chip->read(addr);
+    return ym2610_read(addr);
 }
 
 void ymfm_shim_wr(uint16_t addr, uint8_t data) {
-    chip->write(addr, data);
+    ym2610_write(addr, data);
 }
 
 size_t ymfm_shim_exec(void) {
     ymfm_shim_timer_tick();
-    chip->generate(output);
+    ym2610_generate(output);
 
     // Mix stereo FM/ADPCM output (0,1) with mono SSG output (2)
     ymbuf[bufpos++] = output[0] + output[2];
