@@ -92,21 +92,21 @@ static inline void adpcm_a_registers_write(uint32_t index, uint8_t data) {
 }
 
 // system-wide registers
-static inline uint32_t adpcm_a_registers_dump(void) {
+/*static inline uint32_t adpcm_a_registers_dump(void) {
 	return bitfield(m_regdata_a[0x00], 7, 1);
 }
 
 static inline uint32_t adpcm_a_registers_dump_mask(void) {
 	return bitfield(m_regdata_a[0x00], 0, 6);
-}
+}*/
 
 static inline uint32_t adpcm_a_registers_total_level(void) {
 	return bitfield(m_regdata_a[0x01], 0, 6);
 }
 
-static inline uint32_t adpcm_a_registers_test(void) {
+/*static inline uint32_t adpcm_a_registers_test(void) {
 	return m_regdata_a[0x02];
-}
+}*/
 
 // per-channel registers
 static inline uint32_t adpcm_a_registers_ch_pan_left(uint32_t choffs) {
@@ -446,9 +446,9 @@ static inline uint32_t adpcm_b_registers_repeat(void) {
 	return bitfield(m_regdata_b[0x00], 4, 1);
 }
 
-static inline uint32_t adpcm_b_registers_speaker(void) {
+/*static inline uint32_t adpcm_b_registers_speaker(void) {
 	return bitfield(m_regdata_b[0x00], 3, 1);
-}
+}*/
 
 static inline uint32_t adpcm_b_registers_resetflag(void) {
 	return bitfield(m_regdata_b[0x00], 0, 1);
@@ -462,13 +462,13 @@ static inline uint32_t adpcm_b_registers_pan_right(void) {
 	return bitfield(m_regdata_b[0x01], 6, 1);
 }
 
-static inline uint32_t adpcm_b_registers_start_conversion(void) {
+/*static inline uint32_t adpcm_b_registers_start_conversion(void) {
 	return bitfield(m_regdata_b[0x01], 3, 1);
 }
 
 static inline uint32_t adpcm_b_registers_dac_enable(void) {
 	return bitfield(m_regdata_b[0x01], 2, 1);
-}
+}*/
 
 static inline uint32_t adpcm_b_registers_dram_8bit(void) {
 	return bitfield(m_regdata_b[0x01], 1, 1);
@@ -486,9 +486,9 @@ static inline uint32_t adpcm_b_registers_end(void) {
 	return m_regdata_b[0x04] | (m_regdata_b[0x05] << 8);
 }
 
-static inline uint32_t adpcm_b_registers_prescale(void) {
+/*static inline uint32_t adpcm_b_registers_prescale(void) {
 	return m_regdata_b[0x06] | (bitfield(m_regdata_b[0x07], 0, 3) << 8);
-}
+}*/
 
 static inline uint32_t adpcm_b_registers_cpudata(void) {
 	return m_regdata_b[0x08];
@@ -506,13 +506,13 @@ static inline uint32_t adpcm_b_registers_limit(void) {
 	return m_regdata_b[0x0c] | (m_regdata_b[0x0d] << 8);
 }
 
-static inline uint32_t adpcm_b_registers_dac(void) {
+/*static inline uint32_t adpcm_b_registers_dac(void) {
 	return m_regdata_b[0x0e];
 }
 
 static inline uint32_t adpcm_b_registers_pcm(void) {
 	return m_regdata_b[0x0f];
-}
+}*/
 
 //*********************************************************
 // ADPCM "B" CHANNEL

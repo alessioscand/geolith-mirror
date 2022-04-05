@@ -151,7 +151,7 @@ static inline uint32_t effective_rate(uint32_t rawrate, uint32_t ksr)
 //
 
 // system-wide registers
-static inline uint32_t opn_registers_test(void)       { return byte(0x21, 0, 8, 0); }
+//static inline uint32_t opn_registers_test(void)       { return byte(0x21, 0, 8, 0); }
 static inline uint32_t opn_registers_lfo_enable(void) { return byte(0x22, 3, 1, 0); }
 static inline uint32_t opn_registers_lfo_rate(void)   { return byte(0x22, 0, 3, 0); }
 uint32_t opn_registers_timer_a_value(void)            { return word(0x24, 0, 8, 0x25, 0, 2, 0); }
@@ -224,9 +224,9 @@ void opn_registers_reset(void)
 //  read - handle reads to the register array
 //-------------------------------------------------
 
-static inline uint8_t opn_registers_read(uint16_t index) {
+/*static inline uint8_t opn_registers_read(uint16_t index) {
 	return m_regdata[index];
-}
+}*/
 
 
 //-------------------------------------------------

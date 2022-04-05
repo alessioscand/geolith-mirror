@@ -121,13 +121,13 @@ static inline uint32_t ssg_registers_envelope_hold(void) {
 	return bitfield(m_regdata[0x0d], 0, 1);
 }
 
-static inline uint32_t ssg_registers_io_a_data(void) {
+/*static inline uint32_t ssg_registers_io_a_data(void) {
 	return m_regdata[0x0e];
 }
 
 static inline uint32_t ssg_registers_io_b_data(void) {
 	return m_regdata[0x0f];
-}
+}*/
 
 // per-channel registers
 static inline uint32_t ssg_registers_ch_noise_enable(uint32_t choffs) {
