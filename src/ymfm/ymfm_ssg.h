@@ -32,10 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef YMFM_SSG_H
 #define YMFM_SSG_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // init
 void ssg_engine_init(void);
 
@@ -51,9 +47,5 @@ void ssg_engine_clock();
 
 // compute sum of channel outputs
 void ssg_engine_output(int32_t *output);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // YMFM_SSG_H

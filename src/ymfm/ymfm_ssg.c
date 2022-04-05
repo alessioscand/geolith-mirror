@@ -29,9 +29,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
+#include "ymfm.h"
 #include "ymfm_ssg.h"
 
 #define REGISTERS_SSG 0x10
@@ -44,27 +46,6 @@ static uint32_t m_envelope_state;            // envelope state
 static uint32_t m_noise_count;               // current noise counter
 static uint32_t m_noise_state;               // current noise state
 static uint8_t m_regdata[REGISTERS_SSG];         // register data
-
-//*********************************************************
-// FIXME - put this somewhere common after total conversion
-//         to C is done
-//*********************************************************
-enum {
-	ACCESS_IO = 0,
-	ACCESS_ADPCM_A,
-	ACCESS_ADPCM_B,
-	ACCESS_PCM,
-	ACCESS_CLASSES
-};
-
-extern uint8_t ymfm_external_read(uint32_t type, uint32_t address);
-
-extern void ymfm_external_write(uint32_t type, uint32_t address, uint8_t data);
-
-static inline uint32_t bitfield(uint32_t value, int start, int length) {
-	return (value >> start) & ((1 << length) - 1);
-}
-//*********************************************************
 
 //*********************************************************
 // SSG REGISTERS

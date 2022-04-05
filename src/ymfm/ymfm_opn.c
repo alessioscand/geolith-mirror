@@ -36,7 +36,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ymfm_opn.h"
 #include "ymfm_fm.inc"
 
-#define STATUS_EOS 0x01 // FIXME: This is defined twice (ADPCM B)
 #define EOS_FLAGS_MASK 0xbf
 
 // opn_registers internal state

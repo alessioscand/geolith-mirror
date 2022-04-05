@@ -32,9 +32,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef YMFM_ADPCM_H
 #define YMFM_ADPCM_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define STATUS_EOS 0x01
+#define STATUS_BRDY 0x02
+#define STATUS_PLAYING 0x04
 
 // ======================> adpcm_a_engine
 // init
@@ -74,10 +74,6 @@ void adpcm_b_engine_write(uint32_t regnum, uint8_t data);
 // status
 uint8_t adpcm_b_engine_status(void);
 
-//*********************************************************
-//  INTERFACE CLASSES
-//*********************************************************
-
 // ======================> adpcm_a_channel
 typedef struct _adpcm_a_channel
 {
@@ -105,9 +101,5 @@ typedef struct _adpcm_b_channel
 	int32_t m_prev_accum;           // previous accumulator (for linear interp)
 	int32_t m_adpcm_step;           // next forecast
 } adpcm_b_channel;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // YMFM_ADPCM_H

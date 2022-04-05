@@ -33,8 +33,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define YMFM_H
 
 #include <assert.h>
-#include <stdint.h>
-#include <stdio.h>
 
 // external I/O access classes
 enum {
@@ -55,6 +53,7 @@ enum {
 	EG_REVERB = 5,		// OPQ/OPZ only; set EG_HAS_REVERB to enable
 	EG_STATES = 6
 };
+
 
 // the following functions must be implemented by any derived classes; the
 // default implementations are sufficient for some minimal operation, but will
