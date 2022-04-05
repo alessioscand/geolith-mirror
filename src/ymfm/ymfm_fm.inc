@@ -273,7 +273,7 @@ static inline uint32_t operator_offset(uint32_t opnum)
 //  fm_operator - init
 //-------------------------------------------------
 
-void fm_operator_init(fm_operator *op, uint32_t opoffs)
+static inline void fm_operator_init(fm_operator *op, uint32_t opoffs)
 {
 	op->m_choffs = 0;
 	op->m_opoffs = opoffs;
@@ -290,7 +290,7 @@ void fm_operator_init(fm_operator *op, uint32_t opoffs)
 //  reset - reset the channel state
 //-------------------------------------------------
 
-void fm_operator_reset(fm_operator *op)
+static inline void fm_operator_reset(fm_operator *op)
 {
 	// reset our data
 	op->m_phase = 0;
@@ -303,12 +303,12 @@ void fm_operator_reset(fm_operator *op)
 
 
 // set the current channel
-void fm_operator_set_choffs(fm_operator *op, uint32_t choffs) {
+static inline void fm_operator_set_choffs(fm_operator *op, uint32_t choffs) {
 	op->m_choffs = choffs;
 }
 
 
-uint32_t fm_operator_phase(fm_operator *op) {
+static inline uint32_t fm_operator_phase(fm_operator *op) {
 	return op->m_phase >> 10;
 }
 
@@ -319,7 +319,7 @@ uint32_t fm_operator_phase(fm_operator *op) {
 //  is complete and restarts
 //-------------------------------------------------
 
-void fm_operator_start_attack(fm_operator *op, bool is_restart)
+static inline void fm_operator_start_attack(fm_operator *op, bool is_restart)
 {
 	// don't change anything if already in attack state
 	if (op->m_env_state == EG_ATTACK)
@@ -350,7 +350,7 @@ void fm_operator_start_attack(fm_operator *op, bool is_restart)
 //  called when a keyoff happens
 //-------------------------------------------------
 
-void fm_operator_start_release(fm_operator *op)
+static inline void fm_operator_start_release(fm_operator *op)
 {
 	// don't change anything if already in release state
 	if (op->m_env_state >= EG_RELEASE)
@@ -372,7 +372,7 @@ void fm_operator_start_release(fm_operator *op)
 //  the incoming keystate
 //-------------------------------------------------
 
-void fm_operator_clock_keystate(fm_operator *op, uint32_t keystate)
+static inline void fm_operator_clock_keystate(fm_operator *op, uint32_t keystate)
 {
 	assert(keystate == 0 || keystate == 1);
 
@@ -403,7 +403,7 @@ void fm_operator_clock_keystate(fm_operator *op, uint32_t keystate)
 //  prepare - prepare for clocking
 //-------------------------------------------------
 
-bool fm_operator_prepare(fm_operator *op)
+static inline bool fm_operator_prepare(fm_operator *op)
 {
 	// cache the data
 	opn_registers_cache_operator_data(op->m_choffs, op->m_opoffs, &(op->m_cache));
@@ -422,7 +422,7 @@ bool fm_operator_prepare(fm_operator *op)
 //  attenuation of the envelope
 //-------------------------------------------------
 
-uint32_t fm_operator_envelope_attenuation(fm_operator *op, uint32_t am_offset)
+static inline uint32_t fm_operator_envelope_attenuation(fm_operator *op, uint32_t am_offset)
 {
 	uint32_t result = op->m_env_attenuation >> op->m_cache.eg_shift;
 
@@ -448,7 +448,7 @@ uint32_t fm_operator_envelope_attenuation(fm_operator *op, uint32_t am_offset)
 //  modulation and an AM LFO offset
 //-------------------------------------------------
 
-int32_t fm_operator_compute_volume(fm_operator *op, uint32_t phase, uint32_t am_offset)
+static inline int32_t fm_operator_compute_volume(fm_operator *op, uint32_t phase, uint32_t am_offset)
 {
 	// the low 10 bits of phase represents a full 2*PI period over
 	// the full sin wave
@@ -477,7 +477,7 @@ int32_t fm_operator_compute_volume(fm_operator *op, uint32_t phase, uint32_t am_
 //  noise input value and an AM offset
 //-------------------------------------------------
 
-int32_t fm_operator_compute_noise_volume(fm_operator *op, uint32_t am_offset)
+static inline int32_t fm_operator_compute_noise_volume(fm_operator *op, uint32_t am_offset)
 {
 	// application manual says the logarithmic transform is not applied here, so we
 	// just use the raw envelope attenuation, inverted (since 0 attenuation should be
@@ -495,7 +495,7 @@ int32_t fm_operator_compute_noise_volume(fm_operator *op, uint32_t am_offset)
 //  keyonoff - signal a key on/off event
 //-------------------------------------------------
 
-void fm_operator_keyonoff(fm_operator *op, uint32_t on, uint32_t type)
+static inline void fm_operator_keyonoff(fm_operator *op, uint32_t on, uint32_t type)
 {
 	op->m_keyon_live = (op->m_keyon_live & ~(1 << (int)(type))) | (bitfield(on, 0, 1) << (int)(type));
 }
@@ -506,7 +506,7 @@ void fm_operator_keyonoff(fm_operator *op, uint32_t on, uint32_t type)
 //  should only be called if SSG-EG is enabled
 //-------------------------------------------------
 
-void fm_operator_clock_ssg_eg_state(fm_operator *op)
+static inline void fm_operator_clock_ssg_eg_state(fm_operator *op)
 {
 	// work only happens once the attenuation crosses above 0x200
 	if (!bitfield(op->m_env_attenuation, 9, 1))
@@ -561,7 +561,7 @@ void fm_operator_clock_ssg_eg_state(fm_operator *op)
 //  according to the given count
 //-------------------------------------------------
 
-void fm_operator_clock_envelope(fm_operator *op, uint32_t env_counter)
+static inline void fm_operator_clock_envelope(fm_operator *op, uint32_t env_counter)
 {
 	// handle attack->decay transitions
 	if (op->m_env_state == EG_ATTACK && op->m_env_attenuation == 0)
@@ -635,7 +635,7 @@ void fm_operator_clock_envelope(fm_operator *op, uint32_t env_counter)
 //  against the Nuked phase generator
 //-------------------------------------------------
 
-void fm_operator_clock_phase(fm_operator *op, int32_t lfo_raw_pm)
+static inline void fm_operator_clock_phase(fm_operator *op, int32_t lfo_raw_pm)
 {
 	// read from the cache, or recalculate if PM active
 	uint32_t phase_step = op->m_cache.phase_step;
@@ -651,7 +651,7 @@ void fm_operator_clock_phase(fm_operator *op, int32_t lfo_raw_pm)
 //  clock - master clocking function
 //-------------------------------------------------
 
-void fm_operator_clock(fm_operator *op, uint32_t env_counter, int32_t lfo_raw_pm)
+static inline void fm_operator_clock(fm_operator *op, uint32_t env_counter, int32_t lfo_raw_pm)
 {
 	// clock the SSG-EG state (OPN/OPNA)
 	if (opn_registers_op_ssg_eg_enable(op->m_opoffs))
@@ -674,7 +674,7 @@ void fm_operator_clock(fm_operator *op, uint32_t env_counter, int32_t lfo_raw_pm
 //  fm_channel - init
 //-------------------------------------------------
 
-void fm_channel_init(fm_channel *ch, uint32_t choffs)
+static inline void fm_channel_init(fm_channel *ch, uint32_t choffs)
 {
 	ch->m_choffs = choffs;
 	ch->m_feedback[0] = ch->m_feedback[1] = 0;
@@ -687,7 +687,7 @@ void fm_channel_init(fm_channel *ch, uint32_t choffs)
 //  reset - reset the channel state
 //-------------------------------------------------
 
-void fm_channel_reset(fm_channel *ch)
+static inline void fm_channel_reset(fm_channel *ch)
 {
 	// reset our data
 	ch->m_feedback[0] = ch->m_feedback[1] = 0;
@@ -696,7 +696,7 @@ void fm_channel_reset(fm_channel *ch)
 
 
 // assign operators
-void fm_channel_assign(fm_channel *ch, uint32_t index, fm_operator *op) {
+static inline void fm_channel_assign(fm_channel *ch, uint32_t index, fm_operator *op) {
 	assert(index < 4);
 	ch->m_op[index] = op;
 	if (op != NULL)
@@ -708,7 +708,7 @@ void fm_channel_assign(fm_channel *ch, uint32_t index, fm_operator *op) {
 //  keyonoff - signal key on/off to our operators
 //-------------------------------------------------
 
-void fm_channel_keyonoff(fm_channel *ch, uint32_t states, uint32_t type)
+static inline void fm_channel_keyonoff(fm_channel *ch, uint32_t states, uint32_t type)
 {
 	for (uint32_t opnum = 0; opnum < 4; opnum++)
 		if (ch->m_op[opnum] != NULL)
@@ -720,7 +720,7 @@ void fm_channel_keyonoff(fm_channel *ch, uint32_t states, uint32_t type)
 //  prepare - prepare for clocking
 //-------------------------------------------------
 
-bool fm_channel_prepare(fm_channel *ch)
+static inline bool fm_channel_prepare(fm_channel *ch)
 {
 	uint32_t active_mask = 0;
 
@@ -738,7 +738,7 @@ bool fm_channel_prepare(fm_channel *ch)
 //  clock - master clock of all operators
 //-------------------------------------------------
 
-void fm_channel_clock(fm_channel *ch, uint32_t env_counter, int32_t lfo_raw_pm)
+static inline void fm_channel_clock(fm_channel *ch, uint32_t env_counter, int32_t lfo_raw_pm)
 {
 	// clock the feedback through
 	ch->m_feedback[0] = ch->m_feedback[1];
@@ -751,7 +751,7 @@ void fm_channel_clock(fm_channel *ch, uint32_t env_counter, int32_t lfo_raw_pm)
 
 
 // helper to add values to the outputs based on channel enables
-void fm_channel_add_to_output(uint32_t choffs, int32_t *output, int32_t value) {
+static inline void fm_channel_add_to_output(uint32_t choffs, int32_t *output, int32_t value) {
 	int out0_index = 0;
 	int out1_index = 1 % OUTPUTS;
 	int out2_index = 2 % OUTPUTS;
@@ -775,7 +775,7 @@ void fm_channel_add_to_output(uint32_t choffs, int32_t *output, int32_t value) {
 //  which vary between different implementations
 //-------------------------------------------------
 
-void fm_channel_output_2op(fm_channel *ch, int32_t *output, uint32_t rshift, int32_t clipmax)
+static inline void fm_channel_output_2op(fm_channel *ch, int32_t *output, uint32_t rshift, int32_t clipmax)
 {
 	// The first 2 operators should be populated
 	assert(ch->m_op[0] != NULL);
@@ -828,7 +828,7 @@ void fm_channel_output_2op(fm_channel *ch, int32_t *output, uint32_t rshift, int
 //  which vary between different implementations
 //-------------------------------------------------
 
-void fm_channel_output_4op(fm_channel *ch, int32_t *output, uint32_t rshift, int32_t clipmax)
+static inline void fm_channel_output_4op(fm_channel *ch, int32_t *output, uint32_t rshift, int32_t clipmax)
 {
 	// all 4 operators should be populated
 	assert(ch->m_op[0] != NULL);
@@ -933,7 +933,7 @@ void fm_channel_output_4op(fm_channel *ch, int32_t *output, uint32_t rshift, int
 
 
 // are we a 4-operator channel or a 2-operator one?
-bool fm_channel_is4op(fm_channel *ch) {
+static inline bool fm_channel_is4op(fm_channel *ch) {
 	if (DYNAMIC_OPS)
 		return (ch->m_op[2] != NULL);
 	return (OPERATORS / CHANNELS == 4);

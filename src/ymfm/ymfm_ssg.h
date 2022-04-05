@@ -36,14 +36,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 void ssg_engine_init(void);
 
 // reset our status
-void ssg_engine_reset();
+void ssg_engine_reset(void);
 
 // read/write to the SSG registers
 uint8_t ssg_engine_read(uint32_t regnum);
 void ssg_engine_write(uint32_t regnum, uint8_t data);
 
 // master clocking function
-void ssg_engine_clock();
+void ssg_engine_clock(void);
 
 // compute sum of channel outputs
 void ssg_engine_output(int32_t *output);

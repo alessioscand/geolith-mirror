@@ -57,10 +57,10 @@ void adpcm_a_engine_write(uint32_t regnum, uint8_t data);
 void adpcm_b_engine_init(void);
 
 // reset our status
-void adpcm_b_engine_reset();
+void adpcm_b_engine_reset(void);
 
 // master clocking function
-void adpcm_b_engine_clock();
+void adpcm_b_engine_clock(void);
 
 // compute sum of channel outputs
 void adpcm_b_engine_output(int32_t *output, uint32_t rshift);

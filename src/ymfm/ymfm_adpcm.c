@@ -189,7 +189,7 @@ static inline void adpcm_a_channel_keyonoff(uint32_t choffs, bool on)
 //  clock - master clocking function
 //-------------------------------------------------
 
-bool adpcm_a_channel_clock(uint32_t choffs)
+static inline bool adpcm_a_channel_clock(uint32_t choffs)
 {
 	// if not playing, just output 0
 	if (m_channel_a[choffs].m_playing == 0)
@@ -416,7 +416,7 @@ void adpcm_a_engine_write(uint32_t regnum, uint8_t data)
 //  reset - reset the register state
 //-------------------------------------------------
 
-void adpcm_b_registers_reset(void)
+static inline void adpcm_b_registers_reset(void)
 {
 	memset(&m_regdata_b[0], 0, REGISTERS_B);
 
@@ -425,7 +425,7 @@ void adpcm_b_registers_reset(void)
 }
 
 // direct read/write access
-void adpcm_b_registers_write(uint32_t index, uint8_t data) {
+static inline void adpcm_b_registers_write(uint32_t index, uint8_t data) {
 	m_regdata_b[index] = data;
 }
 
@@ -822,7 +822,7 @@ void adpcm_b_engine_init(void)
 //  reset - reset the engine state
 //-------------------------------------------------
 
-void adpcm_b_engine_reset()
+void adpcm_b_engine_reset(void)
 {
 	// reset registers
 	adpcm_b_registers_reset();
@@ -836,7 +836,7 @@ void adpcm_b_engine_reset()
 //  clock - master clocking function
 //-------------------------------------------------
 
-void adpcm_b_engine_clock()
+void adpcm_b_engine_clock(void)
 {
 	// clock each channel, setting a bit in result if it finished
 	adpcm_b_channel_clock();

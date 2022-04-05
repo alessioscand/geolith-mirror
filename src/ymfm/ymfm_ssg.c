@@ -80,11 +80,11 @@ static uint8_t m_regdata[REGISTERS_SSG];         // register data
 //
 
 // direct read/write access
-uint8_t ssg_registers_read(uint32_t index) {
+static inline uint8_t ssg_registers_read(uint32_t index) {
 	return m_regdata[index];
 }
 
-void ssg_registers_write(uint32_t index, uint8_t data) {
+static inline void ssg_registers_write(uint32_t index, uint8_t data) {
 	m_regdata[index] = data;
 }
 
@@ -177,7 +177,7 @@ void ssg_engine_init(void)
 //  reset - reset the engine state
 //-------------------------------------------------
 
-void ssg_engine_reset()
+void ssg_engine_reset(void)
 {
 	// reset register state
 	ssg_registers_reset();
@@ -198,7 +198,7 @@ void ssg_engine_reset()
 //  clock - master clocking function
 //-------------------------------------------------
 
-void ssg_engine_clock()
+void ssg_engine_clock(void)
 {
 	// clock tones; tone period units are clock/16 but since we run at clock/8
 	// that works out for us to toggle the state (50% duty cycle) at twice the

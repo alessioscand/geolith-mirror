@@ -224,7 +224,7 @@ void opn_registers_reset(void)
 //  read - handle reads to the register array
 //-------------------------------------------------
 
-uint8_t opn_registers_read(uint16_t index) {
+static inline uint8_t opn_registers_read(uint16_t index) {
 	return m_regdata[index];
 }
 
@@ -607,7 +607,7 @@ static inline void ssg_resampler_configure(uint8_t outsamples, uint8_t srcsample
 //  recomputing derived values
 //-------------------------------------------------
 
-void ym2610_update_prescale(void)
+static inline void ym2610_update_prescale(void)
 {
 	// Fidelity:   ---- minimum ----    ---- medium -----    ---- maximum-----
 	//              rate = clock/144     rate = clock/144     rate = clock/16
@@ -680,7 +680,7 @@ void ym2610_set_fidelity(uint32_t fidelity) {
 //  reset - reset the system
 //-------------------------------------------------
 
-void ym2610_reset()
+void ym2610_reset(void)
 {
 	// reset the engines
 	fm_engine_reset();
@@ -698,7 +698,7 @@ void ym2610_reset()
 //  read_status - read the status register
 //-------------------------------------------------
 
-uint8_t ym2610_read_status()
+static inline uint8_t ym2610_read_status(void)
 {
 	uint8_t result = fm_engine_status() & (STATUS_TIMERA | STATUS_TIMERB);
 	if (ymfm_is_busy())
@@ -711,7 +711,7 @@ uint8_t ym2610_read_status()
 //  read_data - read the data register
 //-------------------------------------------------
 
-uint8_t ym2610_read_data()
+static inline uint8_t ym2610_read_data(void)
 {
 	uint8_t result = 0;
 	if (m_address < 0x0e)
@@ -738,7 +738,7 @@ uint8_t ym2610_read_data()
 //  register
 //-------------------------------------------------
 
-uint8_t ym2610_read_status_hi()
+static inline uint8_t ym2610_read_status_hi(void)
 {
 	return m_eos_status & m_flag_mask;
 }
@@ -748,7 +748,7 @@ uint8_t ym2610_read_status_hi()
 //  read_data_hi - read the upper data register
 //-------------------------------------------------
 
-uint8_t ym2610_read_data_hi()
+static inline uint8_t ym2610_read_data_hi(void)
 {
 	uint8_t result = 0;
 	return result;
@@ -789,7 +789,7 @@ uint8_t ym2610_read(uint32_t offset)
 //  register
 //-------------------------------------------------
 
-void ym2610_write_address(uint8_t data)
+static inline void ym2610_write_address(uint8_t data)
 {
 	// just set the address
 	m_address = data;
@@ -800,7 +800,7 @@ void ym2610_write_address(uint8_t data)
 //  write - handle a write to the data register
 //-------------------------------------------------
 
-void ym2610_write_data(uint8_t data)
+static inline void ym2610_write_data(uint8_t data)
 {
 	// ignore if paired with upper address
 	if (bitfield(m_address, 8, 1))
@@ -845,7 +845,7 @@ void ym2610_write_data(uint8_t data)
 //  address register
 //-------------------------------------------------
 
-void ym2610_write_address_hi(uint8_t data)
+static inline void ym2610_write_address_hi(uint8_t data)
 {
 	// just set the address
 	m_address = 0x100 | data;
@@ -857,7 +857,7 @@ void ym2610_write_address_hi(uint8_t data)
 //  data register
 //-------------------------------------------------
 
-void ym2610_write_data_hi(uint8_t data)
+static inline void ym2610_write_data_hi(uint8_t data)
 {
 	// ignore if paired with upper address
 	if (!bitfield(m_address, 8, 1))
@@ -911,7 +911,7 @@ void ym2610_write(uint32_t offset, uint8_t data)
 //  clock_fm_and_adpcm - clock FM and ADPCM state
 //-------------------------------------------------
 
-void ym2610_clock_fm_and_adpcm()
+static inline void ym2610_clock_fm_and_adpcm(void)
 {
 	// clock the system
 	uint32_t env_counter = fm_engine_clock(m_fm_mask);
@@ -1001,7 +1001,7 @@ void ym2612_reset(void)
 //  read_status - read the status register
 //-------------------------------------------------
 
-uint8_t ym2612_read_status()
+static inline uint8_t ym2612_read_status(void)
 {
 	uint8_t result = fm_engine_status();
 	if (ymfm_is_busy())
@@ -1038,7 +1038,7 @@ uint8_t ym2612_read(uint32_t offset)
 //  register
 //-------------------------------------------------
 
-void ym2612_write_address(uint8_t data)
+static inline void ym2612_write_address(uint8_t data)
 {
 	// just set the address
 	m_address = data;
@@ -1050,7 +1050,7 @@ void ym2612_write_address(uint8_t data)
 //  register
 //-------------------------------------------------
 
-void ym2612_write_data(uint8_t data)
+static inline void ym2612_write_data(uint8_t data)
 {
 	// ignore if paired with upper address
 	if (bitfield(m_address, 8, 1))
@@ -1087,7 +1087,7 @@ void ym2612_write_data(uint8_t data)
 //  address register
 //-------------------------------------------------
 
-void ym2612_write_address_hi(uint8_t data)
+static inline void ym2612_write_address_hi(uint8_t data)
 {
 	// just set the address
 	m_address = 0x100 | data;
@@ -1099,7 +1099,7 @@ void ym2612_write_address_hi(uint8_t data)
 //  data register
 //-------------------------------------------------
 
-void ym2612_write_data_hi(uint8_t data)
+static inline void ym2612_write_data_hi(uint8_t data)
 {
 	// ignore if paired with upper address
 	if (!bitfield(m_address, 8, 1))
