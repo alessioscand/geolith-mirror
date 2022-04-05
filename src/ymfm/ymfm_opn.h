@@ -177,6 +177,6 @@ void ym2612_write(uint32_t offset, uint8_t data);
 void ym2612_init(void);
 
 void ym2612_generate(int32_t *output);
-void ym2612_generate3438(int32_t *output);
+void ym3438_generate(int32_t *output);
 
 #endif // YMFM_OPN_H

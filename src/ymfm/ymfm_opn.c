@@ -1186,7 +1186,7 @@ void ym2612_generate(int32_t *output)
 //  generate - generate one sample of YM3438 sound
 //-------------------------------------------------
 
-void ym2612_generate3438(int32_t *output)
+void ym3438_generate(int32_t *output)
 {
 	// clock the system
 	fm_engine_clock(ALL_CHANNELS);
