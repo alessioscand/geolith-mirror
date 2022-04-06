@@ -96,7 +96,6 @@ extern uint8_t sram_lock;
 
 /* Sound control */
 extern uint8_t sound_code;
-extern uint8_t pending_command;
 extern uint8_t result_code;
 
 /* 68k cpu Banking control */
@@ -126,9 +125,7 @@ void cpu_z80_nmi(void);
 void cpu_z80_raise_irq(int l);
 void cpu_z80_lower_irq(void);
 void cpu_z80_init(void);
-void cpu_z80_switchbank(uint8_t bank, uint16_t port);
-uint8_t z80_port_read(uint16_t PortNo);
-void z80_port_write(uint16_t PortNb, uint8_t Value);
+void cpu_z80_reset(void);
 
 /* memory handler prototype */
 

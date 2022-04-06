@@ -91,15 +91,15 @@ void neogeo_reset(void) {
     //  memory.vid.modulo = 1; /* TODO: Move to init_video */
     sram_lock = 0;
     sound_code = 0;
-    pending_command = 0;
     result_code = 0;
 
     if (memory.rom.cpu_m68k.size > 0x100000)
         cpu_68k_bankswitch(0x100000);
     else
         cpu_68k_bankswitch(0);
-    cpu_68k_reset();
 
+    cpu_68k_reset();
+    cpu_z80_reset();
     ymfm_shim_reset(); // Reset the YM2610 to make sure everything is defaulted
 }
 

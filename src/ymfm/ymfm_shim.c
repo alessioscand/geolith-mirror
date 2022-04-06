@@ -122,19 +122,8 @@ void ymfm_shim_init(void) {
     fm_engine_init();
 }
 
-void ymfm_shim_deinit(void) {
-}
-
 void ymfm_shim_reset(void) {
     ym2610_reset();
-}
-
-uint8_t ymfm_shim_rd(uint16_t addr) {
-    return ym2610_read(addr);
-}
-
-void ymfm_shim_wr(uint16_t addr, uint8_t data) {
-    ym2610_write(addr, data);
 }
 
 size_t ymfm_shim_exec(void) {

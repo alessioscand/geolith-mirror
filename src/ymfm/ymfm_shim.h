@@ -38,11 +38,8 @@ extern "C" {
 // Functions accessible from C
 int16_t* ymfm_shim_get_buffer(void);
 void ymfm_shim_init(void);
-void ymfm_shim_deinit(void);
 void ymfm_shim_reset(void);
 size_t ymfm_shim_exec(void);
-uint8_t ymfm_shim_rd(uint16_t);
-void ymfm_shim_wr(uint16_t, uint8_t);
 
 #ifdef __cplusplus
 }

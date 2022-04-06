@@ -22,16 +22,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "emu.h"
 #include "memory.h"
+#include "ymfm_opn.h"
 #include "z80.h"
 
 static z80 z80ctx;
 
 static uint8_t zram[SIZE_2K];
 static uint32_t zbank[4];
+static bool nmi_enabled = false;
 
 /* Z80 Memory Map
  * =====================================================================
@@ -101,35 +104,95 @@ static void gn_z80_mem_wr(void *userdata, uint16_t addr, uint8_t data) {
  * |      0x18 | Address 0x08 (?)              | Disable NMIs   | 0x1c |
  * ---------------------------------------------------------------------
  */
-static uint8_t gn_z80_port_rd(z80 *userdata, uint16_t port) {
-    if (userdata) { } // Unused
-    return z80_port_read(port);
-}
-
-static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
-    if (userdata) { } // Unused
-    z80_port_write(port, value);
-}
-
-void cpu_z80_switchbank(uint8_t bank, uint16_t port) {
+static inline void gn_z80_bankswap(uint8_t bank, uint16_t port) {
     /* The NEO-ZMC switches ROM banks through Z80 IO Port reads. The 8 most
        significant bits of the port address are used to determine the ROM bank
        to swap in.
     */
     switch (bank) {
         case 0:
-            zbank[bank] = ((port >> 8) & 0x0f) * SIZE_16K;
+            zbank[0] = ((port >> 8) & 0x0f) * SIZE_16K;
             break;
         case 1:
-            zbank[bank] = ((port >> 8) & 0x1f) * SIZE_8K;
+            zbank[1] = ((port >> 8) & 0x1f) * SIZE_8K;
             break;
         case 2:
-            zbank[bank] = ((port >> 8) & 0x3f) * SIZE_4K;
+            zbank[2] = ((port >> 8) & 0x3f) * SIZE_4K;
             break;
         case 3:
-            zbank[bank] = ((port >> 8) & 0x7f) * SIZE_2K;
+            zbank[3] = ((port >> 8) & 0x7f) * SIZE_2K;
             break;
     }
+}
+
+static uint8_t gn_z80_port_rd(z80 *userdata, uint16_t port) {
+    if (userdata) { } // Unused
+
+    switch (port & 0xff) {
+        case 0x00: {
+            // Acknowledge NMI - to implement
+            return sound_code;
+        }
+        case 0x04: case 0x05: case 0x06: case 0x07: {
+            return ym2610_read(port);
+        }
+        case 0x08: {
+            gn_z80_bankswap(3, port);
+            break;
+        }
+        case 0x09: {
+            gn_z80_bankswap(2, port);
+            break;
+        }
+        case 0x0a: {
+            gn_z80_bankswap(1, port);
+            break;
+        }
+        case 0x0b: {
+            gn_z80_bankswap(0, port);
+            break;
+        }
+        case 0x0c: {
+            gn_log(GN_LOG_WRN, "Z80 port read 0x0c\n");
+            break;
+        }
+        case 0x18: {
+            gn_log(GN_LOG_WRN, "Z80 port read 0x18\n");
+            break;
+        }
+    }
+    return 0;
+}
+
+static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
+    if (userdata) { } // Unused
+
+    switch (port & 0xff) {
+        case 0x00: {
+            sound_code = 0;
+            break;
+        }
+        case 0x04: case 0x05: case 0x06: case 0x07: {
+            ym2610_write(port, value);
+            break;
+        }
+        case 0x08: case 0x09: case 0x0a: case 0x0b: {
+            nmi_enabled = true;
+            break;
+        }
+        case 0x0c: {
+            result_code = value;
+            break;
+        }
+        case 0x18: {
+            nmi_enabled = false;
+        }
+    }
+}
+
+void cpu_z80_reset(void) {
+    z80_reset(&z80ctx);
+    nmi_enabled = false;
 }
 
 void cpu_z80_init(void) {
@@ -149,7 +212,8 @@ int cpu_z80_run(int nbcycle) {
 }
 
 void cpu_z80_nmi(void) {
-    z80_gen_nmi(&z80ctx);
+    if (nmi_enabled)
+        z80_gen_nmi(&z80ctx);
 }
 
 void cpu_z80_raise_irq(int l) {

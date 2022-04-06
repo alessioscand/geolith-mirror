@@ -43,7 +43,6 @@ uint8_t *current_fix;
 uint8_t *fix_usage;
 uint8_t sram_lock;
 uint8_t sound_code;
-uint8_t pending_command;
 uint8_t result_code;
 
 uint32_t bankaddress = 0;
@@ -71,68 +70,6 @@ static inline void write_irq2pos(uint32_t data) {
     if (memory.vid.irq2control & 0x20) {
         int line = (memory.vid.irq2pos + 0x3b) / 0x180; /* turfmast goes as low as 0x145 */
         memory.vid.irq2start = line + current_line;
-    }
-}
-
-/* Z80 IO port handler */
-uint8_t z80_port_read(uint16_t PortNo)
-{
-    //printf("z80_port_read PC=%04x p=%04x ",cpu_z80_get_pc(),PortNo);
-    //printf("z80_port_read p=%04x \n",PortNo);
-    switch (PortNo & 0xff) {
-    case 0x0:
-        pending_command = 0;
-        //printf("Reseting command. Return sndcode %x\n",sound_code);
-        return sound_code;
-    case 0x4:
-        return ymfm_shim_rd(PortNo);
-    case 0x5:
-        return ymfm_shim_rd(PortNo);
-    case 0x6:
-        return ymfm_shim_rd(PortNo);
-    case 0x08:
-        //printf("v=00 (sb3)\n");
-        cpu_z80_switchbank(3, PortNo);
-        return 0;
-    case 0x09:
-        //printf("v=00 (sb2)\n");
-        cpu_z80_switchbank(2, PortNo);
-        return 0;
-    case 0x0a:
-        //printf("v=00 (sb1)\n");
-        cpu_z80_switchbank(1, PortNo);
-        return 0;
-    case 0x0b:
-        //printf("v=00 (sb0)\n");
-        cpu_z80_switchbank(0, PortNo);
-        return 0;
-    };
-
-    return 0;
-}
-
-void z80_port_write(uint16_t PortNb, uint8_t Value)
-{
-    //printf("z80_port_write PC=%04x OP=%02x p=%04x v=%02x\n",cpu_z80_get_pc(),memory.rom.cpu_z80.p[cpu_z80_get_pc()],PortNb,Value);
-    //printf("Write port %04x %02x\n",PortNb,Value);
-    switch (PortNb & 0xff) {
-    case 0x4:
-        ymfm_shim_wr(PortNb, Value);
-        break;
-    case 0x5:
-        ymfm_shim_wr(PortNb, Value);
-        break;
-    case 0x6:
-        ymfm_shim_wr(PortNb, Value);
-        break;
-    case 0x7:
-        ymfm_shim_wr(PortNb, Value);
-        break;
-    case 0xC:
-        result_code = Value;
-        break;
-    /*default:
-        printf("z80_port_write p=%04x %02x\n", PortNb, Value);*/
     }
 }
 
@@ -347,11 +284,7 @@ uint8_t mem68k_fetch_coin_byte(uint32_t addr) {
         return memory.intern_coin ^ (coinflip << 6) ^ (databit << 7);
     }
     if (addr == 0x0) {
-        int res = 0;
-        res |= result_code;
-        if (pending_command)
-            res &= 0x7f;
-        return res;
+        return result_code;
     }
     return 0;
 }
@@ -573,20 +506,16 @@ void mem68k_store_pd4990_long(uint32_t addr, uint32_t data) {
 void mem68k_store_z80_byte(uint32_t addr, uint8_t data) {
     if (addr == 0x320000) {
         sound_code = data & 0xff;
-        pending_command = 1;
         //printf("B Pending command. Sound_code=%02x\n",sound_code);
         cpu_z80_nmi();
-        cpu_z80_run(300);
     }
 }
 void mem68k_store_z80_word(uint32_t addr, uint16_t data) {
     /* tpgolf use word store for sound */
     if (addr == 0x320000) {
         sound_code = data >> 8;
-        pending_command = 1;
         //printf("W Pending command. Sound_code=%02x\n",sound_code);
         cpu_z80_nmi();
-        cpu_z80_run(300);
     }
 }
 void mem68k_store_z80_long(uint32_t addr, uint32_t data) {
