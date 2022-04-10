@@ -84,7 +84,8 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         return read08(memory.ram, address);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        return mem68k_fetch_bk_normal_byte(address);
+        address &= 0xfffff;
+        return read08(memory.rom.cpu_m68k.p, address + bankaddress);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch ((address >> 16) & 0x0f) {
@@ -122,7 +123,8 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         return read16(memory.ram, address);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        return mem68k_fetch_bk_normal_word(address);
+        address &= 0xfffff;
+        return read16(memory.rom.cpu_m68k.p, address + bankaddress);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch ((address >> 16) & 0x0f) {
@@ -160,7 +162,8 @@ unsigned int m68k_read_memory_32(unsigned int address) {
         return read32(memory.ram, address);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        return mem68k_fetch_bk_normal_long(address);
+        address &= 0xfffff;
+        return read32(memory.rom.cpu_m68k.p, address + bankaddress);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch ((address >> 16) & 0x0f) {
