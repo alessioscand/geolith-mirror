@@ -139,24 +139,9 @@ void cpu_z80_reset(void);
 }
 
 /* 68k fetching function */
-uint8_t mem68k_fetch_ram_byte(uint32_t addr);
-uint16_t mem68k_fetch_ram_word(uint32_t addr);
-uint32_t mem68k_fetch_ram_long(uint32_t addr);
-uint8_t mem68k_fetch_invalid_byte(uint32_t addr);
-uint16_t mem68k_fetch_invalid_word(uint32_t addr);
-uint32_t mem68k_fetch_invalid_long(uint32_t addr);
 uint8_t mem68k_fetch_bk_normal_byte(uint32_t addr);
 uint16_t mem68k_fetch_bk_normal_word(uint32_t addr);
 uint32_t mem68k_fetch_bk_normal_long(uint32_t addr);
-uint8_t mem68k_fetch_cpu_byte(uint32_t addr);
-uint16_t mem68k_fetch_cpu_word(uint32_t addr);
-uint32_t mem68k_fetch_cpu_long(uint32_t addr);
-uint8_t mem68k_fetch_bios_byte(uint32_t addr);
-uint16_t mem68k_fetch_bios_word(uint32_t addr);
-uint32_t mem68k_fetch_bios_long(uint32_t addr);
-uint8_t mem68k_fetch_sram_byte(uint32_t addr);
-uint16_t mem68k_fetch_sram_word(uint32_t addr);
-uint32_t mem68k_fetch_sram_long(uint32_t addr);
 uint8_t mem68k_fetch_pal_byte(uint32_t addr);
 uint16_t mem68k_fetch_pal_word(uint32_t addr);
 uint32_t mem68k_fetch_pal_long(uint32_t addr);

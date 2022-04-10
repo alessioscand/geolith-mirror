@@ -29,6 +29,19 @@ SOFTWARE.
 #include "memory.h"
 #include "emu.h"
 
+// Helpers for reading 8, 16, and 32-bit values in the 68K address space
+static inline uint8_t read08(uint8_t *ptr, uint32_t addr) {
+    return ptr[addr];
+}
+
+static inline uint16_t read16(uint8_t *ptr, uint32_t addr) {
+    return (ptr[addr] << 8) | ptr[addr + 1];
+}
+
+static inline uint32_t read32(uint8_t *ptr, uint32_t addr) {
+    return (ptr[addr] << 24) | (ptr[addr + 1] << 16) |
+        (ptr[addr + 2] << 8) | ptr[addr + 3];
+}
 
 /* 68K Memory Map
  * =====================================================================
@@ -63,13 +76,12 @@ SOFTWARE.
  */
 
 unsigned int m68k_read_memory_8(unsigned int address) {
-    address &= 0xffffff;
-
     if (address < 0x100000) { // Fixed 1M Program ROM Bank
-        return mem68k_fetch_cpu_byte(address);
+        return read08(memory.rom.cpu_m68k.p, address);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
-        return mem68k_fetch_ram_byte(address);
+        address &= 0xffff;
+        return read08(memory.ram, address);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         return mem68k_fetch_bk_normal_byte(address);
@@ -90,23 +102,24 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         return mem68k_fetch_memcrd_byte(address);
     }
     else if (address < 0xd00000) { // BIOS ROM
-        return mem68k_fetch_bios_byte(address);
+        address &= 0x1ffff;
+        return read08(memory.rom.bios_m68k.p, address);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        return mem68k_fetch_sram_byte(address);
+        address &= 0xffff;
+        return read08(memory.sram, address);
     }
 
     return 0xff;
 }
 
 unsigned int m68k_read_memory_16(unsigned int address) {
-    address &= 0xffffff;
-
     if (address < 0x100000) { // Fixed 1M Program ROM Bank
-        return mem68k_fetch_cpu_word(address);
+        return read16(memory.rom.cpu_m68k.p, address);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
-        return mem68k_fetch_ram_word(address);
+        address &= 0xffff;
+        return read16(memory.ram, address);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         return mem68k_fetch_bk_normal_word(address);
@@ -127,23 +140,24 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         return mem68k_fetch_memcrd_word(address);
     }
     else if (address < 0xd00000) { // BIOS ROM
-        return mem68k_fetch_bios_word(address);
+        address &= 0x1ffff;
+        return read16(memory.rom.bios_m68k.p, address);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        return mem68k_fetch_sram_word(address);
+        address &= 0xffff;
+        return read16(memory.sram, address);
     }
 
     return 0xf0f0;
 }
 
 unsigned int m68k_read_memory_32(unsigned int address) {
-    address &= 0xffffff;
-
     if (address < 0x100000) { // Fixed 1M Program ROM Bank
-        return mem68k_fetch_cpu_long(address);
+        return read32(memory.rom.cpu_m68k.p, address);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
-        return mem68k_fetch_ram_long(address);
+        address &= 0xffff;
+        return read32(memory.ram, address);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         return mem68k_fetch_bk_normal_long(address);
@@ -164,10 +178,12 @@ unsigned int m68k_read_memory_32(unsigned int address) {
         return mem68k_fetch_memcrd_long(address);
     }
     else if (address < 0xd00000) { // BIOS ROM
-        return mem68k_fetch_bios_long(address);
+        address &= 0x1ffff;
+        return read32(memory.rom.bios_m68k.p, address);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        return mem68k_fetch_sram_long(address);
+        address &= 0xffff;
+        return read32(memory.sram, address);
     }
 
     return 0xff00ff00;
