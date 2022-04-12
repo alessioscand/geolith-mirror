@@ -101,6 +101,9 @@ int dr_open_gno(char *filename);
 int init_game(char *rom_name);
 int close_game(void);
 
+void open_nvram(char *name);
+void open_memcard(char *name);
+
 void convert_all_char(uint8_t *Ptr, int Taille, uint8_t *usage_ptr);
 void convert_all_tile(GAME_ROMS *r);
 

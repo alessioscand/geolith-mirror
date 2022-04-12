@@ -25,6 +25,7 @@ SOFTWARE.
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <libgen.h>
 
 #include <jg/jg.h>
@@ -32,6 +33,7 @@ SOFTWARE.
 
 #include "emu.h"
 #include "gngeo_mixer.h"
+#include "gngeo_neo.h"
 #include "memory.h"
 #include "roms.h"
 #include "resfile.h"
@@ -197,12 +199,26 @@ void jg_exec_frame(void) {
 }
 
 int jg_game_load(void) {
-    snprintf(dfilepath, sizeof(dfilepath), "%s/gngeo_data.zip", pathinfo.core);
-    gn_set_datafile(dfilepath);
     gn_set_savedir(pathinfo.save);
-    gn_set_romdir(dirname((char*)gameinfo.path));
 
-    init_game((char*)gameinfo.name);
+    const char *ext = strrchr(gameinfo.path, '.');
+    if (ext != NULL)
+        ext++;
+
+    if (!strncmp(ext, "neo", 3)) { // NEO file
+        gn_set_romdir(pathinfo.bios);
+        gn_neo_load(gameinfo.data, gameinfo.size);
+        open_nvram((char*)gameinfo.name);
+        open_memcard((char*)gameinfo.name);
+        init_neo();
+    }
+    else { // Probably a .zip...
+        snprintf(dfilepath, sizeof(dfilepath),
+            "%s/gngeo_data.zip", pathinfo.core);
+        gn_set_datafile(dfilepath);
+        gn_set_romdir(dirname((char*)gameinfo.path));
+        init_game((char*)gameinfo.name);
+    }
 
     inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_JS);
     inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_JS);

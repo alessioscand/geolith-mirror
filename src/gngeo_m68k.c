@@ -312,12 +312,6 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
     }
 }
 
-static inline void swapb16_range(void *ptr, size_t len) {
-    uint16_t *x = (uint16_t*)ptr;
-    for (size_t i = 0; i < len >> 1; ++i)
-        x[i] = (x[i] << 8) | (x[i] >> 8);
-}
-
 void cpu_68k_bankswitch(uint32_t address) {
     bankaddress = address;
 }
@@ -330,11 +324,6 @@ void cpu_68k_init(void) {
     // Initialize the 68K CPU
     m68k_init();
     m68k_set_cpu_type(M68K_CPU_TYPE_68000);
-
-    // Byteswap the ROM data to avoid having to do so on every read
-    swapb16_range(memory.rom.bios_m68k.p, memory.rom.bios_m68k.size);
-    swapb16_range(memory.rom.cpu_m68k.p, memory.rom.cpu_m68k.size);
-    swapb16_range(memory.game_vector, 0x80);
 }
 
 int cpu_68k_run(uint32_t nb_cycle) {

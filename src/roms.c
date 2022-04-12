@@ -171,6 +171,12 @@ static uint8_t* iloadbuf = NULL;
 
  */
 
+static inline void swapb16_range(void *ptr, size_t len) {
+    uint16_t *x = (uint16_t*)ptr;
+    for (size_t i = 0; i < len >> 1; ++i)
+        x[i] = (x[i] << 8) | (x[i] >> 8);
+}
+
 void gn_set_savedir(const char *dir) {
     gngeo_dir = dir;
 }
@@ -1581,10 +1587,16 @@ int init_game(char *rom_name) {
         return 0;
     }
 
+    // Byteswap the ROM data to avoid having to do so on every read
+    swapb16_range(memory.rom.bios_m68k.p, memory.rom.bios_m68k.size);
+    swapb16_range(memory.rom.cpu_m68k.p, memory.rom.cpu_m68k.size);
+    swapb16_range(memory.game_vector, 0x80);
+
     open_nvram(conf.game);
     open_memcard(conf.game);
 
     init_neo();
+
     setup_misc_patch(conf.game);
 
     fix_usage = memory.fix_board_usage;
