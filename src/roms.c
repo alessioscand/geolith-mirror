@@ -185,6 +185,10 @@ void gn_set_romdir(const char *dir) {
     rpath = dir;
 }
 
+void gn_set_decrypt(int d) {
+    need_decrypt = d;
+}
+
 int init_mslugx(GAME_ROMS *r) {
     unsigned int i;
     uint8_t *RAM = r->cpu_m68k.p;

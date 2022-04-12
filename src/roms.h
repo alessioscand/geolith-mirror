@@ -89,6 +89,7 @@ typedef struct GAME_ROMS {
 
 void gn_set_savedir(const char *dir);
 void gn_set_romdir(const char *dir);
+void gn_set_decrypt(int d);
 
 int dr_load_roms(GAME_ROMS *r, const char *rom_path, char *name);
 int dr_load_bios(GAME_ROMS *r);
@@ -106,5 +107,8 @@ void open_memcard(char *name);
 
 void convert_all_char(uint8_t *Ptr, int Taille, uint8_t *usage_ptr);
 void convert_all_tile(GAME_ROMS *r);
+
+int init_garou(GAME_ROMS *r);
+int init_kof2000(GAME_ROMS *r);
 
 #endif

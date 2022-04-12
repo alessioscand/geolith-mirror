@@ -155,5 +155,19 @@ int gn_neo_load(void *data, size_t size) {
     current_pc_pal = (uint32_t*)memory.vid.pal_host[0];
     memory.current_vector = 0;
 
+    gn_set_decrypt(0); // .neo files are already decrypted
+
+    // Handle descrambling if necessary
+    switch (ngh) {
+        case 253: // Garou - Mark of the Wolves
+            init_garou(&(memory.rom));
+            break;
+        case 257: // KOF 2000
+            init_kof2000(&(memory.rom));
+            break;
+        default:
+            break;
+    }
+
     return 1;
 }
