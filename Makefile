@@ -13,7 +13,7 @@ CFLAGS_JG := $(shell $(PKG_CONFIG) --cflags jg)
 
 LIBS_ZLIB := $(shell $(PKG_CONFIG) --libs zlib)
 
-LIBS := $(LIBS_ZLIB) -lstdc++
+LIBS := $(LIBS_ZLIB)
 
 INCLUDES := -I$(SRCDIR) -I$(SRCDIR)/m68k -I$(SRCDIR)/ymfm -I$(SRCDIR)/z80
 PIC := -fPIC
