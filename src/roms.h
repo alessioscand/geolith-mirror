@@ -91,6 +91,7 @@ void gn_set_savedir(const char *dir);
 void gn_set_romdir(const char *dir);
 
 int dr_load_roms(GAME_ROMS *r, const char *rom_path, char *name);
+int dr_load_bios(GAME_ROMS *r);
 void dr_free_roms(GAME_ROMS *r);
 int dr_save_gno(GAME_ROMS *r,char *filename);
 int dr_load_game(char *zip);
@@ -99,5 +100,8 @@ char *dr_gno_romname(char *filename);
 int dr_open_gno(char *filename);
 int init_game(char *rom_name);
 int close_game(void);
+
+void convert_all_char(uint8_t *Ptr, int Taille, uint8_t *usage_ptr);
+void convert_all_tile(GAME_ROMS *r);
 
 #endif
