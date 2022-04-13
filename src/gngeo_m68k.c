@@ -29,6 +29,27 @@ SOFTWARE.
 #include "memory.h"
 #include "emu.h"
 
+#define SMATAP 0x98ec // NEO-SMA Tapped bits - 2, 3, 5, 6, 7, 11, 12, and 15
+
+// Pseudo-Random Number addresses
+static uint32_t addr_prn[2] = { 0, 0 };
+static uint16_t prn = 0x2345; // Pseudo-random number initial value
+
+static inline uint16_t parity(uint16_t v) {
+    /* This technique is used, adapted for 16-bit values:
+       https://graphics.stanford.edu/~seander/bithacks.html#ParityParallel
+    */
+    v ^= v >> 8;
+    v ^= v >> 4;
+    v &= 0xf;
+    return (0x6996 >> v) & 1;
+}
+
+static inline uint16_t gn_m68k_prn_read(void) {
+    prn = (prn << 1) | parity(prn & SMATAP);
+    return prn;
+}
+
 // Helpers for reading 8, 16, and 32-bit values in the 68K address space
 static inline uint8_t read08(uint8_t *ptr, uint32_t addr) {
     return ptr[addr];
@@ -84,6 +105,15 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         return read08(memory.ram, address);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
+        if (memory.bksw_unscramble) {
+            // Read SMA Chip Presence
+            if (address == 0x2fe446)
+                return 0x37; // Always return this value for SMA presence
+            else if (address == 0x2fe447)
+                return 0x9a; // Always return this value for SMA presence
+            else if (address == addr_prn[0] || address == addr_prn[1])
+                return gn_m68k_prn_read() & 0xff;
+        }
         address &= 0xfffff;
         return read08(memory.rom.cpu_m68k.p, address + bankaddress);
     }
@@ -123,6 +153,13 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         return read16(memory.ram, address);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
+        if (memory.bksw_unscramble) {
+            // Read SMA Chip Presence at 0x2fe447 - mask bit 0 for 16-bit reads
+            if (address == 0x2fe446)
+                return 0x9a37; // Always return this value for SMA presence
+            else if (address == addr_prn[0] || address == addr_prn[1])
+                return gn_m68k_prn_read();
+        }
         address &= 0xfffff;
         return read16(memory.rom.cpu_m68k.p, address + bankaddress);
     }
@@ -318,6 +355,7 @@ void cpu_68k_bankswitch(uint32_t address) {
 
 void cpu_68k_reset(void) {
     m68k_pulse_reset();
+    prn = 0x2345;
 }
 
 void cpu_68k_init(void) {
@@ -344,4 +382,10 @@ void cpu_68k_interrupt(int a) {
 
 int cpu_68k_getcycle(void) {
     return 0;
+}
+
+// Set the pseudo-random number generator read addresses
+void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2) {
+    addr_prn[0] = a1;
+    addr_prn[1] = a2;
 }

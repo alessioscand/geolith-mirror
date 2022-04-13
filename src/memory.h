@@ -139,9 +139,6 @@ void cpu_z80_reset(void);
 }
 
 /* 68k fetching function */
-uint8_t mem68k_fetch_bk_normal_byte(uint32_t addr);
-uint16_t mem68k_fetch_bk_normal_word(uint32_t addr);
-uint32_t mem68k_fetch_bk_normal_long(uint32_t addr);
 uint8_t mem68k_fetch_pal_byte(uint32_t addr);
 uint16_t mem68k_fetch_pal_word(uint32_t addr);
 uint32_t mem68k_fetch_pal_long(uint32_t addr);
@@ -208,4 +205,6 @@ extern uint32_t (*mem68k_fetch_bksw_long)(uint32_t);
 extern void (*mem68k_store_bksw_byte)(uint32_t,uint8_t);
 extern void (*mem68k_store_bksw_word)(uint32_t,uint16_t);
 extern void (*mem68k_store_bksw_long)(uint32_t,uint32_t);
+
+void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2);
 #endif

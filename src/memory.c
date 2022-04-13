@@ -566,58 +566,6 @@ void mem68k_store_memcrd_long(uint32_t addr, uint32_t data) {
 }
 
 /**** bankswitchers ****/
-static uint16_t neogeo_rng = 0x2345;
-
-uint16_t sma_random(void) {
-    uint16_t old = neogeo_rng;
-
-    uint16_t newbit = ((neogeo_rng >> 2) ^ (neogeo_rng >> 3) ^ (neogeo_rng >> 5)
-                     ^ (neogeo_rng >> 6) ^ (neogeo_rng >> 7) ^ (neogeo_rng >> 11)
-                     ^ (neogeo_rng >> 12) ^ (neogeo_rng >> 15)) & 1;
-
-    neogeo_rng = (neogeo_rng << 1) | newbit;
-
-    return old;
-}
-
-/* Normal bankswitcher */
-uint8_t mem68k_fetch_bk_normal_byte(uint32_t addr) {
-    if (memory.bksw_unscramble) { /* SMA prot & random number generator */
-        uint32_t a=addr&0xFFFFE;
-        if (a == 0xfe446) {
-            //printf("Prot reading B %08x\n", addr);
-            return (addr&0x1?0x9a:0x37);
-        }
-        if (memory.sma_rng_addr && addr>=0x2fff00 &&
-            (((a & 0xFF) == (memory.sma_rng_addr & 0xFF)) ||
-             ((a & 0xFF) == memory.sma_rng_addr >> 8))) {
-            //printf("SMA_Random B %08x\n",addr);
-            return (addr&0x1?sma_random()>>8:sma_random()&0xFF);
-        }
-    }
-    addr &= 0xFFFFF;
-    return (READ_BYTE_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
-}
-
-uint16_t mem68k_fetch_bk_normal_word(uint32_t addr) {
-    if (memory.bksw_unscramble) { /* SMA prot & random number generator */
-      if ((addr&0xFFFFF) == 0xfe446) {
-            //printf("Prot reading W %08x\n", addr);
-            return 0x9a37;
-        }
-        if (memory.sma_rng_addr && addr>=0x2fff00 &&
-            (((addr & 0xFF) == (memory.sma_rng_addr & 0xFF)) ||
-             ((addr & 0xFF) == memory.sma_rng_addr >> 8))) {
-            //printf("SMA_Random W %08x\n",addr);
-            return sma_random();
-        }
-    }
-    addr &= 0xFFFFF;
-    return (READ_WORD_ROM(memory.rom.cpu_m68k.p + bankaddress + addr));
-}
-
-LONG_FETCH(mem68k_fetch_bk_normal)
-
 static void bankswitch(uint32_t address, uint8_t data) {
 
     if (memory.rom.cpu_m68k.size <= 0x100000)

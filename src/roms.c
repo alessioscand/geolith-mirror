@@ -244,6 +244,7 @@ int init_garou(GAME_ROMS *r) {
     memory.bksw_offset = bankoffset_garou;
     memory.bksw_unscramble = scramblecode_garou;
     memory.sma_rng_addr = 0xCCF0;
+    gn_m68k_prn_addrs(0x2fffcc, 0x2ffff0);
     //garou_install_protection(machine);
     gn_log(GN_LOG_DBG, "I HAS INITIALIZD GAROU\n");
     return 0;
