@@ -185,7 +185,7 @@ int jg_init(void) {
 }
 
 void jg_deinit(void) {
-    close_game();
+    gn_neo_unload(gameinfo.name);
     gn_mixer_deinit();
 }
 

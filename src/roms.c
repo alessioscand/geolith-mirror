@@ -1537,8 +1537,7 @@ void open_memcard(char *name) {
     char filename[256];
     FILE *f;
 
-    sprintf(filename, "%s/%s", gngeo_dir, "memcard");
-    if (name) { } // FIXME: Per-game memcards
+    sprintf(filename, "%s/%s.mcr", gngeo_dir, name);
 
     if ((f = fopen(filename, "rb")) == 0)
         return;
@@ -1567,8 +1566,7 @@ void save_memcard(char *name) {
     char filename[256];
     FILE *f;
 
-    sprintf(filename, "%s/%s", gngeo_dir, "memcard");
-    if (name) { } // FIXME: Per-game memcards
+    sprintf(filename, "%s/%s.mcr", gngeo_dir, name);
 
     if ((f = fopen(filename, "wb")) != NULL) {
         fwrite(memory.memcard, 1, 0x800, f);

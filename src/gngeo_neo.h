@@ -25,6 +25,7 @@ SOFTWARE.
 #ifndef GN_NEO_H
 #define GN_NEO_H
 
-int gn_neo_load(void *data, size_t size);
+int gn_neo_load(void*, size_t);
+int gn_neo_unload(const char*);
 
 #endif

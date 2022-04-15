@@ -104,6 +104,8 @@ int close_game(void);
 
 void open_nvram(char *name);
 void open_memcard(char *name);
+void save_nvram(char *name);
+void save_memcard(char *name);
 
 void convert_all_char(uint8_t *Ptr, int Taille, uint8_t *usage_ptr);
 void convert_all_tile(GAME_ROMS *r);

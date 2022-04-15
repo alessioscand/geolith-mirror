@@ -171,3 +171,8 @@ int gn_neo_load(void *data, size_t size) {
 
     return 1;
 }
+
+void gn_neo_unload(const char *name) {
+    save_nvram((char*)name);
+    save_memcard((char*)name);
+}
