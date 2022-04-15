@@ -84,7 +84,7 @@ static inline uint32_t read32(uint8_t *ptr, uint32_t addr) {
  * ---------------------------------------------------------------------
  * | 0x402000 - 0x7fffff |      | Palette RAM Mirror                   |
  * ---------------------------------------------------------------------
- * | 0x800000 - 0xbfffff |   8K | Memory Card                          |
+ * | 0x800000 - 0xbfffff |   4M | Memory Card                          |
  * ---------------------------------------------------------------------
  * | 0xc00000 - 0xc1ffff | 128K | BIOS ROM                             |
  * ---------------------------------------------------------------------
@@ -129,8 +129,15 @@ unsigned int m68k_read_memory_8(unsigned int address) {
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
         return mem68k_fetch_pal_byte(address);
     }
-    else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
-        return mem68k_fetch_memcrd_byte(address);
+    else if (address < 0xc00000) { // Memory Card
+        gn_log(GN_LOG_DBG, "8-bit Memory Card Read: %06x\n", address);
+        /* 8-bit Memory Card reads return 0xff for odd addresses, and memcard
+           data for even addresses. This is effectively half of a 16-bit read.
+        */
+        if (address & 0x01)
+            return 0xff;
+        address = (address >> 1) & 0x7ff;
+        return memory.memcard[address];
     }
     else if (address < 0xd00000) { // BIOS ROM
         address &= 0x1ffff;
@@ -175,8 +182,13 @@ unsigned int m68k_read_memory_16(unsigned int address) {
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
         return mem68k_fetch_pal_word(address);
     }
-    else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
-        return mem68k_fetch_memcrd_word(address);
+    else if (address < 0xc00000) { // Memory Card
+        /* Emulate an 8-bit, 2K memory card - since only the low byte is used,
+           the address must be divided by two to get the correct byte. The
+           upper byte is always 0xff.
+        */
+        address = (address >> 1) & 0x7ff;
+        return memory.memcard[address] | 0xff00;
     }
     else if (address < 0xd00000) { // BIOS ROM
         address &= 0x1ffff;
@@ -214,8 +226,10 @@ unsigned int m68k_read_memory_32(unsigned int address) {
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
         return mem68k_fetch_pal_long(address);
     }
-    else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
-        return mem68k_fetch_memcrd_long(address);
+    else if (address < 0xc00000) { // Memory Card
+        gn_log(GN_LOG_WRN, "32-bit Memory Card Read: %06x\n", address);
+        return (m68k_read_memory_16(address) << 16) |
+            m68k_read_memory_16(address + 2);
     }
     else if (address < 0xd00000) { // BIOS ROM
         address &= 0x1ffff;

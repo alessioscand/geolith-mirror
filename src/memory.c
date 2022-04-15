@@ -228,28 +228,6 @@ uint32_t mem68k_fetch_coin_long(uint32_t addr) {
     return 0;
 }
 
-/**** MEMCARD ****/
-/* Even byte are FF
-   Odd  byte are data;
-*/
-uint8_t mem68k_fetch_memcrd_byte(uint32_t addr) {
-    addr &= 0xFFF;
-    if (addr & 1)
-        return 0xFF;
-    else
-        return memory.memcard[addr >> 1];
-}
-
-uint16_t mem68k_fetch_memcrd_word(uint32_t addr) {
-    addr &= 0xFFF;
-    return memory.memcard[addr >> 1] | 0xff00;
-}
-
-uint32_t mem68k_fetch_memcrd_long(uint32_t addr) {
-    if (addr) { }
-    return 0;
-}
-
 /* storring function */
 /**** INVALID STORE ****/
 void mem68k_store_invalid_byte(uint32_t addr, uint8_t data) {
@@ -558,6 +536,7 @@ void mem68k_store_memcrd_byte(uint32_t addr, uint8_t data) {
     memory.memcard[addr >> 1] = data;
 }
 void mem68k_store_memcrd_word(uint32_t addr, uint16_t data) {
+    //printf("memstore16\n");
     addr &= 0xFFF;
     memory.memcard[addr >> 1] = data & 0xff;
 }
