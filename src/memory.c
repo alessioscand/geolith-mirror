@@ -28,13 +28,6 @@
 #include "pd4990a.h"
 #include "ymfm_shim.h"
 
-uint8_t (*mem68k_fetch_bksw_byte)(uint32_t);
-uint16_t (*mem68k_fetch_bksw_word)(uint32_t);
-uint32_t (*mem68k_fetch_bksw_long)(uint32_t);
-void (*mem68k_store_bksw_byte)(uint32_t,uint8_t);
-void (*mem68k_store_bksw_word)(uint32_t,uint16_t);
-void (*mem68k_store_bksw_long)(uint32_t,uint32_t);
-
 neo_mem memory;
 
 uint8_t *current_pal;
@@ -71,12 +64,6 @@ static inline void write_irq2pos(uint32_t data) {
         int line = (memory.vid.irq2pos + 0x3b) / 0x180; /* turfmast goes as low as 0x145 */
         memory.vid.irq2start = line + current_line;
     }
-}
-
-/* Protection hack */
-uint16_t protection_9a37(uint32_t addr) {
-    if (addr) { }
-    return 0x9a37;
 }
 
 /* fetching function */
@@ -226,22 +213,6 @@ uint16_t mem68k_fetch_coin_word(uint32_t addr) {
 uint32_t mem68k_fetch_coin_long(uint32_t addr) {
     if (addr) { }
     return 0;
-}
-
-/* storring function */
-/**** INVALID STORE ****/
-void mem68k_store_invalid_byte(uint32_t addr, uint8_t data) {
-    if (addr != 0x300001)
-        gn_log(GN_LOG_WRN, "68K: Invalid write byte %x %x\n", addr, data);
-    else {
-        memory.watchdog = 0;
-    }
-}
-void mem68k_store_invalid_word(uint32_t addr, uint16_t data) {
-    gn_log(GN_LOG_WRN, "68K: Invalid write word %x %x\n", addr, data);
-}
-void mem68k_store_invalid_long(uint32_t addr, uint32_t data) {
-    gn_log(GN_LOG_WRN, "68K: Invalid write long %x %x\n", addr, data);
 }
 
 /**** RAM ****/
