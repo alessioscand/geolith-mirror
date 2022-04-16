@@ -88,6 +88,7 @@ extern uint8_t *current_pal;
 extern uint32_t *current_pc_pal;
 extern uint8_t *current_fix;
 extern uint8_t *fix_usage;
+extern unsigned current_line;
 
 /* sram */
 extern uint8_t sram_lock;
@@ -139,9 +140,6 @@ void cpu_z80_reset(void);
 }
 
 /* 68k fetching function */
-uint8_t mem68k_fetch_video_byte(uint32_t addr);
-uint16_t mem68k_fetch_video_word(uint32_t addr);
-uint32_t mem68k_fetch_video_long(uint32_t addr);
 uint8_t mem68k_fetch_ctl1_byte(uint32_t addr);
 uint16_t mem68k_fetch_ctl1_word(uint32_t addr);
 uint32_t mem68k_fetch_ctl1_long(uint32_t addr);
@@ -154,9 +152,6 @@ uint32_t mem68k_fetch_ctl3_long(uint32_t addr);
 uint8_t mem68k_fetch_coin_byte(uint32_t addr);
 uint16_t mem68k_fetch_coin_word(uint32_t addr);
 uint32_t mem68k_fetch_coin_long(uint32_t addr);
-uint8_t mem68k_fetch_bk_kof2003_byte(uint32_t addr);
-uint16_t mem68k_fetch_bk_kof2003_word(uint32_t addr);
-uint32_t mem68k_fetch_bk_kof2003_long(uint32_t addr);
 
 /* 68k storring function */
 void mem68k_store_ram_byte(uint32_t addr, uint8_t data);
@@ -189,13 +184,6 @@ void mem68k_store_memcrd_long(uint32_t addr, uint32_t data);
 void mem68k_store_bk_kof2003_byte(uint32_t addr, uint8_t data);
 void mem68k_store_bk_kof2003_word(uint32_t addr, uint16_t data);
 void mem68k_store_bk_kof2003_long(uint32_t addr, uint32_t data);
-
-extern uint8_t (*mem68k_fetch_bksw_byte)(uint32_t);
-extern uint16_t (*mem68k_fetch_bksw_word)(uint32_t);
-extern uint32_t (*mem68k_fetch_bksw_long)(uint32_t);
-extern void (*mem68k_store_bksw_byte)(uint32_t,uint8_t);
-extern void (*mem68k_store_bksw_word)(uint32_t,uint16_t);
-extern void (*mem68k_store_bksw_long)(uint32_t,uint32_t);
 
 void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2);
 #endif

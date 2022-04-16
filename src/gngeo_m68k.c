@@ -63,11 +63,6 @@ static inline uint16_t read16be(uint8_t *ptr, uint32_t addr) {
     return (ptr[addr + 1] << 8) | ptr[addr];
 }
 
-static inline uint32_t read32(uint8_t *ptr, uint32_t addr) {
-    return (ptr[addr] << 24) | (ptr[addr + 1] << 16) |
-        (ptr[addr + 2] << 8) | ptr[addr + 3];
-}
-
 /* 68K Memory Map
  * =====================================================================
  * |    Address Range    | Size |             Description              |
@@ -127,7 +122,8 @@ unsigned int m68k_read_memory_8(unsigned int address) {
             case 0x02: return mem68k_fetch_coin_byte(address);
             case 0x04: return mem68k_fetch_ctl2_byte(address);
             case 0x08: return mem68k_fetch_ctl3_byte(address);
-            case 0x0c: return mem68k_fetch_video_byte(address);
+            case 0x0c: gn_log(GN_LOG_WRN, "Attempted 8-bit LSPC read\n");
+                break;
         }
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
@@ -175,12 +171,32 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         return read16(memory.rom.cpu_m68k.p, address + bankaddress);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
+        switch (address) {
+            case 0x3c0000: case 0x3c0002: case 0x3c0008: case 0x3c000a: {
+                // REG_VRAMADDR, REG_VRAMRW, REG_TIMERHIGH, REG_TIMERLOW
+                return memory.vid.rbuf;
+            }
+            case 0x3c0004: case 0x3c000c: {
+                // REG_VRAMMOD, REG_IRQACK
+                return memory.vid.modulo;
+            }
+            case 0x3c0006: case 0x3c000e: {
+                /* REG_LSPCMODE, REG_TIMERSTOP
+                   Bits 7-15: Raster line counter (with offset of 0xf8)
+                   Bits 4-6:  000
+                   Bit 3:     0 = 60Hz, 1 = 50Hz
+                   Bits 0-2:  Auto animation counter
+                */
+                return ((current_line + 0xf8) << 7) |
+                    (conf.pal << 3) |
+                    (neogeo_frame_counter & 0x07);
+            }
+        }
         switch ((address >> 16) & 0x0f) {
             case 0x00: return mem68k_fetch_ctl1_word(address);
             case 0x02: return mem68k_fetch_coin_word(address);
             case 0x04: return mem68k_fetch_ctl2_word(address);
             case 0x08: return mem68k_fetch_ctl3_word(address);
-            case 0x0c: return mem68k_fetch_video_word(address);
         }
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
@@ -207,45 +223,8 @@ unsigned int m68k_read_memory_16(unsigned int address) {
 }
 
 unsigned int m68k_read_memory_32(unsigned int address) {
-    if (address < 0x100000) { // Fixed 1M Program ROM Bank
-        return read32(memory.rom.cpu_m68k.p, address);
-    }
-    else if (address < 0x200000) { // RAM - Mirrored every 64K
-        address &= 0xffff;
-        return read32(memory.ram, address);
-    }
-    else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        address &= 0xfffff;
-        return read32(memory.rom.cpu_m68k.p, address + bankaddress);
-    }
-    else if (address < 0x400000) { // Memory Mapped Registers
-        switch ((address >> 16) & 0x0f) {
-            case 0x00: return mem68k_fetch_ctl1_long(address);
-            case 0x02: return mem68k_fetch_coin_long(address);
-            case 0x04: return mem68k_fetch_ctl2_long(address);
-            case 0x08: return mem68k_fetch_ctl3_long(address);
-            case 0x0c: return mem68k_fetch_video_long(address);
-        }
-    }
-    else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        return (m68k_read_memory_16(address) << 16) |
-            m68k_read_memory_16(address + 2);
-    }
-    else if (address < 0xc00000) { // Memory Card
-        //gn_log(GN_LOG_WRN, "32-bit Memory Card Read: %06x\n", address);
-        return (m68k_read_memory_16(address) << 16) |
-            m68k_read_memory_16(address + 2);
-    }
-    else if (address < 0xd00000) { // BIOS ROM
-        address &= 0x1ffff;
-        return read32(memory.rom.bios_m68k.p, address);
-    }
-    else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        address &= 0xffff;
-        return read32(memory.sram, address);
-    }
-
-    return 0xff00ff00;
+    return (m68k_read_memory_16(address) << 16) |
+        m68k_read_memory_16(address + 2);
 }
 
 void m68k_write_memory_8(unsigned int address, unsigned int value) {

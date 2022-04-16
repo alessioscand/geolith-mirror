@@ -39,18 +39,6 @@ uint8_t sound_code;
 uint8_t result_code;
 
 uint32_t bankaddress = 0;
-extern unsigned current_line;
-
-static inline uint16_t read_neo_control(void) {
-    unsigned int scan;
-    scan = current_line /*+ 22*/; /* current scanline */
-    //scan+=0x110;
-    //if (scan >=0x200) scan=scan-0x108;
-    scan += 0xF8;
-
-    // frame counter
-    return (scan << 7) | (conf.pal << 3) | (neogeo_frame_counter & 0x0007);
-}
 
 static inline void write_neo_control(uint16_t data) {
     neogeo_frame_counter_speed = (((data >> 8) & 0xff) + 1);
@@ -65,49 +53,6 @@ static inline void write_irq2pos(uint32_t data) {
         memory.vid.irq2start = line + current_line;
     }
 }
-
-/**** VIDEO ****/
-uint8_t mem68k_fetch_video_byte(uint32_t addr) {
-    printf("mem6k_fetch_video_byte %08x\n",addr);
-    if (!(addr&0x1))
-        return mem68k_fetch_video_word(addr)>>8;
-    else {
-        uint32_t lpc=cpu_68k_getpc()+2;
-        switch((lpc&0xF00000)>>20) {
-        case 0x0:
-            return READ_WORD(&memory.rom.cpu_m68k.p+(lpc&0xFFFFF));
-            break;
-        case 0x2:
-            return READ_WORD(&memory.rom.cpu_m68k.p+bankaddress+(lpc&0xFFFFF));
-            break;
-        case 0xC:
-            if (lpc<=0xc1FFff)
-                return READ_WORD(&memory.rom.bios_m68k.p+(lpc&0xFFFFF));
-            break;
-        }
-    }
-    //  addr &= 0xFFFF;
-    //  if (addr == 0xe)
-    //      return 0xff;
-    return 0xFF;
-}
-
-uint16_t mem68k_fetch_video_word(uint32_t addr) {
-    //printf("mem68k_fetch_video_word %08x\n",addr);
-    addr &= 0x7;
-    /*
-      if (addr==0x00)
-      return vptr;
-    */
-    if (addr == 0x00 || addr == 0x02 || addr == 0x0a)
-        return memory.vid.rbuf;//READ_WORD(&memory.vid.ram[memory.vid.vptr << 1]);
-    if (addr == 0x04)
-        return memory.vid.modulo;
-    if (addr == 0x06)
-        return read_neo_control();
-    return 0;
-}
-LONG_FETCH(mem68k_fetch_video)
 
 /**** CONTROLLER ****/
 uint8_t mem68k_fetch_ctl1_byte(uint32_t addr) {
