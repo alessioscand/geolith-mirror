@@ -43,6 +43,8 @@ void (*gn_log)(int, const char *, ...);
 
 struct _conf_t conf;
 
+uint8_t reg_dipsw = 0;
+
 unsigned nb_interlace = 256;
 unsigned current_line;
 
@@ -187,9 +189,6 @@ void main_loop(void) {
     size_t reqcycs = 0;
     size_t itercycs = 0;
     size_t ymsamps = 0;
-
-    if (conf.test_switch == 1)
-        conf.test_switch = 0;
 
     // Run scanline-based iterations of emulation until a frame is complete
     for (size_t i = 0; i < NG_SCANLINES; ++i) {

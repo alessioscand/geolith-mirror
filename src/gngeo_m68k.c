@@ -26,8 +26,9 @@ SOFTWARE.
 
 #include "m68k.h"
 
-#include "memory.h"
 #include "emu.h"
+#include "memory.h"
+#include "pd4990a.h"
 
 #define SMATAP 0x98ec // NEO-SMA Tapped bits - 2, 3, 5, 6, 7, 11, 12, and 15
 
@@ -117,13 +118,61 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         return read08(memory.rom.cpu_m68k.p, address + bankaddress);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
-        switch ((address >> 16) & 0x0f) {
-            case 0x00: return mem68k_fetch_ctl1_byte(address);
-            case 0x02: return mem68k_fetch_coin_byte(address);
-            case 0x04: return mem68k_fetch_ctl2_byte(address);
-            case 0x08: return mem68k_fetch_ctl3_byte(address);
-            case 0x0c: gn_log(GN_LOG_WRN, "Attempted 8-bit LSPC read\n");
-                break;
+        switch (address) {
+            case 0x300000: { // REG_P1CNT
+                return memory.intern_p1;
+            }
+            case 0x300001: { // REG_DIPSW
+                /* Hardware DIP Switches (Active Low)
+                   Bit 7:    Stop Mode
+                   Bit 6:    Free Play
+                   Bit 5:    Enable Multiplayer
+                   Bits 3-4: Comm. ID Code
+                   Bit 2:    0 = Normal Controller, 1 = Mahjong Keyboard
+                   Bit 1:    0 = 1 Chute, 1 = 2 Chutes
+                   Bit 0:    Settings Mode
+                */
+                return ~reg_dipsw; // Complemented because it is active low
+            }
+            case 0x300081: { // REG_SYSTYPE
+                /* Bit 7:    Test button - FIXME more documentation...
+                   Bit 6:    0 = 2 slots, 1 = 4 or 6 slots
+                   Bits 0-5: Unknown
+                */
+                return 0xc0; // Active Low
+            }
+            case 0x320000: { // REG_SOUND
+                return result_code; // Z80 Reply Code
+            }
+            case 0x320001: { // REG_STATUS_A
+                /* Bit 7:    RTC Data Bit
+                   Bit 6:    RTC Time Pulse
+                   Bit 5:    0 = 4 Slot, 1 = 6 Slot
+                   Bit 4:    Coin-in 4
+                   Bit 3:    Coin-in 3
+                   Bit 2:    Service Button
+                   Bit 1:    Coin-in 2
+                   Bit 0:    Coin-in 1
+                */
+                return memory.intern_coin |
+                    (read_4990_testbit() << 6) |
+                    (read_4990_databit() << 7);
+            }
+            case 0x340000: { // REG_P2CNT
+                return memory.intern_p2;
+            }
+            case 0x380000: {
+                /* Aux Inputs (Lower bits Active Low)
+                   Bit 7:    0 = AES, 1 = MVS
+                   Bit 6:    Memory card write protect
+                   Bit 4-5:  Memory card inserted if 00
+                   Bit 3:    Player 2 Select
+                   Bit 2:    Player 2 Start
+                   Bit 1:    Player 1 Select
+                   Bit 0:    Player 1 Start
+                */
+                return memory.intern_start;
+            }
         }
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
@@ -148,6 +197,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         return read08(memory.sram, address);
     }
 
+    gn_log(GN_LOG_WRN, "Unknown 8-bit 68K Read at %06x\n", address);
     return 0xff;
 }
 
@@ -192,12 +242,6 @@ unsigned int m68k_read_memory_16(unsigned int address) {
                     (neogeo_frame_counter & 0x07);
             }
         }
-        switch ((address >> 16) & 0x0f) {
-            case 0x00: return mem68k_fetch_ctl1_word(address);
-            case 0x02: return mem68k_fetch_coin_word(address);
-            case 0x04: return mem68k_fetch_ctl2_word(address);
-            case 0x08: return mem68k_fetch_ctl3_word(address);
-        }
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
         return read16be(current_pal, address & 0x1fff);
@@ -219,6 +263,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         return read16(memory.sram, address);
     }
 
+    gn_log(GN_LOG_WRN, "Unknown 16-bit 68K Read at %06x\n", address);
     return 0xf0f0;
 }
 

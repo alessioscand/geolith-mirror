@@ -26,7 +26,6 @@
 #include "video.h"
 #include "memory.h"
 #include "pd4990a.h"
-#include "ymfm_shim.h"
 
 neo_mem memory;
 
@@ -52,94 +51,6 @@ static inline void write_irq2pos(uint32_t data) {
         int line = (memory.vid.irq2pos + 0x3b) / 0x180; /* turfmast goes as low as 0x145 */
         memory.vid.irq2start = line + current_line;
     }
-}
-
-/**** CONTROLLER ****/
-uint8_t mem68k_fetch_ctl1_byte(uint32_t addr) {
-    addr &= 0xFFFF;
-    if (addr == 0x00)
-        return memory.intern_p1;
-    if (addr == 0x01)
-        return (conf.test_switch ? 0xFE : 0xFF);
-
-    if (addr == 0x81) {
-        return (conf.test_switch ? 0x00 : 0x80);
-    }
-
-    return 0;
-}
-
-uint16_t mem68k_fetch_ctl1_word(uint32_t addr) {
-    if (addr) { }
-    return 0;
-}
-
-uint32_t mem68k_fetch_ctl1_long(uint32_t addr) {
-    if (addr) { }
-    return 0;
-}
-
-uint8_t mem68k_fetch_ctl2_byte(uint32_t addr) {
-    if ((addr & 0xFFFF) == 0x00)
-        return memory.intern_p2;
-    if ((addr & 0xFFFF) == 0x01)
-        return 0xFF;
-    return 0;
-}
-
-uint16_t mem68k_fetch_ctl2_word(uint32_t addr) {
-    if (addr) { }
-    return 0;
-}
-
-uint32_t mem68k_fetch_ctl2_long(uint32_t addr) {
-    if (addr) { }
-    return 0;
-}
-
-uint8_t mem68k_fetch_ctl3_byte(uint32_t addr) {
-    //printf("Fetch ctl3 byte %x\n",addr);
-    if ((addr & 0xFFFF) == 0x0)
-        return memory.intern_start;
-    return 0;
-}
-
-uint16_t mem68k_fetch_ctl3_word(uint32_t addr) {
-    /*
-      printf("Fetch ctl3 word %x\n",addr);
-      if ((addr & 0xFFFF) == 0x0)
-      return memory.intern_start | 0xFF00;
-    */
-    if (addr) { }
-    return 0;
-}
-
-uint32_t mem68k_fetch_ctl3_long(uint32_t addr) {
-    if (addr) { }
-    return 0;
-}
-
-uint8_t mem68k_fetch_coin_byte(uint32_t addr) {
-    addr &= 0xFFFF;
-    if (addr == 0x1) {
-        int coinflip = read_4990_testbit();
-        int databit = read_4990_databit();
-        return memory.intern_coin ^ (coinflip << 6) ^ (databit << 7);
-    }
-    if (addr == 0x0) {
-        return result_code;
-    }
-    return 0;
-}
-
-uint16_t mem68k_fetch_coin_word(uint32_t addr) {
-    if (addr) { }
-    return 0;
-}
-
-uint32_t mem68k_fetch_coin_long(uint32_t addr) {
-    if (addr) { }
-    return 0;
 }
 
 /**** RAM ****/

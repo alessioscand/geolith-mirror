@@ -128,30 +128,10 @@ void cpu_z80_lower_irq(void);
 void cpu_z80_init(void);
 void cpu_z80_reset(void);
 
-/* memory handler prototype */
-
-#define LONG_FETCH(fetchname) uint32_t fetchname ## _long(uint32_t addr) { \
-      return (fetchname ## _word(addr) << 16) | fetchname ## _word(addr+2); \
-}
-
 #define LONG_STORE(storename) void storename ## _long(uint32_t addr, uint32_t data) { \
       storename ## _word(addr,data>>16); \
       storename ## _word(addr+2,data & 0xffff); \
 }
-
-/* 68k fetching function */
-uint8_t mem68k_fetch_ctl1_byte(uint32_t addr);
-uint16_t mem68k_fetch_ctl1_word(uint32_t addr);
-uint32_t mem68k_fetch_ctl1_long(uint32_t addr);
-uint8_t mem68k_fetch_ctl2_byte(uint32_t addr);
-uint16_t mem68k_fetch_ctl2_word(uint32_t addr);
-uint32_t mem68k_fetch_ctl2_long(uint32_t addr);
-uint8_t mem68k_fetch_ctl3_byte(uint32_t addr);
-uint16_t mem68k_fetch_ctl3_word(uint32_t addr);
-uint32_t mem68k_fetch_ctl3_long(uint32_t addr);
-uint8_t mem68k_fetch_coin_byte(uint32_t addr);
-uint16_t mem68k_fetch_coin_word(uint32_t addr);
-uint32_t mem68k_fetch_coin_long(uint32_t addr);
 
 /* 68k storring function */
 void mem68k_store_ram_byte(uint32_t addr, uint8_t data);

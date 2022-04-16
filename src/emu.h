@@ -52,7 +52,6 @@ typedef enum COUNTRY {
 struct _conf_t {
     char *game;
     uint16_t sample_rate;
-    uint16_t test_switch;
     uint8_t extra_xor;
     uint8_t pal;
     SYSTEM system;
@@ -76,5 +75,7 @@ void neogeo_reset(void);
 void gn_log_set_callback(void (*)(int, const char *, ...));
 
 extern void (*gn_log)(int, const char *, ...);
+
+extern uint8_t reg_dipsw;
 
 #endif
