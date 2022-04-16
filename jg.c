@@ -106,10 +106,14 @@ static void gn_input_refresh(void) {
     if (input_device[2]->button[1])
         memory.intern_coin &= 0x05;
 
-    // Start buttons
+    // Select/Start buttons
     memory.intern_start = 0x8F;
+    if (input_device[0]->button[4])
+        memory.intern_start &= 0xfd;
     if (input_device[0]->button[5])
         memory.intern_start &= 0xfe;
+    if (input_device[0]->button[4])
+        memory.intern_start &= 0xf7;
     if (input_device[1]->button[5])
         memory.intern_start &= 0xfb;
 
