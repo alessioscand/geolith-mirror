@@ -224,7 +224,7 @@ int init_kof99(GAME_ROMS *r) {
     neogeo_fix_bank_type = 0;
     memory.bksw_offset = bankoffset_kof99;
     memory.bksw_unscramble = scramblecode_kof99;
-    memory.sma_rng_addr = 0xF8FA;
+    gn_m68k_prn_addrs(0x2ffff8, 0x2ffffa);
     //kof99_install_protection(machine);
     return 0;
 }
@@ -243,7 +243,6 @@ int init_garou(GAME_ROMS *r) {
     neogeo_fix_bank_type = 1;
     memory.bksw_offset = bankoffset_garou;
     memory.bksw_unscramble = scramblecode_garou;
-    memory.sma_rng_addr = 0xCCF0;
     gn_m68k_prn_addrs(0x2fffcc, 0x2ffff0);
     //garou_install_protection(machine);
     gn_log(GN_LOG_DBG, "I HAS INITIALIZD GAROU\n");
@@ -258,7 +257,7 @@ int init_garouo(GAME_ROMS *r) {
     neogeo_fix_bank_type = 1;
     memory.bksw_offset = bankoffset_garouo;
     memory.bksw_unscramble = scramblecode_garouo;
-    memory.sma_rng_addr = 0xCCF0;
+    gn_m68k_prn_addrs(0x2fffcc, 0x2ffff0);
 
     //garouo_install_protection(machine);
     return 0;
@@ -290,10 +289,7 @@ int init_mslug3(GAME_ROMS *r) {
     neogeo_fix_bank_type = 1;
     memory.bksw_offset = bankoffset_mslug3;
     memory.bksw_unscramble = scramblecode_mslug3;
-    //memory.sma_rng_addr=0xF8FA;
-    memory.sma_rng_addr = 0;
 
-    //mslug3_install_protection(r);
     return 0;
 }
 
@@ -321,8 +317,7 @@ int init_kof2000(GAME_ROMS *r) {
     neogeo_fix_bank_type = 2;
     memory.bksw_offset = bankoffset_kof2000;
     memory.bksw_unscramble = scramblecode_kof2000;
-    memory.sma_rng_addr = 0xD8DA;
-    //kof2000_install_protection(r);
+    gn_m68k_prn_addrs(0x2fffd8, 0x2fffda);
     return 0;
 
 }
@@ -1190,7 +1185,6 @@ static int init_roms(GAME_ROMS *r) {
     memory.bksw_handler = 0;
     memory.bksw_unscramble = NULL;
     memory.bksw_offset = NULL;
-    memory.sma_rng_addr = 0;
 
     while (init_func_table[i].name) {
         //printf("INIT ROM ? %s %s\n",init_func_table[i].name,r->info.name);

@@ -74,7 +74,7 @@ typedef struct neo_mem {
 
         uint8_t *bksw_unscramble;
         int *bksw_offset;
-        uint16_t sma_rng_addr;
+
         uint8_t memcard[0x800];
 
         uint32_t watchdog;
