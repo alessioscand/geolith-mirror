@@ -66,27 +66,9 @@ static inline void write_irq2pos(uint32_t data) {
     }
 }
 
-/* fetching function */
-/**** PALETTE ****/
-uint8_t mem68k_fetch_pal_byte(uint32_t addr) {
-    addr &= 0xffff;
-    if (addr <= 0x1fff)
-        return current_pal[addr];
-    return 0;
-}
-
-uint16_t mem68k_fetch_pal_word(uint32_t addr) {
-    addr &= 0xffff;
-    if (addr <= 0x1fff)
-        return READ_WORD(&current_pal[addr]);
-    return 0;
-}
-
-LONG_FETCH(mem68k_fetch_pal)
-
 /**** VIDEO ****/
 uint8_t mem68k_fetch_video_byte(uint32_t addr) {
-    //printf("mem6k_fetch_video_byte %08x\n",addr);
+    printf("mem6k_fetch_video_byte %08x\n",addr);
     if (!(addr&0x1))
         return mem68k_fetch_video_word(addr)>>8;
     else {

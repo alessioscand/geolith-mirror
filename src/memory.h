@@ -139,9 +139,6 @@ void cpu_z80_reset(void);
 }
 
 /* 68k fetching function */
-uint8_t mem68k_fetch_pal_byte(uint32_t addr);
-uint16_t mem68k_fetch_pal_word(uint32_t addr);
-uint32_t mem68k_fetch_pal_long(uint32_t addr);
 uint8_t mem68k_fetch_video_byte(uint32_t addr);
 uint16_t mem68k_fetch_video_word(uint32_t addr);
 uint32_t mem68k_fetch_video_long(uint32_t addr);

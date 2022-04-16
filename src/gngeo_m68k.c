@@ -59,6 +59,10 @@ static inline uint16_t read16(uint8_t *ptr, uint32_t addr) {
     return (ptr[addr] << 8) | ptr[addr + 1];
 }
 
+static inline uint16_t read16be(uint8_t *ptr, uint32_t addr) {
+    return (ptr[addr + 1] << 8) | ptr[addr];
+}
+
 static inline uint32_t read32(uint8_t *ptr, uint32_t addr) {
     return (ptr[addr] << 24) | (ptr[addr + 1] << 16) |
         (ptr[addr + 2] << 8) | ptr[addr + 3];
@@ -127,10 +131,10 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         }
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        return mem68k_fetch_pal_byte(address);
+        return read08(current_pal, address & 0x1fff);
     }
     else if (address < 0xc00000) { // Memory Card
-        gn_log(GN_LOG_DBG, "8-bit Memory Card Read: %06x\n", address);
+        //gn_log(GN_LOG_DBG, "8-bit Memory Card Read: %06x\n", address);
         /* 8-bit Memory Card reads return 0xff for odd addresses, and memcard
            data for even addresses. This is effectively half of a 16-bit read.
         */
@@ -180,7 +184,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         }
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        return mem68k_fetch_pal_word(address);
+        return read16be(current_pal, address & 0x1fff);
     }
     else if (address < 0xc00000) { // Memory Card
         /* Emulate an 8-bit, 2K memory card - since only the low byte is used,
@@ -224,10 +228,11 @@ unsigned int m68k_read_memory_32(unsigned int address) {
         }
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        return mem68k_fetch_pal_long(address);
+        return (m68k_read_memory_16(address) << 16) |
+            m68k_read_memory_16(address + 2);
     }
     else if (address < 0xc00000) { // Memory Card
-        gn_log(GN_LOG_WRN, "32-bit Memory Card Read: %06x\n", address);
+        //gn_log(GN_LOG_WRN, "32-bit Memory Card Read: %06x\n", address);
         return (m68k_read_memory_16(address) << 16) |
             m68k_read_memory_16(address + 2);
     }
