@@ -128,42 +128,26 @@ void cpu_z80_lower_irq(void);
 void cpu_z80_init(void);
 void cpu_z80_reset(void);
 
-#define LONG_STORE(storename) void storename ## _long(uint32_t addr, uint32_t data) { \
-      storename ## _word(addr,data>>16); \
-      storename ## _word(addr+2,data & 0xffff); \
-}
-
 /* 68k storring function */
 void mem68k_store_ram_byte(uint32_t addr, uint8_t data);
 void mem68k_store_ram_word(uint32_t addr, uint16_t data);
-void mem68k_store_ram_long(uint32_t addr, uint32_t data);
 void mem68k_store_bk_normal_byte(uint32_t addr, uint8_t data);
 void mem68k_store_bk_normal_word(uint32_t addr, uint16_t data);
-void mem68k_store_bk_normal_long(uint32_t addr, uint32_t data);
 void mem68k_store_sram_byte(uint32_t addr, uint8_t data);
 void mem68k_store_sram_word(uint32_t addr, uint16_t data);
-void mem68k_store_sram_long(uint32_t addr, uint32_t data);
 void mem68k_store_pal_byte(uint32_t addr, uint8_t data);
 void mem68k_store_pal_word(uint32_t addr, uint16_t data);
-void mem68k_store_pal_long(uint32_t addr, uint32_t data);
 void mem68k_store_video_byte(uint32_t addr, uint8_t data);
 void mem68k_store_video_word(uint32_t addr, uint16_t data);
-void mem68k_store_video_long(uint32_t addr, uint32_t data);
 void mem68k_store_pd4990_byte(uint32_t addr, uint8_t data);
 void mem68k_store_pd4990_word(uint32_t addr, uint16_t data);
 void mem68k_store_pd4990_long(uint32_t addr, uint32_t data);
 void mem68k_store_z80_byte(uint32_t addr, uint8_t data);
 void mem68k_store_z80_word(uint32_t addr, uint16_t data);
-void mem68k_store_z80_long(uint32_t addr, uint32_t data);
 void mem68k_store_setting_byte(uint32_t addr, uint8_t data);
 void mem68k_store_setting_word(uint32_t addr, uint16_t data);
-void mem68k_store_setting_long(uint32_t addr, uint32_t data);
 void mem68k_store_memcrd_byte(uint32_t addr, uint8_t data);
 void mem68k_store_memcrd_word(uint32_t addr, uint16_t data);
-void mem68k_store_memcrd_long(uint32_t addr, uint32_t data);
-void mem68k_store_bk_kof2003_byte(uint32_t addr, uint8_t data);
-void mem68k_store_bk_kof2003_word(uint32_t addr, uint16_t data);
-void mem68k_store_bk_kof2003_long(uint32_t addr, uint32_t data);
 
 void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2);
 #endif

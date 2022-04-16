@@ -67,8 +67,6 @@ void mem68k_store_ram_word(uint32_t addr, uint16_t data) {
     return;
 }
 
-LONG_STORE(mem68k_store_ram)
-
 /**** SRAM ****/
 void mem68k_store_sram_byte(uint32_t addr, uint8_t data) {
     if (sram_lock)
@@ -92,8 +90,6 @@ void mem68k_store_sram_word(uint32_t addr, uint16_t data) {
     memory.sram[addr] = data >> 8;
     memory.sram[addr + 1] = data & 0xff;
 }
-
-LONG_STORE(mem68k_store_sram)
 
 /**** PALETTE ****/
 /*static inline */uint32_t convert_pal(uint16_t npal) {
@@ -151,8 +147,6 @@ void mem68k_store_pal_word(uint32_t addr, uint16_t data) {
     }
 }
 
-LONG_STORE(mem68k_store_pal)
-
 /**** VIDEO ****/
 void mem68k_store_video_byte(uint32_t addr, uint8_t data) {
     /* garou write at 3c001f, 3c000f, 3c0015 */
@@ -203,7 +197,6 @@ void mem68k_store_video_word(uint32_t addr, uint16_t data) {
     }
 
 }
-LONG_STORE(mem68k_store_video)
 
 /**** PD4990 ****/
 void mem68k_store_pd4990_byte(uint32_t addr, uint8_t data) {
@@ -233,9 +226,6 @@ void mem68k_store_z80_word(uint32_t addr, uint16_t data) {
         //printf("W Pending command. Sound_code=%02x\n",sound_code);
         cpu_z80_nmi();
     }
-}
-void mem68k_store_z80_long(uint32_t addr, uint32_t data) {
-    gn_log(GN_LOG_WRN, "Z80L %x %04x\n", addr, data);
 }
 
 /**** SETTINGS ****/
@@ -335,10 +325,6 @@ void mem68k_store_setting_word(uint32_t addr, uint16_t data) {
     }
 }
 
-void mem68k_store_setting_long(uint32_t addr, uint32_t data) {
-    if (addr || data) { } // FIXME: Actually use this
-}
-
 /**** MEMCARD ****/
 void mem68k_store_memcrd_byte(uint32_t addr, uint8_t data) {
     addr &= 0xFFF;
@@ -348,9 +334,6 @@ void mem68k_store_memcrd_word(uint32_t addr, uint16_t data) {
     //printf("memstore16\n");
     addr &= 0xFFF;
     memory.memcard[addr >> 1] = data & 0xff;
-}
-void mem68k_store_memcrd_long(uint32_t addr, uint32_t data) {
-    if (addr || data) { } // FIXME: Actually use this
 }
 
 /**** bankswitchers ****/
@@ -394,5 +377,3 @@ void mem68k_store_bk_normal_word(uint32_t addr, uint16_t data) {
     } else
         bankswitch(addr, data);
 }
-
-LONG_STORE(mem68k_store_bk_normal)

@@ -353,43 +353,8 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
 }
 
 void m68k_write_memory_32(unsigned int address, unsigned int value) {
-    address &= 0xffffff;
-
-    if (address < 0x100000) { // Fixed 1M Program ROM Bank
-        gn_log(GN_LOG_WRN, "68K write to Program ROM: %06x %08x\n",
-            address, value);
-    }
-    else if (address < 0x200000) { // RAM - Mirrored every 64K
-        mem68k_store_ram_long(address, value);
-    }
-    else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        mem68k_store_bk_normal_long(address, value);
-    }
-    else if (address < 0x400000) { // Memory Mapped Registers
-        // Any writes to 0x300001 reset the watchdog via the DOGE pin
-        if (address == 0x300001)
-            memory.watchdog = 0;
-
-        switch ((address >> 16) & 0x0f) {
-            case 0x02: mem68k_store_z80_long(address, value); break;
-            case 0x08: mem68k_store_pd4990_long(address, value); break;
-            case 0x0c: mem68k_store_video_long(address, value); break;
-            case 0x0a: mem68k_store_setting_long(address, value); break;
-        }
-    }
-    else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        mem68k_store_pal_long(address, value);
-    }
-    else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
-        mem68k_store_memcrd_long(address, value);
-    }
-    else if (address < 0xd00000) { // BIOS ROM
-        gn_log(GN_LOG_WRN, "68K write to BIOS ROM: %06x %08x\n",
-            address, value);
-    }
-    else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        mem68k_store_sram_long(address, value);
-    }
+    m68k_write_memory_16(address, value >> 16);
+    m68k_write_memory_16(address + 2, value & 0xffff);
 }
 
 void cpu_68k_bankswitch(uint32_t address) {
