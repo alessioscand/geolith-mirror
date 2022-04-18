@@ -36,6 +36,7 @@ void pd4990a_init(void);
 void pd4990a_addretrace(void);
 int read_4990_testbit(void);
 int read_4990_databit(void);
+void pd4990a_serial_control(unsigned char data);
 void write_4990_control_w(uint32_t address, uint32_t data);
 void pd4990a_increment_day(void);
 void pd4990a_increment_month(void);

@@ -32,6 +32,9 @@ SOFTWARE.
 
 #define SMATAP 0x98ec // NEO-SMA Tapped bits - 2, 3, 5, 6, 7, 11, 12, and 15
 
+// Z80 command
+uint8_t sound_code;
+
 // Pseudo-Random Number addresses
 static uint32_t addr_prn[2] = { 0, 0 };
 static uint16_t prn = 0x2345; // Pseudo-random number initial value
@@ -170,7 +173,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
             case 0x340000: { // REG_P2CNT
                 return gn_input_cb[1](1);
             }
-            case 0x380000: {
+            case 0x380000: { // REG_STATUS_B
                 /* Aux Inputs (Lower bits Active Low)
                    Bit 7:    0 = AES, 1 = MVS
                    Bit 6:    Memory card write protect
@@ -296,13 +299,24 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
         mem68k_store_bk_normal_byte(address, value);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
-        // Any writes to 0x300001 reset the watchdog via the DOGE pin
-        if (address == 0x300001)
-            memory.watchdog = 0;
+        switch (address) {
+            // Writes to 0x300001 reset watchdog timer via DOGE pin
+            case 0x300001: {
+                memory.watchdog = 0;
+                break;
+            }
+            case 0x320000: { // REG_SOUND
+                sound_code = value & 0xff;
+                cpu_z80_nmi();
+                break;
+            }
+            case 0x380051: { // REG_RTCCTRL
+                pd4990a_serial_control(value & 0x07);
+                break;
+            }
+        }
 
         switch ((address >> 16) & 0x0f) {
-            case 0x02: mem68k_store_z80_byte(address, value); break;
-            case 0x08: mem68k_store_pd4990_byte(address, value); break;
             case 0x0c: mem68k_store_video_byte(address, value); break;
             case 0x0a: mem68k_store_setting_byte(address, value); break;
         }
@@ -337,13 +351,24 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
         mem68k_store_bk_normal_word(address, value);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
-        // Any writes to 0x300001 reset the watchdog via the DOGE pin
-        if (address == 0x300001)
-            memory.watchdog = 0;
+        switch (address) {
+            // Writes to 0x300001 reset watchdog timer via DOGE pin
+            case 0x300001: {
+                memory.watchdog = 0;
+                break;
+            }
+            case 0x320000: { // REG_SOUND
+                sound_code = (value >> 8) & 0xff; // Use the upper byte
+                cpu_z80_nmi();
+                break;
+            }
+            case 0x380051: { // REG_RTCCTRL
+                pd4990a_serial_control(value & 0x07);
+                break;
+            }
+        }
 
         switch ((address >> 16) & 0x0f) {
-            case 0x02: mem68k_store_z80_word(address, value); break;
-            case 0x08: mem68k_store_pd4990_word(address, value); break;
             case 0x0c: mem68k_store_video_word(address, value); break;
             case 0x0a: mem68k_store_setting_word(address, value); break;
         }

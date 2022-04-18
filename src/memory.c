@@ -34,7 +34,6 @@ uint32_t *current_pc_pal;
 uint8_t *current_fix;
 uint8_t *fix_usage;
 uint8_t sram_lock;
-uint8_t sound_code;
 uint8_t result_code;
 
 uint32_t bankaddress = 0;
@@ -182,36 +181,6 @@ void mem68k_store_video_word(uint32_t addr, uint16_t data) {
         break;
     }
 
-}
-
-/**** PD4990 ****/
-void mem68k_store_pd4990_byte(uint32_t addr, uint8_t data) {
-    write_4990_control_w(addr, data);
-}
-
-void mem68k_store_pd4990_word(uint32_t addr, uint16_t data) {
-    write_4990_control_w(addr, data);
-}
-
-void mem68k_store_pd4990_long(uint32_t addr, uint32_t data) {
-    write_4990_control_w(addr, data);
-}
-
-/**** Z80 ****/
-void mem68k_store_z80_byte(uint32_t addr, uint8_t data) {
-    if (addr == 0x320000) {
-        sound_code = data & 0xff;
-        //printf("B Pending command. Sound_code=%02x\n",sound_code);
-        cpu_z80_nmi();
-    }
-}
-void mem68k_store_z80_word(uint32_t addr, uint16_t data) {
-    /* tpgolf use word store for sound */
-    if (addr == 0x320000) {
-        sound_code = data >> 8;
-        //printf("W Pending command. Sound_code=%02x\n",sound_code);
-        cpu_z80_nmi();
-    }
 }
 
 /**** SETTINGS ****/
