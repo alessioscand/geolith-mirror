@@ -120,7 +120,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
     else if (address < 0x400000) { // Memory Mapped Registers
         switch (address) {
             case 0x300000: { // REG_P1CNT
-                return memory.intern_p1;
+                return gn_input_cb[0](0);
             }
             case 0x300001: { // REG_DIPSW
                 /* Hardware DIP Switches (Active Low)
@@ -154,12 +154,12 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                    Bit 1:    Coin-in 2
                    Bit 0:    Coin-in 1
                 */
-                return memory.intern_coin |
+                return gn_input_stat_cb[0]() |
                     (read_4990_testbit() << 6) |
                     (read_4990_databit() << 7);
             }
             case 0x340000: { // REG_P2CNT
-                return memory.intern_p2;
+                return gn_input_cb[1](1);
             }
             case 0x380000: {
                 /* Aux Inputs (Lower bits Active Low)
@@ -171,7 +171,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                    Bit 1:    Player 1 Select
                    Bit 0:    Player 1 Start
                 */
-                return memory.intern_start;
+                return gn_input_stat_cb[1]();
             }
         }
     }

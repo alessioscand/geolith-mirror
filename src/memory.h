@@ -65,8 +65,6 @@ typedef struct neo_mem {
 
         uint8_t game_vector[0x80];
         int   current_vector;
-        /* internal representation of joystick */
-        uint8_t intern_p1, intern_p2, intern_coin, intern_start;
 
         /* crypted rom bankswitch system */
 

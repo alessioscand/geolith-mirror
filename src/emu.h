@@ -34,6 +34,8 @@
 #define SIZE_32K    0x008000
 #define SIZE_64K    0x010000
 
+#define NUMINPUTS_NG 2
+
 typedef enum SYSTEM {
     SYS_UNIBIOS,
     SYS_ARCADE,
@@ -72,9 +74,15 @@ void init_neo(void);
 void cpu_68k_dpg_step(void);
 void setup_misc_patch(char *name);
 void neogeo_reset(void);
+
 void gn_log_set_callback(void (*)(int, const char *, ...));
+void gn_input_set_callback(unsigned, unsigned (*)(unsigned));
+void gn_input_stat_set_callback(unsigned, unsigned (*)(void));
 
 extern void (*gn_log)(int, const char *, ...);
+
+extern unsigned (*gn_input_cb[NUMINPUTS_NG])(unsigned);
+extern unsigned (*gn_input_stat_cb[NUMINPUTS_NG])(void);
 
 extern uint8_t reg_dipsw;
 

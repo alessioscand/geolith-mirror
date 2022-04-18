@@ -98,62 +98,52 @@ static void gn_settings_read(void) {
         sizeof(settings_gn) / sizeof(jg_setting_t));
 }
 
-static void gn_input_refresh(void) {
-    // Coin slots
-    memory.intern_coin = 0x07;
-    if (input_device[2]->button[0])
-        memory.intern_coin &= 0x06;
-    if (input_device[2]->button[1])
-        memory.intern_coin &= 0x05;
+// Coin Slots, Service Button, # of Slots
+static unsigned gn_input_poll_stat_a(void) {
+    unsigned c = 0x07;
+    if (input_device[2]->button[0]) // Coin 1
+        c &= 0x06;
+    if (input_device[2]->button[1]) // Coin 2
+        c &= 0x05;
+    return c;
+}
 
-    // Select/Start buttons
-    memory.intern_start = 0x8F;
+// P1/P2 Select/Start, Memcard status, AES/MVS setting
+static unsigned gn_input_poll_stat_b(void) {
+    unsigned s = 0x8f;
     if (input_device[0]->button[4])
-        memory.intern_start &= 0xfd;
+        s &= 0x8d;
     if (input_device[0]->button[5])
-        memory.intern_start &= 0xfe;
-    if (input_device[0]->button[4])
-        memory.intern_start &= 0xf7;
+        s &= 0x8e;
+    if (input_device[1]->button[4])
+        s &= 0x87;
     if (input_device[1]->button[5])
-        memory.intern_start &= 0xfb;
+        s &= 0x8b;
+    return s;
+}
 
-    // Player 1
-    memory.intern_p1 = 0xff;
-    if (input_device[0]->button[0])
-        memory.intern_p1 &= 0xfe;
-    if (input_device[0]->button[1])
-        memory.intern_p1 &= 0xfd;
-    if (input_device[0]->button[2])
-        memory.intern_p1 &= 0xfb;
-    if (input_device[0]->button[3])
-        memory.intern_p1 &= 0xf7;
-    if (input_device[0]->button[6])
-        memory.intern_p1 &= 0xef;
-    if (input_device[0]->button[7])
-        memory.intern_p1 &= 0xdf;
-    if (input_device[0]->button[8])
-        memory.intern_p1 &= 0xbf;
-    if (input_device[0]->button[9])
-        memory.intern_p1 &= 0x7f;
+// Neo Geo Joystick
+static unsigned gn_input_poll_js(unsigned port) {
+    unsigned b = 0xff;
 
-    // Player 2
-    memory.intern_p2 = 0xff;
-    if (input_device[1]->button[0])
-        memory.intern_p2 &= 0xfe;
-    if (input_device[1]->button[1])
-        memory.intern_p2 &= 0xfd;
-    if (input_device[1]->button[2])
-        memory.intern_p2 &= 0xfb;
-    if (input_device[1]->button[3])
-        memory.intern_p2 &= 0xf7;
-    if (input_device[1]->button[6])
-        memory.intern_p2 &= 0xef;
-    if (input_device[1]->button[7])
-        memory.intern_p2 &= 0xdf;
-    if (input_device[1]->button[8])
-        memory.intern_p2 &= 0xbf;
-    if (input_device[1]->button[9])
-        memory.intern_p2 &= 0x7f;
+    if (input_device[port]->button[0])
+        b &= ~(1 << 0);
+    if (input_device[port]->button[1])
+        b &= ~(1 << 1);
+    if (input_device[port]->button[2])
+        b &= ~(1 << 2);
+    if (input_device[port]->button[3])
+        b &= ~(1 << 3);
+    if (input_device[port]->button[6])
+        b &= ~(1 << 4);
+    if (input_device[port]->button[7])
+        b &= ~(1 << 5);
+    if (input_device[port]->button[8])
+        b &= ~(1 << 6);
+    if (input_device[port]->button[9])
+        b &= ~(1 << 7);
+
+    return b;
 }
 
 void jg_set_cb_audio(jg_cb_audio_t func) {
@@ -198,7 +188,6 @@ void jg_reset(int hard) {
 }
 
 void jg_exec_frame(void) {
-    gn_input_refresh();
     main_loop();
 }
 
@@ -227,6 +216,11 @@ int jg_game_load(void) {
     inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_JS);
     inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_JS);
     inputinfo[2] = jg_neogeo_inputinfo(2, JG_NEOGEO_SYS);
+
+    gn_input_set_callback(0, &gn_input_poll_js);
+    gn_input_set_callback(1, &gn_input_poll_js);
+    gn_input_stat_set_callback(0, &gn_input_poll_stat_a);
+    gn_input_stat_set_callback(1, &gn_input_poll_stat_b);
 
     jg_cb_frametime(FRAMERATE);
 

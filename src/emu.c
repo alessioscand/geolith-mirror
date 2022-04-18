@@ -41,6 +41,10 @@
 // Log callback
 void (*gn_log)(int, const char *, ...);
 
+// Input poll callbacks
+unsigned (*gn_input_cb[NUMINPUTS_NG])(unsigned);
+unsigned (*gn_input_stat_cb[NUMINPUTS_NG])(void);
+
 struct _conf_t conf;
 
 uint8_t reg_dipsw = 0;
@@ -59,6 +63,14 @@ static uint32_t ymcycs = 0;
 // Set the log callback
 void gn_log_set_callback(void (*cb)(int, const char *, ...)) {
     gn_log = cb;
+}
+
+// Set the Input Callbacks to allow the emulator to strobe the input state
+void gn_input_set_callback(unsigned port, unsigned (*cb)(unsigned)) {
+    gn_input_cb[port] = cb;
+}
+void gn_input_stat_set_callback(unsigned port, unsigned (*cb)(void)) {
+    gn_input_stat_cb[port] = cb;
 }
 
 void setup_misc_patch(char *name) {
