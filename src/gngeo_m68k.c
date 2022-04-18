@@ -64,6 +64,15 @@ static inline uint16_t read16be(uint8_t *ptr, uint32_t addr) {
     return (ptr[addr + 1] << 8) | ptr[addr];
 }
 
+static inline void write08(uint8_t *ptr, uint32_t addr, uint8_t data) {
+    ptr[addr] = data;
+}
+
+static inline void write16(uint8_t *ptr, uint32_t addr, uint16_t data) {
+    ptr[addr + 1] = data & 0xff;
+    ptr[addr] = data >> 8;
+}
+
 /* 68K Memory Map
  * =====================================================================
  * |    Address Range    | Size |             Description              |
@@ -280,7 +289,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
-        mem68k_store_ram_byte(address, value);
+        address &= 0xffff;
+        write08(memory.ram, address, value & 0xff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         mem68k_store_bk_normal_byte(address, value);
@@ -320,7 +330,8 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
-        mem68k_store_ram_word(address, value);
+        address &= 0xffff;
+        write16(memory.ram, address, value & 0xffff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         mem68k_store_bk_normal_word(address, value);

@@ -53,20 +53,6 @@ static inline void write_irq2pos(uint32_t data) {
     }
 }
 
-/**** RAM ****/
-void mem68k_store_ram_byte(uint32_t addr, uint8_t data) {
-    addr &= 0xffff;
-    WRITE_BYTE_ROM(memory.ram + addr,data);
-    return;
-}
-
-void mem68k_store_ram_word(uint32_t addr, uint16_t data) {
-    //printf("Store rom word %08x %04x\n",addr,data);
-    addr &= 0xffff;
-    WRITE_WORD_ROM(memory.ram + addr,data);
-    return;
-}
-
 /**** SRAM ****/
 void mem68k_store_sram_byte(uint32_t addr, uint8_t data) {
     if (sram_lock)

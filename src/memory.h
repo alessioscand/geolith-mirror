@@ -127,8 +127,6 @@ void cpu_z80_init(void);
 void cpu_z80_reset(void);
 
 /* 68k storring function */
-void mem68k_store_ram_byte(uint32_t addr, uint8_t data);
-void mem68k_store_ram_word(uint32_t addr, uint16_t data);
 void mem68k_store_bk_normal_byte(uint32_t addr, uint8_t data);
 void mem68k_store_bk_normal_word(uint32_t addr, uint16_t data);
 void mem68k_store_sram_byte(uint32_t addr, uint8_t data);
