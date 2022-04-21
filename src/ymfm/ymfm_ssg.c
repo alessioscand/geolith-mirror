@@ -130,12 +130,12 @@ static inline uint32_t ssg_registers_io_b_data(void) {
 }*/
 
 // per-channel registers
-static inline uint32_t ssg_registers_ch_noise_enable(uint32_t choffs) {
-	return bitfield(~m_regdata[0x07], 3 + choffs, 1);
+static inline uint32_t ssg_registers_ch_noise_enable_n(uint32_t choffs) {
+	return bitfield(m_regdata[0x07], 3 + choffs, 1);
 }
 
-static inline uint32_t ssg_registers_ch_tone_enable(uint32_t choffs) {
-	return bitfield(~m_regdata[0x07], 0 + choffs, 1);
+static inline uint32_t ssg_registers_ch_tone_enable_n(uint32_t choffs) {
+	return bitfield(m_regdata[0x07], 0 + choffs, 1);
 }
 
 static inline uint32_t ssg_registers_ch_tone_period(uint32_t choffs) {
@@ -270,14 +270,14 @@ void ssg_engine_output(int32_t *output)
 	for (int chan = 0; chan < 3; chan++)
 	{
 		// noise depends on the noise state, which is the LSB of m_noise_state
-		uint32_t noise_on = ssg_registers_ch_noise_enable(chan) & m_noise_state;
+		uint32_t noise_on = ssg_registers_ch_noise_enable_n(chan) | m_noise_state;
 
 		// tone depends on the current tone state
-		uint32_t tone_on = ssg_registers_ch_tone_enable(chan) & m_tone_state[chan];
+		uint32_t tone_on = ssg_registers_ch_tone_enable_n(chan) | m_tone_state[chan];
 
 		// if neither tone nor noise enabled, return 0
 		uint32_t volume;
-		if ((noise_on | tone_on) == 0)
+		if ((noise_on & tone_on) == 0)
 			volume = 0;
 
 		// if the envelope is enabled, use its amplitude
