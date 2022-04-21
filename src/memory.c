@@ -89,23 +89,6 @@ void update_all_pal(void) {
     }
 }
 
-void mem68k_store_pal_byte(uint32_t addr, uint8_t data) {
-    /* TODO: verify this */
-    addr &= 0xffff;
-    if (addr <= 0x1fff) {
-        uint16_t a = READ_WORD(&current_pal[addr & 0xfffe]);
-        if (addr & 0x1)
-            a = data | (a & 0xff00);
-        else
-            a = (a & 0xff) | (data << 8);
-        WRITE_WORD(&current_pal[addr & 0xfffe], a);
-        if ((addr >> 1) & 0xF)
-            current_pc_pal[(addr) >> 1] = convert_pal(a);
-        else
-            current_pc_pal[(addr) >> 1] = 0xF81F;
-    }
-}
-
 void mem68k_store_pal_word(uint32_t addr, uint16_t data) {
     //printf("Store pal word @ %08x %08x %04x\n",cpu_68k_getpc(),addr,data);
     addr &= 0xffff;

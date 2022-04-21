@@ -349,7 +349,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
         }
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        mem68k_store_pal_byte(address, value);
+        gn_log(GN_LOG_WRN, "Palette RAM 8-bit write: %08x, %02x\n",
+            address, value);
     }
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
         mem68k_store_memcrd_byte(address, value);
