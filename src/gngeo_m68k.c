@@ -259,7 +259,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
             }
             case 0x3c0004: case 0x3c000c: {
                 // REG_VRAMMOD, REG_IRQACK
-                return memory.vid.modulo;
+                return (uint16_t)memory.vid.modulo;
             }
             case 0x3c0006: case 0x3c000e: {
                 /* REG_LSPCMODE, REG_TIMERSTOP
@@ -392,10 +392,53 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                 pd4990a_serial_control(value & 0x07);
                 break;
             }
+            case 0x3c0000: { // REG_VRAMADDR
+                memory.vid.vptr = value & 0xffff;
+                break;
+            }
+            case 0x3c0002: { // REG_VRAMRW
+                // Write to VRAM (modulo is applied after)
+                memory.vid.ram[memory.vid.vptr] = value;
+                memory.vid.vptr += memory.vid.modulo;
+                break;
+            }
+            case 0x3c0004: { // REG_VRAMMOD
+                /* Set the signed value automatically added to the VRAM address
+                   after a write
+                */
+                memory.vid.modulo = ((int16_t)value);
+                break;
+            }
+            case 0x3c0006: { // REG_LSPCMODE
+                /* Bits 8-15: Auto animation speed - tick every N+1 frames
+                   Bits 7-5:  Timer interrupt mode
+                   Bit 4:     Timer interrupt enable
+                   Bit 3:     Disable auto animation
+                   Bits 0-2:  Unused
+                */
+                neogeo_frame_counter_speed = (((value >> 8) & 0xff) + 1);
+                memory.vid.irq2control = value & 0xff;
+                return;
+            }
+            case 0x3c0008: { // REG_TIMERHIGH
+                memory.vid.irq2pos =
+                    (memory.vid.irq2pos & 0xffff) | ((uint32_t)value << 16);
+                break;
+            }
+            case 0x3c000a: { // REG_TIMERLOW
+                memory.vid.irq2pos =
+                    (memory.vid.irq2pos & 0xffff0000) | (value & 0xffff);
+                break;
+            }
+            case 0x3c000e: { // REG_TIMERSTOP
+                /* Bit 0=1: Stop timer counter during first and last 16 lines
+                   (32 total) when in PAL mode -- FIXME
+                */
+                break;
+            }
         }
 
         switch ((address >> 16) & 0x0f) {
-            case 0x0c: mem68k_store_video_word(address, value); break;
             case 0x0a: mem68k_store_setting_word(address, value); break;
         }
     }

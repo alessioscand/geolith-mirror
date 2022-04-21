@@ -81,7 +81,6 @@ typedef struct neo_mem {
 extern neo_mem memory;
 
 /* video related */
-//extern int irq2start, irq2control;
 extern uint8_t *current_pal;
 extern uint32_t *current_pc_pal;
 extern uint8_t *current_fix;
@@ -133,7 +132,6 @@ void mem68k_store_sram_byte(uint32_t addr, uint8_t data);
 void mem68k_store_sram_word(uint32_t addr, uint16_t data);
 void mem68k_store_pal_byte(uint32_t addr, uint8_t data);
 void mem68k_store_pal_word(uint32_t addr, uint16_t data);
-void mem68k_store_video_word(uint32_t addr, uint16_t data);
 void mem68k_store_setting_byte(uint32_t addr, uint8_t data);
 void mem68k_store_setting_word(uint32_t addr, uint16_t data);
 void mem68k_store_memcrd_byte(uint32_t addr, uint8_t data);

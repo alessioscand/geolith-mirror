@@ -38,20 +38,6 @@ uint8_t result_code;
 
 uint32_t bankaddress = 0;
 
-static inline void write_neo_control(uint16_t data) {
-    neogeo_frame_counter_speed = (((data >> 8) & 0xff) + 1);
-    memory.vid.irq2control = data & 0xff;
-    return;
-}
-
-static inline void write_irq2pos(uint32_t data) {
-    memory.vid.irq2pos = data;
-    if (memory.vid.irq2control & 0x20) {
-        int line = (memory.vid.irq2pos + 0x3b) / 0x180; /* turfmast goes as low as 0x145 */
-        memory.vid.irq2start = line + current_line;
-    }
-}
-
 /**** SRAM ****/
 void mem68k_store_sram_byte(uint32_t addr, uint8_t data) {
     if (sram_lock)
@@ -130,46 +116,6 @@ void mem68k_store_pal_word(uint32_t addr, uint16_t data) {
         else
             current_pc_pal[(addr) >> 1] = 0xF81F;
     }
-}
-
-/**** VIDEO ****/
-void mem68k_store_video_word(uint32_t addr, uint16_t data) {
-    //data&=0xFFFF;
-    //printf("mem68k_store_video_word %08x %04x @pc=%08x\n",addr,data,cpu_68k_getpc());
-    addr &= 0xF;
-    switch (addr) {
-    case 0x0:
-        memory.vid.vptr = data & 0xffff;
-        break;
-    case 0x2:
-        //printf("Store %04x to video %08x @pc=%08x\n",data,vptr<<1,cpu_68k_getpc());
-        memory.vid.ram[memory.vid.vptr] = data;
-        memory.vid.vptr = (memory.vid.vptr & 0x8000) + ((memory.vid.vptr
-                                                         + memory.vid.modulo) & 0x7fff);
-        break;
-    case 0x4:
-        if (data&0x4000)
-            data|=0x8000;
-        else
-            data&=0x7FFF;
-
-        memory.vid.modulo = (int) data;
-        break;
-    case 0x6:
-        write_neo_control(data);
-        break;
-    case 0x8:
-        write_irq2pos((memory.vid.irq2pos & 0xffff) | ((uint32_t) data << 16));
-        break;
-    case 0xa:
-        write_irq2pos((memory.vid.irq2pos & 0xffff0000) | (uint32_t) data);
-        break;
-    case 0xc:
-        /* games write 7 or 4 at 0x3c000c at every frame */
-        /* IRQ acknowledge */
-        break;
-    }
-
 }
 
 /**** SETTINGS ****/
