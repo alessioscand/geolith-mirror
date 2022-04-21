@@ -41,7 +41,7 @@ typedef struct gfx_cache {
 
 typedef struct VIDEO {
     /* Video Ram&Pal */
-    uint8_t ram[0x20000];
+    uint16_t ram[0x10000];
     uint8_t pal_neo[2][0x2000];
     uint8_t pal_host[2][0x4000];
     uint8_t currentpal;

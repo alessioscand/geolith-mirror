@@ -149,14 +149,14 @@ void mem68k_store_video_word(uint32_t addr, uint16_t data) {
     switch (addr) {
     case 0x0:
         memory.vid.vptr = data & 0xffff;
-        memory.vid.rbuf = READ_WORD(&memory.vid.ram[memory.vid.vptr << 1]);
+        memory.vid.rbuf = memory.vid.ram[memory.vid.vptr];
         break;
     case 0x2:
         //printf("Store %04x to video %08x @pc=%08x\n",data,vptr<<1,cpu_68k_getpc());
-        WRITE_WORD(&memory.vid.ram[memory.vid.vptr << 1], data);
+        memory.vid.ram[memory.vid.vptr] = data;
         memory.vid.vptr = (memory.vid.vptr & 0x8000) + ((memory.vid.vptr
                                                          + memory.vid.modulo) & 0x7fff);
-        memory.vid.rbuf = READ_WORD(&memory.vid.ram[memory.vid.vptr << 1]);
+        memory.vid.rbuf = memory.vid.ram[memory.vid.vptr];
         break;
     case 0x4:
         if (data&0x4000)

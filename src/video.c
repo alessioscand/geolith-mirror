@@ -62,8 +62,6 @@ uint32_t dda_y_skip_i;
 uint32_t full_y_skip_i = 0xFFFE;
 char full_y_skip[16] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 unsigned int neogeo_frame_counter_speed = 8;
-static uint16_t fix_addr[40][32];
-static uint8_t fix_shift[40];
 
 void video_set_buffer(uint32_t *ptr) {
     vbuf = ptr;
@@ -170,17 +168,7 @@ uint8_t *get_cached_sprite_ptr(uint32_t tileno) {
     return gcache->ptr[bank];
 }
 
-static void fix_value_init(void) {
-    int x, y;
-    for (x = 0; x < 40; x++) {
-        for (y = 0; y < 32; y++) {
-            fix_addr[x][y] = 0xea00 + (y << 1) + 64 * (x / 6);
-        }
-        fix_shift[x] = (5 - (x % 6));
-    }
-}
-
-#define fix_add(x, y) ((((READ_WORD(memory.vid.ram + 0xEA00 + (((y-1)&31)*2 + 64 * (x/6))) >> (5-(x%6))*2) & 3) ^ 3))
+#define fix_add(x, y) ((((memory.vid.ram[0x7500 + (((y-1)&31) + 32 * (x/6))] >> (5-(x%6))*2) & 3) ^ 3))
 
 /* Drawing function generation */
 #define RENAME(name) name##_tile
@@ -206,14 +194,14 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
         y = 0;
 
         while (y < 32) {
-            if (READ_WORD(&memory.vid.ram[0xea00 + (k << 1)]) == 0x0200 &&
-                    (READ_WORD(&memory.vid.ram[0xeb00 + (k << 1)]) & 0xff00) == 0xff00) {
+            if (memory.vid.ram[0x7500 + k] == 0x0200 &&
+                    (memory.vid.ram[0x7580 + k] & 0xff00) == 0xff00) {
 
-                garoubank = READ_WORD(&memory.vid.ram[0xeb00 + (k << 1)]) & 3;
+                garoubank = memory.vid.ram[0x7580 + k] & 3;
                 garouoffsets[y++] = garoubank;
             }
             garouoffsets[y++] = garoubank;
-            k += 2;
+            k += 1;
         }
     }
 
@@ -223,9 +211,9 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
         if (ystart < 1) ystart = 1;
     }
 
-    for (y = ystart; y < yend; y++)
+    for (y = ystart; y < yend; y++) {
         for (x = 1; x < 39; x++) {
-            byte1 = (READ_WORD(&memory.vid.ram[0xE000 + ((y + (x << 5)) << 1)]));
+            byte1 = memory.vid.ram[0x7000 + y + (x << 5)];
             byte2 = byte1 >> 12;
             byte1 = byte1 & 0xfff;
 
@@ -267,8 +255,8 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
                 if (col) br[0] = paldata[col];
                 br += 352;
             }
-
         }
+    }
 }
 
 void draw_bg(uint32_t *pix, uint32_t bgcol) {
@@ -293,15 +281,15 @@ void draw_screen(void) {
     unsigned int tileno, tileatr, t1, t2, t3;
     char fullmode = 0;
     int dday = 0, rzx = 15, yskip = 0;
-    uint8_t *vidram = memory.vid.ram;
+    uint16_t *vidram = memory.vid.ram;
 
     draw_bg(vbuf, current_pc_pal[4095]);
 
     /* Draw sprites */
-    for (count = 0; count < 0x300; count += 2) {
-        t3 = READ_WORD(&vidram[0x10000 + count]);
-        t1 = READ_WORD(&vidram[0x10400 + count]);
-        t2 = READ_WORD(&vidram[0x10800 + count]);
+    for (count = 0; count < 0x180; ++count) {
+        t3 = vidram[0x8000 + count];
+        t1 = vidram[0x8200 + count];
+        t2 = vidram[0x8400 + count];
 
         //printf("%04x %04x %04x\n",t3,t1,t2);
         /* If this bit is set this new column is placed next to last one */
@@ -378,10 +366,8 @@ void draw_screen(void) {
 
         /* my holds the number of tiles in each vertical multisprite block */
         for (int y = 0; y < my; y++) {
-            tileno = READ_WORD(&vidram[offs]);
-            offs += 2;
-            tileatr = READ_WORD(&vidram[offs]);
-            offs += 2;
+            tileno = vidram[offs++];
+            tileatr = vidram[offs++];
 
             if (memory.nb_of_tiles > 0x10000 && (tileatr & 0x10)) tileno += 0x10000;
             if (memory.nb_of_tiles > 0x20000 && (tileatr & 0x20)) tileno += 0x20000;
@@ -453,7 +439,7 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
     int offs, count, y;
     int tileno, tileatr;
     int tctl1, tctl2, tctl3;
-    unsigned char *vidram = memory.vid.ram;
+    uint16_t *vidram = memory.vid.ram;
 
     int yy;
     int tile, yoffs;
@@ -465,11 +451,10 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
     if (end_line > 255) end_line = 255;
 
     /* Draw sprites */
-    for (count = 0; count < 0x300; count += 2) {
-
-        tctl3 = READ_WORD(&vidram[0x10000 + count]);
-        tctl1 = READ_WORD(&vidram[0x10400 + count]);
-        tctl2 = READ_WORD(&vidram[0x10800 + count]);
+    for (count = 0; count < 0x180; ++count) {
+        tctl3 = vidram[0x8000 + count];
+        tctl1 = vidram[0x8200 + count];
+        tctl2 = vidram[0x8400 + count];
 
         /* If this bit is set this new column is placed next to last one */
         if (tctl1 & 0x40) {
@@ -551,8 +536,8 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
                 yoffs ^= 0x0f; // yoffs= 15 - yoffs;
             }
 
-            tileno = READ_WORD(&vidram[offs + (tile << 2)]);
-            tileatr = READ_WORD(&vidram[offs + (tile << 2) + 2]);
+            tileno = vidram[offs + (tile << 1)];
+            tileatr = vidram[offs + (tile << 1) + 1];
 
             if (memory.nb_of_tiles > 0x10000 && (tileatr & 0x10)) tileno += 0x10000;
             if (memory.nb_of_tiles > 0x20000 && (tileatr & 0x20)) tileno += 0x20000;
@@ -580,6 +565,5 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
 }
 
 void init_video(void) {
-    fix_value_init();
     memory.vid.modulo = 1;
 }
