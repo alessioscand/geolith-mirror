@@ -236,7 +236,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         switch (address) {
             case 0x3c0000: case 0x3c0002: case 0x3c0008: case 0x3c000a: {
                 // REG_VRAMADDR, REG_VRAMRW, REG_TIMERHIGH, REG_TIMERLOW
-                return memory.vid.rbuf;
+                return memory.vid.ram[memory.vid.vptr];
             }
             case 0x3c0004: case 0x3c000c: {
                 // REG_VRAMMOD, REG_IRQACK
