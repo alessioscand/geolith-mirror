@@ -232,7 +232,3 @@ void cpu_z80_raise_irq(int l) {
 void cpu_z80_lower_irq(void) {
     z80_clr_int(&z80ctx);
 }
-
-uint16_t cpu_z80_get_pc(void) {
-    return 0;
-}
