@@ -198,8 +198,17 @@ void cpu_z80_reset(void) {
 void cpu_z80_init(void) {
     z80_init(&z80ctx);
 
-    // The NEO-ZMC initializes all banks to 0 (verified on hardware)
-    zbank[0] = zbank[1] = zbank[2] = zbank[3] = 0x0000;
+    /* The NEO-ZMC initializes all banks to 0 (verified on hardware):
+         https://wiki.neogeodev.org/index.php?title=Z80_bankswitching
+       However, this information seems suspect because some sound drivers
+       require the banks to be initialized to non-zero values. Two other
+       popular emulators also initialize the banks this way.
+    */
+    //zbank[0] = zbank[1] = zbank[2] = zbank[3] = 0x0000;
+    zbank[0] = 0x8000;
+    zbank[1] = 0xc000;
+    zbank[2] = 0xe000;
+    zbank[3] = 0xf000;
 
     z80ctx.read_byte = &gn_z80_mem_rd;
     z80ctx.write_byte = &gn_z80_mem_wr;
