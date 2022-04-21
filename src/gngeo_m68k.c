@@ -325,6 +325,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 break;
             }
             case 0x320000: { // REG_SOUND
+                // FIXME: Sync or run extra Z80 cycles to fix wjammers
                 sound_code = value & 0xff;
                 cpu_z80_nmi();
                 break;
