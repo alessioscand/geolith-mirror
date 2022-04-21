@@ -241,7 +241,10 @@ bool opn_registers_write(uint16_t index, uint8_t data, uint32_t *channel, uint32
 	// borrow unused registers 0xb8-bf/0x1b8-bf as temporary holding locations
 	if ((index & 0xf0) == 0xa0)
 	{
-		uint32_t latchindex = 0xb8 | (bitfield(index, 3, 1) << 2) | bitfield(index, 0, 2);
+		if (bitfield(index, 0, 2) == 3)
+			return false;
+
+		uint32_t latchindex = 0xb8 | bitfield(index, 3, 1);
 		latchindex |= index & 0x100;
 
 		// writes to the upper half just latch (only low 6 bits matter)
@@ -251,9 +254,16 @@ bool opn_registers_write(uint16_t index, uint8_t data, uint32_t *channel, uint32
 		// writes to the lower half only commit if the latch is there
 		else if (bitfield(m_regdata[latchindex], 7, 1))
 		{
+			m_regdata[index] = data;
 			m_regdata[index | 4] = m_regdata[latchindex] & 0x3f;
 			m_regdata[latchindex] = 0;
 		}
+		return false;
+	}
+	else if ((index & 0xf8) == 0xb8)
+	{
+		// registers 0xb8-0xbf are used internally
+		return false;
 	}
 
 	// everything else is normal
