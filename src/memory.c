@@ -133,15 +133,6 @@ void mem68k_store_pal_word(uint32_t addr, uint16_t data) {
 }
 
 /**** VIDEO ****/
-void mem68k_store_video_byte(uint32_t addr, uint8_t data) {
-    /* garou write at 3c001f, 3c000f, 3c0015 */
-    /* wjammers write, and fetch at 3c0000 .... */
-    //printf("mem68k_store_video_byte %08x %02x @pc=%08x\n",addr,data,cpu_68k_getpc());
-    if (!(addr&0x1)) {
-        mem68k_store_video_word(addr,(data<<8)|data);
-    }
-}
-
 void mem68k_store_video_word(uint32_t addr, uint16_t data) {
     //data&=0xFFFF;
     //printf("mem68k_store_video_word %08x %04x @pc=%08x\n",addr,data,cpu_68k_getpc());

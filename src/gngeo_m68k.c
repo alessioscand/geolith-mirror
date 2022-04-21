@@ -185,6 +185,25 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                 */
                 return gn_input_stat_cb[1]();
             }
+            case 0x3c0000: case 0x3c0002: case 0x3c0008: case 0x3c000a: {
+                // REG_VRAMADDR, REG_VRAMRW, REG_TIMERHIGH, REG_TIMERLOW
+                return memory.vid.ram[memory.vid.vptr] & 0xff;
+            }
+            case 0x3c0004: case 0x3c000c: {
+                // REG_VRAMMOD, REG_IRQACK
+                return memory.vid.modulo & 0xff;
+            }
+            case 0x3c0006: case 0x3c000e: {
+                /* REG_LSPCMODE, REG_TIMERSTOP
+                   Bits 7-15: Raster line counter (with offset of 0xf8)
+                   Bits 4-6:  000
+                   Bit 3:     0 = 60Hz, 1 = 50Hz
+                   Bits 0-2:  Auto animation counter
+                */
+                return (((current_line + 0xf8) << 7) |
+                    (conf.pal << 3) |
+                    (neogeo_frame_counter & 0x07)) & 0xff;
+            }
         }
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
@@ -314,10 +333,17 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 pd4990a_serial_control(value & 0x07);
                 break;
             }
+            case 0x3c0000: case 0x3c0002: case 0x3c0004: case 0x3c0006:
+            case 0x3c0008: case 0x3c000a: case 0x3c000c: case 0x3c000e: {
+                /* Byte writes are only effective on even addresses, and they
+                   store the same data in both bytes.
+                */
+                m68k_write_memory_16(address, (value << 8) | (value & 0xff));
+                break;
+            }
         }
 
         switch ((address >> 16) & 0x0f) {
-            case 0x0c: mem68k_store_video_byte(address, value); break;
             case 0x0a: mem68k_store_setting_byte(address, value); break;
         }
     }
