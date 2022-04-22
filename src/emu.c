@@ -197,7 +197,7 @@ static inline int update_scanline(void) {
     return memory.vid.irq2taken;
 }
 
-void main_loop(void) {
+void gn_exec(void) {
     size_t reqcycs = 0;
     size_t itercycs = 0;
     size_t ymsamps = 0;

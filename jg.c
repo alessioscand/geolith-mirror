@@ -188,7 +188,7 @@ void jg_reset(int hard) {
 }
 
 void jg_exec_frame(void) {
-    main_loop();
+    gn_exec();
 }
 
 int jg_game_load(void) {

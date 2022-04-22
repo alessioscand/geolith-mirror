@@ -69,7 +69,7 @@ enum gn_loglevel {
     GN_LOG_SCR
 };
 
-void main_loop(void);
+void gn_exec(void);
 void init_neo(void);
 void cpu_68k_dpg_step(void);
 void setup_misc_patch(char *name);
