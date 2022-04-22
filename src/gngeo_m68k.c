@@ -457,7 +457,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
         if (!sram_lock)
-            write08(memory.sram, address & 0xffff, value);
+            write16(memory.sram, address & 0xffff, value);
     }
 }
 
