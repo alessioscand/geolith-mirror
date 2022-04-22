@@ -39,6 +39,10 @@ uint8_t sound_code;
 static uint32_t addr_prn[2] = { 0, 0 };
 static uint16_t prn = 0x2345; // Pseudo-random number initial value
 
+// Interrupt status
+static uint32_t irqlines = 0;
+static uint32_t irqack = 0;
+
 static inline uint16_t parity(uint16_t v) {
     /* This technique is used, adapted for 16-bit values:
        https://graphics.stanford.edu/~seander/bithacks.html#ParityParallel
@@ -384,33 +388,33 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
             // Writes to 0x300001 reset watchdog timer via DOGE pin
             case 0x300001: {
                 memory.watchdog = 0;
-                break;
+                return;
             }
             case 0x320000: { // REG_SOUND
                 sound_code = (value >> 8) & 0xff; // Use the upper byte
                 cpu_z80_nmi();
-                break;
+                return;
             }
             case 0x380051: { // REG_RTCCTRL
                 pd4990a_serial_control(value & 0x07);
-                break;
+                return;
             }
             case 0x3c0000: { // REG_VRAMADDR
                 memory.vid.vptr = value & 0xffff;
-                break;
+                return;
             }
             case 0x3c0002: { // REG_VRAMRW
                 // Write to VRAM (modulo is applied after)
                 memory.vid.ram[memory.vid.vptr] = value;
                 memory.vid.vptr += memory.vid.modulo;
-                break;
+                return;
             }
             case 0x3c0004: { // REG_VRAMMOD
                 /* Set the signed value automatically added to the VRAM address
                    after a write
                 */
                 memory.vid.modulo = ((int16_t)value);
-                break;
+                return;
             }
             case 0x3c0006: { // REG_LSPCMODE
                 /* Bits 8-15: Auto animation speed - tick every N+1 frames
@@ -426,24 +430,30 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
             case 0x3c0008: { // REG_TIMERHIGH
                 memory.vid.irq2pos =
                     (memory.vid.irq2pos & 0xffff) | ((uint32_t)value << 16);
-                break;
+                return;
             }
             case 0x3c000a: { // REG_TIMERLOW
                 memory.vid.irq2pos =
                     (memory.vid.irq2pos & 0xffff0000) | (value & 0xffff);
-                break;
+                return;
+            }
+            case 0x3c000c: { // REG_IRQACK
+                /* Bit 2: Ack VBlank
+                   Bit 1: Ack HBlank
+                   Bit 0: Ack IRQ3
+                */
+                irqack = value;
+                return;
             }
             case 0x3c000e: { // REG_TIMERSTOP
                 /* Bit 0=1: Stop timer counter during first and last 16 lines
                    (32 total) when in PAL mode -- FIXME
                 */
-                break;
+                return;
             }
         }
-
-        switch ((address >> 16) & 0x0f) {
-            case 0x0a: mem68k_store_setting_word(address, value); break;
-        }
+        gn_log(GN_LOG_WRN, "Unknown 16-bit 68K Write: %06x %04x\n",
+            address, value);
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
         mem68k_store_pal_word(address, value);
@@ -490,11 +500,27 @@ int cpu_68k_run_step(void) {
 }
 
 void cpu_68k_interrupt(int a) {
-    m68k_set_irq(a);
+    irqlines |= a;
+    m68k_set_irq(irqlines);
 }
 
 int cpu_68k_getcycle(void) {
     return 0;
+}
+
+// Acknowledge interrupts
+int gn_m68k_int_ack(int level) {
+    if (level) { } // Not used, but part of Musashi's function prototype
+
+    if (irqack & 0x04) // VBlank
+        irqlines &= ~0x01;
+    if (irqack & 0x02) // HBlank/Timer
+        irqlines &= ~0x02;
+    if (irqack & 0x01) // IRQ3 - Pending after reset
+        irqlines &= ~0x04;
+
+    m68k_set_irq(irqlines);
+    return M68K_INT_ACK_AUTOVECTOR;
 }
 
 // Set the pseudo-random number generator read addresses
