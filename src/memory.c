@@ -131,49 +131,6 @@ void mem68k_store_setting_byte(uint32_t addr, uint8_t data) {
 
 }
 
-void mem68k_store_setting_word(uint32_t addr, uint16_t data) {
-    /* TODO: Some game use it */
-    // printf("mem68k_store_setting_word USED????\n");
-    mem68k_store_setting_byte(addr,data);
-    return;
-    addr &= 0xFFFFFe;
-    if (addr == 0x3a0002) {
-        memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
-    }
-
-    if (addr == 0x3a0012) {
-        memcpy(memory.rom.cpu_m68k.p, memory.game_vector, 0x80);
-    }
-    if (addr == 0x3a000a) {
-        current_fix = memory.rom.bios_sfix.p;
-        fix_usage = memory.fix_board_usage;
-        return;
-    }
-    if (addr == 0x3a001a) {
-        current_fix = memory.rom.game_sfix.p;
-        fix_usage = memory.fix_game_usage;
-        return;
-    }
-    if (addr == 0x3a000c) {
-        sram_lock = 1;
-        return;
-    }
-    if (addr == 0x3a001c) {
-        sram_lock = 0;
-        return;
-    }
-    if (addr == 0x3a000e) {
-        current_pal = memory.vid.pal_neo[1];
-        current_pc_pal = (uint32_t *) memory.vid.pal_host[1];
-        return;
-    }
-    if (addr == 0x3a001e) {
-        current_pal = memory.vid.pal_neo[0];
-        current_pc_pal = (uint32_t *) memory.vid.pal_host[0];
-        return;
-    }
-}
-
 /**** MEMCARD ****/
 void mem68k_store_memcrd_byte(uint32_t addr, uint8_t data) {
     addr &= 0xFFF;
