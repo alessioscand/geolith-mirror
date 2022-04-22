@@ -485,10 +485,6 @@ int cpu_68k_run(uint32_t nb_cycle) {
     return m68k_execute(nb_cycle);
 }
 
-uint32_t cpu_68k_getpc(void) {
-    return 0;
-}
-
 int cpu_68k_run_step(void) {
     return m68k_execute(1);
 }
