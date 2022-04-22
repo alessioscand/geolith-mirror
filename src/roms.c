@@ -1592,9 +1592,7 @@ int init_game(char *rom_name) {
     open_nvram(conf.game);
     open_memcard(conf.game);
 
-    init_neo();
-
-    setup_misc_patch(conf.game);
+    gn_init();
 
     fix_usage = memory.fix_board_usage;
     current_pal = memory.vid.pal_neo[0];

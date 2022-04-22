@@ -20,11 +20,8 @@
  *
  */
 
-#include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
-#include <time.h>
-
-#include <zlib.h>
 
 #include "emu.h"
 #include "gngeo_mixer.h"
@@ -32,7 +29,6 @@
 #include "pd4990a.h"
 
 #include "ymfm/ymfm_shim.h"
-#include "neocrypt.h"
 
 #define CYC_LINE_68K 768
 #define CYC_LINE_Z80 256
@@ -49,7 +45,6 @@ struct _conf_t conf;
 
 uint8_t reg_dipsw = 0;
 
-unsigned nb_interlace = 256;
 unsigned current_line;
 
 static int last_line;
@@ -73,35 +68,7 @@ void gn_input_stat_set_callback(unsigned port, unsigned (*cb)(void)) {
     gn_input_stat_cb[port] = cb;
 }
 
-void setup_misc_patch(char *name) {
-    if (!strcmp(name, "ssideki")) {
-        WRITE_WORD_ROM(&memory.rom.cpu_m68k.p[0x2240], 0x4e71);
-    }
-
-    if (!strcmp(name, "mslugx")) {
-        // patch out protection checks
-        uint8_t *RAM = memory.rom.cpu_m68k.p;
-        for (unsigned i = 0; i < memory.rom.cpu_m68k.size; i += 2) {
-            if ((READ_WORD_ROM(&RAM[i + 0]) == 0x0243) &&
-                (READ_WORD_ROM(&RAM[i + 2]) == 0x0001) && // andi.w  #$1, D3
-                (READ_WORD_ROM(&RAM[i + 4]) == 0x6600)) { // bne xxxx
-                WRITE_WORD_ROM(&RAM[i + 4], 0x4e71);
-                WRITE_WORD_ROM(&RAM[i + 6], 0x4e71);
-            }
-        }
-
-        WRITE_WORD_ROM(&RAM[0x3bdc], 0x4e71);
-        WRITE_WORD_ROM(&RAM[0x3bde], 0x4e71);
-        WRITE_WORD_ROM(&RAM[0x3be0], 0x4e71);
-        WRITE_WORD_ROM(&RAM[0x3c0c], 0x4e71);
-        WRITE_WORD_ROM(&RAM[0x3c0e], 0x4e71);
-        WRITE_WORD_ROM(&RAM[0x3c10], 0x4e71);
-        WRITE_WORD_ROM(&RAM[0x3c36], 0x4e71);
-        WRITE_WORD_ROM(&RAM[0x3c38], 0x4e71);
-    }
-}
-
-void neogeo_reset(void) {
+void gn_reset(void) {
     //  memory.vid.modulo = 1; /* TODO: Move to init_video */
     sram_lock = 0;
     sound_code = 0;
@@ -117,16 +84,12 @@ void neogeo_reset(void) {
     ymfm_shim_reset(); // Reset the YM2610 to make sure everything is defaulted
 }
 
-void init_sound(void) {
-    cpu_z80_init();
-}
-
-void init_neo(void) {
+void gn_init(void) {
     cpu_68k_init();
     pd4990a_init();
-    init_sound();
+    cpu_z80_init();
     ymfm_shim_init();
-    neogeo_reset();
+    gn_reset();
 }
 
 static inline int neo_interrupt(void) {

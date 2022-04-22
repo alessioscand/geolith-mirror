@@ -22,6 +22,9 @@
 
 // FIXME: Take a look at many functions with unused parameters
 
+#include <stdint.h>
+#include <string.h>
+
 #include "emu.h"
 #include "video.h"
 #include "memory.h"

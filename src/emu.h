@@ -23,9 +23,6 @@
 #ifndef _EMU_H_
 #define _EMU_H_
 
-#include <string.h>
-#include <stdint.h>
-
 #define SIZE_1K     0x000400
 #define SIZE_2K     0x000800
 #define SIZE_4K     0x001000
@@ -70,10 +67,8 @@ enum gn_loglevel {
 };
 
 void gn_exec(void);
-void init_neo(void);
-void cpu_68k_dpg_step(void);
-void setup_misc_patch(char *name);
-void neogeo_reset(void);
+void gn_init(void);
+void gn_reset(void);
 
 void gn_log_set_callback(void (*)(int, const char *, ...));
 void gn_input_set_callback(unsigned, unsigned (*)(unsigned));

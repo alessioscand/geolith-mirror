@@ -203,7 +203,7 @@ int jg_game_load(void) {
         gn_neo_load(gameinfo.data, gameinfo.size);
         open_nvram((char*)gameinfo.name);
         open_memcard((char*)gameinfo.name);
-        init_neo();
+        gn_init();
     }
     else { // Probably a .zip...
         snprintf(dfilepath, sizeof(dfilepath),
