@@ -360,7 +360,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        mem68k_store_sram_byte(address, value);
+        if (!sram_lock)
+            memory.sram[address & 0xffff] = value;
     }
 }
 
@@ -455,7 +456,8 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        mem68k_store_sram_word(address, value);
+        if (!sram_lock)
+            write08(memory.sram, address & 0xffff, value);
     }
 }
 

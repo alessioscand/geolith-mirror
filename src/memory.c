@@ -38,30 +38,6 @@ uint8_t result_code;
 
 uint32_t bankaddress = 0;
 
-/**** SRAM ****/
-void mem68k_store_sram_byte(uint32_t addr, uint8_t data) {
-    if (sram_lock)
-        return;
-    /*
-      if (addr == 0xd00000 + sram_protection_hack && ((data & 0xff) == 0x01))
-      return;
-    */
-    memory.sram[addr - 0xd00000] = data;
-}
-
-void mem68k_store_sram_word(uint32_t addr, uint16_t data) {
-    if (sram_lock)
-        return;
-    /*
-      if (addr == 0xd00000 + sram_protection_hack
-      && ((data & 0xffff) == 0x01))
-      return;
-    */
-    addr -= 0xd00000;
-    memory.sram[addr] = data >> 8;
-    memory.sram[addr + 1] = data & 0xff;
-}
-
 /**** PALETTE ****/
 /*static inline */uint32_t convert_pal(uint16_t npal) {
     int r = 0, g = 0, b = 0, dark = 0;
