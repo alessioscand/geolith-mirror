@@ -134,17 +134,6 @@ void mem68k_store_setting_byte(uint32_t addr, uint8_t data) {
 
 }
 
-/**** MEMCARD ****/
-void mem68k_store_memcrd_byte(uint32_t addr, uint8_t data) {
-    addr &= 0xFFF;
-    memory.memcard[addr >> 1] = data;
-}
-void mem68k_store_memcrd_word(uint32_t addr, uint16_t data) {
-    //printf("memstore16\n");
-    addr &= 0xFFF;
-    memory.memcard[addr >> 1] = data & 0xff;
-}
-
 /**** bankswitchers ****/
 static void bankswitch(uint32_t address, uint8_t data) {
 
