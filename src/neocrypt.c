@@ -86,6 +86,8 @@
 #include "resfile.h"
 #include "mame_layer.h"
 
+#include "cmc_xor.h"
+
 /***************************************************************************
 
 NeoGeo 'C' ROM encryption
@@ -154,6 +156,7 @@ static uint8_t *address_16_23_xor2;
 static uint8_t *address_0_7_xor;
 static uint8_t *m1_address_8_15_xor;
 static uint8_t *m1_address_0_7_xor;
+
 #if 0
 static const uint8_t kof99_type0_t03[256] =
 {
@@ -627,14 +630,7 @@ void neogeo_sfix_decrypt(running_machine *machine)
 }
 
 void load_cmc42_table(void) {
-/*
-    FILE *f;
-    type0_t03=malloc(0x950);
-    f=fopen("/home/mathieu/.gngeo/cmc42.xor","rb");
-    fread(type0_t03,0xB00,1,f);
-    fclose(f);
-*/
-    type0_t03=(uint8_t*)res_load_data("rom/cmc42.xor");
+    type0_t03 = cmc42_xor;
     type0_t12 = type0_t03 +256;
     type1_t03 = type0_t12 +256;
     type1_t12 = type1_t03 +256;
@@ -645,14 +641,7 @@ void load_cmc42_table(void) {
     address_0_7_xor = address_16_23_xor2 +256;
 }
 void load_cmc50_table(void) {
-/*
-    FILE *f;
-    type0_t03=malloc(0xB00);
-    f=fopen("/home/mathieu/.gngeo/cmc50.xor","rb");
-    fread(type0_t03,0xB00,1,f);
-    fclose(f);
-*/
-    type0_t03=(uint8_t*)res_load_data("rom/cmc50.xor");
+    type0_t03 = cmc50_xor;
     type0_t12 = type0_t03 +256;
     type1_t03 = type0_t12 +256;
     type1_t12 = type1_t03 +256;
@@ -683,7 +672,6 @@ void kof99_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
     load_cmc42_table();
     neogeo_gfx_decrypt(machine, extra_xor);
     neogeo_sfix_decrypt(machine);
-    free(type0_t03);
 }
 
 /* CMC50 protection chip */
@@ -703,7 +691,6 @@ void kof2000_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
     load_cmc50_table();
     neogeo_gfx_decrypt(machine, extra_xor);
     neogeo_sfix_decrypt(machine);
-    free(type0_t03);
 }
 
 /* CMC42 protection chip */
@@ -722,7 +709,6 @@ void cmc42_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
     */
     load_cmc42_table();
     neogeo_gfx_decrypt(machine, extra_xor);
-    free(type0_t03);
 }
 
 /* CMC50 protection chip */
@@ -741,7 +727,6 @@ void cmc50_neogeo_gfx_decrypt(running_machine *machine, int extra_xor)
     */
     load_cmc50_table();
     neogeo_gfx_decrypt(machine, extra_xor);
-    free(type0_t03);
 }
 
 /* ms5pcb and svcpcb have an additional scramble on top of the standard CMC scrambling */
@@ -1011,7 +996,6 @@ void neogeo_cmc50_m1_decrypt(running_machine *machine)
     #endif
 
     free( buffer );
-    free(type0_t03);
 }
 
 /***************************************************************************
