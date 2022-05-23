@@ -99,7 +99,7 @@ int gn_neo_load(void *data, size_t size) {
     gn_log(GN_LOG_INF, "Year: %d\n", year);
     gn_log(GN_LOG_INF, "Genre: %d\n", genre);
     gn_log(GN_LOG_INF, "Screenshot: %d\n", screenshot);
-    gn_log(GN_LOG_INF, "NGH: %d\n", ngh);
+    gn_log(GN_LOG_INF, "NGH: %03d\n", ngh);
     gn_log(GN_LOG_INF, "Name: %s\n", name);
     gn_log(GN_LOG_INF, "Manufacturer: %s\n", manu);
 
