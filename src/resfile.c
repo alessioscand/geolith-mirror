@@ -20,18 +20,12 @@
  *
  */
 
-#define _XOPEN_SOURCE 700
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 
-#include "emu.h"
-#include "roms.h"
 #include "resfile.h"
-#include "unzip.h"
-
 #include "gngeo_romsets.h"
 
 /*
