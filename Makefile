@@ -133,7 +133,6 @@ clean:
 	rm -rf $(OBJDIR)/ $(NAME)/
 
 install: all
-	@mkdir -p $(DESTDIR)$(DATADIR)/jollygood/$(NAME)
 	@mkdir -p $(DESTDIR)$(DOCDIR)
 	@mkdir -p $(DESTDIR)$(LIBDIR)/jollygood
 	cp $(NAME)/$(TARGET) $(DESTDIR)$(LIBDIR)/jollygood/
@@ -148,6 +147,5 @@ install-strip: install
 	strip $(DESTDIR)$(LIBDIR)/jollygood/$(TARGET)
 
 uninstall:
-	rm -rf $(DESTDIR)$(DATADIR)/jollygood/$(NAME)
 	rm -rf $(DESTDIR)$(DOCDIR)
 	rm -f $(DESTDIR)$(LIBDIR)/jollygood/$(TARGET)
