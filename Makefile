@@ -128,7 +128,6 @@ $(OBJDIR)/.tag:
 $(NAME)/$(TARGET): $(OBJS)
 	@mkdir -p $(NAME)
 	$(CC) $^ $(LDFLAGS) $(LIBS) $(SHARED) -o $@
-	@cp $(SOURCEDIR)/$(NAME)_data.zip $(NAME)/
 
 clean:
 	rm -rf $(OBJDIR)/ $(NAME)/
@@ -138,7 +137,6 @@ install: all
 	@mkdir -p $(DESTDIR)$(DOCDIR)
 	@mkdir -p $(DESTDIR)$(LIBDIR)/jollygood
 	cp $(NAME)/$(TARGET) $(DESTDIR)$(LIBDIR)/jollygood/
-	cp $(NAME)/$(NAME)_data.zip $(DESTDIR)$(DATADIR)/jollygood/$(NAME)/
 	cp $(SOURCEDIR)/COPYING $(DESTDIR)$(DOCDIR)
 	cp $(SOURCEDIR)/README $(DESTDIR)$(DOCDIR)
 	$(Q_SPEEXDSP)if test $(USE_VENDORED_SPEEXDSP) != 0; then \
