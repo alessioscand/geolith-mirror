@@ -1417,7 +1417,6 @@ int dr_load_roms(GAME_ROMS *r, const char *rom_path, char *name) {
     /* Close/clean up */
     gn_close_zip(gz);
     if (gzp) gn_close_zip(gzp);
-    free(drv);
 
     if (r->adpcmb.size == 0) {
         r->adpcmb.p = r->adpcma.p;

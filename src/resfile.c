@@ -24,12 +24,15 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 
 #include "emu.h"
 #include "roms.h"
 #include "resfile.h"
 #include "unzip.h"
+
+#include "gngeo_romsets.h"
 
 static const char *gngeo_dat;
 
@@ -66,52 +69,14 @@ int res_verify_datafile(const char *file) {
 }
 
 /*
- * Load a rom definition file from gngeo.dat (rom/name.drv)
+ * Load a rom definition
  * return ROM_DEF*, NULL on error
  */
 ROM_DEF *res_load_drv(char *name) {
-    ROM_DEF *drv;
-    char drvfname[32];
-    PKZIP *pz;
-    ZFILE *z;
-
-    drv = calloc(sizeof(ROM_DEF), 1);
-
-    /* Open the rom driver def */
-    pz = gn_open_zip(gngeo_dat);
-    if (pz == NULL) {
-        free(drv);
-        //fprintf(stderr, "Can't open the %s\n", gngeo_dat);
-        return NULL;
-    }
-    sprintf(drvfname, "rom/%s.drv", name);
-
-    if ((z=gn_unzip_fopen(pz,drvfname,0x0)) == NULL) {
-        free(drv);
-        gn_close_zip(pz);
-        //fprintf(stderr, "Can't open rom driver for %s %s\n", name,drvfname);
-        return NULL;
-    }
-
-    //Fill the driver struct
-    zread_char(z, drv->name, 32);
-    zread_char(z, drv->parent, 32);
-    zread_char(z, drv->longname, 128);
-    zread_uint32le(z, &drv->year);
-    for (unsigned i = 0; i < 10; i++)
-        zread_uint32le(z, &drv->romsize[i]);
-    zread_uint32le(z, &drv->nb_romfile);
-    for (unsigned i = 0; i < drv->nb_romfile; i++) {
-        zread_char(z, drv->rom[i].filename, 32);
-        zread_uint8(z, &drv->rom[i].region);
-        zread_uint32le(z, &drv->rom[i].src);
-        zread_uint32le(z, &drv->rom[i].dest);
-        zread_uint32le(z, &drv->rom[i].size);
-        zread_uint32le(z, &drv->rom[i].crc);
-    }
-    gn_unzip_fclose(z);
-    gn_close_zip(pz);
-    return drv;
+    for (size_t i = 0; i < sizeof(romsets) / sizeof(ROM_DEF); ++i)
+        if (!strcmp(name, romsets[i].name))
+            return &romsets[i];
+    return NULL;
 }
 
 void *res_load_data(char *name) {
