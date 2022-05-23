@@ -91,8 +91,6 @@ enum {
     REGION,
 };
 
-static char dfilepath[256];
-
 static void gn_settings_read(void) {
     jg_cb_settings_read(settings_gn,
         sizeof(settings_gn) / sizeof(jg_setting_t));
@@ -206,9 +204,6 @@ int jg_game_load(void) {
         gn_init();
     }
     else { // Probably a .zip...
-        snprintf(dfilepath, sizeof(dfilepath),
-            "%s/gngeo_data.zip", pathinfo.core);
-        gn_set_datafile(dfilepath);
         gn_set_romdir(dirname((char*)gameinfo.path));
         init_game((char*)gameinfo.name);
     }
