@@ -64,7 +64,6 @@ CSRCS := m68k/m68kcpu.c \
 	neoboot.c \
 	neocrypt.c \
 	pd4990a.c \
-	resfile.c \
 	roms.c \
 	unzip.c \
 	video.c \

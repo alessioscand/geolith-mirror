@@ -81,9 +81,7 @@
 
 ***************************************************************************/
 #include <stdint.h>
-//#include "driver.h"
-//#include "neogeo.h"
-#include "resfile.h"
+
 #include "mame_layer.h"
 
 #include "cmc_xor.h"

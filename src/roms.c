@@ -35,7 +35,8 @@
 #include "unzip.h"
 
 #include "video.h"
-#include "resfile.h"
+
+#include "gngeo_romsets.h"
 
 /* Prototype */
 void kof98_decrypt_68k(GAME_ROMS *r);
@@ -887,6 +888,17 @@ struct roms_init_func {
     { "ms5plus", init_ms5plus},
     { NULL, NULL}
 };
+
+/*
+ * Load a rom definition
+ * return ROM_DEF*, NULL on error
+ */
+static ROM_DEF *res_load_drv(char *name) {
+    for (size_t i = 0; i < sizeof(romsets) / sizeof(ROM_DEF); ++i)
+        if (!strcmp(name, romsets[i].name))
+            return &romsets[i];
+    return NULL;
+}
 
 static int allocate_region(ROM_REGION *r, uint32_t size, int region) {
     gn_log(GN_LOG_DBG, "Allocating 0x%08x byte for Region %d\n", size, region);
