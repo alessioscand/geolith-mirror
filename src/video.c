@@ -201,7 +201,7 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
                 garouoffsets[y++] = garoubank;
             }
             garouoffsets[y++] = garoubank;
-            k += 1;
+            k += 2;
         }
     }
 
