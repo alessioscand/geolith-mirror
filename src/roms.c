@@ -152,26 +152,6 @@ uint8_t scramblecode_kof2000[7] = {0xEC, 15, 14, 7, 3, 10, 5,};
 #define LOAD_BUF_SIZE (128*1024)
 static uint8_t* iloadbuf = NULL;
 
-//char romerror[1024];
-
-/* Actuall Code */
-
-/*
- TODO
- static DRIVER_INIT( fatfury2 )
- {
- DRIVER_INIT_CALL(neogeo);
- fatfury2_install_protection(machine);
- }
-
- static DRIVER_INIT( mslugx )
- {
- DRIVER_INIT_CALL(neogeo);
- mslugx_install_protection(machine);
- }
-
- */
-
 static inline void swapb16_range(void *ptr, size_t len) {
     uint16_t *x = (uint16_t*)ptr;
     for (size_t i = 0; i < len >> 1; ++i)
@@ -188,33 +168,6 @@ void gn_set_romdir(const char *dir) {
 
 void gn_set_decrypt(int d) {
     need_decrypt = d;
-}
-
-int init_mslugx(GAME_ROMS *r) {
-    unsigned int i;
-    uint8_t *RAM = r->cpu_m68k.p;
-    if (need_decrypt) {
-        for (i = 0; i < r->cpu_m68k.size; i += 2) {
-            if ((READ_WORD_ROM(&RAM[i + 0]) == 0x0243)
-                    && (READ_WORD_ROM(&RAM[i + 2]) == 0x0001) && /* andi.w  #$1, D3 */
-                    (READ_WORD_ROM(&RAM[i + 4]) == 0x6600)) { /* bne xxxx */
-
-                WRITE_WORD_ROM(&RAM[i + 4], 0x4e71);
-                WRITE_WORD_ROM(&RAM[i + 6], 0x4e71);
-            }
-        }
-
-        WRITE_WORD_ROM(&RAM[0x3bdc], 0x4e71);
-        WRITE_WORD_ROM(&RAM[0x3bde], 0x4e71);
-        WRITE_WORD_ROM(&RAM[0x3be0], 0x4e71);
-        WRITE_WORD_ROM(&RAM[0x3c0c], 0x4e71);
-        WRITE_WORD_ROM(&RAM[0x3c0e], 0x4e71);
-        WRITE_WORD_ROM(&RAM[0x3c10], 0x4e71);
-
-        WRITE_WORD_ROM(&RAM[0x3c36], 0x4e71);
-        WRITE_WORD_ROM(&RAM[0x3c38], 0x4e71);
-    }
-    return 0;
 }
 
 int init_kof99(GAME_ROMS *r) {
@@ -264,14 +217,6 @@ int init_garouo(GAME_ROMS *r) {
     return 0;
 }
 
-/*
- int init_garoup(GAME_ROMS *r) {
- garou_decrypt_68k(r);
- kof99_neogeo_gfx_decrypt(r, 0x06);
-
- return 0;
- }
- */
 int init_garoubl(GAME_ROMS *r) {
     /* TODO: Bootleg support */
     if (need_decrypt) {
@@ -341,32 +286,6 @@ int init_kof2001(GAME_ROMS *r) {
     return 0;
 
 }
-
-/*
-
- TODO:
- static DRIVER_INIT( cthd2003 )
- {
- decrypt_cthd2003(machine);
- DRIVER_INIT_CALL(neogeo);
- patch_cthd2003(machine);
- }
-
- static DRIVER_INIT ( ct2k3sp )
- {
- decrypt_ct2k3sp(machine);
- DRIVER_INIT_CALL(neogeo);
- patch_cthd2003(machine);
- }
-
- static DRIVER_INIT ( ct2k3sa )
- {
- decrypt_ct2k3sa(machine);
- DRIVER_INIT_CALL(neogeo);
- patch_ct2k3sa(machine);
- }
-
- */
 
 int init_mslug4(GAME_ROMS *r) {
     neogeo_fix_bank_type = 1; /* USA violent content screen is wrong --
@@ -851,12 +770,10 @@ struct roms_init_func {
     char *name;
     int (*init)(GAME_ROMS * r);
 } init_func_table[] = {
-    //  {"mslugx",init_mslugx},
     { "kof99", init_kof99},
     { "kof99n", init_kof99n},
     { "garou", init_garou},
     { "garouo", init_garouo},
-    //  {"garoup",init_garoup},
     { "garoubl", init_garoubl},
     { "mslug3", init_mslug3},
     { "mslug3h", init_mslug3h},
