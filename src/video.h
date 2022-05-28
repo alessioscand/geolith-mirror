@@ -26,6 +26,9 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#define PIXEL_PITCH 352
+#define RASTER_LINES 261
+
 typedef struct VIDEO {
     /* Video Ram&Pal */
     uint16_t ram[0x10000];
@@ -49,12 +52,6 @@ typedef struct VIDEO {
     uint32_t irq2start;
     uint32_t irq2pos;
 }VIDEO;
-
-/* RGBA 32bits per pixel, entire Neo Geo palette (65536 colors) */
-typedef uint32_t buffer_pixel_t;
-#define PIXEL_PITCH 352
-
-#define RASTER_LINES 261
 
 extern unsigned int neogeo_frame_counter;
 extern unsigned int neogeo_frame_counter_speed;

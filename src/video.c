@@ -78,7 +78,7 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
     unsigned int *gfxdata, myword;
     int x, y, yy;
     unsigned char col;
-    buffer_pixel_t *br;
+    uint32_t *br;
     unsigned int *paldata;
     unsigned int byte1, byte2;
     int banked, garouoffsets[32];
@@ -130,7 +130,7 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
 
             if ((byte1 >= (memory.rom.game_sfix.size >> 5)) || (fix_usage[byte1] == 0x00)) continue;
 
-            br = (buffer_pixel_t*) buf + ((y << 3)) * 352 + (x << 3) + 16;
+            br = (uint32_t*) buf + ((y << 3)) * 352 + (x << 3) + 16;
             paldata = (unsigned int *) &current_pc_pal[16 * byte2];
             gfxdata = (unsigned int *) &current_fix[ byte1 << 5];
 

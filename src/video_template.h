@@ -31,7 +31,7 @@ static inline void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int zy,
     unsigned int *gfxdata,myword;
     int y;
     unsigned char col;
-    buffer_pixel_t *br;
+    uint32_t *br;
     unsigned int *paldata=(unsigned int *)&current_pc_pal[16*color];
     char *l_y_skip;
     int l; // Line skipping counter
@@ -58,9 +58,9 @@ static inline void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int zy,
             l=0;
             if (yflip) {
 #ifdef DEBUG_VIDEO
-                br= (buffer_pixel_t *)bmp+((zy-1)+sy)*544+sx;
+                br= (uint32_t *)bmp+((zy-1)+sy)*544+sx;
 #else
-                br= (buffer_pixel_t *)bmp+((zy-1)+sy)*pixel_pitch+sx;
+                br= (uint32_t *)bmp+((zy-1)+sy)*pixel_pitch+sx;
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
@@ -93,9 +93,9 @@ static inline void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int zy,
                 }
             } else {
 #ifdef DEBUG_VIDEO
-                br= (buffer_pixel_t *)bmp+(sy)*544+sx;
+                br= (uint32_t *)bmp+(sy)*544+sx;
 #else
-                br= (buffer_pixel_t *)bmp+(sy)*pixel_pitch+sx;
+                br= (uint32_t *)bmp+(sy)*pixel_pitch+sx;
 #endif
                 for(y=0;y<zy;y++) {
 
@@ -133,9 +133,9 @@ static inline void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int zy,
             l=0;
             if (yflip) {
 #ifdef DEBUG_VIDEO
-                br= (buffer_pixel_t *)bmp+((zy-1)+sy)*544+sx;
+                br= (uint32_t *)bmp+((zy-1)+sy)*544+sx;
 #else
-                br= (buffer_pixel_t *)bmp+((zy-1)+sy)*pixel_pitch+sx;
+                br= (uint32_t *)bmp+((zy-1)+sy)*pixel_pitch+sx;
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
@@ -169,9 +169,9 @@ static inline void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int zy,
                 }
             } else {
 #ifdef DEBUG_VIDEO
-                br= (buffer_pixel_t *)bmp+(sy)*544+sx;
+                br= (uint32_t *)bmp+(sy)*544+sx;
 #else
-                br= (buffer_pixel_t *)bmp+(sy)*pixel_pitch+sx;
+                br= (uint32_t *)bmp+(sy)*pixel_pitch+sx;
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
@@ -210,9 +210,9 @@ static inline void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int zy,
             l=0;
             if (yflip) {
 #ifdef DEBUG_VIDEO
-                br= (buffer_pixel_t *)bmp+((zy-1)+sy)*544+sx;
+                br= (uint32_t *)bmp+((zy-1)+sy)*544+sx;
 #else
-                br= (buffer_pixel_t *)bmp+((zy-1)+sy)*pixel_pitch+sx;
+                br= (uint32_t *)bmp+((zy-1)+sy)*pixel_pitch+sx;
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
@@ -240,9 +240,9 @@ static inline void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int zy,
                 }
             } else {
 #ifdef DEBUG_VIDEO
-                br= (buffer_pixel_t *)bmp+(sy)*544+sx;
+                br= (uint32_t *)bmp+(sy)*544+sx;
 #else
-                br= (buffer_pixel_t *)bmp+(sy)*pixel_pitch+sx;
+                br= (uint32_t *)bmp+(sy)*pixel_pitch+sx;
 #endif
                 for(y=0;y<zy;y++) {
                     gfxdata+=l_y_skip[l]<<1;
@@ -274,9 +274,9 @@ static inline void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int zy,
             l=0;
             if (yflip) {
 #ifdef DEBUG_VIDEO
-                br= (buffer_pixel_t *)bmp+((zy-1)+sy)*544+sx;
+                br= (uint32_t *)bmp+((zy-1)+sy)*544+sx;
 #else
-                br= (buffer_pixel_t *)bmp+((zy-1)+sy)*pixel_pitch+sx;
+                br= (uint32_t *)bmp+((zy-1)+sy)*pixel_pitch+sx;
 #endif
                 for(y=0;y<zy;y++) {
 
@@ -305,9 +305,9 @@ static inline void RENAME(draw)(unsigned int tileno,int sx,int sy,int zx,int zy,
                 }
             } else {
 #ifdef DEBUG_VIDEO
-                br= (buffer_pixel_t *)bmp+(sy)*544+sx;
+                br= (uint32_t *)bmp+(sy)*544+sx;
 #else
-                br= (buffer_pixel_t *)bmp+(sy)*pixel_pitch+sx;
+                br= (uint32_t *)bmp+(sy)*pixel_pitch+sx;
 #endif
                 for(y=0;y<zy;y++) {
 
@@ -344,7 +344,7 @@ static inline void RENAME(draw_scanline)(unsigned int tileno,int yoffs,int sx,in
 {
     unsigned int *gfxdata,myword;
     unsigned char col;
-    buffer_pixel_t *br;
+    uint32_t *br;
     unsigned int *paldata=(unsigned int *)&current_pc_pal[16*color];
     int pixel_pitch=PIXEL_PITCH;
 
@@ -358,9 +358,9 @@ static inline void RENAME(draw_scanline)(unsigned int tileno,int yoffs,int sx,in
         if (xflip)
         {
 #ifdef DEBUG_VIDEO
-            br= (buffer_pixel_t *)bmp+(line)*(512+32)+sx;
+            br= (uint32_t *)bmp+(line)*(512+32)+sx;
 #else
-            br= (buffer_pixel_t *)bmp+(line)*pixel_pitch+sx;
+            br= (uint32_t *)bmp+(line)*pixel_pitch+sx;
 #endif
 
             myword = gfxdata[1];
@@ -384,9 +384,9 @@ static inline void RENAME(draw_scanline)(unsigned int tileno,int yoffs,int sx,in
             col=(myword>>28)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
         }else {
 #ifdef DEBUG_VIDEO
-            br= (buffer_pixel_t *)bmp+(line)*(512+32)+sx;
+            br= (uint32_t *)bmp+(line)*(512+32)+sx;
 #else
-            br= (buffer_pixel_t *)bmp+(line)*pixel_pitch+sx;
+            br= (uint32_t *)bmp+(line)*pixel_pitch+sx;
 #endif
             myword = gfxdata[0];
             col=(myword>>28)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
@@ -411,9 +411,9 @@ static inline void RENAME(draw_scanline)(unsigned int tileno,int yoffs,int sx,in
     }else { // zx!=16
         if (xflip) {
 #ifdef DEBUG_VIDEO
-            br= (buffer_pixel_t *)bmp+(line)*(512+32)+sx;
+            br= (uint32_t *)bmp+(line)*(512+32)+sx;
 #else
-            br= (buffer_pixel_t *)bmp+(line)*pixel_pitch+sx;
+            br= (uint32_t *)bmp+(line)*pixel_pitch+sx;
 #endif
             myword = gfxdata[1];
             if (dda_x_skip[ 0]) {if  ((col=((myword>>0)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
@@ -437,9 +437,9 @@ static inline void RENAME(draw_scanline)(unsigned int tileno,int yoffs,int sx,in
 
         }else {
 #ifdef DEBUG_VIDEO
-            br= (buffer_pixel_t *)bmp+(line)*(512+32)+sx;
+            br= (uint32_t *)bmp+(line)*(512+32)+sx;
 #else
-            br= (buffer_pixel_t *)bmp+(line)*pixel_pitch+sx;
+            br= (uint32_t *)bmp+(line)*pixel_pitch+sx;
 #endif
 
             myword = gfxdata[0];
