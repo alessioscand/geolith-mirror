@@ -20,8 +20,6 @@
  *
  */
 
-// FIXME: Take a look at many functions with unused parameters
-
 #include <stdint.h>
 #include <string.h>
 
@@ -56,23 +54,12 @@ uint32_t bankaddress = 0;
     return (r << 16) + (g << 8) + b;
 }
 
-void update_all_pal(void) {
-    int i;
-    uint32_t *pc_pal1 = (uint32_t*) memory.vid.pal_host[0];
-    uint32_t *pc_pal2 = (uint32_t*) memory.vid.pal_host[1];
-    for (i = 0; i < 0x1000; i++) {
-        //pc_pal1[i] = convert_pal(READ_WORD_ROM(&memory.pal1[i<<1]));
-        //pc_pal2[i] = convert_pal(READ_WORD_ROM(&memory.pal2[i<<1]));
-        pc_pal1[i] = convert_pal(READ_WORD(&memory.vid.pal_neo[0][i<<1]));
-        pc_pal2[i] = convert_pal(READ_WORD(&memory.vid.pal_neo[1][i<<1]));
-    }
-}
-
 void mem68k_store_pal_word(uint32_t addr, uint16_t data) {
-    //printf("Store pal word @ %08x %08x %04x\n",cpu_68k_getpc(),addr,data);
     addr &= 0xffff;
     if (addr <= 0x1fff) {
-        WRITE_WORD(&current_pal[addr], data);
+        current_pal[addr] = data & 0xff;
+        current_pal[addr + 1] = data >> 8;
+
         if ((addr >> 1) & 0xF)
             current_pc_pal[(addr) >> 1] = convert_pal(data);
         else

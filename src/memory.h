@@ -26,29 +26,6 @@
 #include "video.h"
 #include "roms.h"
 
-#define READ_WORD(a)          (*(uint16_t *)(a))
-#define WRITE_WORD(a,d)       (*(uint16_t *)(a) = (d))
-#define READ_BYTE(a)          (*(uint8_t *)(a))
-#define WRITE_BYTE(a,d)       (*(uint8_t *)(a) = (d))
-#define SWAP_BYTE_ADDRESS(a)  ((Uintptr)(a)^1)
-#define SWAP16(y) ((y & 0xff) << 8) | ((y >> 8) & 0xff)
-
-/* Programs are stored as BIGENDIAN */
-#ifdef WORDS_BIGENDIAN
-#  define WRITE_WORD_ROM WRITE_WORD
-#  define READ_WORD_ROM READ_WORD
-#  define WRITE_BYTE_ROM WRITE_BYTE
-#  define READ_BYTE_ROM READ_BYTE
-#else /* WORDS_BIGENDIAN */
-#  define WRITE_WORD_ROM(a,d) (WRITE_WORD(a,SWAP16(d)))
-#  define READ_WORD_ROM(a) (SWAP16(READ_WORD(a)))
-#  define WRITE_BYTE_ROM WRITE_BYTE
-#  define READ_BYTE_ROM READ_BYTE
-#endif
-
-#define GFX_MAPPED 1
-#define GZX_MAPPED 2
-
 typedef struct neo_mem {
         GAME_ROMS rom;
         uint8_t ram[0x10000];
@@ -89,8 +66,6 @@ extern unsigned current_line;
 
 /* sram */
 extern uint8_t sram_lock;
-//uint32_t sram_protection_hack;
-//int sram_protection_hack;
 
 /* Sound control */
 extern uint8_t sound_code;
@@ -98,11 +73,6 @@ extern uint8_t result_code;
 
 /* 68k cpu Banking control */
 extern uint32_t bankaddress;            /* current bank */
-//uint8_t current_cpu_bank;
-
-/* misc utility func */
-void update_all_pal(void);
-void dump_hardware_reg(void);
 
 /* cpu 68k interface */
 int cpu_68k_getcycle(void);
