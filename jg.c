@@ -36,7 +36,6 @@ SOFTWARE.
 #include "gngeo_neo.h"
 #include "memory.h"
 #include "roms.h"
-#include "resfile.h"
 #include "video.h"
 
 #define SAMPLERATE 48000
