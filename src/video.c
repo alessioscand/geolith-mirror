@@ -67,107 +67,6 @@ void video_set_buffer(uint32_t *ptr) {
     vbuf = ptr;
 }
 
-int init_sprite_cache(uint32_t size, uint32_t bsize) {
-    GFX_CACHE *gcache = &memory.vid.spr_cache;
-    int i;
-
-    if (gcache->data != NULL) { /* We allready have a cache, just reset it */
-        memset(gcache->ptr, 0, gcache->total_bank * sizeof (uint8_t*));
-        for (i = 0; i < gcache->max_slot; i++)
-            gcache->usage[i] = -1;
-        return 0;
-    }
-
-    /* Create our video cache */
-    gcache->slot_size = bsize;
-    printf("gfx_size=%08x\n", memory.rom.tiles.size);
-    gcache->total_bank = memory.rom.tiles.size / gcache->slot_size;
-    gcache->ptr = malloc(gcache->total_bank * sizeof (uint8_t*));
-    if (gcache->ptr == NULL)
-        return 0;
-    //gcache->z_pos=malloc(gcache->total_bank*sizeof(unz_file_pos ));
-    memset(gcache->ptr, 0, gcache->total_bank * sizeof (uint8_t*));
-
-    gcache->size = size;
-    gcache->data = malloc(gcache->size);
-    if (gcache->data == NULL) {
-        free(gcache->ptr);
-        return 0;
-    }
-    printf("INIT CACHE %p\n", gcache->data);
-
-    //gcache->max_slot=((float)gcache->size/0x4000000)*TOTAL_GFX_BANK;
-    //gcache->max_slot=((float)gcache->size/memory.rom.tiles.size)*gcache->total_bank;
-    gcache->max_slot = size / gcache->slot_size;
-    //gcache->slot_size=0x4000000/TOTAL_GFX_BANK;
-    printf("Allocating %08x for gfx cache (%d %d slot)\n", gcache->size, gcache->max_slot, gcache->slot_size);
-    gcache->usage = malloc(gcache->max_slot * sizeof (uint32_t));
-    for (i = 0; i < gcache->max_slot; i++)
-        gcache->usage[i] = -1;
-    //printf("inbuf size= %d\n",compressBound(bsize));
-
-    gcache->in_buf = malloc(compressBound(bsize));
-
-    return 1;
-}
-
-void free_sprite_cache(void) {
-    GFX_CACHE *gcache = &memory.vid.spr_cache;
-    if (gcache->data) {
-        free(gcache->data);
-        gcache->data = NULL;
-    }
-    if (gcache->ptr) {
-        free(gcache->ptr);
-        gcache->ptr = NULL;
-    }
-    if (gcache->usage) {
-        free(gcache->usage);
-        gcache->usage = NULL;
-    }
-    if (gcache->in_buf) {
-        free(gcache->in_buf);
-        gcache->in_buf = NULL;
-    }
-}
-
-uint8_t *get_cached_sprite_ptr(uint32_t tileno) {
-    GFX_CACHE *gcache = &memory.vid.spr_cache;
-    static int pos = 0;
-    int tile_sh = ~((gcache->slot_size >> 7) - 1);
-
-    int bank = ((tileno & tile_sh) / (gcache->slot_size >> 7));
-    int a;
-    int r;
-    uint32_t cmp_size;
-    uLongf dst_size;
-
-    if (gcache->ptr[bank]) {
-        /* The bank is present in the cache */
-        return gcache->ptr[bank];
-    }
-    /* We have to find a slot for this bank */
-    a = pos;
-    pos++;
-    if (pos >= gcache->max_slot) pos = 0;
-    //printf("Offset for bank is %d\n",gcache->offset[bank]);
-
-    fseek(gcache->gno, gcache->offset[bank], SEEK_SET);
-    r = fread(&cmp_size, sizeof (uint32_t), 1, gcache->gno);
-    r = fread(gcache->in_buf, cmp_size, 1, gcache->gno);
-    dst_size = gcache->slot_size;
-    r = uncompress(gcache->data + a * gcache->slot_size, &dst_size, gcache->in_buf, cmp_size);
-    if (r) { }
-
-    gcache->ptr[bank] = gcache->data + a * gcache->slot_size;
-
-    if (gcache->usage[a] != -1) {
-        gcache->ptr[gcache->usage[a]] = 0;
-    }
-    gcache->usage[a] = bank;
-    return gcache->ptr[bank];
-}
-
 #define fix_add(x, y) ((((memory.vid.ram[0x7500 + (((y-1)&31) + 32 * (x/6))] >> (5-(x%6))*2) & 3) ^ 3))
 
 /* Drawing function generation */
@@ -417,12 +316,6 @@ void draw_screen(void) {
             }
 
             if (sx >= -16 && sx + 15 < 336 && sy >= 0 && sy + 15 < 256) {
-
-                if (memory.vid.spr_cache.data) {
-                    memory.rom.tiles.p = get_cached_sprite_ptr(tileno);
-                    tileno = (tileno & ((memory.vid.spr_cache.slot_size >> 7) - 1));
-                }
-
                 draw_tile(tileno, sx + 16, sy, rzx, yskip, tileatr >> 8,
                     tileatr & 0x01, tileatr & 0x02, (unsigned char*)vbuf);
             }
@@ -547,11 +440,6 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
             if (tileatr & 0x8) tileno = (tileno&~7)+((tileno + neogeo_frame_counter)&7);
             else if (tileatr & 0x4) tileno = (tileno&~3)+((tileno + neogeo_frame_counter)&3);
             if (tileatr & 0x02) yoffs ^= 0x0f; /* flip y */
-
-            if (memory.vid.spr_cache.data) {
-                memory.rom.tiles.p = get_cached_sprite_ptr(tileno);
-                tileno = (tileno & ((memory.vid.spr_cache.slot_size >> 7) - 1));
-            }
 
             draw_scanline_tile(tileno, yoffs, sx + 16, yy, zx, tileatr >> 8,
                 tileatr & 0x01, (unsigned char*) vbuf);

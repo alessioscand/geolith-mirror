@@ -1407,14 +1407,8 @@ void dr_free_roms(GAME_ROMS *r) {
     free_region(&r->cpu_m68k);
     free_region(&r->cpu_z80c);
 
-    if (!memory.vid.spr_cache.data) {
-        gn_log(GN_LOG_DBG, "Free tiles\n");
-        free_region(&r->tiles);
-    } else {
-        fclose(memory.vid.spr_cache.gno);
-        free_sprite_cache();
-        free(memory.vid.spr_cache.offset);
-    }
+    gn_log(GN_LOG_DBG, "Free tiles\n");
+    free_region(&r->tiles);
     free_region(&r->game_sfix);
 
     free_region(&r->cpu_z80);
