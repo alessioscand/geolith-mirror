@@ -186,6 +186,7 @@ static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
         }
         case 0x18: {
             nmi_enabled = false;
+            break;
         }
     }
 }
