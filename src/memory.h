@@ -80,7 +80,6 @@ void cpu_68k_init(void);
 void cpu_68k_reset(void);
 int cpu_68k_run(uint32_t nb_cycle);
 void cpu_68k_interrupt(int a);
-void cpu_68k_bankswitch(uint32_t address);
 void cpu_68k_disassemble(int pc, int nb_instr);
 void cpu_68k_dumpreg(void);
 int cpu_68k_run_step(void);

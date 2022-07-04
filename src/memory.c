@@ -135,7 +135,6 @@ static void bankswitch(uint32_t address, uint8_t data) {
 
     if (bankaddress >= memory.rom.cpu_m68k.size)
         bankaddress = 0x100000;
-    cpu_68k_bankswitch(bankaddress);
 }
 
 void mem68k_store_bk_normal_byte(uint32_t addr, uint8_t data) {
@@ -158,7 +157,6 @@ void mem68k_store_bk_normal_word(uint32_t addr, uint16_t data) {
             (((data >> memory.bksw_unscramble[6]) & 1) << 5);
 
         bankaddress = 0x100000 + memory.bksw_offset[data];
-        cpu_68k_bankswitch(bankaddress);
     } else
         bankswitch(addr, data);
 }
