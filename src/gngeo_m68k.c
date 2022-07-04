@@ -387,7 +387,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a0001: { // REG_NOSHADOW
-                gn_log(GN_LOG_WRN, "REG_NOSHADOW write\n");
+                gn_log(GN_LOG_DBG, "REG_NOSHADOW write\n");
                 return;
             }
             case 0x3a0003: { // REG_SWPBIOS
@@ -397,15 +397,15 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a0005: { // REG_CRDUNLOCK1
-                gn_log(GN_LOG_WRN, "REG_CRDUNLOCK1 write: %02x\n", value);
+                gn_log(GN_LOG_DBG, "REG_CRDUNLOCK1 write: %02x\n", value);
                 return;
             }
             case 0x3a0007: { // REG_CRDLOCK2
-                gn_log(GN_LOG_WRN, "REG_CRDLOCK2 write: %02x\n", value);
+                gn_log(GN_LOG_DBG, "REG_CRDLOCK2 write: %02x\n", value);
                 return;
             }
             case 0x3a0009: { // REG_CRDREGSEL
-                gn_log(GN_LOG_WRN, "REG_CRDREGSEL write: %02x\n", value);
+                gn_log(GN_LOG_DBG, "REG_CRDREGSEL write: %02x\n", value);
                 return;
             }
             case 0x3a000b: { // REG_BRDFIX
@@ -423,7 +423,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a0011: { // REG_SHADOW
-                gn_log(GN_LOG_WRN, "REG_SHADOW write: %02x\n", value);
+                gn_log(GN_LOG_DBG, "REG_SHADOW write: %02x\n", value);
                 return;
             }
             case 0x3a0013: { // REG_SWPROM
@@ -433,15 +433,15 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a0015: { // REG_CRDLOCK1
-                gn_log(GN_LOG_WRN, "REG_CRDLOCK1 write: %02x\n", value);
+                gn_log(GN_LOG_DBG, "REG_CRDLOCK1 write: %02x\n", value);
                 return;
             }
             case 0x3a0017: { // REG_CRDUNLOCK2
-                gn_log(GN_LOG_WRN, "REG_CRDUNLOCK2 write: %02x\n", value);
+                gn_log(GN_LOG_DBG, "REG_CRDUNLOCK2 write: %02x\n", value);
                 return;
             }
             case 0x3a0019: { // REG_CRDREGSEL
-                gn_log(GN_LOG_WRN, "REG_CRDREGSEL write: %02x\n", value);
+                gn_log(GN_LOG_DBG, "REG_CRDREGSEL write: %02x\n", value);
                 return;
             }
             case 0x3a001b: { // REG_CRTFIX
