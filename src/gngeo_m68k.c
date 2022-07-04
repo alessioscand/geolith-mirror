@@ -597,6 +597,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 void cpu_68k_reset(void) {
     m68k_pulse_reset();
     prn = 0x2345;
+    sram_lock = 0;
 }
 
 void cpu_68k_init(void) {
