@@ -70,7 +70,6 @@ void gn_input_stat_set_callback(unsigned port, unsigned (*cb)(void)) {
 
 void gn_reset(void) {
     //  memory.vid.modulo = 1; /* TODO: Move to init_video */
-    sram_lock = 0;
     sound_code = 0;
     result_code = 0;
 

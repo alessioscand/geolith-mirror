@@ -192,6 +192,12 @@ void mem68k_store_pal_word(uint32_t addr, uint16_t data) {
     }
 }
 
+void palette_set(int palnum) {
+    current_pal = memory.vid.pal_neo[palnum];
+    current_pc_pal = (uint32_t *) memory.vid.pal_host[palnum];
+    memory.vid.currentpal = palnum;
+}
+
 void draw_bg(uint32_t *pix, uint32_t bgcol) {
 /* this could be as easy as:
    uint32_t *p = pix, *e = pix + 256*352;

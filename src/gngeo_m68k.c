@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 #include <stdint.h>
+#include <string.h>
 
 #include "m68k.h"
 
@@ -41,7 +42,7 @@ uint8_t sound_code;
 uint8_t result_code;
 
 // SRAM Lock
-uint8_t sram_lock;
+static uint8_t sram_lock;
 
 // NEO-SMA Pseudo-Random Number addresses
 static uint32_t addr_prn[2] = { 0, 0 };
@@ -373,17 +374,89 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             // Writes to 0x300001 reset watchdog timer via DOGE pin
             case 0x300001: {
                 memory.watchdog = 0;
-                break;
+                return;
             }
             case 0x320000: { // REG_SOUND
                 // FIXME: Sync or run extra Z80 cycles to fix wjammers, magdrop2
                 sound_code = value & 0xff;
                 cpu_z80_nmi();
-                break;
+                return;
             }
             case 0x380051: { // REG_RTCCTRL
                 pd4990a_serial_control(value & 0x07);
-                break;
+                return;
+            }
+            case 0x3a0001: { // REG_NOSHADOW
+                gn_log(GN_LOG_WRN, "REG_NOSHADOW write\n");
+                return;
+            }
+            case 0x3a0003: { // REG_SWPBIOS
+                memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
+                memory.current_vector = 0;
+                gn_log(GN_LOG_DBG, "Selected BIOS vector table\n");
+                return;
+            }
+            case 0x3a0005: { // REG_CRDUNLOCK1
+                gn_log(GN_LOG_WRN, "REG_CRDUNLOCK1 write: %02x\n", value);
+                return;
+            }
+            case 0x3a0007: { // REG_CRDLOCK2
+                gn_log(GN_LOG_WRN, "REG_CRDLOCK2 write: %02x\n", value);
+                return;
+            }
+            case 0x3a0009: { // REG_CRDREGSEL
+                gn_log(GN_LOG_WRN, "REG_CRDREGSEL write: %02x\n", value);
+                return;
+            }
+            case 0x3a000b: { // REG_BRDFIX
+                current_fix = memory.rom.bios_sfix.p;
+                fix_usage = memory.fix_board_usage;
+                memory.vid.currentfix = 0;
+                return;
+            }
+            case 0x3a000d: { // REG_SRAMLOCK
+                sram_lock = 1;
+                return;
+            }
+            case 0x3a000f: { // REG_PALBANK1
+                palette_set(1);
+                return;
+            }
+            case 0x3a0011: { // REG_SHADOW
+                gn_log(GN_LOG_WRN, "REG_SHADOW write: %02x\n", value);
+                return;
+            }
+            case 0x3a0013: { // REG_SWPROM
+                memcpy(memory.rom.cpu_m68k.p, memory.game_vector, 0x80);
+                memory.current_vector = 1;
+                gn_log(GN_LOG_DBG, "Selected Cartridge vector table\n");
+                return;
+            }
+            case 0x3a0015: { // REG_CRDLOCK1
+                gn_log(GN_LOG_WRN, "REG_CRDLOCK1 write: %02x\n", value);
+                return;
+            }
+            case 0x3a0017: { // REG_CRDUNLOCK2
+                gn_log(GN_LOG_WRN, "REG_CRDUNLOCK2 write: %02x\n", value);
+                return;
+            }
+            case 0x3a0019: { // REG_CRDREGSEL
+                gn_log(GN_LOG_WRN, "REG_CRDREGSEL write: %02x\n", value);
+                return;
+            }
+            case 0x3a001b: { // REG_CRTFIX
+                current_fix = memory.rom.game_sfix.p;
+                fix_usage = memory.fix_game_usage;
+                memory.vid.currentfix = 1;
+                return;
+            }
+            case 0x3a001d: { // REG_SRAMUNLOCK
+                sram_lock = 0;
+                return;
+            }
+            case 0x3a001f: { // REG_PALBANK0
+                palette_set(0);
+                return;
             }
             case 0x3c0000: case 0x3c0002: case 0x3c0004: case 0x3c0006:
             case 0x3c0008: case 0x3c000a: case 0x3c000c: case 0x3c000e: {
@@ -391,16 +464,14 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                    store the same data in both bytes.
                 */
                 m68k_write_memory_16(address, (value << 8) | (value & 0xff));
-                break;
+                return;
             }
         }
-
-        switch ((address >> 16) & 0x0f) {
-            case 0x0a: mem68k_store_setting_byte(address, value); break;
-        }
+        /*gn_log(GN_LOG_WRN, "Unknown 8-bit write: %06x, %02x\n",
+            address, value);*/
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        gn_log(GN_LOG_WRN, "Palette RAM 8-bit write: %08x, %02x\n",
+        gn_log(GN_LOG_WRN, "Palette RAM 8-bit write: %06x, %02x\n",
             address, value);
     }
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)

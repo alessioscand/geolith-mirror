@@ -60,7 +60,6 @@ CSRCS := m68k/m68kcpu.c \
 	gngeo_neo.c \
 	gngeo_z80.c \
 	mame_layer.c \
-	memory.c \
 	neoboot.c \
 	neocrypt.c \
 	pd4990a.c \

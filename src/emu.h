@@ -134,9 +134,6 @@ void cpu_z80_reset(void);
 
 extern neo_mem memory;
 
-/* sram */
-extern uint8_t sram_lock;
-
 /* Sound control */
 extern uint8_t sound_code;
 extern uint8_t result_code;
