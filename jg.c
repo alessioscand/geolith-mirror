@@ -182,6 +182,7 @@ void jg_deinit(void) {
 
 void jg_reset(int hard) {
     if (hard) { }
+    gn_reset();
 }
 
 void jg_exec_frame(void) {
