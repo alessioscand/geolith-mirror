@@ -27,6 +27,7 @@
  *      NEO GEO and probably a couple of other machines.
  */
 
+#include <stdint.h>
 #include <time.h>
 
 #include "pd4990a.h"

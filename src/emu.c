@@ -43,9 +43,9 @@ unsigned (*gn_input_stat_cb[NUMINPUTS_NG])(void);
 
 struct _conf_t conf;
 
-uint8_t reg_dipsw = 0;
+neo_mem memory;
 
-unsigned current_line;
+uint8_t reg_dipsw = 0;
 
 static int last_line;
 static unsigned fc;

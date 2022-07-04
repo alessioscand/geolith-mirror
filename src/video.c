@@ -63,6 +63,12 @@ uint32_t full_y_skip_i = 0xFFFE;
 char full_y_skip[16] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 unsigned int neogeo_frame_counter_speed = 8;
 
+uint8_t *current_pal;
+uint32_t *current_pc_pal;
+uint8_t *current_fix;
+uint8_t *fix_usage;
+unsigned current_line;
+
 void video_set_buffer(uint32_t *ptr) {
     vbuf = ptr;
 }
@@ -155,6 +161,34 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
                 br += 352;
             }
         }
+    }
+}
+
+/**** PALETTE ****/
+uint32_t convert_pal(uint16_t npal) {
+    int r = 0, g = 0, b = 0, dark = 0;
+    r = ((npal >> 7) & 0x1e) | ((npal >> 14) & 0x01);
+    g = ((npal >> 3) & 0x1e) | ((npal >> 13) & 0x01);
+    b = ((npal << 1) & 0x1e) | ((npal >> 12) & 0x01);
+    dark = ((npal >> 15) & 0x01) ^ 1;
+
+    /* 2^6 bits components (neogeo) -> 2^8 bits components (RGB24) */
+    r = (r << 1 | dark) << 2;
+    g = (g << 1 | dark) << 2;
+    b = (b << 1 | dark) << 2;
+    return (r << 16) + (g << 8) + b;
+}
+
+void mem68k_store_pal_word(uint32_t addr, uint16_t data) {
+    addr &= 0xffff;
+    if (addr <= 0x1fff) {
+        current_pal[addr] = data & 0xff;
+        current_pal[addr + 1] = data >> 8;
+
+        if ((addr >> 1) & 0xF)
+            current_pc_pal[(addr) >> 1] = convert_pal(data);
+        else
+            current_pc_pal[(addr) >> 1] = 0xF81F;
     }
 }
 

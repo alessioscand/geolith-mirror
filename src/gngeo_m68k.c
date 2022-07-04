@@ -29,11 +29,19 @@ SOFTWARE.
 #include "emu.h"
 #include "memory.h"
 #include "pd4990a.h"
+#include "video.h"
 
 #define SMATAP 0x98ec // NEO-SMA Tapped bits - 2, 3, 5, 6, 7, 11, 12, and 15
 
+// Switchable bank offset address
+uint32_t bankaddress = 0;
+
 // Z80 command
 uint8_t sound_code;
+uint8_t result_code;
+
+// SRAM Lock
+uint8_t sram_lock;
 
 // NEO-SMA Pseudo-Random Number addresses
 static uint32_t addr_prn[2] = { 0, 0 };
@@ -269,7 +277,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         return read08(memory.sram, address);
     }
 
-    //gn_log(GN_LOG_WRN, "Unknown 8-bit 68K Read at %06x\n", address);
+    gn_log(GN_LOG_WRN, "Unknown 8-bit 68K Read at %06x\n", address);
     return 0xff;
 }
 
@@ -530,17 +538,9 @@ int cpu_68k_run(uint32_t nb_cycle) {
     return m68k_execute(nb_cycle);
 }
 
-int cpu_68k_run_step(void) {
-    return m68k_execute(1);
-}
-
 void cpu_68k_interrupt(int a) {
     irqlines |= a;
     m68k_set_irq(irqlines);
-}
-
-int cpu_68k_getcycle(void) {
-    return 0;
 }
 
 // Acknowledge interrupts

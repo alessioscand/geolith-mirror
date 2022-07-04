@@ -23,6 +23,9 @@
 #ifndef _EMU_H_
 #define _EMU_H_
 
+#include "video.h"
+#include "roms.h"
+
 #define SIZE_1K     0x000400
 #define SIZE_2K     0x000800
 #define SIZE_4K     0x001000
@@ -32,6 +35,9 @@
 #define SIZE_64K    0x010000
 
 #define NUMINPUTS_NG 2
+
+#define BANKSW_DEF 0x00 // Default
+#define BANKSW_SMA 0x01 // NEO-SMA
 
 typedef enum SYSTEM {
     SYS_UNIBIOS,
@@ -66,6 +72,32 @@ enum gn_loglevel {
     GN_LOG_SCR
 };
 
+typedef struct neo_mem {
+    GAME_ROMS rom;
+    uint8_t ram[0x10000];
+    VIDEO vid;
+    uint8_t *ng_lo;                          /* Put it in memory.vid? use zoom table in rom */
+
+    uint32_t nb_of_tiles;
+
+    uint8_t sram[0x10000];
+
+//  uint32_t *pen_usage;                      /* TODO: it's also in rom  */
+    uint8_t fix_board_usage[4096];
+    uint8_t *fix_game_usage;
+
+    uint8_t game_vector[0x80];
+    int   current_vector;
+
+    /* crypted rom bankswitch system */
+    uint32_t bksw_handler;
+    uint8_t *bksw_unscramble;
+    int *bksw_offset;
+
+    uint8_t memcard[0x800];
+    uint32_t watchdog;
+} neo_mem;
+
 void gn_exec(void);
 void gn_init(void);
 void gn_reset(void);
@@ -80,5 +112,36 @@ extern unsigned (*gn_input_cb[NUMINPUTS_NG])(unsigned);
 extern unsigned (*gn_input_stat_cb[NUMINPUTS_NG])(void);
 
 extern uint8_t reg_dipsw;
+
+void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2);
+void gn_m68k_banksw_set(unsigned swtype, uint32_t addr);
+
+
+
+/* cpu 68k interface */
+void cpu_68k_init(void);
+void cpu_68k_reset(void);
+int cpu_68k_run(uint32_t nb_cycle);
+void cpu_68k_interrupt(int a);
+
+/* cpu z80 interface */
+int cpu_z80_run(int nbcycle);
+void cpu_z80_nmi(void);
+void cpu_z80_raise_irq(int l);
+void cpu_z80_lower_irq(void);
+void cpu_z80_init(void);
+void cpu_z80_reset(void);
+
+extern neo_mem memory;
+
+/* sram */
+extern uint8_t sram_lock;
+
+/* Sound control */
+extern uint8_t sound_code;
+extern uint8_t result_code;
+
+/* 68k cpu Banking control */
+extern uint32_t bankaddress;            /* current bank */
 
 #endif
