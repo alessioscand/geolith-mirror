@@ -35,13 +35,19 @@ SOFTWARE.
 // Z80 command
 uint8_t sound_code;
 
-// Pseudo-Random Number addresses
+// NEO-SMA Pseudo-Random Number addresses
 static uint32_t addr_prn[2] = { 0, 0 };
 static uint16_t prn = 0x2345; // Pseudo-random number initial value
+
+// NEO-SMA bankswitch address
+static uint32_t addr_sma_bankswitch = 0x00000000;
 
 // Interrupt status
 static uint32_t irqlines = 0;
 static uint32_t irqack = 0;
+
+// Function pointer for 16-bit bankswitches
+static void (*gn_m68k_write_banksw_16)(uint32_t, uint16_t);
 
 static inline uint16_t parity(uint16_t v) {
     /* This technique is used, adapted for 16-bit values:
@@ -78,6 +84,38 @@ static inline void write08(uint8_t *ptr, uint32_t addr, uint8_t data) {
 static inline void write16(uint8_t *ptr, uint32_t addr, uint16_t data) {
     ptr[addr + 1] = data & 0xff;
     ptr[addr] = data >> 8;
+}
+
+// Default Bankswitch routine
+static void gn_m68k_write_banksw_16_default(uint32_t addr, uint16_t data) {
+    if (addr >= 0x2ffff0)
+        bankaddress = (data * 0x100000) + 0x100000;
+    else
+        gn_log(GN_LOG_WRN, "16-bit write at %06x\n", addr);
+}
+
+// NEO-SMA Scrambled Bankswitch
+static void gn_m68k_write_banksw_sma(uint32_t addr, uint16_t data) {
+    /* If the NEO-SMA bankswitch address is written to, the data must be
+       unscrambled. A 6-bit bank value is derived by shifting the original
+       value by 6 Lookup Table (LUT) entries, and then ORing the least
+       significant bits together in their corresponding position. For example,
+       the 4th value may be derived by shifting the data being written by the
+       4th LUT entry, and the least significant bit will be in the 4th position
+       of the final unscrambled value.
+    */
+    if (addr == addr_sma_bankswitch) {
+        uint8_t unscrambled = 0;
+
+        for (unsigned i = 0; i < 6; ++i)
+            unscrambled |= (((data >> memory.bksw_unscramble[i]) & 0x01) << i);
+
+        /* A 64 entry LUT is used to determine the offset into P ROM. The
+           6-bit unscrambled value derived above serves as the index into the
+           Bankswitch LUT, which contains the memory offset value.
+        */
+        bankaddress = 0x100000 + memory.bksw_offset[unscrambled];
+    }
 }
 
 /* 68K Memory Map
@@ -231,7 +269,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         return read08(memory.sram, address);
     }
 
-    gn_log(GN_LOG_WRN, "Unknown 8-bit 68K Read at %06x\n", address);
+    //gn_log(GN_LOG_WRN, "Unknown 8-bit 68K Read at %06x\n", address);
     return 0xff;
 }
 
@@ -317,7 +355,10 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
         write08(memory.ram, address, value & 0xff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        mem68k_store_bk_normal_byte(address, value);
+        if (address >= 0x2ffff0)
+            bankaddress = (value * 0x100000) + 0x100000;
+        else
+            gn_log(GN_LOG_WRN, "8-bit write at %06x\n", address);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch (address) {
@@ -379,7 +420,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
         write16(memory.ram, address, value & 0xffff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        mem68k_store_bk_normal_word(address, value);
+        gn_m68k_write_banksw_16(address, value);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch (address) {
@@ -474,10 +515,6 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
     m68k_write_memory_16(address + 2, value & 0xffff);
 }
 
-void cpu_68k_bankswitch(uint32_t address) {
-    bankaddress = address;
-}
-
 void cpu_68k_reset(void) {
     m68k_pulse_reset();
     prn = 0x2345;
@@ -525,4 +562,16 @@ int gn_m68k_int_ack(int level) {
 void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2) {
     addr_prn[0] = a1;
     addr_prn[1] = a2;
+}
+
+void gn_m68k_banksw_set(unsigned swtype, uint32_t addr) {
+    switch (swtype) {
+        case BANKSW_SMA: // NEO-SMA Bankswitching
+            gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_sma;
+            addr_sma_bankswitch = addr;
+            break;
+        default: // Default
+            gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_default;
+            break;
+    }
 }

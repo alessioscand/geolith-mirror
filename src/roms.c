@@ -80,8 +80,7 @@ int bankoffset_kof99[64] = {
     0x567000, 0x592800, 0x588800, 0x581800, 0x599800, 0x594800, 0x598000,
     /* rest not used? */
 };
-/* addr,uncramblecode,.... */
-uint8_t scramblecode_kof99[7] = {0xF0, 14, 6, 8, 10, 12, 5,};
+uint8_t scramblecode_kof99[6] = {14, 6, 8, 10, 12, 5,};
 
 int bankoffset_garou[64] = {
     0x000000, 0x100000, 0x200000, 0x300000, // 00
@@ -99,8 +98,9 @@ int bankoffset_garou[64] = {
     0x5d0000, 0x5d8000, 0x5e0000, 0x5e8000, // 48
     0x5f0000, 0x5f8000, 0x600000, /* rest not used? */
 };
-uint8_t scramblecode_garou[7] = {0xC0, 5, 9, 7, 6, 14, 12,};
-int bankoffset_garouo[64] = {
+uint8_t scramblecode_garou[6] = {5, 9, 7, 6, 14, 12,};
+
+int bankoffset_garouh[64] = {
     0x000000, 0x100000, 0x200000, 0x300000, // 00
     0x280000, 0x380000, 0x2d0000, 0x3d0000, // 04
     0x2c8000, 0x3c8000, 0x400000, 0x500000, // 08
@@ -118,7 +118,7 @@ int bankoffset_garouo[64] = {
     0x000000, 0x000000, 0x000000, 0x000000, // 56
     0x000000, 0x000000, 0x000000, 0x000000, // 60
 };
-uint8_t scramblecode_garouo[7] = {0xC0, 4, 8, 14, 2, 11, 13,};
+uint8_t scramblecode_garouh[6] = {4, 8, 14, 2, 11, 13,};
 
 int bankoffset_mslug3[64] = {
     0x000000, 0x020000, 0x040000, 0x060000, // 00
@@ -135,7 +135,8 @@ int bankoffset_mslug3[64] = {
     0x460000, 0x470000, 0x4a0000, 0x4b0000, // 44
     0x4c0000, /* rest not used? */
 };
-uint8_t scramblecode_mslug3[7] = {0xE4, 14, 12, 15, 6, 3, 9,};
+uint8_t scramblecode_mslug3[6] = {14, 12, 15, 6, 3, 9,};
+
 int bankoffset_kof2000[64] = {
     0x000000, 0x100000, 0x200000, 0x300000, // 00
     0x3f7800, 0x4f7800, 0x3ff800, 0x4ff800, // 04
@@ -147,7 +148,7 @@ int bankoffset_kof2000[64] = {
     0x52d000, 0x62d000, 0x52e800, 0x62e800, // 28
     0x618000, 0x619000, 0x61a000, 0x61a800, // 32
 };
-uint8_t scramblecode_kof2000[7] = {0xEC, 15, 14, 7, 3, 10, 5,};
+uint8_t scramblecode_kof2000[6] = {15, 14, 7, 3, 10, 5,};
 
 #define LOAD_BUF_SIZE (128*1024)
 static uint8_t* iloadbuf = NULL;
@@ -179,6 +180,7 @@ int init_kof99(GAME_ROMS *r) {
     memory.bksw_offset = bankoffset_kof99;
     memory.bksw_unscramble = scramblecode_kof99;
     gn_m68k_prn_addrs(0x2ffff8, 0x2ffffa);
+    gn_m68k_banksw_set(BANKSW_SMA, 0x2ffff0);
     //kof99_install_protection(machine);
     return 0;
 }
@@ -198,21 +200,21 @@ int init_garou(GAME_ROMS *r) {
     memory.bksw_offset = bankoffset_garou;
     memory.bksw_unscramble = scramblecode_garou;
     gn_m68k_prn_addrs(0x2fffcc, 0x2ffff0);
+    gn_m68k_banksw_set(BANKSW_SMA, 0x2fffc0);
     //garou_install_protection(machine);
-    gn_log(GN_LOG_DBG, "I HAS INITIALIZD GAROU\n");
     return 0;
 }
 
-int init_garouo(GAME_ROMS *r) {
+int init_garouh(GAME_ROMS *r) {
     if (need_decrypt) {
         garouo_decrypt_68k(r);
         kof99_neogeo_gfx_decrypt(r, 0x06);
     }
     neogeo_fix_bank_type = 1;
-    memory.bksw_offset = bankoffset_garouo;
-    memory.bksw_unscramble = scramblecode_garouo;
+    memory.bksw_offset = bankoffset_garouh;
+    memory.bksw_unscramble = scramblecode_garouh;
     gn_m68k_prn_addrs(0x2fffcc, 0x2ffff0);
-
+    gn_m68k_banksw_set(BANKSW_SMA, 0x2fffc0);
     //garouo_install_protection(machine);
     return 0;
 }
@@ -227,7 +229,6 @@ int init_garoubl(GAME_ROMS *r) {
 }
 
 int init_mslug3(GAME_ROMS *r) {
-    printf("INIT MSLUG3\n");
     if (need_decrypt) {
         mslug3_decrypt_68k(r);
         kof99_neogeo_gfx_decrypt(r, 0xad);
@@ -235,6 +236,8 @@ int init_mslug3(GAME_ROMS *r) {
     neogeo_fix_bank_type = 1;
     memory.bksw_offset = bankoffset_mslug3;
     memory.bksw_unscramble = scramblecode_mslug3;
+    gn_m68k_prn_addrs(0x2ffff8, 0x2ffffa);
+    gn_m68k_banksw_set(BANKSW_SMA, 0x2fffe4);
 
     return 0;
 }
@@ -264,6 +267,7 @@ int init_kof2000(GAME_ROMS *r) {
     memory.bksw_offset = bankoffset_kof2000;
     memory.bksw_unscramble = scramblecode_kof2000;
     gn_m68k_prn_addrs(0x2fffd8, 0x2fffda);
+    gn_m68k_banksw_set(BANKSW_SMA, 0x2fffec);
     return 0;
 
 }
@@ -773,7 +777,7 @@ struct roms_init_func {
     { "kof99", init_kof99},
     { "kof99n", init_kof99n},
     { "garou", init_garou},
-    { "garouo", init_garouo},
+    { "garouh", init_garouh},
     { "garoubl", init_garoubl},
     { "mslug3", init_mslug3},
     { "mslug3h", init_mslug3h},
@@ -1501,6 +1505,8 @@ int close_game(void) {
 }
 
 int init_game(char *rom_name) {
+    gn_m68k_banksw_set(0, 0); // Set default bankswitch function
+
     if (dr_load_game(rom_name) == 0) {
         printf("Can't load %s\n", rom_name);
         return 0;

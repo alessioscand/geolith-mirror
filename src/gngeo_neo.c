@@ -166,6 +166,7 @@ int gn_neo_load(void *data, size_t size) {
             init_kof2000(&(memory.rom));
             break;
         default:
+            gn_m68k_banksw_set(0, 0); // Set default bankswitch function
             break;
     }
 
