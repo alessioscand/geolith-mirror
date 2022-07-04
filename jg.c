@@ -50,7 +50,7 @@ static jg_cb_rumble_t jg_cb_rumble;
 static jg_cb_settings_read_t jg_cb_settings_read;
 
 static jg_coreinfo_t coreinfo = {
-    "gngeo", "Gngeo JG", "0.8.1", "neogeo", NUMINPUTS, JG_HINT_MEDIA_ARCHIVED
+    "gngeo", "Gngeo JG", VERSION, "neogeo", NUMINPUTS, JG_HINT_MEDIA_ARCHIVED
 };
 
 static jg_videoinfo_t vidinfo = {
