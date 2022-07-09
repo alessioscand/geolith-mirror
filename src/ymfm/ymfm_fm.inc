@@ -811,7 +811,8 @@ static inline void fm_channel_output_2op(fm_channel *ch, int32_t *output, uint32
 	}
 	else
 	{
-		result = op1value + (fm_operator_compute_volume(ch->m_op[1], fm_operator_phase(ch->m_op[1]), am_offset) >> rshift);
+		result = (MODULATOR_DELAY ? ch->m_feedback[1] : op1value) >> rshift;
+		result += fm_operator_compute_volume(ch->m_op[1], fm_operator_phase(ch->m_op[1]), am_offset) >> rshift;
 		int32_t clipmin = -clipmax - 1;
 		result = clamp(result, clipmin, clipmax);
 	}
