@@ -732,17 +732,26 @@ static inline uint8_t adpcm_b_channel_read(uint32_t regnum)
 			m_channel_b.m_dummy_read--;
 		}
 
-		// did we hit the end? if so, signal EOS
-		if (adpcm_b_channel_at_end())
-		{
-			m_channel_b.m_status = STATUS_EOS | STATUS_BRDY;
-		}
-
-		// otherwise, write the data and signal ready
+		// read the data
 		else
 		{
+			// read from outside of the chip
 			result = ymfm_external_read(ACCESS_ADPCM_B, m_channel_b.m_curaddress++);
-			m_channel_b.m_status = STATUS_BRDY;
+
+			// did we hit the end? if so, signal EOS
+			if (adpcm_b_channel_at_end())
+			{
+				m_channel_b.m_status = STATUS_EOS | STATUS_BRDY;
+			}
+			else
+			{
+				// signal ready
+				m_channel_b.m_status = STATUS_BRDY;
+			}
+
+			// wrap at the limit address
+			if (adpcm_b_channel_at_limit())
+				m_channel_b.m_curaddress = 0;
 		}
 	}
 	return result;
