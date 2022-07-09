@@ -75,7 +75,7 @@ static inline uint32_t word(uint32_t offset1, uint32_t start1, uint32_t count1, 
 // simulate the DAC discontinuity (YM2612)
 static inline int32_t dac_discontinuity(int32_t value)
 {
-	return (value < 0) ? (value - 2) : (value + 3);
+	return (value < 0) ? (value - 3) : (value + 4);
 }
 
 // helper to apply KSR to the raw ADSR rate, ignoring ksr if the

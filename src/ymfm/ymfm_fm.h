@@ -86,8 +86,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MODULATOR_DELAY false
 #define CSM_TRIGGER_MASK 4
 
-// "quiet" value, used to optimize when we can skip doing working
-#define EG_QUIET 0x200
+// "quiet" value, used to optimize when we can skip doing work
+#define EG_QUIET 0x380
 
 //*********************************************************
 //  GLOBAL ENUMERATORS
