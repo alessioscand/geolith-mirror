@@ -656,6 +656,8 @@ static inline void fm_operator_clock(fm_operator *op, uint32_t env_counter, int3
 	// clock the SSG-EG state (OPN/OPNA)
 	if (opn_registers_op_ssg_eg_enable(op->m_opoffs))
 		fm_operator_clock_ssg_eg_state(op);
+	else
+		op->m_ssg_inverted = false;
 
 	// clock the envelope if on an envelope cycle; env_counter is a x.2 value
 	if (bitfield(env_counter, 0, 2) == 0)
