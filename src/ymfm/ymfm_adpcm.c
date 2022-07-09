@@ -577,14 +577,16 @@ static inline uint32_t adpcm_b_channel_address_shift(void)
 }
 
 
-// limit checker
+// limit checker; stops at the last byte of the chunk described by address_shift()
 static inline bool adpcm_b_channel_at_limit(void) {
-	return (m_channel_b.m_curaddress >> adpcm_b_channel_address_shift()) >= adpcm_b_registers_limit();
+	return (m_channel_b.m_curaddress ==
+		(((adpcm_b_registers_limit() + 1) << adpcm_b_channel_address_shift()) - 1));
 }
 
-// end checker
+// end checker; stops at the last byte of the chunk described by address_shift()
 static inline bool adpcm_b_channel_at_end(void) {
-	return (m_channel_b.m_curaddress >> adpcm_b_channel_address_shift()) > adpcm_b_registers_end();
+	return (m_channel_b.m_curaddress ==
+		(((adpcm_b_registers_end() + 1) << adpcm_b_channel_address_shift()) - 1));
 }
 
 
@@ -626,47 +628,59 @@ static inline void adpcm_b_channel_clock(void)
 	if (position < 0x10000)
 		return;
 
-	// if playing from RAM/ROM, check the end address and process
-	if (adpcm_b_registers_external())
+	// if we're about to process nibble 0, fetch sample
+	if (m_channel_b.m_curnibble == 0)
 	{
-		// wrap at the limit address
-		if (adpcm_b_channel_at_limit())
-			m_channel_b.m_curaddress = 0;
-
-		// handle the sample end, either repeating or stopping
-		if (adpcm_b_channel_at_end())
-		{
-			// if repeating, go back to the start
-			if (adpcm_b_registers_repeat())
-				adpcm_b_channel_load_start();
-
-			// otherwise, done; set the EOS bit and return
-			else
-			{
-				m_channel_b.m_accumulator = 0;
-				m_channel_b.m_prev_accum = 0;
-				m_channel_b.m_status = (m_channel_b.m_status & (uint8_t)~STATUS_PLAYING) | STATUS_EOS;
-				return;
-			}
-		}
-
-		// if we're about to process nibble 0, fetch and increment
-		if (m_channel_b.m_curnibble == 0)
-		{
-			m_channel_b.m_curbyte = ymfm_external_read(ACCESS_ADPCM_B, m_channel_b.m_curaddress++);
-			m_channel_b.m_curaddress &= 0xffffff;
-		}
+		// playing from RAM/ROM
+		if (adpcm_b_registers_external())
+			m_channel_b.m_curbyte = ymfm_external_read(ACCESS_ADPCM_B, m_channel_b.m_curaddress);
 	}
 
 	// extract the nibble from our current byte
 	uint8_t data = (uint8_t)(m_channel_b.m_curbyte << (4 * m_channel_b.m_curnibble)) >> 4;
 	m_channel_b.m_curnibble ^= 1;
 
-	// if CPU-driven and we just processed the last nibble, copy the next byte and request more
-	if (m_channel_b.m_curnibble == 0 && !adpcm_b_registers_external())
+	// we just processed the last nibble
+	if (m_channel_b.m_curnibble == 0)
 	{
-		m_channel_b.m_curbyte = adpcm_b_registers_cpudata();
-		m_channel_b.m_status |= STATUS_BRDY;
+		// if playing from RAM/ROM, check the end/limit address or advance
+		if (adpcm_b_registers_external())
+		{
+			// handle the sample end, either repeating or stopping
+			if (adpcm_b_channel_at_end())
+			{
+				// if repeating, go back to the start
+				if (adpcm_b_registers_repeat())
+					adpcm_b_channel_load_start();
+
+				// otherwise, done; set the EOS bit
+				else
+				{
+					m_channel_b.m_accumulator = 0;
+					m_channel_b.m_prev_accum = 0;
+					m_channel_b.m_status = (m_channel_b.m_status & (uint8_t)~STATUS_PLAYING) | STATUS_EOS;
+					return;
+				}
+			}
+
+			// wrap at the limit address
+			else if (adpcm_b_channel_at_limit())
+				m_channel_b.m_curaddress = 0;
+
+			// otherwise, advance the current address
+			else
+			{
+				m_channel_b.m_curaddress++;
+				m_channel_b.m_curaddress &= 0xffffff;
+			}
+		}
+
+		// if CPU-driven, copy the next byte and request more
+		else
+		{
+			m_channel_b.m_curbyte = adpcm_b_registers_cpudata();
+			m_channel_b.m_status |= STATUS_BRDY;
+		}
 	}
 
 	// remember previous value for interpolation
