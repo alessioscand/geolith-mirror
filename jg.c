@@ -47,7 +47,6 @@ static jg_cb_audio_t jg_cb_audio;
 static jg_cb_frametime_t jg_cb_frametime;
 static jg_cb_log_t jg_cb_log;
 static jg_cb_rumble_t jg_cb_rumble;
-static jg_cb_settings_read_t jg_cb_settings_read;
 
 static jg_coreinfo_t coreinfo = {
     "gngeo", "Gngeo JG", VERSION, "neogeo", NUMINPUTS, JG_HINT_MEDIA_ARCHIVED
@@ -80,20 +79,15 @@ static jg_inputinfo_t inputinfo[NUMINPUTS];
 static jg_inputstate_t *input_device[NUMINPUTS];
 
 // Emulator settings
-static jg_setting_t settings_gn[] = {   // name, desc, default, min, max
-    { "system", "", 0, 0, 2 }, // 0 = Universe BIOS, 1 = Arcade, 2 = Home
-    { "region", "", 3, 0, 3 }, // 0 = US, 1 = JP, 2 = AS, 3 = EU
+static jg_setting_t settings_gn[] = {
+    { "system", "0 = Universe BIOS, 1 = Arcade, 2 = Home", 0, 0, 2 },
+    { "region", "0 = US, 1 = JP, 2 = AS, 3 = EU", 3, 0, 3 },
 };
 
 enum {
     SYS,
     REGION,
 };
-
-static void gn_settings_read(void) {
-    jg_cb_settings_read(settings_gn,
-        sizeof(settings_gn) / sizeof(jg_setting_t));
-}
 
 // Coin Slots, Service Button, # of Slots
 static unsigned gn_input_poll_stat_a(void) {
@@ -159,12 +153,7 @@ void jg_set_cb_rumble(jg_cb_rumble_t func) {
     jg_cb_rumble = func;
 }
 
-void jg_set_cb_settings_read(jg_cb_settings_read_t func) {
-    jg_cb_settings_read = func;
-}
-
 int jg_init(void) {
-    gn_settings_read();
     gn_log_set_callback(jg_cb_log);
     conf.sample_rate = SAMPLERATE;
     gn_mixer_set_rate(SAMPLERATE);
@@ -267,6 +256,11 @@ jg_audioinfo_t* jg_get_audioinfo(void) {
 
 jg_inputinfo_t* jg_get_inputinfo(int port) {
     return &inputinfo[port];
+}
+
+jg_setting_t* jg_get_settings(size_t *numsettings) {
+    *numsettings = sizeof(settings_gn) / sizeof(jg_setting_t);
+    return settings_gn;
 }
 
 void jg_setup_video(void) {
