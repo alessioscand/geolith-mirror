@@ -298,7 +298,12 @@ int32_t opn_registers_clock_noise_and_lfo(void)
 	if (!opn_registers_lfo_enable())
 	{
 		m_lfo_counter = 0;
-		m_lfo_am = 0;
+
+		// special case: if LFO is disabled on OPNA, it basically just keeps the counter
+		// at 0; since position 0 gives an AM value of 0x3f, it is important to reflect
+		// that here; for example, MegaDrive Venom plays some notes with LFO globally
+		// disabled but enabling LFO on the operators, and it expects this added attenutation
+		m_lfo_am = 0x3f;
 		return 0;
 	}
 
