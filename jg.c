@@ -220,8 +220,19 @@ int jg_state_load(const char *filename) {
     return 0;
 }
 
+void jg_state_load_raw(const void *data) {
+    if (data) { }
+}
+
 int jg_state_save(const char *filename) {
     if (filename) { }
+    return 0;
+}
+const void* jg_state_save_raw(void) {
+    return NULL;
+}
+
+size_t jg_state_size(void) {
     return 0;
 }
 
@@ -239,6 +250,10 @@ void jg_cheat_set(const char *code) {
 }
 
 void jg_rehash(void) {
+}
+
+void jg_input_audio(int port, const int16_t *buf, size_t numsamps) {
+    if (port || buf || numsamps) { }
 }
 
 jg_coreinfo_t* jg_get_coreinfo(const char *sys) {
