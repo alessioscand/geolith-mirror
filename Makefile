@@ -11,15 +11,15 @@ SRCDIR := $(SOURCEDIR)/src
 PKG_CONFIG ?= pkg-config
 CFLAGS_JG := $(shell $(PKG_CONFIG) --cflags jg)
 
+CFLAGS_ZLIB := $(shell $(PKG_CONFIG) --cflags zlib)
 LIBS_ZLIB := $(shell $(PKG_CONFIG) --libs zlib)
-
-LIBS := $(LIBS_ZLIB)
 
 INCLUDES := -I$(SRCDIR) -I$(SRCDIR)/m68k -I$(SRCDIR)/ymfm -I$(SRCDIR)/z80
 PIC := -fPIC
 SHARED := $(PIC)
 
-INCLUDES += $(CFLAGS_SPEEXDSP)
+INCLUDES += $(CFLAGS_ZLIB)
+LIBS := $(LIBS_ZLIB)
 
 NAME := gngeo
 PREFIX ?= /usr/local
