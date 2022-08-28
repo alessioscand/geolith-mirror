@@ -117,7 +117,7 @@ extern void ymfm_update_irq(bool asserted);
 //  'length' bits
 //-------------------------------------------------
 
-inline uint32_t bitfield(uint32_t value, int start, int length)
+static inline uint32_t bitfield(uint32_t value, int start, int length)
 {
 	return (value >> start) & ((1 << length) - 1);
 }
@@ -128,7 +128,7 @@ inline uint32_t bitfield(uint32_t value, int start, int length)
 //  values provided
 //-------------------------------------------------
 
-inline int32_t clamp(int32_t value, int32_t minval, int32_t maxval)
+static inline int32_t clamp(int32_t value, int32_t minval, int32_t maxval)
 {
 	if (value < minval)
 		return minval;

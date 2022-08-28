@@ -60,7 +60,7 @@ static fm_operator m_operator[OPERATORS]; // operators
 //  attenuation value, in 4.8 fixed point format
 //-------------------------------------------------
 
-inline uint32_t abs_sin_attenuation(uint32_t input)
+static inline uint32_t abs_sin_attenuation(uint32_t input)
 {
 	// the values here are stored as 4.8 logarithmic values for 1/4 phase
 	// this matches the internal format of the OPN chip, extracted from the die
@@ -100,7 +100,7 @@ inline uint32_t abs_sin_attenuation(uint32_t input)
 //  linear volume
 //-------------------------------------------------
 
-inline uint32_t attenuation_to_volume(uint32_t input)
+static inline uint32_t attenuation_to_volume(uint32_t input)
 {
 	// the values here are 10-bit mantissas with an implied leading bit
 	// this matches the internal format of the OPN chip, extracted from the die
@@ -159,7 +159,7 @@ inline uint32_t attenuation_to_volume(uint32_t input)
 //  fractional scale factor to decrease by)
 //-------------------------------------------------
 
-inline uint32_t attenuation_increment(uint32_t rate, uint32_t index)
+static inline uint32_t attenuation_increment(uint32_t rate, uint32_t index)
 {
 	static uint32_t const s_increment_table[64] =
 	{
@@ -193,7 +193,7 @@ inline uint32_t attenuation_increment(uint32_t rate, uint32_t index)
 //  we'll keep the simplicity of the table
 //-------------------------------------------------
 
-inline int32_t detune_adjustment(uint32_t detune, uint32_t keycode)
+static inline int32_t detune_adjustment(uint32_t detune, uint32_t keycode)
 {
 	static uint8_t const s_detune_adjustment[32][4] =
 	{
@@ -219,7 +219,7 @@ inline int32_t detune_adjustment(uint32_t detune, uint32_t keycode)
 //  algorithm written to match Nuked behavior
 //-------------------------------------------------
 
-inline int32_t opn_lfo_pm_phase_adjustment(uint32_t fnum_bits, uint32_t pm_sensitivity, int32_t lfo_raw_pm)
+static inline int32_t opn_lfo_pm_phase_adjustment(uint32_t fnum_bits, uint32_t pm_sensitivity, int32_t lfo_raw_pm)
 {
 	// this table encodes 2 shift values to apply to the top 7 bits
 	// of fnum; it is effectively a cheap multiply by a constant
