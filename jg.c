@@ -80,8 +80,8 @@ static jg_inputstate_t *input_device[NUMINPUTS];
 
 // Emulator settings
 static jg_setting_t settings_gn[] = {
-    { "system", "0 = Universe BIOS, 1 = Arcade, 2 = Home", 0, 0, 2 },
-    { "region", "0 = US, 1 = JP, 2 = AS, 3 = EU", 3, 0, 3 },
+    { "system", "0 = Universe BIOS, 1 = Arcade, 2 = Home", "", 0, 0, 2, 1 },
+    { "region", "0 = US, 1 = JP, 2 = AS, 3 = EU", "", 3, 0, 3, 1 },
 };
 
 enum {
@@ -159,8 +159,8 @@ int jg_init(void) {
     gn_mixer_set_rate(SAMPLERATE);
     gn_mixer_init();
     conf.pal = 0; // Not currently supported
-    conf.system = settings_gn[SYS].value;
-    conf.country = settings_gn[REGION].value;
+    conf.system = settings_gn[SYS].val;
+    conf.country = settings_gn[REGION].val;
     return 1;
 }
 
