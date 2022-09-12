@@ -61,7 +61,7 @@ static char writing=0;
 #define CLOCK_BIT   0x2
 #define END_BIT     0x4
 
-void pd4990a_addretrace()
+void pd4990a_addretrace(void)
 {
   ++testwaits;
   if(testwaits>=maxwaits)
