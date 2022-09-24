@@ -80,8 +80,16 @@ static jg_inputstate_t *input_device[NUMINPUTS];
 
 // Emulator settings
 static jg_setting_t settings_gn[] = {
-    { "system", "0 = Universe BIOS, 1 = Arcade, 2 = Home", "", 0, 0, 2, 1 },
-    { "region", "0 = US, 1 = JP, 2 = AS, 3 = EU", "", 3, 0, 3, 1 },
+    { "system", "Emulated System",
+      "0 = Universe BIOS, 1 = Arcade, 2 = Home",
+      "Select which type of system/BIOS to emulate",
+      0, 0, 2, 1
+    },
+    { "region", "Region",
+      "0 = US, 1 = JP, 2 = AS, 3 = EU",
+      "Select the region",
+      3, 0, 3, 1
+    }
 };
 
 enum {
