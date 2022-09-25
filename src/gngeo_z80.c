@@ -223,13 +223,13 @@ int cpu_z80_run(int nbcycle) {
 
 void cpu_z80_nmi(void) {
     if (nmi_enabled)
-        z80_gen_nmi(&z80ctx);
+        z80_pulse_nmi(&z80ctx);
 }
 
 void cpu_z80_raise_irq(int l) {
-    z80_gen_int(&z80ctx, l & 0xff);
+    z80_assert_irq(&z80ctx, l & 0xff);
 }
 
 void cpu_z80_lower_irq(void) {
-    z80_clr_int(&z80ctx);
+    z80_clr_irq(&z80ctx);
 }
