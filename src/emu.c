@@ -170,7 +170,7 @@ void gn_exec(void) {
         reqcycs = CYC_LINE_68K - mextcycs;
 
         // Run 68K for one scanline
-        itercycs = cpu_68k_run(reqcycs - mextcycs);
+        itercycs = cpu_68k_run(reqcycs);
         mextcycs = itercycs - reqcycs; // Store extra cycle count
 
         // Run Z80 for one scanline
