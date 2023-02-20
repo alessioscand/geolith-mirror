@@ -30,9 +30,11 @@
 
 #include "ymfm/ymfm_shim.h"
 
-#define CYC_LINE_68K 768
-#define CYC_LINE_Z80 256
-#define NG_SCANLINES 264
+#define DIV_M68K 2
+#define DIV_Z80 6
+
+#define MCYC_PER_FRAME 405504
+#define MCYC_PER_LINE 1536
 
 // Log callback
 void (*gn_log)(int, const char *, ...);
@@ -52,8 +54,16 @@ static unsigned fc;
 
 // Extra cycles stored at the end of scanlines/frames
 static uint32_t mextcycs = 0;
+static uint32_t lextcycs = 0;
 static uint32_t zextcycs = 0;
+
 static uint32_t ymcycs = 0;
+static uint32_t ymsamps = 0;
+
+static unsigned mcycs = 0;
+static unsigned zcycs = 0;
+static unsigned icycs = 0;
+static unsigned lcycs = 0;
 
 // Set the log callback
 void gn_log_set_callback(void (*cb)(int, const char *, ...)) {
@@ -160,38 +170,42 @@ static inline int update_scanline(void) {
 }
 
 void gn_exec(void) {
-    size_t reqcycs = 0;
-    size_t itercycs = 0;
-    size_t ymsamps = 0;
+    mcycs = mextcycs;
+    lcycs = lextcycs;
+    zcycs = zextcycs;
 
-    // Run scanline-based iterations of emulation until a frame is complete
-    for (size_t i = 0; i < NG_SCANLINES; ++i) {
-        // Set the number of cycles required to complete this scanline
-        reqcycs = CYC_LINE_68K - mextcycs;
+    while (mcycs < MCYC_PER_FRAME) {
+        icycs = cpu_68k_run(1);
+        mcycs += icycs * DIV_M68K;
+        lcycs += icycs * DIV_M68K;
 
-        // Run 68K for one scanline
-        itercycs = cpu_68k_run(reqcycs);
-        mextcycs = itercycs - reqcycs; // Store extra cycle count
+        while (zcycs < mcycs) {
+            size_t scycs = cpu_z80_run(1);
+            zcycs += scycs * DIV_Z80;
 
-        // Run Z80 for one scanline
-        reqcycs = CYC_LINE_Z80 - zextcycs;
-        itercycs = cpu_z80_run(reqcycs);
-        zextcycs = itercycs - reqcycs;
-
-        for (size_t s = 0; s < itercycs; ++s) {
-            if (++ymcycs == 72) { // 72 for medium fidelity, 8 for high
-                ymcycs = 0;
-                ymsamps += ymfm_shim_exec();
+            for (size_t s = 0; s < scycs; ++s) {
+                if (++ymcycs == 72) { // 72 for medium fidelity, 8 for high
+                    ymcycs = 0;
+                    ymsamps += ymfm_shim_exec();
+                }
             }
         }
 
-        if (update_scanline())
-            cpu_68k_interrupt(2);
+        if (lcycs >= MCYC_PER_LINE) {
+            lcycs -= MCYC_PER_LINE;
+            if (update_scanline())
+                cpu_68k_interrupt(2);
+        }
     }
+
+    mextcycs = mcycs - MCYC_PER_FRAME;
+    zextcycs = zcycs - MCYC_PER_FRAME;
+    lextcycs = lcycs - MCYC_PER_LINE;
 
     update_screen();
 
     gn_mixer_resamp(ymsamps);
+    ymsamps = 0;
 
     if (++memory.watchdog > 7) {
         gn_log(GN_LOG_DBG, "Watchdog reset\n");
