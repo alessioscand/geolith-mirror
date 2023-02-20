@@ -98,7 +98,7 @@ static inline void write16(uint8_t *ptr, uint32_t addr, uint16_t data) {
 // Default Bankswitch routine
 static void gn_m68k_write_banksw_16_default(uint32_t addr, uint16_t data) {
     if (addr >= 0x2ffff0)
-        bankaddress = (data * 0x100000) + 0x100000;
+        bankaddress = ((data * 0x100000) + 0x100000) & 0xffffff;
     else
         gn_log(GN_LOG_WRN, "16-bit write at %06x\n", addr);
 }
@@ -123,7 +123,7 @@ static void gn_m68k_write_banksw_sma(uint32_t addr, uint16_t data) {
            6-bit unscrambled value derived above serves as the index into the
            Bankswitch LUT, which contains the memory offset value.
         */
-        bankaddress = 0x100000 + memory.bksw_offset[unscrambled];
+        bankaddress = (0x100000 + memory.bksw_offset[unscrambled]) & 0xffffff;
     }
 }
 
@@ -365,7 +365,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         if (address >= 0x2ffff0)
-            bankaddress = (value * 0x100000) + 0x100000;
+            bankaddress = ((value * 0x100000) + 0x100000) & 0xffffff;
         else
             gn_log(GN_LOG_WRN, "8-bit write at %06x\n", address);
     }
