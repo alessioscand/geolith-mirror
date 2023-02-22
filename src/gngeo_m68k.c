@@ -466,8 +466,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
         }
-        /*gn_log(GN_LOG_WRN, "Unknown 8-bit write: %06x, %02x\n",
-            address, value);*/
+        gn_log(GN_LOG_WRN, "Unknown 8-bit write: %06x, %02x\n",
+            address, value);
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
         gn_log(GN_LOG_WRN, "Palette RAM 8-bit write: %06x, %02x\n",

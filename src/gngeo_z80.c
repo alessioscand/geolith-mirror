@@ -160,6 +160,10 @@ static uint8_t gn_z80_port_rd(z80 *userdata, uint16_t port) {
             gn_log(GN_LOG_WRN, "Z80 port read 0x18\n");
             break;
         }
+        default: {
+            gn_log(GN_LOG_WRN, "Z80 port read 0x%04x\n", port);
+            break;
+        }
     }
     return 0;
 }
@@ -186,6 +190,10 @@ static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
         }
         case 0x18: {
             nmi_enabled = false;
+            break;
+        }
+        default: {
+            gn_log(GN_LOG_WRN, "Z80 port write: %04x, %02x\n", port, value);
             break;
         }
     }
