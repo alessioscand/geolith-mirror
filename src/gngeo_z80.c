@@ -172,7 +172,7 @@ static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
     if (userdata) { } // Unused
 
     switch (port & 0xff) {
-        case 0x00: {
+        case 0x00: case 0xc0: { // FIXME: Port decoding can be improved
             sound_code = 0;
             break;
         }
