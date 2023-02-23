@@ -381,8 +381,30 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 cpu_z80_nmi();
                 return;
             }
+            case 0x380001: { // REG_POUTPUT
+                // Do joypad outputs need to be emulated?
+                return;
+            }
+            case 0x380011: { // REG_CRDBANK
+                // TODO - memory card bank selection, lowest 3 bits
+                return;
+            }
+            case 0x380021: { // REG_SLOT
+                // TODO?
+                return;
+            }
+            case 0x380031: { // REG_LEDLATCHES
+                return;
+            }
+            case 0x380041: { // REG_LEDDATA
+                return;
+            }
             case 0x380051: { // REG_RTCCTRL
                 pd4990a_serial_control(value & 0x07);
+                return;
+            }
+            case 0x380065: // REG_RESETCL1, REG_RESETCL2 - Coin Lockouts
+            case 0x380067: {
                 return;
             }
             case 0x3a0001: { // REG_NOSHADOW
