@@ -403,8 +403,16 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 pd4990a_serial_control(value & 0x07);
                 return;
             }
-            case 0x380065: // REG_RESETCL1, REG_RESETCL2 - Coin Lockouts
+            case 0x380061: // REG_RESETCC1, REG_RESETCC1 - Reset Coin Counters
+            case 0x380063: {
+                return;
+            }
+            case 0x380065: // REG_RESETCL1, REG_RESETCL2 - Reset Coin Lockouts
             case 0x380067: {
+                return;
+            }
+            case 0x3800e1: // REG_SETCC1, REG_SETCC1 - Set Coin Counters
+            case 0x3800e3: {
                 return;
             }
             case 0x3a0001: { // REG_NOSHADOW
