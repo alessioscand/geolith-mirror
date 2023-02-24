@@ -159,6 +159,9 @@ int gn_neo_load(void *data, size_t size) {
 
     // Handle descrambling if necessary
     switch (ngh) {
+        case 251: // KOF 99
+            init_kof99(&(memory.rom));
+            break;
         case 253: // Garou - Mark of the Wolves
             init_garou(&(memory.rom));
             break;

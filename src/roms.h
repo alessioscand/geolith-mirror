@@ -111,6 +111,7 @@ void convert_all_char(uint8_t *Ptr, int Taille, uint8_t *usage_ptr);
 void convert_all_tile(GAME_ROMS *r);
 
 int init_garou(GAME_ROMS *r);
+int init_kof99(GAME_ROMS *r);
 int init_kof2000(GAME_ROMS *r);
 
 #endif
