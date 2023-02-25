@@ -242,12 +242,6 @@ int init_mslug3(GAME_ROMS *r) {
     return 0;
 }
 
-int init_mslug3h(GAME_ROMS *r) {
-    neogeo_fix_bank_type = 1;
-    if (need_decrypt) kof99_neogeo_gfx_decrypt(r, 0xad);
-    return 0;
-}
-
 int init_mslug3b6(GAME_ROMS *r) {
     /* TODO: Bootleg support */
     if (need_decrypt) {
@@ -780,8 +774,6 @@ struct roms_init_func {
     { "garouh", init_garouh},
     { "garoubl", init_garoubl},
     { "mslug3", init_mslug3},
-    { "mslug3h", init_mslug3h},
-    { "mslug3n", init_mslug3h},
     { "mslug3b6", init_mslug3b6},
     { "kof2000", init_kof2000},
     { "kof2000n", init_kof2000n},

@@ -113,5 +113,6 @@ void convert_all_tile(GAME_ROMS *r);
 int init_garou(GAME_ROMS *r);
 int init_kof99(GAME_ROMS *r);
 int init_kof2000(GAME_ROMS *r);
+int init_mslug3(GAME_ROMS *r);
 
 #endif

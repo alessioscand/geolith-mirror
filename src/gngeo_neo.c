@@ -165,6 +165,9 @@ int gn_neo_load(void *data, size_t size) {
         case 253: // Garou - Mark of the Wolves
             init_garou(&(memory.rom));
             break;
+        case 256: // Metal Slug 3 - FIXME: no special handling for mslug3h
+            init_mslug3(&(memory.rom));
+            break;
         case 257: // KOF 2000
             init_kof2000(&(memory.rom));
             break;
