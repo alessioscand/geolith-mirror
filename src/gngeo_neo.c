@@ -38,6 +38,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "memory.h"
 #include "roms.h"
 
+extern int neogeo_fix_bank_type;
+
 static inline uint32_t bcd_decimal(uint32_t hex) {
     // NGH is only 3 digits, so only convert 3 digits
     assert(((hex & 0xf00) >> 8) < 10);
@@ -163,7 +165,7 @@ int gn_neo_load(void *data, size_t size) {
 
     gn_set_decrypt(0); // .neo files are already decrypted
 
-    // Handle descrambling if necessary
+    // Handle special cases if necessary
     switch (ngh) {
         case 251: // KOF 99
             init_kof99(&(memory.rom));
@@ -176,6 +178,14 @@ int gn_neo_load(void *data, size_t size) {
             break;
         case 257: // KOF 2000
             init_kof2000(&(memory.rom));
+            break;
+        case 263: // Metal Slug 4
+            neogeo_fix_bank_type = 1;
+            gn_m68k_banksw_set(0, 0);
+            break;
+        case 266: // Matrimelee
+            neogeo_fix_bank_type = 2;
+            gn_m68k_banksw_set(0, 0);
             break;
         default:
             gn_m68k_banksw_set(0, 0); // Set default bankswitch function
