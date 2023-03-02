@@ -2,8 +2,6 @@ PRE-ALPHA
 ---------
 This core is pre-alpha. It is not fit for everyday use or packaging.
 
-This software is not distributable in binary form due to license conflicts.
-
 Gngeo JG
 --------
 Gngeo JG is an emulator for the Neo Geo.
@@ -55,9 +53,6 @@ Jolly Good Z80 (MIT)
 Musashi (MIT)
   Copyright (c) 1998-2019 Karl Stenerud
   See src/m68k/readme.txt (https://github.com/kstenerud/Musashi)
-
-Neoboot/Neocrypt (XMAME)
-  Copyright (c) 2001 MAME Contributors
 
 Speex Resampler (BSD-3-Clause)
   Copyright (c) 2003, 2007, 2008 Xiph.org Foundation
