@@ -168,16 +168,16 @@ int gn_neo_load(void *data, size_t size) {
     // Handle special cases if necessary
     switch (ngh) {
         case 251: // KOF 99
-            init_kof99(&(memory.rom));
+            init_kof99();
             break;
         case 253: // Garou - Mark of the Wolves
-            init_garou(&(memory.rom));
+            init_garou();
             break;
         case 256: // Metal Slug 3 - FIXME: no special handling for mslug3h
-            init_mslug3(&(memory.rom));
+            init_mslug3();
             break;
         case 257: // KOF 2000
-            init_kof2000(&(memory.rom));
+            init_kof2000();
             break;
         case 263: // Metal Slug 4
             neogeo_fix_bank_type = 1;

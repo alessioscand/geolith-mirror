@@ -91,16 +91,7 @@ void gn_set_savedir(const char *dir);
 void gn_set_romdir(const char *dir);
 void gn_set_decrypt(int d);
 
-int dr_load_roms(GAME_ROMS *r, const char *rom_path, char *name);
 int dr_load_bios(GAME_ROMS *r);
-void dr_free_roms(GAME_ROMS *r);
-int dr_save_gno(GAME_ROMS *r,char *filename);
-int dr_load_game(char *zip);
-ROM_DEF *dr_check_zip(char *filename);
-char *dr_gno_romname(char *filename);
-int dr_open_gno(char *filename);
-int init_game(char *rom_name);
-int close_game(void);
 
 void open_nvram(char *name);
 void open_memcard(char *name);
@@ -110,9 +101,9 @@ void save_memcard(char *name);
 void convert_all_char(uint8_t *Ptr, int Taille, uint8_t *usage_ptr);
 void convert_all_tile(GAME_ROMS *r);
 
-int init_garou(GAME_ROMS *r);
-int init_kof99(GAME_ROMS *r);
-int init_kof2000(GAME_ROMS *r);
-int init_mslug3(GAME_ROMS *r);
+int init_garou(void);
+int init_kof99(void);
+int init_kof2000(void);
+int init_mslug3(void);
 
 #endif

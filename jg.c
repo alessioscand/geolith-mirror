@@ -55,7 +55,7 @@ static jg_cb_log_t jg_cb_log;
 static jg_cb_rumble_t jg_cb_rumble;
 
 static jg_coreinfo_t coreinfo = {
-    "gngeo", "Gngeo JG", VERSION, "neogeo", NUMINPUTS, JG_HINT_MEDIA_ARCHIVED
+    "gngeo", "Gngeo JG", VERSION, "neogeo", NUMINPUTS, 0
 };
 
 static jg_videoinfo_t vidinfo = {
@@ -206,9 +206,8 @@ int jg_game_load(void) {
         open_memcard((char*)gameinfo.name);
         gn_init();
     }
-    else { // Probably a .zip...
-        gn_set_romdir(dirname((char*)gameinfo.path));
-        init_game((char*)gameinfo.name);
+    else { // Only NEO supported
+        return 0;
     }
 
     inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_JS);
