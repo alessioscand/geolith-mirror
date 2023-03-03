@@ -309,6 +309,14 @@ unsigned int m68k_read_memory_16(unsigned int address) {
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch (address) {
+            case 0x300000: { // REG_P1CNT
+                uint8_t val = gn_input_cb[0](0);
+                return (val << 8) | val; // Is this the correct way? FIXME
+            }
+            case 0x340000: { // REG_P2CNT
+                uint8_t val = gn_input_cb[1](1);
+                return (val << 8) | val; // Is this the correct way? FIXME
+            }
             case 0x380000: { // REG_STATUS_B
                 uint8_t val = gn_input_stat_cb[1]();
                 return (val << 8) | val; // Is this the correct way? FIXME
