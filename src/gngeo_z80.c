@@ -162,6 +162,10 @@ static uint8_t gn_z80_port_rd(z80 *userdata, uint16_t port) {
             gn_log(GN_LOG_WRN, "Z80 port read 0x0c\n");
             break;
         }
+        case 0x0e: {
+            // Unknown, many games read from this port (and write to 0x0d)
+            break;
+        }
         case 0x18: {
             gn_log(GN_LOG_WRN, "Z80 port read 0x18\n");
             break;
@@ -192,6 +196,10 @@ static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
         }
         case 0x0c: {
             result_code = value;
+            break;
+        }
+        case 0x0d: {
+            // Unknown, many games write to this port (and read from 0x0e)
             break;
         }
         case 0x18: {
