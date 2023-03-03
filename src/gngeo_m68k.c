@@ -309,6 +309,10 @@ unsigned int m68k_read_memory_16(unsigned int address) {
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch (address) {
+            case 0x380000: { // REG_STATUS_B
+                uint8_t val = gn_input_stat_cb[1]();
+                return (val << 8) | val; // Is this the correct way? FIXME
+            }
             case 0x3c0000: case 0x3c0002: case 0x3c0008: case 0x3c000a: {
                 // REG_VRAMADDR, REG_VRAMRW, REG_TIMERHIGH, REG_TIMERLOW
                 return memory.vid.ram[memory.vid.vptr];
