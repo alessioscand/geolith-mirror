@@ -560,6 +560,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                 // Write to VRAM (modulo is applied after)
                 memory.vid.ram[memory.vid.vptr] = value;
                 memory.vid.vptr += memory.vid.modulo;
+                memory.vid.vptr &= 0xffff;
                 return;
             }
             case 0x3c0004: { // REG_VRAMMOD
