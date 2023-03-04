@@ -200,10 +200,20 @@ int jg_game_load(void) {
         ext++;
 
     if (!strncmp(ext, "neo", 3)) { // NEO file
-        gn_set_romdir(pathinfo.bios);
+        // Load the BIOS
+        char biospath[512];
+        snprintf(biospath, sizeof(biospath), "%s/neogeo.zip", pathinfo.bios);
+        if (!gn_bios_load(biospath))
+            return 0;
+
+        // Load the NEO file
         gn_neo_load(gameinfo.data, gameinfo.size);
+
+        // Load NVRAM and memory card
         open_nvram((char*)gameinfo.name);
         open_memcard((char*)gameinfo.name);
+
+        // Initialize the rest of the emulator
         gn_init();
     }
     else { // Only NEO supported

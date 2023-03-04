@@ -88,10 +88,8 @@ typedef struct GAME_ROMS {
 }GAME_ROMS;
 
 void gn_set_savedir(const char *dir);
-void gn_set_romdir(const char *dir);
-void gn_set_decrypt(int d);
 
-int dr_load_bios(GAME_ROMS *r);
+int gn_bios_load(const char*);
 
 void open_nvram(char *name);
 void open_memcard(char *name);

@@ -111,8 +111,7 @@ int gn_neo_load(void *data, size_t size) {
     gn_log(GN_LOG_INF, "Name: %s\n", name);
     gn_log(GN_LOG_INF, "Manufacturer: %s\n", manu);
 
-    // Load BIOS and byteswap
-    dr_load_bios(&(memory.rom));
+    // Byteswap the BIOS
     swapb16_range(memory.rom.bios_m68k.p, memory.rom.bios_m68k.size);
 
     // Assign pointers and sizes
@@ -162,8 +161,6 @@ int gn_neo_load(void *data, size_t size) {
     current_fix = memory.rom.bios_sfix.p;
     current_pc_pal = (uint32_t*)memory.vid.pal_host[0];
     memory.current_vector = 0;
-
-    gn_set_decrypt(0); // .neo files are already decrypted
 
     // Handle special cases if necessary
     switch (ngh) {

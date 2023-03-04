@@ -35,10 +35,7 @@
 #include "memory.h"
 #include "video.h"
 
-static int need_decrypt = 1;
-
-static const char *gngeo_dir;
-static const char *rpath;
+static const char *savedir;
 
 int neogeo_fix_bank_type = 0;
 
@@ -127,15 +124,7 @@ static inline void swapb16_range(void *ptr, size_t len) {
 }
 
 void gn_set_savedir(const char *dir) {
-    gngeo_dir = dir;
-}
-
-void gn_set_romdir(const char *dir) {
-    rpath = dir;
-}
-
-void gn_set_decrypt(int d) {
-    need_decrypt = d;
+    savedir = dir;
 }
 
 int init_kof99(void) {
@@ -307,16 +296,15 @@ void convert_all_char(uint8_t *Ptr, int Taille,
 #undef CONVERT_TILE
 }
 
-int dr_load_bios(GAME_ROMS *r) {
-    char fpath[256];
+int gn_bios_load(const char *biospath) {
+    GAME_ROMS *r = &(memory.rom);
     const char *romfile;
+
     mz_zip_archive zip_archive;
     memset(&zip_archive, 0, sizeof(zip_archive));
 
-    snprintf(fpath, sizeof(fpath), "%s/neogeo.zip", rpath);
-
     // Make sure it's actually a zip file
-    if (!mz_zip_reader_init_file(&zip_archive, fpath, 0))
+    if (!mz_zip_reader_init_file(&zip_archive, biospath, 0))
         return 0;
 
     memory.ng_lo = mz_zip_reader_extract_file_to_heap(&zip_archive,
@@ -389,7 +377,7 @@ void open_nvram(char *name) {
     char filename[256];
     FILE *f;
 
-    sprintf(filename, "%s/%s.nv", gngeo_dir, name);
+    sprintf(filename, "%s/%s.nv", savedir, name);
 
     if ((f = fopen(filename, "rb")) == 0)
         return;
@@ -403,7 +391,7 @@ void open_memcard(char *name) {
     char filename[256];
     FILE *f;
 
-    sprintf(filename, "%s/%s.mcr", gngeo_dir, name);
+    sprintf(filename, "%s/%s.mcr", savedir, name);
 
     if ((f = fopen(filename, "rb")) == 0)
         return;
@@ -420,7 +408,7 @@ void save_nvram(char *name) {
             break;
     }
 
-    sprintf(filename, "%s/%s.nv", gngeo_dir, name);
+    sprintf(filename, "%s/%s.nv", savedir, name);
 
     if ((f = fopen(filename, "wb")) != NULL) {
         fwrite(memory.sram, 1, 0x10000, f);
@@ -432,7 +420,7 @@ void save_memcard(char *name) {
     char filename[256];
     FILE *f;
 
-    sprintf(filename, "%s/%s.mcr", gngeo_dir, name);
+    sprintf(filename, "%s/%s.mcr", savedir, name);
 
     if ((f = fopen(filename, "wb")) != NULL) {
         fwrite(memory.memcard, 1, 0x800, f);
