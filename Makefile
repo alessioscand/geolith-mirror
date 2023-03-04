@@ -61,7 +61,7 @@ CSRCS := m68k/m68kcpu.c \
 
 ifeq ($(USE_EXTERNAL_MINIZ), 0)
 	Q_MINIZ :=
-	CFLAGS_MINIZ := -I$(DEPDIR)
+	CFLAGS_MINIZ := -I$(DEPDIR)/miniz
 	LIBS_MINIZ :=
 	CSRCS += deps/miniz/miniz.c
 else

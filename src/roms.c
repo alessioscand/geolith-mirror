@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <miniz/miniz.h>
+#include <miniz.h>
 
 #include "roms.h"
 #include "emu.h"
