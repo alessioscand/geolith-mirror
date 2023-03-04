@@ -11,9 +11,6 @@ SRCDIR := $(SOURCEDIR)/src
 PKG_CONFIG ?= pkg-config
 CFLAGS_JG := $(shell $(PKG_CONFIG) --cflags jg)
 
-CFLAGS_ZLIB := $(shell $(PKG_CONFIG) --cflags zlib)
-LIBS_ZLIB := $(shell $(PKG_CONFIG) --libs zlib)
-
 INCLUDES := -I$(SRCDIR) -I$(SRCDIR)/m68k -I$(SRCDIR)/ymfm -I$(SRCDIR)/z80
 PIC := -fPIC
 SHARED := $(PIC)
@@ -59,7 +56,6 @@ CSRCS := m68k/m68kcpu.c \
 	gngeo_z80.c \
 	pd4990a.c \
 	roms.c \
-	unzip.c \
 	video.c \
 	jg.c
 
@@ -85,8 +81,8 @@ else
 	LIBS_SPEEXDSP := $(shell $(PKG_CONFIG) --libs speexdsp)
 endif
 
-INCLUDES += $(CFLAGS_SPEEXDSP) $(CFLAGS_MINIZ) $(CFLAGS_ZLIB)
-LIBS += $(LIBS_SPEEXDSP) $(LIBS_MINIZ) $(LIBS_ZLIB)
+INCLUDES += $(CFLAGS_SPEEXDSP) $(CFLAGS_MINIZ)
+LIBS += $(LIBS_SPEEXDSP) $(LIBS_MINIZ)
 
 # Object dirs
 MKDIRS := deps/miniz deps/speex m68k ymfm z80

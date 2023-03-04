@@ -28,12 +28,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <miniz/miniz.h>
+
 #include "roms.h"
 #include "emu.h"
 #include "memory.h"
-
-#include "unzip.h"
-
 #include "video.h"
 
 static int need_decrypt = 1;
@@ -309,78 +308,80 @@ void convert_all_char(uint8_t *Ptr, int Taille,
 }
 
 int dr_load_bios(GAME_ROMS *r) {
-    PKZIP *pz;
-    unsigned int size;
     char fpath[256];
     const char *romfile;
+    mz_zip_archive zip_archive;
+    memset(&zip_archive, 0, sizeof(zip_archive));
 
     snprintf(fpath, sizeof(fpath), "%s/neogeo.zip", rpath);
 
-    pz = gn_open_zip(fpath);
-    if (pz == NULL) {
-        gn_log(GN_LOG_ERR, "Failed to open BIOS archive: %s\n", fpath);
+    // Make sure it's actually a zip file
+    if (!mz_zip_reader_init_file(&zip_archive, fpath, 0))
         return 0;
-    }
 
-    memory.ng_lo = gn_unzip_file_malloc(pz, "000-lo.lo", 0x0, &size);
+    memory.ng_lo = mz_zip_reader_extract_file_to_heap(&zip_archive,
+        "000-lo.lo", NULL, 0);
     if (memory.ng_lo == NULL) {
+        mz_zip_reader_end(&zip_archive);
         gn_log(GN_LOG_ERR, "Failed to load 000-lo.lo from BIOS archive!\n");
         return 0;
     }
 
-    if (!(r->info.flags & HAS_CUSTOM_SFIX_BIOS)) {
-        r->bios_sfix.p = gn_unzip_file_malloc(pz, "sfix.sfix", 0x0, &r->bios_sfix.size);
-        if (r->bios_sfix.p == NULL) {
-            gn_log(GN_LOG_ERR, "Failed to load sfix.sfix from BIOS archive!\n");
+    r->bios_sfix.p = mz_zip_reader_extract_file_to_heap(&zip_archive,
+        "sfix.sfix", &(r->bios_sfix.size), 0);
+    if (r->bios_sfix.p == NULL) {
+        mz_zip_reader_end(&zip_archive);
+        gn_log(GN_LOG_ERR, "Failed to load sfix.sfix from BIOS archive!\n");
+        return 0;
+    }
+
+    // convert bios fix char
+    convert_all_char(memory.rom.bios_sfix.p, 0x20000, memory.fix_board_usage);
+
+    if (conf.system == SYS_UNIBIOS) {
+        r->bios_m68k.p = mz_zip_reader_extract_file_to_heap(&zip_archive,
+            "uni-bios_4_0.rom", &(r->bios_m68k.size), 0);
+        if (r->bios_m68k.p == NULL) {
+            mz_zip_reader_end(&zip_archive);
+            gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n",
+                "uni-bios_4_0.rom");
+            return 0;
+        }
+    }
+    else {
+        /*if (conf.system == SYS_HOME) { // Currently broken
+            romfile = "neo-epo.bin";
+        }*/
+        //else {
+            switch (conf.country) {
+                default: case CTY_USA: // Winners don't use drugs
+                    romfile = "sp-u2.sp1";
+                    break;
+                case CTY_JAPAN:
+                    romfile = "vs-bios.rom";
+                    break;
+                case CTY_ASIA:
+                    romfile = "sp-s3.sp1";
+                    break;
+                case CTY_EUROPE:
+                    romfile = "sp-s2.sp1";
+                    break;
+            }
+        //}
+
+        gn_log(GN_LOG_DBG, "Loading %s\n", romfile);
+        r->bios_m68k.p = mz_zip_reader_extract_file_to_heap(&zip_archive,
+            romfile, &(r->bios_m68k.size), 0);
+
+        if (r->bios_m68k.p == NULL) {
+            mz_zip_reader_end(&zip_archive);
+            gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n",
+                romfile);
             return 0;
         }
     }
 
-    /* convert bios fix char */
-    convert_all_char(memory.rom.bios_sfix.p, 0x20000, memory.fix_board_usage);
-
-    if (!(r->info.flags & HAS_CUSTOM_CPU_BIOS)) {
-        if (conf.system == SYS_UNIBIOS) {
-            r->bios_m68k.p = gn_unzip_file_malloc(pz, "uni-bios_4_0.rom", 0x0, &r->bios_m68k.size);
-            if (r->bios_m68k.p == NULL) {
-                gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n", "uni-bios_4_0.rom");
-                gn_close_zip(pz);
-                return 0;
-            }
-        }
-        else {
-            /*if (conf.system == SYS_HOME) { // Currently broken
-                romfile = "neo-epo.bin";
-            }*/
-            //else {
-                switch (conf.country) {
-                    default: case CTY_USA: // Winners don't use drugs
-                        romfile = "sp-u2.sp1";
-                        break;
-                    case CTY_JAPAN:
-                        romfile = "vs-bios.rom";
-                        break;
-                    case CTY_ASIA:
-                        romfile = "sp-s3.sp1";
-                        break;
-                    case CTY_EUROPE:
-                        romfile = "sp-s2.sp1";
-                        break;
-                }
-            //}
-
-            gn_log(GN_LOG_DBG, "Loading %s\n", romfile);
-            r->bios_m68k.p = gn_unzip_file_malloc(pz, romfile, 0x0, &r->bios_m68k.size);
-
-            if (r->bios_m68k.p == NULL) {
-                gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n", romfile);
-                gn_close_zip(pz);
-                return 0;
-            }
-        }
-    }
-
-    gn_close_zip(pz);
+    mz_zip_reader_end(&zip_archive);
     return 1;
 }
 

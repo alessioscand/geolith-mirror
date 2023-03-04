@@ -66,7 +66,7 @@ typedef struct GAME_INFO {
 
 typedef struct ROM_REGION {
     uint8_t* p;
-    uint32_t size;
+    size_t size;
 }ROM_REGION;
 
 typedef struct GAME_ROMS {
