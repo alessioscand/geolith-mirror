@@ -57,9 +57,9 @@ Jolly Good Z80 (MIT)
   Copyright (c) 2022 rofl0r
   See src/z80/LICENSE
 
-miniz
-  Copyright 2013-2014 RAD Game Tools and Valve Software (MIT)
-  Copyright 2010-2014 Rich Geldreich and Tenacious Software LLC (MIT)
+miniz (MIT)
+  Copyright 2013-2014 RAD Game Tools and Valve Software
+  Copyright 2010-2014 Rich Geldreich and Tenacious Software LLC
   See deps/miniz/miniz.c (https://github.com/richgel999/miniz)
 
 Musashi (MIT)
