@@ -18,9 +18,6 @@ INCLUDES := -I$(SRCDIR) -I$(SRCDIR)/m68k -I$(SRCDIR)/ymfm -I$(SRCDIR)/z80
 PIC := -fPIC
 SHARED := $(PIC)
 
-INCLUDES += $(CFLAGS_ZLIB)
-LIBS := $(LIBS_ZLIB)
-
 NAME := gngeo
 PREFIX ?= /usr/local
 DATAROOTDIR ?= $(PREFIX)/share
@@ -28,6 +25,7 @@ DATADIR ?= $(DATAROOTDIR)
 DOCDIR ?= $(DATAROOTDIR)/doc/$(NAME)
 LIBDIR ?= $(PREFIX)/lib
 
+USE_EXTERNAL_MINIZ ?= 0
 USE_VENDORED_SPEEXDSP ?= 0
 
 UNAME := $(shell uname -s)
@@ -65,22 +63,33 @@ CSRCS := m68k/m68kcpu.c \
 	video.c \
 	jg.c
 
+ifeq ($(USE_EXTERNAL_MINIZ), 0)
+	Q_MINIZ :=
+	CFLAGS_MINIZ := -I$(DEPDIR)
+	LIBS_MINIZ :=
+	CSRCS += deps/miniz/miniz.c
+else
+	Q_MINIZ := @
+	CFLAGS_MINIZ := $(shell $(PKG_CONFIG) --cflags miniz)
+	LIBS_MINIZ := $(shell $(PKG_CONFIG) --libs miniz)
+endif
+
 ifneq ($(USE_VENDORED_SPEEXDSP), 0)
 	Q_SPEEXDSP :=
 	CFLAGS_SPEEXDSP := -I$(DEPDIR)
 	LIBS_SPEEXDSP :=
-	CSRCS += speex/resample.c
+	CSRCS += deps/speex/resample.c
 else
 	Q_SPEEXDSP := @
 	CFLAGS_SPEEXDSP := $(shell $(PKG_CONFIG) --cflags speexdsp)
 	LIBS_SPEEXDSP := $(shell $(PKG_CONFIG) --libs speexdsp)
 endif
 
-INCLUDES += $(CFLAGS_SPEEXDSP)
-LIBS += $(LIBS_SPEEXDSP)
+INCLUDES += $(CFLAGS_SPEEXDSP) $(CFLAGS_MINIZ) $(CFLAGS_ZLIB)
+LIBS += $(LIBS_SPEEXDSP) $(LIBS_MINIZ) $(LIBS_ZLIB)
 
 # Object dirs
-MKDIRS := m68k speex ymfm z80
+MKDIRS := deps/miniz deps/speex m68k ymfm z80
 
 OBJDIR := objs
 
@@ -133,6 +142,10 @@ install: all
 	cp $(NAME)/$(TARGET) $(DESTDIR)$(LIBDIR)/jollygood/
 	cp $(SOURCEDIR)/COPYING $(DESTDIR)$(DOCDIR)
 	cp $(SOURCEDIR)/README $(DESTDIR)$(DOCDIR)
+	$(Q_MINIZ)if test $(USE_EXTERNAL_MINIZ) = 0; then \
+		cp $(DEPDIR)/miniz/LICENSE \
+			$(DESTDIR)$(DOCDIR)/LICENSE-miniz; \
+	fi
 	$(Q_SPEEXDSP)if test $(USE_VENDORED_SPEEXDSP) != 0; then \
 		cp $(DEPDIR)/speex/COPYING \
 			$(DESTDIR)$(DOCDIR)/COPYING-speexdsp; \
