@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "m68k/m68k.h"
 
+#include "gngeo_z80.h"
 #include "emu.h"
 #include "memory.h"
 #include "pd4990a.h"
@@ -398,7 +399,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             }
             case 0x320000: { // REG_SOUND
                 sound_code = value & 0xff;
-                cpu_z80_nmi();
+                gn_z80_nmi();
                 return;
             }
             case 0x380001: { // REG_POUTPUT
@@ -559,7 +560,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
             }
             case 0x320000: { // REG_SOUND
                 sound_code = (value >> 8) & 0xff; // Use the upper byte
-                cpu_z80_nmi();
+                gn_z80_nmi();
                 return;
             }
             case 0x380051: { // REG_RTCCTRL

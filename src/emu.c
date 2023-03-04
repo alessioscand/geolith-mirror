@@ -26,6 +26,7 @@
 
 #include "emu.h"
 #include "gngeo_mixer.h"
+#include "gngeo_z80.h"
 #include "memory.h"
 #include "pd4990a.h"
 
@@ -90,14 +91,14 @@ void gn_reset(void) {
         bankaddress = 0;
 
     cpu_68k_reset();
-    cpu_z80_reset();
+    gn_z80_reset();
     ymfm_shim_reset(); // Reset the YM2610 to make sure everything is defaulted
 }
 
 void gn_init(void) {
     cpu_68k_init();
     pd4990a_init();
-    cpu_z80_init();
+    gn_z80_init();
     ymfm_shim_init();
     gn_reset();
 }
@@ -181,7 +182,7 @@ void gn_exec(void) {
         lcycs += icycs * DIV_M68K;
 
         while (zcycs < mcycs) {
-            size_t scycs = cpu_z80_run(1);
+            size_t scycs = gn_z80_run(1);
             zcycs += scycs * DIV_Z80;
 
             for (size_t s = 0; s < scycs; ++s) {

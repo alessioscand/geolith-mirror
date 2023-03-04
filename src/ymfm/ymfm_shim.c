@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ymfm_opn.h"
 #include "ymfm_shim.h"
 
+#include "gngeo_z80.h"
 #include "emu.h"
 
 #define SIZE_YMBUF 2048
@@ -94,7 +95,7 @@ bool ymfm_is_busy(void) {
 }
 
 void ymfm_update_irq(bool asserted) {
-    asserted ? cpu_z80_raise_irq(0) : cpu_z80_lower_irq();
+    asserted ? gn_z80_raise_irq(0) : gn_z80_lower_irq();
 }
 
 static inline void ymfm_shim_timer_tick(void) {

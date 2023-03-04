@@ -213,12 +213,12 @@ static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
     }
 }
 
-void cpu_z80_reset(void) {
+void gn_z80_reset(void) {
     z80_reset(&z80ctx);
     nmi_enabled = false;
 }
 
-void cpu_z80_init(void) {
+void gn_z80_init(void) {
     z80_init(&z80ctx);
 
     /* The NEO-ZMC initializes all banks to 0 (verified on hardware):
@@ -239,19 +239,19 @@ void cpu_z80_init(void) {
     z80ctx.port_out = &gn_z80_port_wr;
 }
 
-int cpu_z80_run(int nbcycle) {
+int gn_z80_run(int nbcycle) {
     return z80_step_n(&z80ctx, nbcycle);
 }
 
-void cpu_z80_nmi(void) {
+void gn_z80_nmi(void) {
     if (nmi_enabled)
         z80_pulse_nmi(&z80ctx);
 }
 
-void cpu_z80_raise_irq(int l) {
+void gn_z80_raise_irq(int l) {
     z80_assert_irq(&z80ctx, l & 0xff);
 }
 
-void cpu_z80_lower_irq(void) {
+void gn_z80_lower_irq(void) {
     z80_clr_irq(&z80ctx);
 }

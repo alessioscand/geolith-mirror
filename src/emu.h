@@ -126,14 +126,6 @@ void cpu_68k_reset(void);
 int cpu_68k_run(uint32_t nb_cycle);
 void cpu_68k_interrupt(int a);
 
-/* cpu z80 interface */
-int cpu_z80_run(int nbcycle);
-void cpu_z80_nmi(void);
-void cpu_z80_raise_irq(int l);
-void cpu_z80_lower_irq(void);
-void cpu_z80_init(void);
-void cpu_z80_reset(void);
-
 extern neo_mem memory;
 
 /* Sound control */
