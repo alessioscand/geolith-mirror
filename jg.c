@@ -89,12 +89,12 @@ static jg_setting_t settings_gn[] = {
     { "system", "Emulated System",
       "0 = Universe BIOS, 1 = Arcade, 2 = Home",
       "Select which type of system/BIOS to emulate",
-      0, 0, 2, 1
+      SYS_UNIBIOS, SYS_UNIBIOS, SYS_HOME, JG_SETTING_RESTART
     },
     { "region", "Region",
       "0 = US, 1 = JP, 2 = AS, 3 = EU",
       "Select the region",
-      3, 0, 3, 1
+      3, 0, 3, JG_SETTING_RESTART
     }
 };
 
@@ -115,15 +115,15 @@ static unsigned gn_input_poll_stat_a(void) {
 
 // P1/P2 Select/Start, Memcard status, AES/MVS setting
 static unsigned gn_input_poll_stat_b(void) {
-    unsigned s = 0x8f;
+    unsigned s = 0x0f;
     if (input_device[0]->button[4])
-        s &= 0x8d;
+        s &= 0x0d;
     if (input_device[0]->button[5])
-        s &= 0x8e;
+        s &= 0x0e;
     if (input_device[1]->button[4])
-        s &= 0x87;
+        s &= 0x07;
     if (input_device[1]->button[5])
-        s &= 0x8b;
+        s &= 0x0b;
     return s;
 }
 

@@ -240,7 +240,8 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                    Bit 1:    Player 1 Select
                    Bit 0:    Player 1 Start
                 */
-                return gn_input_stat_cb[1]();
+                return gn_input_stat_cb[1]() |
+                    (conf.system == SYS_HOME ? 0x00 : 0x80);
             }
             case 0x3c0000: case 0x3c0002: case 0x3c0008: case 0x3c000a: {
                 // REG_VRAMADDR, REG_VRAMRW, REG_TIMERHIGH, REG_TIMERLOW
@@ -318,7 +319,8 @@ unsigned int m68k_read_memory_16(unsigned int address) {
                 return (val << 8) | val; // Is this the correct way? FIXME
             }
             case 0x380000: { // REG_STATUS_B
-                uint8_t val = gn_input_stat_cb[1]();
+                uint8_t val = gn_input_stat_cb[1]() |
+                    (conf.system == SYS_HOME ? 0x00 : 0x80);
                 return (val << 8) | val; // Is this the correct way? FIXME
             }
             case 0x3c0000: case 0x3c0002: case 0x3c0008: case 0x3c000a: {

@@ -337,10 +337,10 @@ int gn_bios_load(const char *biospath) {
         }
     }
     else {
-        /*if (conf.system == SYS_HOME) { // Currently broken
+        if (conf.system == SYS_HOME) {
             romfile = "neo-epo.bin";
-        }*/
-        //else {
+        }
+        else {
             switch (conf.country) {
                 default: case CTY_USA: // Winners don't use drugs
                     romfile = "sp-u2.sp1";
@@ -355,7 +355,7 @@ int gn_bios_load(const char *biospath) {
                     romfile = "sp-s2.sp1";
                     break;
             }
-        //}
+        }
 
         gn_log(GN_LOG_DBG, "Loading %s\n", romfile);
         r->bios_m68k.p = mz_zip_reader_extract_file_to_heap(&zip_archive,

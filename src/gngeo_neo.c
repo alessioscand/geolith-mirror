@@ -156,11 +156,20 @@ int gn_neo_load(void *data, size_t size) {
     rom_offset += size_crom;
     convert_all_tile(&(memory.rom));
 
-    fix_usage = memory.fix_board_usage;
     current_pal = memory.vid.pal_neo[0];
-    current_fix = memory.rom.bios_sfix.p;
     current_pc_pal = (uint32_t*)memory.vid.pal_host[0];
     memory.current_vector = 0;
+
+    if (conf.system == SYS_HOME) {
+        current_fix = memory.rom.game_sfix.p;
+        fix_usage = memory.fix_game_usage;
+        memory.vid.currentfix = 1;
+    }
+    else {
+        current_fix = memory.rom.bios_sfix.p;
+        fix_usage = memory.fix_board_usage;
+        memory.vid.currentfix = 0;
+    }
 
     // Handle special cases if necessary
     switch (ngh) {
