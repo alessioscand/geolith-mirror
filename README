@@ -4,7 +4,7 @@ This core is pre-alpha. It is not fit for everyday use or packaging.
 
 Gngeo JG
 --------
-Gngeo JG is an emulator for the Neo Geo.
+Gngeo JG is an emulator for the Neo Geo AES and MVS.
 
 This is a fork of Gngeo 0.8.1 with many things rewritten or replaced. The CPUs
 were entirely replaced, as was the YM2610 emulation code, which is now a C
@@ -12,6 +12,10 @@ translation of YMFM (the same code used in MAME). Timing was also completely
 rewritten, and the standalone interface code was removed.
 
 This emulator supports TerraOnion's .NEO file format only.
+
+BIOS files from a recent MAME set are required:
+ - aes.zip for Neo Geo AES (Home Console)
+ - neogeo.zip for Neo Geo MVS (Arcade) and Unibios
 
 This repository lives at https://gitlab.com/jgemu/gngeo
 
