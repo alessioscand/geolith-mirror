@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 void gn_m68k_init(void);
 void gn_m68k_reset(void);
-int gn_m68k_run(uint32_t nb_cycle);
-void gn_m68k_interrupt(int a);
+int gn_m68k_run(unsigned);
+void gn_m68k_int(unsigned);
 
 #endif

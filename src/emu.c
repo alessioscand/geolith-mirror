@@ -197,7 +197,7 @@ void gn_exec(void) {
         if (lcycs >= MCYC_PER_LINE) {
             lcycs -= MCYC_PER_LINE;
             if (update_scanline())
-                gn_m68k_interrupt(2);
+                gn_m68k_int(2);
         }
     }
 
@@ -215,5 +215,5 @@ void gn_exec(void) {
         gn_m68k_reset();
     }
 
-    gn_m68k_interrupt(1);
+    gn_m68k_int(1);
 }

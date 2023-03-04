@@ -658,11 +658,11 @@ void gn_m68k_init(void) {
     m68k_set_cpu_type(M68K_CPU_TYPE_68000);
 }
 
-int gn_m68k_run(uint32_t nb_cycle) {
-    return m68k_execute(nb_cycle);
+int gn_m68k_run(unsigned cycs) {
+    return m68k_execute(cycs);
 }
 
-void gn_m68k_interrupt(int a) {
+void gn_m68k_int(unsigned a) {
     irqlines |= a;
     m68k_set_irq(irqlines);
 }
