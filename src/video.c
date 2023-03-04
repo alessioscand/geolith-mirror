@@ -289,7 +289,10 @@ void draw_screen(void) {
             dda_x_skip = ddaxskip[zx];
             rzx = zx + 1;
 
-        } else rzx = 16;
+        }
+        else {
+            rzx = 16;
+        }
 
         if (sx >= 0x1F0) sx -= 0x200;
         if (sx >= 320) continue;
