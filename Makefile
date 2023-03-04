@@ -23,7 +23,7 @@ DOCDIR ?= $(DATAROOTDIR)/doc/$(NAME)
 LIBDIR ?= $(PREFIX)/lib
 
 USE_EXTERNAL_MINIZ ?= 0
-USE_VENDORED_SPEEXDSP ?= 1
+USE_VENDORED_SPEEXDSP ?= 0
 
 UNAME := $(shell uname -s)
 ifeq ($(UNAME), Darwin)
