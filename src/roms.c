@@ -310,25 +310,23 @@ int gn_bios_load(const char *biospath) {
     if (conf.system == SYS_UNIBIOS) {
         romfile = "uni-bios_4_0.rom";
     }
+    else if (conf.system == SYS_HOME) {
+        romfile = "neo-epo.bin";
+    }
     else {
-        if (conf.system == SYS_HOME) {
-            romfile = "neo-epo.bin";
-        }
-        else {
-            switch (conf.country) {
-                default: case CTY_USA: // Winners don't use drugs
-                    romfile = "sp-u2.sp1";
-                    break;
-                case CTY_JAPAN:
-                    romfile = "vs-bios.rom";
-                    break;
-                case CTY_ASIA:
-                    romfile = "sp-s3.sp1";
-                    break;
-                case CTY_EUROPE:
-                    romfile = "sp-s2.sp1";
-                    break;
-            }
+        switch (conf.country) {
+            default: case CTY_USA: // Winners don't use drugs
+                romfile = "sp-u2.sp1";
+                break;
+            case CTY_JAPAN:
+                romfile = "vs-bios.rom";
+                break;
+            case CTY_ASIA:
+                romfile = "sp-s3.sp1";
+                break;
+            case CTY_EUROPE:
+                romfile = "sp-s2.sp1";
+                break;
         }
     }
 
