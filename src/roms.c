@@ -307,34 +307,8 @@ int gn_bios_load(const char *biospath) {
     if (!mz_zip_reader_init_file(&zip_archive, biospath, 0))
         return 0;
 
-    memory.ng_lo = mz_zip_reader_extract_file_to_heap(&zip_archive,
-        "000-lo.lo", NULL, 0);
-    if (memory.ng_lo == NULL) {
-        mz_zip_reader_end(&zip_archive);
-        gn_log(GN_LOG_ERR, "Failed to load 000-lo.lo from BIOS archive!\n");
-        return 0;
-    }
-
-    r->bios_sfix.p = mz_zip_reader_extract_file_to_heap(&zip_archive,
-        "sfix.sfix", &(r->bios_sfix.size), 0);
-    if (r->bios_sfix.p == NULL) {
-        mz_zip_reader_end(&zip_archive);
-        gn_log(GN_LOG_ERR, "Failed to load sfix.sfix from BIOS archive!\n");
-        return 0;
-    }
-
-    // convert bios fix char
-    convert_all_char(memory.rom.bios_sfix.p, 0x20000, memory.fix_board_usage);
-
     if (conf.system == SYS_UNIBIOS) {
-        r->bios_m68k.p = mz_zip_reader_extract_file_to_heap(&zip_archive,
-            "uni-bios_4_0.rom", &(r->bios_m68k.size), 0);
-        if (r->bios_m68k.p == NULL) {
-            mz_zip_reader_end(&zip_archive);
-            gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n",
-                "uni-bios_4_0.rom");
-            return 0;
-        }
+        romfile = "uni-bios_4_0.rom";
     }
     else {
         if (conf.system == SYS_HOME) {
@@ -356,17 +330,39 @@ int gn_bios_load(const char *biospath) {
                     break;
             }
         }
+    }
 
-        gn_log(GN_LOG_DBG, "Loading %s\n", romfile);
-        r->bios_m68k.p = mz_zip_reader_extract_file_to_heap(&zip_archive,
-            romfile, &(r->bios_m68k.size), 0);
+    gn_log(GN_LOG_DBG, "Loading %s\n", romfile);
+    r->bios_m68k.p = mz_zip_reader_extract_file_to_heap(&zip_archive,
+        romfile, &(r->bios_m68k.size), 0);
 
-        if (r->bios_m68k.p == NULL) {
+    if (r->bios_m68k.p == NULL) {
+        mz_zip_reader_end(&zip_archive);
+        gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n",
+            romfile);
+        return 0;
+    }
+
+    memory.ng_lo = mz_zip_reader_extract_file_to_heap(&zip_archive,
+        "000-lo.lo", NULL, 0);
+    if (memory.ng_lo == NULL) {
+        mz_zip_reader_end(&zip_archive);
+        gn_log(GN_LOG_ERR, "Failed to load 000-lo.lo from BIOS archive!\n");
+        return 0;
+    }
+
+    if (conf.system != SYS_HOME) {
+        r->bios_sfix.p = mz_zip_reader_extract_file_to_heap(&zip_archive,
+            "sfix.sfix", &(r->bios_sfix.size), 0);
+        if (r->bios_sfix.p == NULL) {
             mz_zip_reader_end(&zip_archive);
-            gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n",
-                romfile);
+            gn_log(GN_LOG_ERR, "Failed to load sfix.sfix from BIOS archive!\n");
             return 0;
         }
+
+        // convert bios fix char
+        convert_all_char(memory.rom.bios_sfix.p, 0x20000,
+            memory.fix_board_usage);
     }
 
     mz_zip_reader_end(&zip_archive);

@@ -202,9 +202,12 @@ int jg_game_load(void) {
     if (!strncmp(ext, "neo", 3)) { // NEO file
         // Load the BIOS
         char biospath[512];
-        snprintf(biospath, sizeof(biospath), "%s/neogeo.zip", pathinfo.bios);
-        if (!gn_bios_load(biospath))
+        snprintf(biospath, sizeof(biospath), "%s/%s", pathinfo.bios,
+            settings_gn[SYS].val == SYS_HOME ? "aes.zip" : "neogeo.zip");
+        if (!gn_bios_load(biospath)) {
+            gn_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
             return 0;
+        }
 
         // Load the NEO file
         gn_neo_load(gameinfo.data, gameinfo.size);
