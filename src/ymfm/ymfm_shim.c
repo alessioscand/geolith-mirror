@@ -95,7 +95,7 @@ bool ymfm_is_busy(void) {
 }
 
 void ymfm_update_irq(bool asserted) {
-    asserted ? gn_z80_raise_irq(0) : gn_z80_lower_irq();
+    asserted ? gn_z80_assert_irq(0) : gn_z80_clear_irq();
 }
 
 static inline void ymfm_shim_timer_tick(void) {

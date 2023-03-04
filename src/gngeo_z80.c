@@ -239,8 +239,8 @@ void gn_z80_init(void) {
     z80ctx.port_out = &gn_z80_port_wr;
 }
 
-int gn_z80_run(int nbcycle) {
-    return z80_step_n(&z80ctx, nbcycle);
+int gn_z80_run(unsigned cycs) {
+    return z80_step_n(&z80ctx, cycs);
 }
 
 void gn_z80_nmi(void) {
@@ -248,10 +248,10 @@ void gn_z80_nmi(void) {
         z80_pulse_nmi(&z80ctx);
 }
 
-void gn_z80_raise_irq(int l) {
+void gn_z80_assert_irq(unsigned l) {
     z80_assert_irq(&z80ctx, l & 0xff);
 }
 
-void gn_z80_lower_irq(void) {
+void gn_z80_clear_irq(void) {
     z80_clr_irq(&z80ctx);
 }
