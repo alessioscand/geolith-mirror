@@ -118,14 +118,6 @@ extern uint8_t reg_dipsw;
 void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2);
 void gn_m68k_banksw_set(unsigned swtype, uint32_t addr);
 
-
-
-/* cpu 68k interface */
-void cpu_68k_init(void);
-void cpu_68k_reset(void);
-int cpu_68k_run(uint32_t nb_cycle);
-void cpu_68k_interrupt(int a);
-
 extern neo_mem memory;
 
 /* Sound control */

@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include "emu.h"
+#include "gngeo_m68k.h"
 #include "gngeo_mixer.h"
 #include "gngeo_z80.h"
 #include "memory.h"
@@ -90,13 +91,13 @@ void gn_reset(void) {
     else
         bankaddress = 0;
 
-    cpu_68k_reset();
+    gn_m68k_reset();
     gn_z80_reset();
     ymfm_shim_reset(); // Reset the YM2610 to make sure everything is defaulted
 }
 
 void gn_init(void) {
-    cpu_68k_init();
+    gn_m68k_init();
     pd4990a_init();
     gn_z80_init();
     ymfm_shim_init();
@@ -177,7 +178,7 @@ void gn_exec(void) {
     zcycs = zextcycs;
 
     while (mcycs < MCYC_PER_FRAME) {
-        icycs = cpu_68k_run(1);
+        icycs = gn_m68k_run(1);
         mcycs += icycs * DIV_M68K;
         lcycs += icycs * DIV_M68K;
 
@@ -196,7 +197,7 @@ void gn_exec(void) {
         if (lcycs >= MCYC_PER_LINE) {
             lcycs -= MCYC_PER_LINE;
             if (update_scanline())
-                cpu_68k_interrupt(2);
+                gn_m68k_interrupt(2);
         }
     }
 
@@ -211,8 +212,8 @@ void gn_exec(void) {
 
     if (++memory.watchdog > 7) {
         gn_log(GN_LOG_DBG, "Watchdog reset\n");
-        cpu_68k_reset();
+        gn_m68k_reset();
     }
 
-    cpu_68k_interrupt(1);
+    gn_m68k_interrupt(1);
 }

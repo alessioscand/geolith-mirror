@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "m68k/m68k.h"
 
+#include "gngeo_m68k.h"
 #include "gngeo_z80.h"
 #include "emu.h"
 #include "memory.h"
@@ -645,23 +646,23 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
     m68k_write_memory_16(address + 2, value & 0xffff);
 }
 
-void cpu_68k_reset(void) {
+void gn_m68k_reset(void) {
     m68k_pulse_reset();
     prn = 0x2345;
     nvram_lock = 0;
 }
 
-void cpu_68k_init(void) {
+void gn_m68k_init(void) {
     // Initialize the 68K CPU
     m68k_init();
     m68k_set_cpu_type(M68K_CPU_TYPE_68000);
 }
 
-int cpu_68k_run(uint32_t nb_cycle) {
+int gn_m68k_run(uint32_t nb_cycle) {
     return m68k_execute(nb_cycle);
 }
 
-void cpu_68k_interrupt(int a) {
+void gn_m68k_interrupt(int a) {
     irqlines |= a;
     m68k_set_irq(irqlines);
 }
