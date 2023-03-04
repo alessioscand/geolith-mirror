@@ -32,6 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define GN_NEO_H
 
 int gn_neo_load(void*, size_t);
-int gn_neo_unload(const char*);
+int gn_neo_unload(void);
 
 #endif

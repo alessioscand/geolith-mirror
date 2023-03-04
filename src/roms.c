@@ -367,57 +367,90 @@ int gn_bios_load(const char *biospath) {
     return 1;
 }
 
-void open_nvram(char *name) {
-    char filename[256];
-    FILE *f;
+// Load Memory Card
+int gn_memcard_load(const char *filename) {
+    FILE *file;
+    size_t filesize, result;
 
-    sprintf(filename, "%s/%s.nv", savedir, name);
+    // Open the file for reading
+    file = fopen(filename, "rb");
+    if (!file)
+        return 2;
 
-    if ((f = fopen(filename, "rb")) == 0)
-        return;
-    fread(memory.sram, 1, 0x10000, f);
-    fclose(f);
+    // Find out the file's size
+    fseek(file, 0, SEEK_END);
+    filesize = ftell(file);
+    fseek(file, 0, SEEK_SET);
 
+    if (filesize != 0x800)
+        return 0;
+
+    // Read the file into the system's NVRAM and then close it
+    result = fread(memory.nvram, sizeof(uint8_t), filesize, file);
+    if (result != filesize)
+        return 0;
+    fclose(file);
+
+    return 1; // Success!
 }
 
-/* TODO: multiple memcard */
-void open_memcard(char *name) {
-    char filename[256];
-    FILE *f;
+// Save Memory Card
+int gn_memcard_save(const char *filename) {
+    FILE *file;
+    file = fopen(filename, "wb");
+    if (!file)
+        return 0;
 
-    sprintf(filename, "%s/%s.mcr", savedir, name);
+    // Write and close the file
+    fwrite(memory.nvram, 0x800, sizeof(uint8_t), file);
+    fclose(file);
 
-    if ((f = fopen(filename, "rb")) == 0)
-        return;
-    fread(memory.memcard, 1, 0x800, f);
-    fclose(f);
+    return 1; // Success!
 }
 
-void save_nvram(char *name) {
-    char filename[256];
-    FILE *f;
+// Load NVRAM
+int gn_nvram_load(const char *filename) {
+    if (conf.system == SYS_HOME)
+        return 2;
 
-    for (int i = 0xffff; i >= 0; i--) {
-        if (memory.sram[i] != 0)
-            break;
-    }
+    FILE *file;
+    size_t filesize, result;
 
-    sprintf(filename, "%s/%s.nv", savedir, name);
+    // Open the file for reading
+    file = fopen(filename, "rb");
+    if (!file)
+        return 2;
 
-    if ((f = fopen(filename, "wb")) != NULL) {
-        fwrite(memory.sram, 1, 0x10000, f);
-        fclose(f);
-    }
+    // Find out the file's size
+    fseek(file, 0, SEEK_END);
+    filesize = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    if (filesize != 0x10000)
+        return 0;
+
+    // Read the file into the system's NVRAM and then close it
+    result = fread(memory.nvram, sizeof(uint8_t), filesize, file);
+    if (result != filesize)
+        return 0;
+    fclose(file);
+
+    return 1; // Success!
 }
 
-void save_memcard(char *name) {
-    char filename[256];
-    FILE *f;
+// Save NVRAM
+int gn_nvram_save(const char *filename) {
+    if (conf.system == SYS_HOME)
+        return 2;
 
-    sprintf(filename, "%s/%s.mcr", savedir, name);
+    FILE *file;
+    file = fopen(filename, "wb");
+    if (!file)
+        return 0;
 
-    if ((f = fopen(filename, "wb")) != NULL) {
-        fwrite(memory.memcard, 1, 0x800, f);
-        fclose(f);
-    }
+    // Write and close the file
+    fwrite(memory.nvram, 0x10000, sizeof(uint8_t), file);
+    fclose(file);
+
+    return 1; // Success!
 }

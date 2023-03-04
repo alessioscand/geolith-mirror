@@ -79,13 +79,12 @@ typedef struct neo_mem {
     GAME_ROMS rom;
     uint8_t ram[0x10000];
     VIDEO vid;
-    uint8_t *ng_lo;                          /* Put it in memory.vid? use zoom table in rom */
+    uint8_t *ng_lo; /* Put it in memory.vid? use zoom table in rom */
 
     uint32_t nb_of_tiles;
 
-    uint8_t sram[0x10000];
+    uint8_t nvram[0x10000];
 
-//  uint32_t *pen_usage;                      /* TODO: it's also in rom  */
     uint8_t fix_board_usage[4096];
     uint8_t *fix_game_usage;
 

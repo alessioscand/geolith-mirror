@@ -201,7 +201,6 @@ int gn_neo_load(void *data, size_t size) {
     return 1;
 }
 
-void gn_neo_unload(const char *name) {
-    save_nvram((char*)name);
-    save_memcard((char*)name);
+void gn_neo_unload(void) {
+    // FIXME: Clean up any allocated memory that was missed elsewhere
 }

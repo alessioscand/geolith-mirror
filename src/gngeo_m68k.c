@@ -48,7 +48,7 @@ uint8_t sound_code;
 uint8_t result_code;
 
 // SRAM Lock
-static uint8_t sram_lock;
+static uint8_t nvram_lock;
 
 // NEO-SMA Pseudo-Random Number addresses
 static uint32_t addr_prn[2] = { 0, 0 };
@@ -282,7 +282,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
         address &= 0xffff;
-        return read08(memory.sram, address);
+        return read08(memory.nvram, address);
     }
 
     gn_log(GN_LOG_WRN, "Unknown 8-bit 68K Read at %06x\n", address);
@@ -360,7 +360,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
         address &= 0xffff;
-        return read16(memory.sram, address);
+        return read16(memory.nvram, address);
     }
 
     gn_log(GN_LOG_WRN, "Unknown 16-bit 68K Read at %06x\n", address);
@@ -464,7 +464,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a000d: { // REG_SRAMLOCK
-                sram_lock = 1;
+                nvram_lock = 1;
                 return;
             }
             case 0x3a000f: { // REG_PALBANK1
@@ -500,7 +500,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a001d: { // REG_SRAMUNLOCK
-                sram_lock = 0;
+                nvram_lock = 0;
                 return;
             }
             case 0x3a001f: { // REG_PALBANK0
@@ -531,8 +531,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        if (!sram_lock)
-            memory.sram[address & 0xffff] = value;
+        if (!nvram_lock)
+            memory.nvram[address & 0xffff] = value;
     }
 }
 
@@ -634,8 +634,8 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        if (!sram_lock)
-            write16(memory.sram, address & 0xffff, value);
+        if (!nvram_lock)
+            write16(memory.nvram, address & 0xffff, value);
     }
 }
 
@@ -647,7 +647,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 void cpu_68k_reset(void) {
     m68k_pulse_reset();
     prn = 0x2345;
-    sram_lock = 0;
+    nvram_lock = 0;
 }
 
 void cpu_68k_init(void) {

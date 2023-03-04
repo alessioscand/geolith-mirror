@@ -179,7 +179,6 @@ int jg_init(void) {
 }
 
 void jg_deinit(void) {
-    gn_neo_unload(gameinfo.name);
     gn_mixer_deinit();
 }
 
@@ -212,9 +211,31 @@ int jg_game_load(void) {
         // Load the NEO file
         gn_neo_load(gameinfo.data, gameinfo.size);
 
-        // Load NVRAM and memory card
-        open_nvram((char*)gameinfo.name);
-        open_memcard((char*)gameinfo.name);
+        // Load NVRAM
+        char savename[292];
+        snprintf(savename, sizeof(savename),
+            "%s/%s.nv", pathinfo.save, gameinfo.name);
+        int savestat = gn_nvram_load((const char*)savename);
+
+        if (savestat == 1)
+            jg_cb_log(JG_LOG_DBG, "NVRAM Loaded: %s\n", savename);
+        else if (savestat == 2)
+            jg_cb_log(JG_LOG_DBG, "NVRAM file non-existent: %s\n", savename);
+        else
+            jg_cb_log(JG_LOG_DBG, "NVRAM Load Failed: %s\n", savename);
+
+        // Load Memory Card
+        snprintf(savename, sizeof(savename),
+            "%s/%s.mcr", pathinfo.save, gameinfo.name);
+        savestat = gn_memcard_load((const char*)savename);
+
+        if (savestat == 1)
+            jg_cb_log(JG_LOG_DBG, "Memory Card Loaded: %s\n", savename);
+        else if (savestat == 2)
+            jg_cb_log(JG_LOG_DBG, "Memory Card file non-existent: %s\n",
+                savename);
+        else
+            jg_cb_log(JG_LOG_DBG, "Memory Card Load Failed: %s\n", savename);
 
         // Initialize the rest of the emulator
         gn_init();
@@ -238,6 +259,34 @@ int jg_game_load(void) {
 }
 
 int jg_game_unload(void) {
+    // Save NVRAM and Memory Card
+    char savename[292];
+
+    // NVRAM
+    snprintf(savename, sizeof(savename),
+        "%s/%s.nv", pathinfo.save, gameinfo.name);
+    int savestat = gn_nvram_save((const char*)savename);
+
+    if (savestat == 1)
+        jg_cb_log(JG_LOG_DBG, "NVRAM Saved: %s\n", savename);
+    else if (savestat == 2)
+        jg_cb_log(JG_LOG_DBG, "Neo Geo AES does not contain NVRAM\n");
+    else
+        jg_cb_log(JG_LOG_DBG, "NVRAM Save Failed: %s\n", savename);
+
+    // Memcard
+    snprintf(savename, sizeof(savename),
+        "%s/%s.mcr", pathinfo.save, gameinfo.name);
+    savestat = gn_memcard_save((const char*)savename);
+
+    if (savestat == 1)
+        jg_cb_log(JG_LOG_DBG, "Memory Card Saved: %s\n", savename);
+    else
+        jg_cb_log(JG_LOG_DBG, "Memory Card Save Failed: %s\n", savename);
+
+    // Final cleanups
+    gn_neo_unload();
+
     return 1;
 }
 
