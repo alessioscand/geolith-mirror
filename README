@@ -11,6 +11,8 @@ were entirely replaced, as was the YM2610 emulation code, which is now a C
 translation of YMFM (the same code used in MAME). Timing was also completely
 rewritten, and the standalone interface code was removed.
 
+This emulator supports TerraOnion's .NEO file format only.
+
 This repository lives at https://gitlab.com/jgemu/gngeo
 
 Compiling
