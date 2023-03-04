@@ -27,7 +27,7 @@
 #include "video.h"
 #include "roms.h"
 
-#define VERSION "0.9.0-pre1"
+#define VERSION "1.0.0-pre1"
 
 #define SIZE_1K     0x000400
 #define SIZE_2K     0x000800
