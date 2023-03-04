@@ -11,7 +11,7 @@ SRCDIR := $(SOURCEDIR)/src
 PKG_CONFIG ?= pkg-config
 CFLAGS_JG := $(shell $(PKG_CONFIG) --cflags jg)
 
-INCLUDES := -I$(SRCDIR) -I$(SRCDIR)/m68k -I$(SRCDIR)/ymfm -I$(SRCDIR)/z80
+INCLUDES := -I$(SRCDIR)
 PIC := -fPIC
 SHARED := $(PIC)
 

@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdint.h>
 #include <string.h>
 
-#include "m68k.h"
+#include "m68k/m68k.h"
 
 #include "emu.h"
 #include "memory.h"

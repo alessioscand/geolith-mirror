@@ -33,8 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "emu.h"
 #include "memory.h"
-#include "ymfm_opn.h"
-#include "z80.h"
+#include "ymfm/ymfm_opn.h"
+#include "z80/z80.h"
 
 static z80 z80ctx;
 
