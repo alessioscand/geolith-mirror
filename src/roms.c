@@ -128,7 +128,6 @@ void gn_set_savedir(const char *dir) {
 }
 
 int init_kof99(void) {
-    neogeo_fix_bank_type = 0;
     memory.bksw_offset = bankoffset_kof99;
     memory.bksw_unscramble = scramblecode_kof99;
     gn_m68k_prn_addrs(0x2ffff8, 0x2ffffa);
@@ -137,7 +136,6 @@ int init_kof99(void) {
 }
 
 int init_garou(void) {
-    neogeo_fix_bank_type = 1;
     memory.bksw_offset = bankoffset_garou;
     memory.bksw_unscramble = scramblecode_garou;
     gn_m68k_prn_addrs(0x2fffcc, 0x2ffff0);
@@ -146,7 +144,6 @@ int init_garou(void) {
 }
 
 int init_garouh(void) {
-    neogeo_fix_bank_type = 1;
     memory.bksw_offset = bankoffset_garouh;
     memory.bksw_unscramble = scramblecode_garouh;
     gn_m68k_prn_addrs(0x2fffcc, 0x2ffff0);
@@ -155,7 +152,6 @@ int init_garouh(void) {
 }
 
 int init_mslug3(void) {
-    neogeo_fix_bank_type = 1;
     memory.bksw_offset = bankoffset_mslug3;
     memory.bksw_unscramble = scramblecode_mslug3;
     gn_m68k_prn_addrs(0x2ffff8, 0x2ffffa);
@@ -164,7 +160,6 @@ int init_mslug3(void) {
 }
 
 int init_kof2000(void) {
-    neogeo_fix_bank_type = 2;
     memory.bksw_offset = bankoffset_kof2000;
     memory.bksw_unscramble = scramblecode_kof2000;
     gn_m68k_prn_addrs(0x2fffd8, 0x2fffda);

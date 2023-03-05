@@ -178,27 +178,29 @@ int gn_neo_load(void *data, size_t size) {
             break;
         }
         case 253: { // Garou - Mark of the Wolves
+            neogeo_fix_bank_type = 1;
+
             // Use heuristics to handle descrambling differences
-            if (romdata[0xc1000 + 0x3e481] == 0x9f) {
-                // AES version uses the KE NEO-SMA revision
+            if (romdata[0xc1000 + 0x3e481] == 0x9f) // NEO-SMA KE (AES)
                 init_garouh();
-            }
-            else if (romdata[0xc1000 + 0x3e481] == 0x41) {
-                // MVS version uses the KF NEO-SMA revision
+            else if (romdata[0xc1000 + 0x3e481] == 0x41) // NEO-SMA KF (MVS)
                 init_garou();
-            }
-            else {
-                // Bootleg and Prototype don't have protection
+            else // Bootleg and Prototype don't have protection
                 gn_m68k_banksw_set(0, 0);
-            }
             break;
         }
         case 256: { // Metal Slug 3 - FIXME: no special handling for mslug3h
+            neogeo_fix_bank_type = 1;
             init_mslug3();
             break;
         }
         case 257: { // KOF 2000
-            init_kof2000();
+            neogeo_fix_bank_type = 2;
+
+            if (size_prom > 0x500000) // Encrypted
+                init_kof2000();
+            else // Unencrypted
+                gn_m68k_banksw_set(0, 0);
             break;
         }
         case 263: { // Metal Slug 4
