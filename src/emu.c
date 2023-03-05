@@ -177,6 +177,8 @@ void gn_exec(void) {
     lcycs = lextcycs;
     zcycs = zextcycs;
 
+    current_line = 0;
+
     while (mcycs < MCYC_PER_FRAME) {
         icycs = gn_m68k_run(1);
         mcycs += icycs * DIV_M68K;
@@ -203,7 +205,7 @@ void gn_exec(void) {
 
     mextcycs = mcycs - MCYC_PER_FRAME;
     zextcycs = zcycs - MCYC_PER_FRAME;
-    lextcycs = lcycs - MCYC_PER_LINE;
+    lextcycs = lcycs;
 
     update_screen();
 
