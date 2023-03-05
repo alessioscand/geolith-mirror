@@ -105,5 +105,6 @@ int init_garouh(void);
 int init_kof99(void);
 int init_kof2000(void);
 int init_mslug3(void);
+int init_mslug3a(void);
 
 #endif

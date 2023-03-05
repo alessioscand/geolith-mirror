@@ -104,6 +104,23 @@ int bankoffset_mslug3[64] = {
 };
 uint8_t scramblecode_mslug3[6] = {14, 12, 15, 6, 3, 9,};
 
+int bankoffset_mslug3a[64] = {
+    0x100000, 0x130000, 0x140000, 0x170000, // 00
+    0x180000, 0x1a0000, 0x1c0000, 0x1e0000, // 04
+    0x1f0000, 0x200000, 0x230000, 0x240000, // 08
+    0x250000, 0x260000, 0x290000, 0x2a0000, // 12
+    0x2b0000, 0x2c0000, 0x2f0000, 0x300000, // 16
+    0x310000, 0x320000, 0x350000, 0x360000, // 20
+    0x370000, 0x380000, 0x3b0000, 0x3c0000, // 24
+    0x3d0000, 0x3e0000, 0x410000, 0x420000, // 28
+    0x430000, 0x440000, 0x470000, 0x480000, // 32
+    0x490000, 0x4a0000, 0x4D0000, 0x4e0000, // 36
+    0x500000, 0x510000, 0x540000, 0x550000, // 40
+    0x560000, 0x570000, 0x5a0000, 0x5b0000, // 44
+    0x5c0000, /* rest not used? */
+};
+uint8_t scramblecode_mslug3a[6] = {15, 3, 1, 6, 12, 11,};
+
 int bankoffset_kof2000[64] = {
     0x000000, 0x100000, 0x200000, 0x300000, // 00
     0x3f7800, 0x4f7800, 0x3ff800, 0x4ff800, // 04
@@ -154,6 +171,14 @@ int init_garouh(void) {
 int init_mslug3(void) {
     memory.bksw_offset = bankoffset_mslug3;
     memory.bksw_unscramble = scramblecode_mslug3;
+    gn_m68k_prn_addrs(0x2ffff8, 0x2ffffa);
+    gn_m68k_banksw_set(BANKSW_SMA, 0x2fffe4);
+    return 0;
+}
+
+int init_mslug3a(void) {
+    memory.bksw_offset = bankoffset_mslug3a;
+    memory.bksw_unscramble = scramblecode_mslug3a;
     gn_m68k_prn_addrs(0x2ffff8, 0x2ffffa);
     gn_m68k_banksw_set(BANKSW_SMA, 0x2fffe4);
     return 0;
