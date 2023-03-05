@@ -174,7 +174,10 @@ int gn_neo_load(void *data, size_t size) {
     // Handle special cases if necessary
     switch (ngh) {
         case 151: case 251: { // KOF 99
-            init_kof99();
+            if (size_prom > 0x500000) // Encrypted
+                init_kof99();
+            else // Unencrypted
+                gn_m68k_banksw_set(0, 0);
             break;
         }
         case 253: { // Garou - Mark of the Wolves
