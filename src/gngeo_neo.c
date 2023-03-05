@@ -189,9 +189,13 @@ int gn_neo_load(void *data, size_t size) {
                 gn_m68k_banksw_set(0, 0);
             break;
         }
-        case 256: { // Metal Slug 3 - FIXME: no special handling for mslug3h
+        case 256: { // Metal Slug 3
             neogeo_fix_bank_type = 1;
-            init_mslug3();
+
+            if (size_prom > 0x500000) // Encrypted
+                init_mslug3();
+            else // Unencrypted
+                gn_m68k_banksw_set(0, 0);
             break;
         }
         case 257: { // KOF 2000
