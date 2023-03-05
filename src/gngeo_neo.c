@@ -173,29 +173,48 @@ int gn_neo_load(void *data, size_t size) {
 
     // Handle special cases if necessary
     switch (ngh) {
-        case 151: case 251: // KOF 99
+        case 151: case 251: { // KOF 99
             init_kof99();
             break;
-        case 253: // Garou - Mark of the Wolves
-            init_garou();
+        }
+        case 253: { // Garou - Mark of the Wolves
+            // Use heuristics to handle descrambling differences
+            if (romdata[0xc1000 + 0x3e481] == 0x9f) {
+                // AES version uses the KE NEO-SMA revision
+                init_garouh();
+            }
+            else if (romdata[0xc1000 + 0x3e481] == 0x41) {
+                // MVS version uses the KF NEO-SMA revision
+                init_garou();
+            }
+            else {
+                // Bootleg and Prototype don't have protection
+                gn_m68k_banksw_set(0, 0);
+            }
             break;
-        case 256: // Metal Slug 3 - FIXME: no special handling for mslug3h
+        }
+        case 256: { // Metal Slug 3 - FIXME: no special handling for mslug3h
             init_mslug3();
             break;
-        case 257: // KOF 2000
+        }
+        case 257: { // KOF 2000
             init_kof2000();
             break;
-        case 263: // Metal Slug 4
+        }
+        case 263: { // Metal Slug 4
             neogeo_fix_bank_type = 1;
             gn_m68k_banksw_set(0, 0);
             break;
-        case 266: // Matrimelee
+        }
+        case 266: { // Matrimelee
             neogeo_fix_bank_type = 2;
             gn_m68k_banksw_set(0, 0);
             break;
-        default:
+        }
+        default: {
             gn_m68k_banksw_set(0, 0); // Set default bankswitch function
             break;
+        }
     }
 
     return 1;

@@ -142,7 +142,6 @@ int init_garou(void) {
     memory.bksw_unscramble = scramblecode_garou;
     gn_m68k_prn_addrs(0x2fffcc, 0x2ffff0);
     gn_m68k_banksw_set(BANKSW_SMA, 0x2fffc0);
-    //garou_install_protection(machine);
     return 0;
 }
 
@@ -152,7 +151,6 @@ int init_garouh(void) {
     memory.bksw_unscramble = scramblecode_garouh;
     gn_m68k_prn_addrs(0x2fffcc, 0x2ffff0);
     gn_m68k_banksw_set(BANKSW_SMA, 0x2fffc0);
-    //garouo_install_protection(machine);
     return 0;
 }
 
@@ -162,7 +160,6 @@ int init_mslug3(void) {
     memory.bksw_unscramble = scramblecode_mslug3;
     gn_m68k_prn_addrs(0x2ffff8, 0x2ffffa);
     gn_m68k_banksw_set(BANKSW_SMA, 0x2fffe4);
-
     return 0;
 }
 
