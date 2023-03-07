@@ -104,22 +104,6 @@ void gn_init(void) {
     gn_reset();
 }
 
-static inline int neo_interrupt(void) {
-    pd4990a_addretrace();
-    // printf("neogeo_frame_counter_speed %d\n",neogeo_frame_counter_speed);
-    if (!(memory.vid.irq2control & 0x8)) {
-        if (fc >= neogeo_frame_counter_speed) {
-            fc = 0;
-            ++neogeo_frame_counter;
-        }
-        ++fc;
-    }
-
-    draw_screen();
-
-    return 1;
-}
-
 static inline void update_screen(void) {
     if (memory.vid.irq2control & 0x40)
         // ridhero gives 0x17d
@@ -178,6 +162,7 @@ void gn_exec(void) {
     zcycs = zextcycs;
 
     current_line = 0;
+    ymsamps = 0;
 
     while (mcycs < MCYC_PER_FRAME) {
         icycs = gn_m68k_run(1);
@@ -208,9 +193,7 @@ void gn_exec(void) {
     lextcycs = lcycs;
 
     update_screen();
-
     gn_mixer_resamp(ymsamps);
-    ymsamps = 0;
 
     if (++memory.watchdog > 7) {
         gn_log(GN_LOG_DBG, "Watchdog reset\n");
