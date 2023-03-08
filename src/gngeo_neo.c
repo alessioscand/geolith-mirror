@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 
 #include "emu.h"
+#include "gngeo_neo.h"
 #include "memory.h"
 #include "roms.h"
 
@@ -229,6 +230,7 @@ int gn_neo_load(void *data, size_t size) {
     return 1;
 }
 
-void gn_neo_unload(void) {
+int gn_neo_unload(void) {
     // FIXME: Clean up any allocated memory that was missed elsewhere
+    return 1;
 }

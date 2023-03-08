@@ -165,7 +165,7 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
 }
 
 /**** PALETTE ****/
-uint32_t convert_pal(uint16_t npal) {
+static uint32_t convert_pal(uint16_t npal) {
     int r = 0, g = 0, b = 0, dark = 0;
     r = ((npal >> 7) & 0x1e) | ((npal >> 14) & 0x01);
     g = ((npal >> 3) & 0x1e) | ((npal >> 13) & 0x01);
@@ -198,7 +198,7 @@ void palette_set(int palnum) {
     memory.vid.currentpal = palnum;
 }
 
-void draw_bg(uint32_t *pix, uint32_t bgcol) {
+static void draw_bg(uint32_t *pix, uint32_t bgcol) {
 /* this could be as easy as:
    uint32_t *p = pix, *e = pix + 256*352;
    while(p < e) *(p++) = bgcol;

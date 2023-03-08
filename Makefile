@@ -3,7 +3,7 @@ SOURCEDIR := $(abspath $(patsubst %/,%,$(dir $(abspath $(lastword \
 
 CC ?= cc
 CFLAGS ?= -O2
-FLAGS := -std=c11 -Wall -Wextra -Wshadow -pedantic
+FLAGS := -std=c11 -Wall -Wextra -Wshadow -Wmissing-declarations -pedantic
 
 DEPDIR := $(SOURCEDIR)/deps
 SRCDIR := $(SOURCEDIR)/src
