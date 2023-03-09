@@ -197,20 +197,21 @@ void palette_set(int palnum) {
     memory.vid.currentpal = palnum;
 }
 
-static void draw_bg(uint32_t *pix, uint32_t bgcol) {
+void draw_bg(void) {
 /* this could be as easy as:
    uint32_t *p = pix, *e = pix + 256*352;
    while(p < e) *(p++) = bgcol;
    but using the optimized libc memcpy is 10x faster. */
     size_t i;
-    uint32_t *p = pix, *e = pix+256;
+    uint32_t bgcol = current_pc_pal[4095];
+    uint32_t *p = vbuf, *e = vbuf+256;
     while(p < e) *(p++) = bgcol;
     for(i = 0; i < 31; ++i, p+=256)
-        memcpy(p, pix, 256*4);
+        memcpy(p, vbuf, 256*4);
     for(i = 0; i < 2; ++i, p += 32*256)
-        memcpy(p, pix, 32*256*4);
+        memcpy(p, vbuf, 32*256*4);
     for(i = 0; i < 4; ++i, p+=64*256)
-        memcpy(p, pix, 64*256*4);
+        memcpy(p, vbuf, 64*256*4);
 }
 
 void draw_screen(void) {
@@ -220,8 +221,6 @@ void draw_screen(void) {
     char fullmode = 0;
     int dday = 0, rzx = 15, yskip = 0;
     uint16_t *vidram = memory.vid.ram;
-
-    draw_bg(vbuf, current_pc_pal[4095]);
 
     /* Draw sprites */
     for (count = 0; count < 0x180; ++count) {
@@ -369,7 +368,7 @@ void draw_screen(void) {
     draw_fix_char((unsigned char*)vbuf, 0, 0);
 }
 
-void draw_screen_scanline(int start_line, int end_line, int refresh) {
+void draw_screen_scanline(int start_line, int refresh) {
     int sx = 0, sy = 0, my = 0, zx = 1, zy = 1;
     int offs, count, y;
     int tileno, tileatr;
@@ -382,8 +381,8 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
     int invert;
     uint8_t *zoomy_rom;
 
-    if (start_line > 255) start_line = 255;
-    if (end_line > 255) end_line = 255;
+    //if (start_line > 255) start_line = 255;
+    //if (end_line > 255) end_line = 255;
 
     /* Draw sprites */
     for (count = 0; count < 0x180; ++count) {
@@ -437,7 +436,8 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
         offs = count << 6;
         zoomy_rom = memory.ng_lo + (zy << 8);
 
-        for (yy = start_line; yy <= end_line; yy++) {
+        //for (yy = start_line; yy <= end_line; yy++) {
+            yy = start_line;
             y = yy - sy; /* y: 0 -> my*16 */
 
             if (y < 0) y += 512;
@@ -487,7 +487,7 @@ void draw_screen_scanline(int start_line, int end_line, int refresh) {
                 tileatr & 0x01, (unsigned char*) vbuf);
 
         }
-    } /* for count */
+    //} /* for count */
 
     if (refresh) {
         draw_fix_char((unsigned char*)vbuf, 0, 0);

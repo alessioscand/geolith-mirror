@@ -51,7 +51,6 @@ neo_mem memory;
 
 uint8_t reg_dipsw = 0;
 
-static int last_line;
 static unsigned fc;
 
 // Extra cycles stored at the end of scanlines/frames
@@ -81,7 +80,6 @@ void gn_input_stat_set_callback(unsigned port, unsigned (*cb)(void)) {
 }
 
 void gn_reset(void) {
-    //  memory.vid.modulo = 1; /* TODO: Move to init_video */
     sound_code = 0;
     result_code = 0;
 
@@ -103,58 +101,6 @@ void gn_init(void) {
     gn_reset();
 }
 
-static inline void update_screen(void) {
-    if (memory.vid.irq2control & 0x40)
-        // ridhero gives 0x17d
-        memory.vid.irq2start = (memory.vid.irq2pos + 3) / 0x180;
-    else
-        memory.vid.irq2start = 1000;
-
-    /* there was no IRQ2 while the beam was in the visible area -> no need for
-       scanline rendering
-    */
-    if (last_line < 21) {
-        draw_screen();
-    }
-    else {
-        draw_screen_scanline(last_line - 21, 262, 1);
-    }
-
-    last_line = 0;
-
-    pd4990a_addretrace();
-    if (fc >= neogeo_frame_counter_speed) {
-        fc = 0;
-        ++neogeo_frame_counter;
-    }
-    ++fc;
-}
-
-static inline int update_scanline(void) {
-    memory.vid.irq2taken = 0;
-
-    if (memory.vid.irq2control & 0x10) {
-
-        if (current_line == memory.vid.irq2start) {
-            if (memory.vid.irq2control & 0x80)
-                memory.vid.irq2start += (memory.vid.irq2pos + 3) / 0x180;
-            memory.vid.irq2taken = 1;
-        }
-    }
-
-    if (memory.vid.irq2taken) {
-        if (last_line < 21)
-            last_line = 21;
-        if (current_line < 20)
-            current_line = 20;
-        draw_screen_scanline(last_line - 21, current_line - 20, 0);
-        last_line = current_line;
-    }
-
-    ++current_line;
-    return memory.vid.irq2taken;
-}
-
 void gn_exec(void) {
     mcycs = mextcycs;
     lcycs = lextcycs;
@@ -162,6 +108,8 @@ void gn_exec(void) {
 
     current_line = 0;
     ymsamps = 0;
+
+    draw_bg();
 
     while (mcycs < MCYC_PER_FRAME) {
         icycs = gn_m68k_run(1);
@@ -182,8 +130,11 @@ void gn_exec(void) {
 
         if (lcycs >= MCYC_PER_LINE) {
             lcycs -= MCYC_PER_LINE;
-            if (update_scanline())
-                gn_m68k_int(2);
+            if (current_line < 255)
+                draw_screen_scanline(current_line, 0);
+            else if (current_line == 255)
+                draw_screen_scanline(current_line, 1);
+            ++current_line;
         }
     }
 
@@ -191,11 +142,19 @@ void gn_exec(void) {
     zextcycs = zcycs - MCYC_PER_FRAME;
     lextcycs = lcycs;
 
-    update_screen();
+    //// Old code, research/rewrite FIXME
+    pd4990a_addretrace();
+    if (fc >= neogeo_frame_counter_speed) {
+        fc = 0;
+        ++neogeo_frame_counter;
+    }
+    ++fc;
+    ////
+
     gn_mixer_resamp(ymsamps);
 
     if (++memory.watchdog > 7) {
-        gn_log(GN_LOG_DBG, "Watchdog reset\n");
+        gn_log(GN_LOG_WRN, "Watchdog reset\n");
         gn_m68k_reset();
     }
 
