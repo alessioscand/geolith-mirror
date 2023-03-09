@@ -36,7 +36,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "emu.h"
 #include "gngeo_neo.h"
-#include "memory.h"
 #include "roms.h"
 
 extern int neogeo_fix_bank_type;

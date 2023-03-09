@@ -28,7 +28,6 @@
 #include "gngeo_m68k.h"
 #include "gngeo_mixer.h"
 #include "gngeo_z80.h"
-#include "memory.h"
 #include "pd4990a.h"
 
 #include "ymfm/ymfm_shim.h"

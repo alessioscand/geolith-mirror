@@ -36,7 +36,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gngeo_m68k.h"
 #include "gngeo_z80.h"
 #include "emu.h"
-#include "memory.h"
 #include "pd4990a.h"
 #include "video.h"
 

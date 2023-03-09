@@ -32,7 +32,6 @@
 
 #include "roms.h"
 #include "emu.h"
-#include "memory.h"
 #include "video.h"
 
 static const char *savedir;

@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <zlib.h>
 #include "video.h"
-#include "memory.h"
 #include "emu.h"
 
 uint32_t *vbuf;

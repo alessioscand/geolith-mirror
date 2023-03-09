@@ -20,8 +20,6 @@
  *
  */
 
-#include "memory.h"
-
 struct pd4990a_s {
   int seconds;
   int minutes;

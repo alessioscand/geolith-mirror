@@ -33,7 +33,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "emu.h"
 #include "gngeo_z80.h"
-#include "memory.h"
 #include "ymfm/ymfm_opn.h"
 #include "z80/z80.h"
 
