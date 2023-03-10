@@ -49,7 +49,7 @@ CSRCS := m68k/m68kcpu.c \
 	ymfm/ymfm_shim.c \
 	ymfm/ymfm_ssg.c \
 	z80/z80.c \
-	emu.c \
+	gngeo.c \
 	gngeo_m68k.c \
 	gngeo_mixer.c \
 	gngeo_neo.c \

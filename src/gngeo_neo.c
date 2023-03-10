@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 
-#include "emu.h"
+#include "gngeo.h"
 #include "gngeo_neo.h"
 #include "roms.h"
 

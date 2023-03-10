@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <jg/jg.h>
 #include <jg/jg_neogeo.h>
 
-#include "emu.h"
+#include "gngeo.h"
 #include "gngeo_mixer.h"
 #include "gngeo_neo.h"
 #include "memory.h"

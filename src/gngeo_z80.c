@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "emu.h"
+#include "gngeo.h"
 #include "gngeo_z80.h"
 #include "ymfm/ymfm_opn.h"
 #include "z80/z80.h"

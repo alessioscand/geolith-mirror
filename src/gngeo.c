@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "emu.h"
+#include "gngeo.h"
 #include "gngeo_m68k.h"
 #include "gngeo_mixer.h"
 #include "gngeo_z80.h"

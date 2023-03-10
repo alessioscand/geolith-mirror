@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <zlib.h>
 #include "video.h"
-#include "emu.h"
+#include "gngeo.h"
 
 uint32_t *vbuf;
 extern int neogeo_fix_bank_type;

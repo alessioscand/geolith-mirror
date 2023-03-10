@@ -36,8 +36,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ymfm_opn.h"
 #include "ymfm_shim.h"
 
+#include "gngeo.h"
 #include "gngeo_z80.h"
-#include "emu.h"
 
 #define SIZE_YMBUF 2048
 

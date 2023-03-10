@@ -31,7 +31,7 @@
 #include <miniz.h>
 
 #include "roms.h"
-#include "emu.h"
+#include "gngeo.h"
 #include "video.h"
 
 static const char *savedir;
