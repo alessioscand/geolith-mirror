@@ -593,17 +593,20 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                    Bits 0-2:  Unused
                 */
                 neogeo_frame_counter_speed = (((value >> 8) & 0xff) + 1);
-                memory.vid.irq2control = value & 0xff;
+                irq2_ctrl = value & 0xff;
                 return;
             }
             case 0x3c0008: { // REG_TIMERHIGH
-                memory.vid.irq2pos =
-                    (memory.vid.irq2pos & 0xffff) | ((uint32_t)value << 16);
+                irq2_reload = (irq2_reload & 0xffff) | ((uint32_t)value << 16);
                 return;
             }
             case 0x3c000a: { // REG_TIMERLOW
-                memory.vid.irq2pos =
-                    (memory.vid.irq2pos & 0xffff0000) | (value & 0xffff);
+                irq2_reload = (irq2_reload & 0xffff0000) | (value & 0xffff);
+
+                // Reload counter when REG_TIMERLOW is written
+                if (irq2_ctrl & 0x20)
+                    irq2_counter = irq2_reload;
+
                 return;
             }
             case 0x3c000c: { // REG_IRQACK

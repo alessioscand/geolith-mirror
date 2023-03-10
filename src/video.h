@@ -43,14 +43,6 @@ typedef struct VIDEO {
 
     uint32_t vptr;
     int16_t modulo;
-
-    uint32_t current_line;
-
-    /* IRQ2 related */
-    uint32_t irq2control;
-    uint32_t irq2taken;
-    uint32_t irq2start;
-    uint32_t irq2pos;
 }VIDEO;
 
 extern unsigned int neogeo_frame_counter;

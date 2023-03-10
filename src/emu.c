@@ -51,6 +51,12 @@ neo_mem memory;
 
 uint8_t reg_dipsw = 0;
 
+// Timer Interrupt (IRQ2)
+uint8_t irq2_ctrl = 0;
+uint32_t irq2_reload = 0;
+int64_t irq2_counter = 0;
+static unsigned irq2_frags = 0;
+
 static unsigned fc;
 
 // Extra cycles stored at the end of scanlines/frames
@@ -111,10 +117,32 @@ void gn_exec(void) {
 
     draw_bg();
 
+    // Reload counter at the beginning of each frame
+    if (irq2_ctrl & 0x40)
+        irq2_counter = irq2_reload;
+
     while (mcycs < MCYC_PER_FRAME) {
         icycs = gn_m68k_run(1);
         mcycs += icycs * DIV_M68K;
         lcycs += icycs * DIV_M68K;
+
+        // Handle IRQ2 counter
+        irq2_counter -= icycs >> 1;
+        irq2_frags += icycs & 0x01;
+        if (irq2_frags == 2) {
+            irq2_frags = 0;
+            --irq2_counter;
+        }
+
+        if (irq2_counter <= 0) {
+            // Reload counter when it reaches 0
+            if (irq2_ctrl & 0x80)
+                irq2_counter += irq2_reload;
+
+            // Timer Interrupt Enabled, trigger when counter reaches 0
+            if (irq2_ctrl & 0x10)
+                gn_m68k_int(2);
+        }
 
         while (zcycs < mcycs) {
             size_t scycs = gn_z80_run(1);

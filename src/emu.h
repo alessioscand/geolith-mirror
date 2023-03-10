@@ -118,6 +118,11 @@ extern uint8_t reg_dipsw;
 void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2);
 void gn_m68k_banksw_set(unsigned swtype, uint32_t addr);
 
+// Timer Interrupt (IRQ2)
+extern uint8_t irq2_ctrl;
+extern uint32_t irq2_reload;
+extern int64_t irq2_counter;
+
 extern neo_mem memory;
 
 /* Sound control */
