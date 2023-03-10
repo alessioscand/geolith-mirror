@@ -133,12 +133,6 @@ int bankoffset_kof2000[64] = {
 };
 uint8_t scramblecode_kof2000[6] = {15, 14, 7, 3, 10, 5,};
 
-static inline void swapb16_range(void *ptr, size_t len) {
-    uint16_t *x = (uint16_t*)ptr;
-    for (size_t i = 0; i < len >> 1; ++i)
-        x[i] = (x[i] << 8) | (x[i] >> 8);
-}
-
 void gn_set_savedir(const char *dir) {
     savedir = dir;
 }
