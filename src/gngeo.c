@@ -44,6 +44,9 @@ void (*gn_log)(int, const char *, ...);
 unsigned (*gn_input_cb[NUMINPUTS_NG])(unsigned);
 unsigned (*gn_input_stat_cb[NUMINPUTS_NG])(void);
 
+// System being emulated
+static int sys = 0;
+
 struct _conf_t conf;
 
 neo_mem memory;
@@ -82,6 +85,16 @@ void gn_input_set_callback(unsigned port, unsigned (*cb)(unsigned)) {
 }
 void gn_input_stat_set_callback(unsigned port, unsigned (*cb)(void)) {
     gn_input_stat_cb[port] = cb;
+}
+
+// Set the system to be emulated
+void gn_set_system(int s) {
+    sys = s;
+}
+
+// Get the system currently being emulated
+int gn_get_system(void) {
+    return sys;
 }
 
 void gn_reset(void) {

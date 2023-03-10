@@ -317,14 +317,13 @@ int gn_bios_load(const char *biospath) {
     if (!mz_zip_reader_init_file(&zip_archive, biospath, 0))
         return 0;
 
-    if (conf.system == SYS_UNIBIOS) {
-        romfile = "uni-bios_4_0.rom";
-    }
-    else if (conf.system == SYS_HOME) {
-        romfile = "neo-epo.bin";
-    }
-    else {
-        switch (conf.country) {
+    switch (gn_get_system()) {
+        default: case SYSTEM_AES: {
+            romfile = "neo-epo.bin";
+            break;
+        }
+        case SYSTEM_MVS: {
+            switch (conf.country) {
             default: case CTY_USA: // Winners don't use drugs
                 romfile = "sp-u2.sp1";
                 break;
@@ -337,6 +336,12 @@ int gn_bios_load(const char *biospath) {
             case CTY_EUROPE:
                 romfile = "sp-s2.sp1";
                 break;
+            }
+            break;
+        }
+        case SYSTEM_UNI: {
+            romfile = "uni-bios_4_0.rom";
+            break;
         }
     }
 
@@ -359,7 +364,7 @@ int gn_bios_load(const char *biospath) {
         return 0;
     }
 
-    if (conf.system != SYS_HOME) {
+    if (gn_get_system() != SYSTEM_AES) {
         r->bios_sfix.p = mz_zip_reader_extract_file_to_heap(&zip_archive,
             "sfix.sfix", &(r->bios_sfix.size), 0);
         if (r->bios_sfix.p == NULL) {
@@ -420,7 +425,7 @@ int gn_memcard_save(const char *filename) {
 
 // Load NVRAM
 int gn_nvram_load(const char *filename) {
-    if (conf.system == SYS_HOME)
+    if (gn_get_system() == SYSTEM_AES)
         return 2;
 
     FILE *file;
@@ -450,7 +455,7 @@ int gn_nvram_load(const char *filename) {
 
 // Save NVRAM
 int gn_nvram_save(const char *filename) {
-    if (conf.system == SYS_HOME)
+    if (gn_get_system() == SYSTEM_AES)
         return 2;
 
     FILE *file;

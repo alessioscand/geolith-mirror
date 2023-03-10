@@ -87,9 +87,9 @@ static jg_inputstate_t *input_device[NUMINPUTS];
 // Emulator settings
 static jg_setting_t settings_gn[] = {
     { "system", "Emulated System",
-      "0 = Universe BIOS, 1 = Arcade, 2 = Home",
+      "0 = AES (Console), 1 = MVS (Arcade), 2 = Universe BIOS",
       "Select which type of system/BIOS to emulate",
-      SYS_UNIBIOS, SYS_UNIBIOS, SYS_HOME, JG_SETTING_RESTART
+      SYSTEM_AES, SYSTEM_AES, SYSTEM_UNI, JG_SETTING_RESTART
     },
     { "region", "Region",
       "0 = US, 1 = JP, 2 = AS, 3 = EU",
@@ -172,8 +172,8 @@ int jg_init(void) {
     conf.sample_rate = SAMPLERATE;
     gn_mixer_set_rate(SAMPLERATE);
     gn_mixer_init();
+    gn_set_system(settings_gn[SYS].val);
     conf.pal = 0; // Not currently supported
-    conf.system = settings_gn[SYS].val;
     conf.country = settings_gn[REGION].val;
     return 1;
 }
@@ -202,7 +202,7 @@ int jg_game_load(void) {
         // Load the BIOS
         char biospath[512];
         snprintf(biospath, sizeof(biospath), "%s/%s", pathinfo.bios,
-            settings_gn[SYS].val == SYS_HOME ? "aes.zip" : "neogeo.zip");
+            settings_gn[SYS].val == SYSTEM_AES ? "aes.zip" : "neogeo.zip");
         if (!gn_bios_load(biospath)) {
             gn_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
             return 0;

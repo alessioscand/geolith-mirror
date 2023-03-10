@@ -37,17 +37,14 @@
 #define SIZE_32K    0x008000
 #define SIZE_64K    0x010000
 
-#define NUMINPUTS_NG 2
-
 #define BANKSW_DEF 0x00 // Default
 #define BANKSW_SMA 0x01 // NEO-SMA
 
-typedef enum SYSTEM {
-    SYS_UNIBIOS,
-    SYS_ARCADE,
-    SYS_HOME,
-    SYS_MAX
-} SYSTEM;
+#define SYSTEM_AES 0x00
+#define SYSTEM_MVS 0x01
+#define SYSTEM_UNI 0x02
+
+#define NUMINPUTS_NG 2
 
 typedef enum COUNTRY {
     CTY_USA,
@@ -62,7 +59,6 @@ struct _conf_t {
     uint16_t sample_rate;
     uint8_t extra_xor;
     uint8_t pal;
-    SYSTEM system;
     COUNTRY country;
 };
 extern struct _conf_t conf;
@@ -107,6 +103,9 @@ void gn_reset(void);
 void gn_log_set_callback(void (*)(int, const char *, ...));
 void gn_input_set_callback(unsigned, unsigned (*)(unsigned));
 void gn_input_stat_set_callback(unsigned, unsigned (*)(void));
+
+int gn_get_system(void);
+void gn_set_system(int);
 
 extern void (*gn_log)(int, const char *, ...);
 
