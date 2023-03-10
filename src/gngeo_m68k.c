@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gngeo_m68k.h"
 #include "gngeo_z80.h"
 #include "gngeo.h"
-#include "pd4990a.h"
+
 #include "video.h"
 
 #define SMATAP 0x98ec // NEO-SMA Tapped bits - 2, 3, 5, 6, 7, 11, 12, and 15
@@ -224,9 +224,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                    Bit 1:    Coin-in 2
                    Bit 0:    Coin-in 1
                 */
-                return gn_input_stat_cb[0]() |
-                    (read_4990_testbit() << 6) |
-                    (read_4990_databit() << 7);
+                return gn_input_stat_cb[0](); // FIXME add RTC bits
             }
             case 0x340000: { // REG_P2CNT
                 return gn_input_cb[1](1);
@@ -421,7 +419,6 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x380051: { // REG_RTCCTRL
-                pd4990a_serial_control(value & 0x07);
                 return;
             }
             case 0x380061: // REG_RESETCC1, REG_RESETCC1 - Reset Coin Counters
@@ -564,7 +561,6 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x380051: { // REG_RTCCTRL
-                pd4990a_serial_control(value & 0x07);
                 return;
             }
             case 0x3c0000: { // REG_VRAMADDR

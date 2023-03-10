@@ -28,7 +28,6 @@
 #include "gngeo_m68k.h"
 #include "gngeo_mixer.h"
 #include "gngeo_z80.h"
-#include "pd4990a.h"
 
 #include "ymfm/ymfm_shim.h"
 
@@ -101,7 +100,6 @@ void gn_reset(void) {
 
 void gn_init(void) {
     gn_m68k_init();
-    pd4990a_init();
     gn_z80_init();
     ymfm_shim_init();
     gn_reset();
@@ -171,7 +169,6 @@ void gn_exec(void) {
     lextcycs = lcycs;
 
     //// Old code, research/rewrite FIXME
-    pd4990a_addretrace();
     if (fc >= neogeo_frame_counter_speed) {
         fc = 0;
         ++neogeo_frame_counter;
