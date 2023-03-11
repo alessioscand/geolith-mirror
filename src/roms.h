@@ -23,16 +23,6 @@
 #ifndef H_ROMS
 #define H_ROMS
 
-void gn_set_savedir(const char *dir);
-
-int gn_bios_load(const char*);
-
-int gn_memcard_load(const char*);
-int gn_memcard_save(const char*);
-
-int gn_nvram_load(const char*);
-int gn_nvram_save(const char*);
-
 int init_garou(void);
 int init_garouh(void);
 int init_kof99(void);

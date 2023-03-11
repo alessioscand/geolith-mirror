@@ -20,21 +20,14 @@
  *
  */
 
-#define _POSIX_C_SOURCE 200809L
-
-#include <libgen.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <miniz.h>
-
 #include "roms.h"
 #include "gngeo.h"
 #include "video.h"
-
-static const char *savedir;
 
 int neogeo_fix_bank_type = 0;
 
@@ -133,10 +126,6 @@ int bankoffset_kof2000[64] = {
 };
 uint8_t scramblecode_kof2000[6] = {15, 14, 7, 3, 10, 5,};
 
-void gn_set_savedir(const char *dir) {
-    savedir = dir;
-}
-
 int init_kof99(void) {
     memory.bksw_offset = bankoffset_kof99;
     memory.bksw_unscramble = scramblecode_kof99;
@@ -183,168 +172,4 @@ int init_kof2000(void) {
     gn_m68k_prn_addrs(0x2fffd8, 0x2fffda);
     gn_m68k_banksw_set(BANKSW_SMA, 0x2fffec);
     return 0;
-}
-
-int gn_bios_load(const char *biospath) {
-    GAME_ROMS *r = &(memory.rom);
-    const char *romfile;
-
-    mz_zip_archive zip_archive;
-    memset(&zip_archive, 0, sizeof(zip_archive));
-
-    // Make sure it's actually a zip file
-    if (!mz_zip_reader_init_file(&zip_archive, biospath, 0))
-        return 0;
-
-    switch (gn_get_system()) {
-        default: case SYSTEM_AES: {
-            romfile = "neo-epo.bin";
-            break;
-        }
-        case SYSTEM_MVS: {
-            switch (gn_get_region()) {
-                default: case REGION_US: // Winners don't use drugs
-                    romfile = "sp-u2.sp1";
-                    break;
-                case REGION_JP:
-                    romfile = "vs-bios.rom";
-                    break;
-                case REGION_AS:
-                    romfile = "sp-s3.sp1";
-                    break;
-                case REGION_EU:
-                    romfile = "sp-s2.sp1";
-                    break;
-            }
-            break;
-        }
-        case SYSTEM_UNI: {
-            romfile = "uni-bios_4_0.rom";
-            break;
-        }
-    }
-
-    gn_log(GN_LOG_DBG, "Loading %s\n", romfile);
-    r->bios_m68k.p = mz_zip_reader_extract_file_to_heap(&zip_archive,
-        romfile, &(r->bios_m68k.size), 0);
-
-    if (r->bios_m68k.p == NULL) {
-        mz_zip_reader_end(&zip_archive);
-        gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n",
-            romfile);
-        return 0;
-    }
-
-    memory.ng_lo = mz_zip_reader_extract_file_to_heap(&zip_archive,
-        "000-lo.lo", NULL, 0);
-    if (memory.ng_lo == NULL) {
-        mz_zip_reader_end(&zip_archive);
-        gn_log(GN_LOG_ERR, "Failed to load 000-lo.lo from BIOS archive!\n");
-        return 0;
-    }
-
-    if (gn_get_system() != SYSTEM_AES) {
-        r->bios_sfix.p = mz_zip_reader_extract_file_to_heap(&zip_archive,
-            "sfix.sfix", &(r->bios_sfix.size), 0);
-        if (r->bios_sfix.p == NULL) {
-            mz_zip_reader_end(&zip_archive);
-            gn_log(GN_LOG_ERR, "Failed to load sfix.sfix from BIOS archive!\n");
-            return 0;
-        }
-
-        // convert bios fix char
-        convert_all_char(memory.rom.bios_sfix.p, 0x20000,
-            memory.fix_board_usage);
-    }
-
-    mz_zip_reader_end(&zip_archive);
-    return 1;
-}
-
-// Load Memory Card
-int gn_memcard_load(const char *filename) {
-    FILE *file;
-    size_t filesize, result;
-
-    // Open the file for reading
-    file = fopen(filename, "rb");
-    if (!file)
-        return 2;
-
-    // Find out the file's size
-    fseek(file, 0, SEEK_END);
-    filesize = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    if (filesize != 0x800)
-        return 0;
-
-    // Read the file into the system's NVRAM and then close it
-    result = fread(memory.nvram, sizeof(uint8_t), filesize, file);
-    if (result != filesize)
-        return 0;
-    fclose(file);
-
-    return 1; // Success!
-}
-
-// Save Memory Card
-int gn_memcard_save(const char *filename) {
-    FILE *file;
-    file = fopen(filename, "wb");
-    if (!file)
-        return 0;
-
-    // Write and close the file
-    fwrite(memory.nvram, 0x800, sizeof(uint8_t), file);
-    fclose(file);
-
-    return 1; // Success!
-}
-
-// Load NVRAM
-int gn_nvram_load(const char *filename) {
-    if (gn_get_system() == SYSTEM_AES)
-        return 2;
-
-    FILE *file;
-    size_t filesize, result;
-
-    // Open the file for reading
-    file = fopen(filename, "rb");
-    if (!file)
-        return 2;
-
-    // Find out the file's size
-    fseek(file, 0, SEEK_END);
-    filesize = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    if (filesize != 0x10000)
-        return 0;
-
-    // Read the file into the system's NVRAM and then close it
-    result = fread(memory.nvram, sizeof(uint8_t), filesize, file);
-    if (result != filesize)
-        return 0;
-    fclose(file);
-
-    return 1; // Success!
-}
-
-// Save NVRAM
-int gn_nvram_save(const char *filename) {
-    if (gn_get_system() == SYSTEM_AES)
-        return 2;
-
-    FILE *file;
-    file = fopen(filename, "wb");
-    if (!file)
-        return 0;
-
-    // Write and close the file
-    fwrite(memory.nvram, 0x10000, sizeof(uint8_t), file);
-    fclose(file);
-
-    return 1; // Success!
 }

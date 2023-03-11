@@ -190,8 +190,6 @@ void jg_exec_frame(void) {
 }
 
 int jg_game_load(void) {
-    gn_set_savedir(pathinfo.save);
-
     const char *ext = strrchr(gameinfo.path, '.');
     if (ext != NULL)
         ext++;

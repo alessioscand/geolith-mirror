@@ -103,6 +103,14 @@ typedef struct neo_mem {
     uint32_t watchdog;
 } neo_mem;
 
+int gn_bios_load(const char*);
+
+int gn_memcard_load(const char*);
+int gn_memcard_save(const char*);
+
+int gn_nvram_load(const char*);
+int gn_nvram_save(const char*);
+
 void gn_exec(void);
 void gn_init(void);
 void gn_reset(void);
