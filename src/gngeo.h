@@ -67,11 +67,6 @@ typedef struct neo_mem {
     uint8_t game_vector[0x80];
     int   current_vector;
 
-    /* crypted rom bankswitch system */
-    uint32_t bksw_handler;
-    uint8_t *bksw_unscramble;
-    uint32_t *bksw_offset;
-
     uint8_t memcard[0x800];
 } neo_mem;
 

@@ -67,8 +67,10 @@ static uint8_t nvram_lock;
 static uint32_t addr_prn[2] = { 0, 0 };
 static uint16_t prn = 0x2345; // Pseudo-random number initial value
 
-// NEO-SMA bankswitch address
-static uint32_t addr_sma_bankswitch = 0x00000000;
+// NEO-SMA bankswitching
+static uint32_t sma_addr = 0x00000000;
+static uint32_t *sma_offset;
+static uint8_t *sma_scramble;
 
 // Interrupt status
 static uint32_t irqlines = 0;
@@ -138,17 +140,17 @@ static void gn_m68k_write_banksw_sma(uint32_t addr, uint16_t data) {
        4th LUT entry, and the least significant bit will be in the 4th position
        of the final unscrambled value.
     */
-    if (addr == addr_sma_bankswitch) {
+    if (addr == sma_addr) {
         uint8_t unscrambled = 0;
 
         for (unsigned i = 0; i < 6; ++i)
-            unscrambled |= (((data >> memory.bksw_unscramble[i]) & 0x01) << i);
+            unscrambled |= (((data >> sma_scramble[i]) & 0x01) << i);
 
         /* A 64 entry LUT is used to determine the offset into P ROM. The
            6-bit unscrambled value derived above serves as the index into the
            Bankswitch LUT, which contains the memory offset value.
         */
-        bankaddress = (0x100000 + memory.bksw_offset[unscrambled]) & 0xffffff;
+        bankaddress = (0x100000 + sma_offset[unscrambled]) & 0xffffff;
     }
 }
 
@@ -193,7 +195,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         return read08(memory.ram, address);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        if (memory.bksw_unscramble) {
+        if (sma_scramble) {
             // Read SMA Chip Presence
             if (address == 0x2fe446)
                 return 0x37; // Always return this value for SMA presence
@@ -315,7 +317,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         return read16(memory.ram, address);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        if (memory.bksw_unscramble) {
+        if (sma_scramble) {
             // Read SMA Chip Presence at 0x2fe447 - mask bit 0 for 16-bit reads
             if (address == 0x2fe446)
                 return 0x9a37; // Always return this value for SMA presence
@@ -703,11 +705,10 @@ int gn_m68k_int_ack(int level) {
     return M68K_INT_ACK_AUTOVECTOR;
 }
 
-void gn_m68k_banksw_set(unsigned swtype, uint32_t addr) {
+void gn_m68k_banksw_set(unsigned swtype) {
     switch (swtype) {
         case BANKSW_SMA: // NEO-SMA Bankswitching
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_sma;
-            addr_sma_bankswitch = addr;
             break;
         default: // Default
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_default;
@@ -715,10 +716,13 @@ void gn_m68k_banksw_set(unsigned swtype, uint32_t addr) {
     }
 }
 
-// Set the pseudo-random number generator read addresses
-void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2) {
-    addr_prn[0] = a1;
-    addr_prn[1] = a2;
+// Set the SMA LUTs and pseudo-random number generator read addresses
+void gn_m68k_sma_init(uint32_t *a, uint32_t *b, uint8_t *s) {
+    addr_prn[0] = a[0];
+    addr_prn[1] = a[1];
+    sma_addr = a[2];
+    sma_offset = b;
+    sma_scramble = s;
 }
 
 void gn_m68k_romdata_bios(uint8_t *p, size_t psz, uint8_t *s, size_t ssz) {

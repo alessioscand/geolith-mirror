@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef GN_SMA_H
 #define GN_SMA_H
 
+uint32_t sma_addr_kof99[3] = { 0x2ffff8, 0x2ffffa, 0x2ffff0 };
 uint32_t sma_bank_kof99[64] = {
     0x000000, 0x100000, 0x200000, 0x300000, // 00
     0x3cc000, 0x4cc000, 0x3f2000, 0x4f2000, // 04
@@ -46,6 +47,7 @@ uint32_t sma_bank_kof99[64] = {
 };
 uint8_t sma_scramble_kof99[6] = { 14, 6, 8, 10, 12, 5 };
 
+uint32_t sma_addr_garou[3] = { 0x2fffcc, 0x2ffff0, 0x2fffc0 };
 uint32_t sma_bank_garou[64] = {
     0x000000, 0x100000, 0x200000, 0x300000, // 00
     0x280000, 0x380000, 0x2d0000, 0x3d0000, // 04
@@ -64,6 +66,7 @@ uint32_t sma_bank_garou[64] = {
 };
 uint8_t sma_scramble_garou[6] = { 5, 9, 7, 6, 14, 12 };
 
+uint32_t sma_addr_garouh[3] = { 0x2fffcc, 0x2ffff0, 0x2fffc0 };
 uint32_t sma_bank_garouh[64] = {
     0x000000, 0x100000, 0x200000, 0x300000, // 00
     0x280000, 0x380000, 0x2d0000, 0x3d0000, // 04
@@ -84,6 +87,7 @@ uint32_t sma_bank_garouh[64] = {
 };
 uint8_t sma_scramble_garouh[6] = { 4, 8, 14, 2, 11, 13 };
 
+uint32_t sma_addr_mslug3[3] = { 0x2ffff8, 0x2ffffa, 0x2fffe4 };
 uint32_t sma_bank_mslug3[64] = {
     0x000000, 0x020000, 0x040000, 0x060000, // 00
     0x070000, 0x090000, 0x0b0000, 0x0d0000, // 04
@@ -101,6 +105,7 @@ uint32_t sma_bank_mslug3[64] = {
 };
 uint8_t sma_scramble_mslug3[6] = { 14, 12, 15, 6, 3, 9 };
 
+uint32_t sma_addr_mslug3a[3] = { 0x2ffff8, 0x2ffffa, 0x2fffe4 };
 uint32_t sma_bank_mslug3a[64] = {
     0x100000, 0x130000, 0x140000, 0x170000, // 00
     0x180000, 0x1a0000, 0x1c0000, 0x1e0000, // 04
@@ -118,6 +123,7 @@ uint32_t sma_bank_mslug3a[64] = {
 };
 uint8_t sma_scramble_mslug3a[6] = { 15, 3, 1, 6, 12, 11 };
 
+uint32_t sma_addr_kof2000[3] = { 0x2fffd8, 0x2fffda, 0x2fffec };
 uint32_t sma_bank_kof2000[64] = {
     0x000000, 0x100000, 0x200000, 0x300000, // 00
     0x3f7800, 0x4f7800, 0x3ff800, 0x4ff800, // 04

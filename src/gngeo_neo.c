@@ -151,13 +151,12 @@ int gn_neo_load(void *data, size_t size) {
     switch (ngh) {
         case 151: case 251: { // KOF 99
             if (size_prom > 0x500000) { // Encrypted
-                memory.bksw_offset = sma_bank_kof99;
-                memory.bksw_unscramble = sma_scramble_kof99;
-                gn_m68k_prn_addrs(0x2ffff8, 0x2ffffa);
-                gn_m68k_banksw_set(BANKSW_SMA, 0x2ffff0);
+                gn_m68k_sma_init(sma_addr_kof99, sma_bank_kof99,
+                    sma_scramble_kof99);
+                gn_m68k_banksw_set(BANKSW_SMA);
             }
             else { // Unencrypted
-                gn_m68k_banksw_set(BANKSW_DEF, 0);
+                gn_m68k_banksw_set(BANKSW_DEF);
             }
             break;
         }
@@ -166,19 +165,17 @@ int gn_neo_load(void *data, size_t size) {
 
             // Use heuristics to handle descrambling differences
             if (romdata[0xc1000 + 0x3e481] == 0x9f) { // NEO-SMA KE (AES)
-                memory.bksw_offset = sma_bank_garouh;
-                memory.bksw_unscramble = sma_scramble_garouh;
-                gn_m68k_prn_addrs(0x2fffcc, 0x2ffff0);
-                gn_m68k_banksw_set(BANKSW_SMA, 0x2fffc0);
+                gn_m68k_sma_init(sma_addr_garouh, sma_bank_garouh,
+                    sma_scramble_garouh);
+                gn_m68k_banksw_set(BANKSW_SMA);
             }
             else if (romdata[0xc1000 + 0x3e481] == 0x41) { // NEO-SMA KF (MVS)
-                memory.bksw_offset = sma_bank_garou;
-                memory.bksw_unscramble = sma_scramble_garou;
-                gn_m68k_prn_addrs(0x2fffcc, 0x2ffff0);
-                gn_m68k_banksw_set(BANKSW_SMA, 0x2fffc0);
+                gn_m68k_sma_init(sma_addr_garou, sma_bank_garou,
+                    sma_scramble_garou);
+                gn_m68k_banksw_set(BANKSW_SMA);
             }
             else { // Bootleg and Prototype don't have protection
-                gn_m68k_banksw_set(BANKSW_DEF, 0);
+                gn_m68k_banksw_set(BANKSW_DEF);
             }
             break;
         }
@@ -186,20 +183,18 @@ int gn_neo_load(void *data, size_t size) {
             neogeo_fix_bank_type = 1;
 
             if (size_prom > 0x500000) { // Encrypted
-                memory.bksw_offset = sma_bank_mslug3;
-                memory.bksw_unscramble = sma_scramble_mslug3;
-                gn_m68k_prn_addrs(0x2ffff8, 0x2ffffa);
-                gn_m68k_banksw_set(BANKSW_SMA, 0x2fffe4);
+                gn_m68k_sma_init(sma_addr_mslug3, sma_bank_mslug3,
+                    sma_scramble_mslug3);
+                gn_m68k_banksw_set(BANKSW_SMA);
             }
             // FIXME: Support mslug3a
             /*else if (mslug3a) {
-                memory.bksw_offset = sma_bank_mslug3a;
-                memory.bksw_unscramble = sma_scramble_mslug3a;
-                gn_m68k_prn_addrs(0x2ffff8, 0x2ffffa);
-                gn_m68k_banksw_set(BANKSW_SMA, 0x2fffe4);
+                gn_m68k_sma_init(sma_addr_mslug3a, sma_bank_mslug3a,
+                    sma_scramble_mslug3a);
+                gn_m68k_banksw_set(BANKSW_SMA);
             }*/
             else { // Unencrypted
-                gn_m68k_banksw_set(BANKSW_DEF, 0);
+                gn_m68k_banksw_set(BANKSW_DEF);
             }
             break;
         }
@@ -207,28 +202,27 @@ int gn_neo_load(void *data, size_t size) {
             neogeo_fix_bank_type = 2;
 
             if (size_prom > 0x500000) { // Encrypted
-                memory.bksw_offset = sma_bank_kof2000;
-                memory.bksw_unscramble = sma_scramble_kof2000;
-                gn_m68k_prn_addrs(0x2fffd8, 0x2fffda);
-                gn_m68k_banksw_set(BANKSW_SMA, 0x2fffec);
+                gn_m68k_sma_init(sma_addr_kof2000, sma_bank_kof2000,
+                    sma_scramble_kof2000);
+                gn_m68k_banksw_set(BANKSW_SMA);
             }
             else { // Unencrypted
-                gn_m68k_banksw_set(BANKSW_DEF, 0);
+                gn_m68k_banksw_set(BANKSW_DEF);
             }
             break;
         }
         case 263: { // Metal Slug 4
             neogeo_fix_bank_type = 1;
-            gn_m68k_banksw_set(BANKSW_DEF, 0);
+            gn_m68k_banksw_set(BANKSW_DEF);
             break;
         }
         case 266: { // Matrimelee
             neogeo_fix_bank_type = 2;
-            gn_m68k_banksw_set(BANKSW_DEF, 0);
+            gn_m68k_banksw_set(BANKSW_DEF);
             break;
         }
         default: {
-            gn_m68k_banksw_set(BANKSW_DEF, 0); // Set default bankswitching
+            gn_m68k_banksw_set(BANKSW_DEF); // Set default bankswitching
             break;
         }
     }
