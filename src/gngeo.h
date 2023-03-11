@@ -24,8 +24,6 @@
 #ifndef GNGEO_H
 #define GNGEO_H
 
-#include "roms.h"
-
 #define VERSION "1.0.0-pre1"
 
 #define SIZE_1K     0x000400
@@ -97,7 +95,7 @@ typedef struct neo_mem {
     /* crypted rom bankswitch system */
     uint32_t bksw_handler;
     uint8_t *bksw_unscramble;
-    int *bksw_offset;
+    uint32_t *bksw_offset;
 
     uint8_t memcard[0x800];
     uint32_t watchdog;

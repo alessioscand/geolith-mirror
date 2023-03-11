@@ -54,7 +54,6 @@ CSRCS := m68k/m68kcpu.c \
 	gngeo_mixer.c \
 	gngeo_neo.c \
 	gngeo_z80.c \
-	roms.c \
 	video.c \
 	jg.c
 

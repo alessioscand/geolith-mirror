@@ -40,8 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gngeo.h"
 #include "gngeo_mixer.h"
 #include "gngeo_neo.h"
-#include "memory.h"
-#include "roms.h"
+
 #include "video.h"
 
 #define SAMPLERATE 48000
