@@ -21,15 +21,10 @@
  */
 
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stddef.h>
 
 #include "roms.h"
 #include "gngeo.h"
-#include "video.h"
-
-int neogeo_fix_bank_type = 0;
 
 int bankoffset_kof99[64] = {
     0x000000, 0x100000, 0x200000, 0x300000, 0x3cc000,

@@ -63,6 +63,7 @@ uint32_t full_y_skip_i = 0xFFFE;
 char full_y_skip[16] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 unsigned int neogeo_frame_counter_speed = 8;
 
+int neogeo_fix_bank_type = 0;
 uint8_t *current_pal;
 uint32_t *current_pc_pal;
 uint8_t *current_fix;
