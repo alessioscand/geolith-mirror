@@ -31,6 +31,8 @@ uint32_t *vbuf;
 extern int neogeo_fix_bank_type;
 unsigned int neogeo_frame_counter;
 
+static uint8_t *l0rom = NULL;
+
 char *ldda_y_skip;
 char *dda_x_skip;
 char ddaxskip[16][16] = {
@@ -391,7 +393,7 @@ void draw_screen_scanline(int start_line, int refresh) {
         } else zx = 16;
 
         offs = count << 6;
-        zoomy_rom = memory.ng_lo + (zy << 8);
+        zoomy_rom = l0rom + (zy << 8);
 
         //for (yy = start_line; yy <= end_line; yy++) {
             yy = start_line;
@@ -449,6 +451,10 @@ void draw_screen_scanline(int start_line, int refresh) {
     if (refresh) {
         draw_fix_char((unsigned char*)vbuf, 0, 0);
     }
+}
+
+void video_set_l0rom(uint8_t *l0) {
+    l0rom = l0; // Set L0 ROM
 }
 
 void init_video(void) {

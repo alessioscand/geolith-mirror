@@ -56,6 +56,8 @@ extern unsigned current_line;
 
 void video_set_buffer(uint32_t *ptr);
 
+void video_set_l0rom(uint8_t *l0);
+
 void init_video(void);
 void debug_draw_tile(unsigned int tileno,int sx,int sy,int zx,int zy,
              int color,int xflip,int yflip,unsigned char *bmp);

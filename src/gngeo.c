@@ -53,6 +53,8 @@ static int region = 0;
 // Watchdog (Anti-freezing system to reset games due to bugs/hardware faults)
 static uint32_t watchdog;
 
+static uint8_t *l0rom = NULL;
+
 neo_mem memory;
 
 uint8_t reg_dipsw = 0;
@@ -162,9 +164,10 @@ int gn_bios_load(const char *biospath) {
         return 0;
     }
 
-    memory.ng_lo = mz_zip_reader_extract_file_to_heap(&zip_archive,
+    // Load L0 ROM
+    l0rom = mz_zip_reader_extract_file_to_heap(&zip_archive,
         "000-lo.lo", NULL, 0);
-    if (memory.ng_lo == NULL) {
+    if (l0rom == NULL) {
         mz_zip_reader_end(&zip_archive);
         gn_log(GN_LOG_ERR, "Failed to load 000-lo.lo from BIOS archive!\n");
         return 0;
@@ -193,8 +196,8 @@ void gn_bios_unload(void) {
         free(memory.rom.bios_m68k.p);
     if (memory.rom.bios_sfix.p)
         free(memory.rom.bios_sfix.p);
-    if (memory.ng_lo)
-        free(memory.ng_lo);
+    if (l0rom)
+        free(l0rom);
 }
 
 // Load Memory Card
@@ -304,6 +307,7 @@ void gn_init(void) {
     gn_m68k_init();
     gn_z80_init();
     ymfm_shim_init();
+    video_set_l0rom(l0rom);
     gn_reset();
 }
 
