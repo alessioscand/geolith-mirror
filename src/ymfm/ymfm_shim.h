@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Rupert Carmichael
+Copyright (c) 2022-2023 Rupert Carmichael
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,17 +31,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef YMFM_SHIM_H
 #define YMFM_SHIM_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-// Functions accessible from C
 int16_t* ymfm_shim_get_buffer(void);
+void ymfm_shim_romdata(uint8_t*, size_t, uint8_t*, size_t);
 void ymfm_shim_init(void);
 void ymfm_shim_reset(void);
 size_t ymfm_shim_exec(void);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

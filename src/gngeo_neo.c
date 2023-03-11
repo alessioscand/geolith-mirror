@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gngeo_neo.h"
 #include "gngeo_sma.h"
 
-
+#include "ymfm/ymfm_shim.h"
 
 extern int neogeo_fix_bank_type;
 
@@ -138,19 +138,15 @@ int gn_neo_load(void *data, size_t size) {
     memory.rom.cpu_z80.p = &romdata[rom_offset];
     rom_offset += size_mrom;
 
-    memory.rom.adpcma.size = size_v1rom;
-    memory.rom.adpcma.p = &romdata[rom_offset];
-
     if (!size_v2rom) { // Single V ROM
-        memory.rom.adpcmb.size = size_v1rom;
-        memory.rom.adpcmb.p = &romdata[rom_offset];
+        ymfm_shim_romdata(&romdata[rom_offset], size_v1rom,
+            &romdata[rom_offset], size_v1rom);
         rom_offset += size_v1rom;
     }
     else { // V1 and V2 ROMs
-        rom_offset += size_v1rom;
-        memory.rom.adpcmb.size = size_v2rom;
-        memory.rom.adpcmb.p = &romdata[rom_offset];
-        rom_offset += size_v2rom;
+        ymfm_shim_romdata(&romdata[rom_offset], size_v1rom,
+            &romdata[rom_offset + size_v1rom], size_v2rom);
+        rom_offset += size_v1rom + size_v2rom;
     }
 
     memory.rom.tiles.size = size_crom;
