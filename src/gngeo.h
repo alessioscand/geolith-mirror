@@ -34,9 +34,6 @@
 #define SIZE_32K    0x008000
 #define SIZE_64K    0x010000
 
-#define BANKSW_DEF  0x00 // Default
-#define BANKSW_SMA  0x01 // NEO-SMA
-
 #define SYSTEM_AES  0x00 // Console
 #define SYSTEM_MVS  0x01 // Arcade
 #define SYSTEM_UNI  0x02 // Universe BIOS
@@ -128,9 +125,6 @@ extern unsigned (*gn_input_cb[NUMINPUTS_NG])(unsigned);
 extern unsigned (*gn_input_stat_cb[NUMINPUTS_NG])(void);
 
 extern uint8_t reg_dipsw;
-
-void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2);
-void gn_m68k_banksw_set(unsigned swtype, uint32_t addr);
 
 void gn_watchdog_reset(void);
 

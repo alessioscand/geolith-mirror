@@ -31,9 +31,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef GN_M68K_H
 #define GN_M68K_H
 
+#define BANKSW_DEF  0x00 // Default
+#define BANKSW_SMA  0x01 // NEO-SMA
+
 void gn_m68k_init(void);
 void gn_m68k_reset(void);
+
 int gn_m68k_run(unsigned);
+
 void gn_m68k_int(unsigned);
+
+void gn_m68k_banksw_set(unsigned swtype, uint32_t addr);
+void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2);
 
 #endif

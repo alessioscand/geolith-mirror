@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 
 #include "gngeo.h"
+#include "gngeo_m68k.h"
 #include "gngeo_neo.h"
 #include "gngeo_sma.h"
 
@@ -181,7 +182,7 @@ int gn_neo_load(void *data, size_t size) {
                 gn_m68k_banksw_set(BANKSW_SMA, 0x2ffff0);
             }
             else { // Unencrypted
-                gn_m68k_banksw_set(0, 0);
+                gn_m68k_banksw_set(BANKSW_DEF, 0);
             }
             break;
         }
@@ -202,7 +203,7 @@ int gn_neo_load(void *data, size_t size) {
                 gn_m68k_banksw_set(BANKSW_SMA, 0x2fffc0);
             }
             else { // Bootleg and Prototype don't have protection
-                gn_m68k_banksw_set(0, 0);
+                gn_m68k_banksw_set(BANKSW_DEF, 0);
             }
             break;
         }
@@ -223,7 +224,7 @@ int gn_neo_load(void *data, size_t size) {
                 gn_m68k_banksw_set(BANKSW_SMA, 0x2fffe4);
             }*/
             else { // Unencrypted
-                gn_m68k_banksw_set(0, 0);
+                gn_m68k_banksw_set(BANKSW_DEF, 0);
             }
             break;
         }
@@ -237,22 +238,22 @@ int gn_neo_load(void *data, size_t size) {
                 gn_m68k_banksw_set(BANKSW_SMA, 0x2fffec);
             }
             else { // Unencrypted
-                gn_m68k_banksw_set(0, 0);
+                gn_m68k_banksw_set(BANKSW_DEF, 0);
             }
             break;
         }
         case 263: { // Metal Slug 4
             neogeo_fix_bank_type = 1;
-            gn_m68k_banksw_set(0, 0);
+            gn_m68k_banksw_set(BANKSW_DEF, 0);
             break;
         }
         case 266: { // Matrimelee
             neogeo_fix_bank_type = 2;
-            gn_m68k_banksw_set(0, 0);
+            gn_m68k_banksw_set(BANKSW_DEF, 0);
             break;
         }
         default: {
-            gn_m68k_banksw_set(0, 0); // Set default bankswitch function
+            gn_m68k_banksw_set(BANKSW_DEF, 0); // Set default bankswitching
             break;
         }
     }

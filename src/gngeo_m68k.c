@@ -680,12 +680,6 @@ int gn_m68k_int_ack(int level) {
     return M68K_INT_ACK_AUTOVECTOR;
 }
 
-// Set the pseudo-random number generator read addresses
-void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2) {
-    addr_prn[0] = a1;
-    addr_prn[1] = a2;
-}
-
 void gn_m68k_banksw_set(unsigned swtype, uint32_t addr) {
     switch (swtype) {
         case BANKSW_SMA: // NEO-SMA Bankswitching
@@ -696,4 +690,10 @@ void gn_m68k_banksw_set(unsigned swtype, uint32_t addr) {
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_default;
             break;
     }
+}
+
+// Set the pseudo-random number generator read addresses
+void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2) {
+    addr_prn[0] = a1;
+    addr_prn[1] = a2;
 }
