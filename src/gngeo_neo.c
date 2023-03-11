@@ -120,17 +120,17 @@ int gn_neo_load(void *data, size_t size) {
 
     // Assign pointers and sizes
     uint32_t rom_offset = 4096; // ROM data starts at byte 4096
-    memory.rom.cpu_m68k.size = size_prom;
-    memory.rom.cpu_m68k.p = &romdata[rom_offset];
+    uint8_t *data_prom = &romdata[rom_offset];
     rom_offset += size_prom;
-    swapb16_range(memory.rom.cpu_m68k.p, memory.rom.cpu_m68k.size);
+    swapb16_range(data_prom, size_prom);
 
-    memcpy(memory.game_vector, memory.rom.cpu_m68k.p, 0x80);
-    memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
+    memcpy(memory.game_vector, data_prom, 0x80);
+    memcpy(data_prom, memory.rom.bios_m68k.p, 0x80);
 
     uint8_t *data_srom = &romdata[rom_offset];
-    gn_m68k_romdata_game(data_srom, size_srom);
     rom_offset += size_srom;
+
+    gn_m68k_romdata_game(data_prom, size_prom, data_srom, size_srom);
 
     uint8_t *data_mrom = &romdata[rom_offset];
     gn_z80_romdata(data_mrom, size_mrom);

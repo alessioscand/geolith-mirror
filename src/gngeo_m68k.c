@@ -42,8 +42,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SMATAP 0x98ec // NEO-SMA Tapped bits - 2, 3, 5, 6, 7, 11, 12, and 15
 
 // Game ROM data
-uint8_t *sromdata;
-size_t sromsize;
+uint8_t *promdata = NULL;
+size_t promsize = 0;
+uint8_t *sromdata = NULL;
+size_t sromsize = 0;
 
 // Switchable bank offset address
 uint32_t bankaddress = 0;
@@ -172,7 +174,7 @@ static void gn_m68k_write_banksw_sma(uint32_t addr, uint16_t data) {
 
 unsigned int m68k_read_memory_8(unsigned int address) {
     if (address < 0x100000) { // Fixed 1M Program ROM Bank
-        return read08(memory.rom.cpu_m68k.p, address);
+        return read08(promdata, address);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
         address &= 0xffff;
@@ -189,7 +191,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                 return gn_m68k_prn_read() & 0xff;
         }
         address &= 0xfffff;
-        return read08(memory.rom.cpu_m68k.p, address + bankaddress);
+        return read08(promdata, address + bankaddress);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch (address) {
@@ -294,7 +296,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
 
 unsigned int m68k_read_memory_16(unsigned int address) {
     if (address < 0x100000) { // Fixed 1M Program ROM Bank
-        return read16(memory.rom.cpu_m68k.p, address);
+        return read16(promdata, address);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
         address &= 0xffff;
@@ -309,7 +311,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
                 return gn_m68k_prn_read();
         }
         address &= 0xfffff;
-        return read16(memory.rom.cpu_m68k.p, address + bankaddress);
+        return read16(promdata, address + bankaddress);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch (address) {
@@ -442,7 +444,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a0003: { // REG_SWPBIOS
-                memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
+                memcpy(promdata, memory.rom.bios_m68k.p, 0x80);
                 memory.current_vector = 0;
                 gn_log(GN_LOG_DBG, "Selected BIOS vector table\n");
                 return;
@@ -478,7 +480,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a0013: { // REG_SWPROM
-                memcpy(memory.rom.cpu_m68k.p, memory.game_vector, 0x80);
+                memcpy(promdata, memory.game_vector, 0x80);
                 memory.current_vector = 1;
                 gn_log(GN_LOG_DBG, "Selected Cartridge vector table\n");
                 return;
@@ -652,6 +654,11 @@ void gn_m68k_reset(void) {
     m68k_pulse_reset();
     prn = 0x2345;
     nvram_lock = 0;
+
+    if (promsize > 0x100000)
+        bankaddress = 0x100000;
+    else
+        bankaddress = 0;
 }
 
 void gn_m68k_init(void) {
@@ -702,7 +709,9 @@ void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2) {
     addr_prn[1] = a2;
 }
 
-void gn_m68k_romdata_game(uint8_t *s, size_t ssz) {
+void gn_m68k_romdata_game(uint8_t *p, size_t psz, uint8_t *s, size_t ssz) {
+    promdata = p;
+    promsize = psz;
     sromdata = s;
     sromsize = ssz;
 }

@@ -291,11 +291,6 @@ void gn_reset(void) {
     result_code = 0;
     watchdog = 0;
 
-    if (memory.rom.cpu_m68k.size > 0x100000)
-        bankaddress = 0x100000;
-    else
-        bankaddress = 0;
-
     gn_m68k_reset();
     gn_z80_reset();
     ymfm_shim_reset(); // Reset the YM2610 to make sure everything is defaulted
