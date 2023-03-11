@@ -185,8 +185,7 @@ int init_kof2000(void) {
     return 0;
 }
 
-static int allocate_region(ROM_REGION *r, uint32_t size, int region) {
-    gn_log(GN_LOG_DBG, "Allocating 0x%08x byte for Region %d\n", size, region);
+static int allocate_region(ROM_REGION *r, uint32_t size) {
     if (size != 0) {
         r->p = malloc(size);
 
@@ -251,7 +250,7 @@ static int convert_roms_tile(uint8_t *g, int tileno) {
 
 void convert_all_tile(GAME_ROMS *r) {
     uint32_t i;
-    allocate_region(&r->spr_usage, (r->tiles.size >> 11) * sizeof (uint32_t), REGION_SPR_USAGE);
+    allocate_region(&r->spr_usage, (r->tiles.size >> 11) * sizeof (uint32_t));
     memset(r->spr_usage.p, 0, r->spr_usage.size);
     for (i = 0; i < r->tiles.size >> 7; i++) {
         ((uint32_t*) r->spr_usage.p)[i >> 4] |= convert_roms_tile(r->tiles.p, i);
