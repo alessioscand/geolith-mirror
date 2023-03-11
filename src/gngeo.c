@@ -124,7 +124,8 @@ int gn_bios_load(const char *biospath) {
 
     switch (gn_get_system()) {
         default: case SYSTEM_AES: {
-            romfile = "neo-epo.bin";
+            romfile = gn_get_region() == REGION_JP ?
+                "neo-po.bin" : "neo-epo.bin";
             break;
         }
         case SYSTEM_MVS: {
