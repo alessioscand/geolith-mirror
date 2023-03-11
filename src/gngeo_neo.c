@@ -127,12 +127,9 @@ int gn_neo_load(void *data, size_t size) {
     memcpy(memory.game_vector, memory.rom.cpu_m68k.p, 0x80);
     memcpy(memory.rom.cpu_m68k.p, memory.rom.bios_m68k.p, 0x80);
 
-    memory.rom.game_sfix.size = size_srom;
-    memory.rom.game_sfix.p = &romdata[rom_offset];
+    uint8_t *data_srom = &romdata[rom_offset];
+    gn_m68k_romdata_game(data_srom, size_srom);
     rom_offset += size_srom;
-    memory.fix_game_usage = (uint8_t*)malloc(memory.rom.game_sfix.size >> 5);
-    convert_all_char(memory.rom.game_sfix.p, memory.rom.game_sfix.size,
-        memory.fix_game_usage);
 
     memory.rom.cpu_z80.size = size_mrom;
     memory.rom.cpu_z80.p = &romdata[rom_offset];
@@ -149,15 +146,18 @@ int gn_neo_load(void *data, size_t size) {
         rom_offset += size_v1rom + size_v2rom;
     }
 
-    video_romdata(&romdata[rom_offset], size_crom);
+    uint8_t *data_crom = &romdata[rom_offset];
     rom_offset += size_crom;
+
+    // Pass S ROM and C ROM data to video renderer
+    video_romdata(data_srom, size_srom, data_crom, size_crom);
 
     current_pal = memory.vid.pal_neo[0];
     current_pc_pal = (uint32_t*)memory.vid.pal_host[0];
     memory.current_vector = 0;
 
     if (gn_get_system() == SYSTEM_AES) {
-        current_fix = memory.rom.game_sfix.p;
+        current_fix = data_srom;
         fix_usage = memory.fix_game_usage;
         memory.vid.currentfix = 1;
     }

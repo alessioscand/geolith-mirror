@@ -41,6 +41,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define SMATAP 0x98ec // NEO-SMA Tapped bits - 2, 3, 5, 6, 7, 11, 12, and 15
 
+// Game ROM data
+uint8_t *sromdata;
+size_t sromsize;
+
 // Switchable bank offset address
 uint32_t bankaddress = 0;
 
@@ -492,7 +496,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a001b: { // REG_CRTFIX
-                current_fix = memory.rom.game_sfix.p;
+                current_fix = sromdata;
                 fix_usage = memory.fix_game_usage;
                 memory.vid.currentfix = 1;
                 return;
@@ -696,4 +700,9 @@ void gn_m68k_banksw_set(unsigned swtype, uint32_t addr) {
 void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2) {
     addr_prn[0] = a1;
     addr_prn[1] = a2;
+}
+
+void gn_m68k_romdata_game(uint8_t *s, size_t ssz) {
+    sromdata = s;
+    sromsize = ssz;
 }

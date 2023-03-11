@@ -44,4 +44,6 @@ void gn_m68k_int(unsigned);
 void gn_m68k_banksw_set(unsigned swtype, uint32_t addr);
 void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2);
 
+void gn_m68k_romdata_game(uint8_t*, size_t);
+
 #endif

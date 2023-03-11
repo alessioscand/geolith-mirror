@@ -35,6 +35,9 @@ uint32_t numtiles;
 uint8_t *spr_usage = NULL;
 
 static uint8_t *l0rom = NULL;
+
+static uint8_t *sromdata = NULL;
+static size_t sromsize = 0;
 static uint8_t *cromdata = NULL;
 static size_t cromsize = 0;
 
@@ -97,8 +100,8 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
     int banked, garouoffsets[32];
     int ystart = 1, yend = 32;
 
-    //banked = (current_fix == memory.rom.game_sfix.p && memory.rom.game_sfix.size > 0x1000) ? 1 : 0;
-    banked = (current_fix == memory.rom.game_sfix.p && neogeo_fix_bank_type && memory.rom.game_sfix.size > 0x1000) ? 1 : 0;
+    //banked = (current_fix == sromdata && sromsize > 0x1000) ? 1 : 0;
+    banked = (current_fix == sromdata && neogeo_fix_bank_type && sromsize > 0x1000) ? 1 : 0;
     //if (banked && conf.rom_type==MVS_CMC42)
     if (banked && neogeo_fix_bank_type == 1) {
         int garoubank = 0;
@@ -141,7 +144,7 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
                 }
             }
 
-            if ((byte1 >= (memory.rom.game_sfix.size >> 5)) || (fix_usage[byte1] == 0x00)) continue;
+            if ((byte1 >= (sromsize >> 5)) || (fix_usage[byte1] == 0x00)) continue;
 
             br = (uint32_t*) buf + ((y << 3)) * 352 + (x << 3) + 16;
             paldata = (unsigned int *) &current_pc_pal[16 * byte2];
@@ -172,7 +175,7 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
 }
 
 /**** PALETTE ****/
-static uint32_t convert_pal(uint16_t npal) {
+static inline uint32_t convert_pal(uint16_t npal) {
     int r = 0, g = 0, b = 0, dark = 0;
     r = ((npal >> 7) & 0x1e) | ((npal >> 14) & 0x01);
     g = ((npal >> 3) & 0x1e) | ((npal >> 13) & 0x01);
@@ -237,8 +240,7 @@ static void convert_all_tile(void) {
         ((uint32_t*)spr_usage)[i >> 4] |= convert_roms_tile(cromdata, i);
 }
 
-void convert_all_char(uint8_t *Ptr, int Taille,
-        uint8_t *usage_ptr) {
+void convert_all_char(uint8_t *Ptr, int Taille, uint8_t *usage_ptr) {
     int i, j;
     unsigned char usage;
 
@@ -252,17 +254,7 @@ void convert_all_char(uint8_t *Ptr, int Taille,
     }
     sav_src = Src;
     memcpy(Src, Ptr, Taille);
-#ifdef WORDS_BIGENDIAN
-#define CONVERT_TILE *Ptr++ = *(Src+8);\
-                 usage |= *(Src+8);\
-                     *Ptr++ = *(Src);\
-             usage |= *(Src);\
-             *Ptr++ = *(Src+24);\
-             usage |= *(Src+24);\
-             *Ptr++ = *(Src+16);\
-             usage |= *(Src+16);\
-             Src++;
-#else
+
 #define CONVERT_TILE *Ptr++ = *(Src+16);\
                  usage |= *(Src+16);\
                      *Ptr++ = *(Src+24);\
@@ -272,7 +264,7 @@ void convert_all_char(uint8_t *Ptr, int Taille,
              *Ptr++ = *(Src+8);\
              usage |= *(Src+8);\
              Src++;
-#endif
+
     for (i = Taille; i > 0; i -= 32) {
         usage = 0;
         for (j = 0; j < 8; j++) {
@@ -440,10 +432,18 @@ void video_set_l0rom(uint8_t *l0) {
     l0rom = l0; // Set L0 ROM
 }
 
-void video_romdata(uint8_t *c, uint32_t sz) {
+void video_romdata(uint8_t *s, uint32_t ssz, uint8_t *c, uint32_t csz) {
+    sromdata = s;
+    sromsize = ssz;
+
+    if (memory.fix_game_usage)
+        free(memory.fix_game_usage);
+    memory.fix_game_usage = (uint8_t*)calloc(1, ssz >> 5);
+    convert_all_char(s, ssz, memory.fix_game_usage);
+
     cromdata = c;
-    cromsize = sz;
-    numtiles = sz >> 7;
+    cromsize = csz;
+    numtiles = csz >> 7;
 
     if (spr_usage)
         free(spr_usage);
@@ -465,4 +465,6 @@ void init_video(void) {
 void deinit_video(void) {
     if (spr_usage)
         free(spr_usage);
+    if (memory.fix_game_usage)
+        free(memory.fix_game_usage);
 }
