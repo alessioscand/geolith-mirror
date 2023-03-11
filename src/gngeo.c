@@ -113,7 +113,7 @@ int gn_get_system(void) {
 
 int gn_bios_load(const char *biospath) {
     GAME_ROMS *r = &(memory.rom);
-    const char *romfile;
+    const char *biosrom;
 
     mz_zip_archive zip_archive;
     memset(&zip_archive, 0, sizeof(zip_archive));
@@ -124,41 +124,41 @@ int gn_bios_load(const char *biospath) {
 
     switch (gn_get_system()) {
         default: case SYSTEM_AES: {
-            romfile = gn_get_region() == REGION_JP ?
+            biosrom = gn_get_region() == REGION_JP ?
                 "neo-po.bin" : "neo-epo.bin";
             break;
         }
         case SYSTEM_MVS: {
             switch (gn_get_region()) {
                 default: case REGION_US: // Winners don't use drugs
-                    romfile = "sp-u2.sp1";
+                    biosrom = "sp-u2.sp1";
                     break;
                 case REGION_JP:
-                    romfile = "vs-bios.rom";
+                    biosrom = "vs-bios.rom";
                     break;
                 case REGION_AS:
-                    romfile = "sp-s3.sp1";
+                    biosrom = "sp-s3.sp1";
                     break;
                 case REGION_EU:
-                    romfile = "sp-s2.sp1";
+                    biosrom = "sp-s2.sp1";
                     break;
             }
             break;
         }
         case SYSTEM_UNI: {
-            romfile = "uni-bios_4_0.rom";
+            biosrom = "uni-bios_4_0.rom";
             break;
         }
     }
 
-    gn_log(GN_LOG_DBG, "Loading %s\n", romfile);
+    gn_log(GN_LOG_DBG, "Loading %s\n", biosrom);
     r->bios_m68k.p = mz_zip_reader_extract_file_to_heap(&zip_archive,
-        romfile, &(r->bios_m68k.size), 0);
+        biosrom, &(r->bios_m68k.size), 0);
 
     if (r->bios_m68k.p == NULL) {
         mz_zip_reader_end(&zip_archive);
         gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n",
-            romfile);
+            biosrom);
         return 0;
     }
 
