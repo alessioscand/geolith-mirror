@@ -98,6 +98,7 @@ typedef struct neo_mem {
 } neo_mem;
 
 int gn_bios_load(const char*);
+void gn_bios_unload(void);
 
 int gn_memcard_load(const char*);
 int gn_memcard_save(const char*);

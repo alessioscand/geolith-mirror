@@ -188,6 +188,15 @@ int gn_bios_load(const char *biospath) {
     return 1;
 }
 
+void gn_bios_unload(void) {
+    if (memory.rom.bios_m68k.p)
+        free(memory.rom.bios_m68k.p);
+    if (memory.rom.bios_sfix.p)
+        free(memory.rom.bios_sfix.p);
+    if (memory.ng_lo)
+        free(memory.ng_lo);
+}
+
 // Load Memory Card
 int gn_memcard_load(const char *filename) {
     FILE *file;

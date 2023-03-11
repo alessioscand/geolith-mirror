@@ -39,6 +39,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gngeo_neo.h"
 #include "gngeo_sma.h"
 
+
+
 extern int neogeo_fix_bank_type;
 
 static inline uint32_t bcd_decimal(uint32_t hex) {
@@ -258,10 +260,5 @@ int gn_neo_load(void *data, size_t size) {
         }
     }
 
-    return 1;
-}
-
-int gn_neo_unload(void) {
-    // FIXME: Clean up any allocated memory that was missed elsewhere
     return 1;
 }

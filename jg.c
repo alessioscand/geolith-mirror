@@ -279,8 +279,8 @@ int jg_game_unload(void) {
     else
         jg_cb_log(JG_LOG_DBG, "Memory Card Save Failed: %s\n", savename);
 
-    // Final cleanups
-    gn_neo_unload();
+    // Clean up memory allocated for BIOS ROMs
+    gn_bios_unload();
 
     return 1;
 }
