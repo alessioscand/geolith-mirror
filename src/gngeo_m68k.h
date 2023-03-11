@@ -34,6 +34,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define BANKSW_DEF  0x00 // Default
 #define BANKSW_SMA  0x01 // NEO-SMA
 
+#define VECTOR_TABLE_BIOS   0x00
+#define VECTOR_TABLE_CART   0x01
+
 void gn_m68k_init(void);
 void gn_m68k_reset(void);
 

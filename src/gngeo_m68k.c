@@ -56,6 +56,9 @@ size_t sromsize = 0;
 // Switchable bank offset address
 uint32_t bankaddress = 0;
 
+// Vector Table currently in use
+uint8_t vectable = VECTOR_TABLE_BIOS;
+
 // Z80 command
 uint8_t sound_code;
 uint8_t result_code;
@@ -188,7 +191,7 @@ static void gn_m68k_write_banksw_sma(uint32_t addr, uint16_t data) {
 
 unsigned int m68k_read_memory_8(unsigned int address) {
     if (address < 0x000080) { // Vector Table
-        return memory.current_vector ?
+        return vectable ?
             read08(promdata, address) : read08(biosdata, address);
     }
     else if (address < 0x100000) { // Fixed 1M Program ROM Bank
@@ -314,7 +317,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
 
 unsigned int m68k_read_memory_16(unsigned int address) {
     if (address < 0x000080) { // Vector Table
-        return memory.current_vector ?
+        return vectable ?
             read16(promdata, address) : read16(biosdata, address);
     }
     else if (address < 0x100000) { // Fixed 1M Program ROM Bank
@@ -466,7 +469,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a0003: { // REG_SWPBIOS
-                memory.current_vector = 0;
+                vectable = VECTOR_TABLE_BIOS;
                 gn_log(GN_LOG_DBG, "Selected BIOS vector table\n");
                 return;
             }
@@ -501,7 +504,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a0013: { // REG_SWPROM
-                memory.current_vector = 1;
+                vectable = VECTOR_TABLE_CART;
                 gn_log(GN_LOG_DBG, "Selected Cartridge vector table\n");
                 return;
             }

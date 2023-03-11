@@ -142,7 +142,6 @@ int gn_neo_load(void *data, size_t size) {
 
     current_pal = memory.vid.pal_neo[0];
     current_pc_pal = (uint32_t*)memory.vid.pal_host[0];
-    memory.current_vector = 0;
 
     // Temporary FIXME
     gn_m68k_postload();
