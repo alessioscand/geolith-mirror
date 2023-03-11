@@ -23,7 +23,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <zlib.h>
 
 #include "gngeo.h"
 #include "video.h"
