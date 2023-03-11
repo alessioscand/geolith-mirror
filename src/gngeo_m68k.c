@@ -28,8 +28,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 
 #include "m68k/m68k.h"
 
@@ -187,7 +187,11 @@ static void gn_m68k_write_banksw_sma(uint32_t addr, uint16_t data) {
  */
 
 unsigned int m68k_read_memory_8(unsigned int address) {
-    if (address < 0x100000) { // Fixed 1M Program ROM Bank
+    if (address < 0x000080) { // Vector Table
+        return memory.current_vector ?
+            read08(promdata, address) : read08(biosdata, address);
+    }
+    else if (address < 0x100000) { // Fixed 1M Program ROM Bank
         return read08(promdata, address);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
@@ -309,7 +313,11 @@ unsigned int m68k_read_memory_8(unsigned int address) {
 }
 
 unsigned int m68k_read_memory_16(unsigned int address) {
-    if (address < 0x100000) { // Fixed 1M Program ROM Bank
+    if (address < 0x000080) { // Vector Table
+        return memory.current_vector ?
+            read16(promdata, address) : read16(biosdata, address);
+    }
+    else if (address < 0x100000) { // Fixed 1M Program ROM Bank
         return read16(promdata, address);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
@@ -458,7 +466,6 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a0003: { // REG_SWPBIOS
-                memcpy(promdata, biosdata, 0x80);
                 memory.current_vector = 0;
                 gn_log(GN_LOG_DBG, "Selected BIOS vector table\n");
                 return;
@@ -494,7 +501,6 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a0013: { // REG_SWPROM
-                memcpy(promdata, memory.game_vector, 0x80);
                 memory.current_vector = 1;
                 gn_log(GN_LOG_DBG, "Selected Cartridge vector table\n");
                 return;
@@ -743,9 +749,6 @@ void gn_m68k_postload(void) {
     // Byteswap the BIOS and P ROM
     swapb16_range(biosdata, biossize);
     swapb16_range(promdata, promsize);
-
-    memcpy(memory.game_vector, promdata, 0x80);
-    memcpy(promdata, biosdata, 0x80);
 
     if (gn_get_system() == SYSTEM_AES) {
         current_fix = sromdata;
