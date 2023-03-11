@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "gngeo.h"
 #include "gngeo_m68k.h"
+#include "gngeo_z80.h"
 #include "gngeo_neo.h"
 #include "gngeo_sma.h"
 
@@ -131,8 +132,8 @@ int gn_neo_load(void *data, size_t size) {
     gn_m68k_romdata_game(data_srom, size_srom);
     rom_offset += size_srom;
 
-    memory.rom.cpu_z80.size = size_mrom;
-    memory.rom.cpu_z80.p = &romdata[rom_offset];
+    uint8_t *data_mrom = &romdata[rom_offset];
+    gn_z80_romdata(data_mrom, size_mrom);
     rom_offset += size_mrom;
 
     if (!size_v2rom) { // Single V ROM

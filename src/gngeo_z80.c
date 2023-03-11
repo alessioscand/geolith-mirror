@@ -29,8 +29,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
 
 #include "gngeo.h"
 #include "gngeo_z80.h"
@@ -39,6 +39,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 static z80 z80ctx;
 
+static uint8_t *mromdata = NULL;
+static size_t mromsize = 0;
 static uint8_t zram[SIZE_2K];
 static uint32_t zbank[4];
 static bool nmi_enabled = false;
@@ -67,15 +69,15 @@ static uint8_t gn_z80_mem_rd(void *userdata, uint16_t addr) {
     if (userdata) { } // Unused
 
     if (addr < 0x8000) // Static main code bank
-        return memory.rom.cpu_z80.p[addr];
+        return mromdata[addr];
     else if (addr < 0xc000) // Switchable Bank 0
-        return memory.rom.cpu_z80.p[zbank[0] + (addr & 0x3fff)];
+        return mromdata[zbank[0] + (addr & 0x3fff)];
     else if (addr < 0xe000) // Switchable Bank 1
-        return memory.rom.cpu_z80.p[zbank[1] + (addr & 0x1fff)];
+        return mromdata[zbank[1] + (addr & 0x1fff)];
     else if (addr < 0xf000) // Switchable Bank 2
-        return memory.rom.cpu_z80.p[zbank[2] + (addr & 0x0fff)];
+        return mromdata[zbank[2] + (addr & 0x0fff)];
     else if (addr < 0xf800) // Switchable Bank 3
-        return memory.rom.cpu_z80.p[zbank[3] + (addr & 0x07ff)];
+        return mromdata[zbank[3] + (addr & 0x07ff)];
 
     // Work RAM
     return zram[addr & 0x07ff];
@@ -255,4 +257,9 @@ void gn_z80_assert_irq(unsigned l) {
 
 void gn_z80_clear_irq(void) {
     z80_clr_irq(&z80ctx);
+}
+
+void gn_z80_romdata(uint8_t *m, size_t msz) {
+    mromdata = m;
+    mromsize = msz;
 }

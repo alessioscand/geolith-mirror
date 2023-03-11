@@ -60,7 +60,6 @@ typedef struct ROM_REGION {
 
 typedef struct GAME_ROMS {
     ROM_REGION cpu_m68k;
-    ROM_REGION cpu_z80;
     ROM_REGION bios_sfix;
     ROM_REGION bios_audio;
     ROM_REGION bios_m68k;

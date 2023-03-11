@@ -37,5 +37,6 @@ void gn_z80_assert_irq(unsigned);
 void gn_z80_clear_irq(void);
 void gn_z80_init(void);
 void gn_z80_reset(void);
+void gn_z80_romdata(uint8_t*, size_t);
 
 #endif
