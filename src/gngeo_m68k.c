@@ -64,8 +64,8 @@ uint8_t result_code;
 static uint8_t nvram_lock;
 
 // NEO-SMA Pseudo-Random Number addresses
-static uint32_t addr_prn[2] = { 0, 0 };
-static uint16_t prn = 0x2345; // Pseudo-random number initial value
+static uint32_t sma_prn_addr[2] = { 0, 0 };
+static uint16_t sma_prn = 0x2345; // Pseudo-random number initial value
 
 // NEO-SMA bankswitching
 static uint32_t sma_addr = 0x00000000;
@@ -90,8 +90,8 @@ static inline uint16_t parity(uint16_t v) {
 }
 
 static inline uint16_t gn_m68k_prn_read(void) {
-    prn = (prn << 1) | parity(prn & SMATAP);
-    return prn;
+    sma_prn = (sma_prn << 1) | parity(sma_prn & SMATAP);
+    return sma_prn;
 }
 
 // Helpers for reading 8, 16, and 32-bit values in the 68K address space
@@ -201,7 +201,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                 return 0x37; // Always return this value for SMA presence
             else if (address == 0x2fe447)
                 return 0x9a; // Always return this value for SMA presence
-            else if (address == addr_prn[0] || address == addr_prn[1])
+            else if (address == sma_prn_addr[0] || address == sma_prn_addr[1])
                 return gn_m68k_prn_read() & 0xff;
         }
         address &= 0xfffff;
@@ -321,7 +321,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
             // Read SMA Chip Presence at 0x2fe447 - mask bit 0 for 16-bit reads
             if (address == 0x2fe446)
                 return 0x9a37; // Always return this value for SMA presence
-            else if (address == addr_prn[0] || address == addr_prn[1])
+            else if (address == sma_prn_addr[0] || address == sma_prn_addr[1])
                 return gn_m68k_prn_read();
         }
         address &= 0xfffff;
@@ -666,7 +666,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 
 void gn_m68k_reset(void) {
     m68k_pulse_reset();
-    prn = 0x2345;
+    sma_prn = 0x2345;
     nvram_lock = 0;
 
     if (promsize > 0x100000)
@@ -718,8 +718,8 @@ void gn_m68k_banksw_set(unsigned swtype) {
 
 // Set the SMA LUTs and pseudo-random number generator read addresses
 void gn_m68k_sma_init(uint32_t *a, uint32_t *b, uint8_t *s) {
-    addr_prn[0] = a[0];
-    addr_prn[1] = a[1];
+    sma_prn_addr[0] = a[0];
+    sma_prn_addr[1] = a[1];
     sma_addr = a[2];
     sma_offset = b;
     sma_scramble = s;
