@@ -63,7 +63,6 @@ char dda_y_skip[17];
 uint32_t dda_y_skip_i;
 uint32_t full_y_skip_i = 0xFFFE;
 char full_y_skip[16] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-unsigned int neogeo_frame_counter_speed = 8;
 
 int neogeo_fix_bank_type = 0;
 uint8_t *current_pal;
@@ -455,6 +454,14 @@ void draw_screen_scanline(int start_line, int refresh) {
 
 void video_set_l0rom(uint8_t *l0) {
     l0rom = l0; // Set L0 ROM
+}
+
+void video_fc_increment(void) {
+    if (memory.vid.fc >= memory.vid.fc_speed) {
+        memory.vid.fc = 0;
+        ++neogeo_frame_counter;
+    }
+    ++memory.vid.fc;
 }
 
 void init_video(void) {

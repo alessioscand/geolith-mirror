@@ -588,7 +588,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                    Bit 3:     Disable auto animation
                    Bits 0-2:  Unused
                 */
-                neogeo_frame_counter_speed = (((value >> 8) & 0xff) + 1);
+                memory.vid.fc_speed = (((value >> 8) & 0xff) + 1);
                 irq2_ctrl = value & 0xff;
                 return;
             }

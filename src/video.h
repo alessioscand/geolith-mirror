@@ -46,7 +46,6 @@ typedef struct VIDEO {
 }VIDEO;
 
 extern unsigned int neogeo_frame_counter;
-extern unsigned int neogeo_frame_counter_speed;
 
 extern uint8_t *current_pal;
 extern uint32_t *current_pc_pal;
@@ -57,6 +56,8 @@ extern unsigned current_line;
 void video_set_buffer(uint32_t *ptr);
 
 void video_set_l0rom(uint8_t *l0);
+
+void video_fc_increment(void);
 
 void init_video(void);
 void debug_draw_tile(unsigned int tileno,int sx,int sy,int zx,int zy,

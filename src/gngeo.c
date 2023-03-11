@@ -65,8 +65,6 @@ uint32_t irq2_reload = 0;
 int64_t irq2_counter = 0;
 static unsigned irq2_frags = 0;
 
-static unsigned fc;
-
 // Extra cycles stored at the end of scanlines/frames
 static uint32_t mextcycs = 0;
 static uint32_t lextcycs = 0;
@@ -393,13 +391,8 @@ void gn_exec(void) {
     zextcycs = zcycs - MCYC_PER_FRAME;
     lextcycs = lcycs;
 
-    //// Old code, research/rewrite FIXME
-    if (fc >= neogeo_frame_counter_speed) {
-        fc = 0;
-        ++neogeo_frame_counter;
-    }
-    ++fc;
-    ////
+    // Increment Frame Counter
+    video_fc_increment();
 
     // Resample audio generated this frame for output to the frontend
     gn_mixer_resamp(ymsamps);
