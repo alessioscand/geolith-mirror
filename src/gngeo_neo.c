@@ -151,7 +151,6 @@ int gn_neo_load(void *data, size_t size) {
 
     video_romdata(&romdata[rom_offset], size_crom);
     rom_offset += size_crom;
-    convert_all_tile(&(memory.rom));
 
     current_pal = memory.vid.pal_neo[0];
     current_pc_pal = (uint32_t*)memory.vid.pal_host[0];

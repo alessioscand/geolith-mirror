@@ -65,7 +65,6 @@ typedef struct GAME_ROMS {
     ROM_REGION bios_sfix;
     ROM_REGION bios_audio;
     ROM_REGION bios_m68k;
-    ROM_REGION spr_usage;
 }GAME_ROMS;
 
 #include "video.h"

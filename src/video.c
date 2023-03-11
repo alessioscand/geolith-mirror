@@ -32,6 +32,8 @@ extern int neogeo_fix_bank_type;
 unsigned int neogeo_frame_counter;
 uint32_t numtiles;
 
+uint8_t *spr_usage = NULL;
+
 static uint8_t *l0rom = NULL;
 static uint8_t *cromdata = NULL;
 static size_t cromsize = 0;
@@ -184,25 +186,6 @@ static uint32_t convert_pal(uint16_t npal) {
     return (r << 16) + (g << 8) + b;
 }
 
-static int allocate_region(ROM_REGION *r, uint32_t size) {
-    if (size != 0) {
-        r->p = malloc(size);
-
-        if (r->p == 0) {
-            r->size = 0;
-            printf("Error allocating\n");
-            /* TODO: Be more permissive, allow at least a dump */
-            printf("Not enough memory :( exiting\n");
-            exit(1);
-            return 1;
-        }
-        memset(r->p, 0, size);
-    } else
-        r->p = NULL;
-    r->size = size;
-    return 0;
-}
-
 static int convert_roms_tile(uint8_t *g, int tileno) {
     unsigned char swap[128];
     unsigned int *gfxdata;
@@ -247,13 +230,11 @@ static int convert_roms_tile(uint8_t *g, int tileno) {
 
 }
 
-void convert_all_tile(GAME_ROMS *r) {
-    uint32_t i;
-    allocate_region(&r->spr_usage, (cromsize >> 11) * sizeof(uint32_t));
-    memset(r->spr_usage.p, 0, r->spr_usage.size);
-    for (i = 0; i < cromsize >> 7; i++) {
-        ((uint32_t*) r->spr_usage.p)[i >> 4] |= convert_roms_tile(cromdata, i);
-    }
+static void convert_all_tile(void) {
+    spr_usage = (uint8_t*)calloc(1, (cromsize >> 11) * sizeof(uint32_t));
+
+    for (unsigned i = 0; i < cromsize >> 7; i++)
+        ((uint32_t*)spr_usage)[i >> 4] |= convert_roms_tile(cromdata, i);
 }
 
 void convert_all_char(uint8_t *Ptr, int Taille,
@@ -463,6 +444,10 @@ void video_romdata(uint8_t *c, uint32_t sz) {
     cromdata = c;
     cromsize = sz;
     numtiles = sz >> 7;
+
+    if (spr_usage)
+        free(spr_usage);
+    convert_all_tile();
 }
 
 void video_fc_increment(void) {
@@ -475,4 +460,9 @@ void video_fc_increment(void) {
 
 void init_video(void) {
     memory.vid.modulo = 1;
+}
+
+void deinit_video(void) {
+    if (spr_usage)
+        free(spr_usage);
 }

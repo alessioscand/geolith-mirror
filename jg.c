@@ -177,6 +177,7 @@ int jg_init(void) {
 
 void jg_deinit(void) {
     gn_mixer_deinit();
+    deinit_video();
 }
 
 void jg_reset(int hard) {

@@ -61,13 +61,13 @@ void video_romdata(uint8_t*, uint32_t);
 void video_fc_increment(void);
 
 void init_video(void);
+void deinit_video(void);
 void debug_draw_tile(unsigned int tileno,int sx,int sy,int zx,int zy,
              int color,int xflip,int yflip,unsigned char *bmp);
 void draw_bg(void);
 void draw_screen_scanline(int start_line, int refresh);
 
 void convert_all_char(uint8_t *Ptr, int Taille, uint8_t *usage_ptr);
-void convert_all_tile(GAME_ROMS *r);
 
 void mem68k_store_pal_word(uint32_t addr, uint16_t data);
 void palette_set(int palnum);
