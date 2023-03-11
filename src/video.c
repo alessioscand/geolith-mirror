@@ -21,10 +21,12 @@
  */
 
 #include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <zlib.h>
-#include "video.h"
+
 #include "gngeo.h"
+#include "video.h"
 
 uint32_t *vbuf;
 extern int neogeo_fix_bank_type;
@@ -176,6 +178,126 @@ static uint32_t convert_pal(uint16_t npal) {
     g = (g << 1 | dark) << 2;
     b = (b << 1 | dark) << 2;
     return (r << 16) + (g << 8) + b;
+}
+
+static int allocate_region(ROM_REGION *r, uint32_t size) {
+    if (size != 0) {
+        r->p = malloc(size);
+
+        if (r->p == 0) {
+            r->size = 0;
+            printf("Error allocating\n");
+            /* TODO: Be more permissive, allow at least a dump */
+            printf("Not enough memory :( exiting\n");
+            exit(1);
+            return 1;
+        }
+        memset(r->p, 0, size);
+    } else
+        r->p = NULL;
+    r->size = size;
+    return 0;
+}
+
+static int convert_roms_tile(uint8_t *g, int tileno) {
+    unsigned char swap[128];
+    unsigned int *gfxdata;
+    int x, y;
+    unsigned int pen, usage = 0;
+    gfxdata = (uint32_t*) & g[tileno << 7];
+
+    memcpy(swap, gfxdata, 128);
+
+    //filed=1;
+    for (y = 0; y < 16; y++) {
+        unsigned int dw;
+
+        dw = 0;
+        for (x = 0; x < 8; x++) {
+            pen = ((swap[64 + (y << 2) + 3] >> x) & 1) << 3;
+            pen |= ((swap[64 + (y << 2) + 1] >> x) & 1) << 2;
+            pen |= ((swap[64 + (y << 2) + 2] >> x) & 1) << 1;
+            pen |= (swap[64 + (y << 2)] >> x) & 1;
+            //if (!pen) filed=0;
+            dw |= pen << ((7 - x) << 2);
+            //memory.pen_usage[tileno]  |= (1 << pen);
+            usage |= (1 << pen);
+        }
+        *(gfxdata++) = dw;
+
+        dw = 0;
+        for (x = 0; x < 8; x++) {
+            pen = ((swap[(y << 2) + 3] >> x) & 1) << 3;
+            pen |= ((swap[(y << 2) + 1] >> x) & 1) << 2;
+            pen |= ((swap[(y << 2) + 2] >> x) & 1) << 1;
+            pen |= (swap[(y << 2)] >> x) & 1;
+            //if (!pen) filed=0;
+            dw |= pen << ((7 - x) << 2);
+            //memory.pen_usage[tileno]  |= (1 << pen);
+            usage |= (1 << pen);
+        }
+        *(gfxdata++) = dw;
+    }
+
+    return 0;
+
+}
+
+void convert_all_tile(GAME_ROMS *r) {
+    uint32_t i;
+    allocate_region(&r->spr_usage, (r->tiles.size >> 11) * sizeof (uint32_t));
+    memset(r->spr_usage.p, 0, r->spr_usage.size);
+    for (i = 0; i < r->tiles.size >> 7; i++) {
+        ((uint32_t*) r->spr_usage.p)[i >> 4] |= convert_roms_tile(r->tiles.p, i);
+    }
+}
+
+void convert_all_char(uint8_t *Ptr, int Taille,
+        uint8_t *usage_ptr) {
+    int i, j;
+    unsigned char usage;
+
+    uint8_t *Src;
+    uint8_t *sav_src;
+
+    Src = (uint8_t*) malloc(Taille);
+    if (!Src) {
+        printf("Not enought memory!!\n");
+        return;
+    }
+    sav_src = Src;
+    memcpy(Src, Ptr, Taille);
+#ifdef WORDS_BIGENDIAN
+#define CONVERT_TILE *Ptr++ = *(Src+8);\
+                 usage |= *(Src+8);\
+                     *Ptr++ = *(Src);\
+             usage |= *(Src);\
+             *Ptr++ = *(Src+24);\
+             usage |= *(Src+24);\
+             *Ptr++ = *(Src+16);\
+             usage |= *(Src+16);\
+             Src++;
+#else
+#define CONVERT_TILE *Ptr++ = *(Src+16);\
+                 usage |= *(Src+16);\
+                     *Ptr++ = *(Src+24);\
+             usage |= *(Src+24);\
+             *Ptr++ = *(Src);\
+             usage |= *(Src);\
+             *Ptr++ = *(Src+8);\
+             usage |= *(Src+8);\
+             Src++;
+#endif
+    for (i = Taille; i > 0; i -= 32) {
+        usage = 0;
+        for (j = 0; j < 8; j++) {
+            CONVERT_TILE
+        }
+        Src += 24;
+        *usage_ptr++ = usage;
+    }
+    free(sav_src);
+#undef CONVERT_TILE
 }
 
 void mem68k_store_pal_word(uint32_t addr, uint16_t data) {

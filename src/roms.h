@@ -23,45 +23,6 @@
 #ifndef H_ROMS
 #define H_ROMS
 
-typedef struct ROM_DEF{
-    char name[32];
-    char parent[32];
-    char longname[128];
-    uint32_t year;
-    uint32_t romsize[10];
-    uint32_t nb_romfile;
-    struct romfile{
-        char filename[32];
-        uint8_t region;
-        uint32_t src;
-        uint32_t dest;
-        uint32_t size;
-        uint32_t crc;
-    }rom[32];
-}ROM_DEF;
-
-typedef struct ROM_REGION {
-    uint8_t* p;
-    size_t size;
-}ROM_REGION;
-
-typedef struct GAME_ROMS {
-    ROM_REGION cpu_m68k;
-    ROM_REGION cpu_z80;
-    ROM_REGION tiles;
-    ROM_REGION game_sfix;
-    ROM_REGION bios_sfix;
-    ROM_REGION bios_audio;
-    ROM_REGION zoom_table;
-    ROM_REGION bios_m68k;
-    ROM_REGION adpcma;
-    ROM_REGION adpcmb;
-    ROM_REGION spr_usage;
-    ROM_REGION gfix_usage;  /* Game fix char usage */
-    ROM_REGION bfix_usage;  /* Bios fix char usage */
-    ROM_REGION cpu_z80c; /* Crypted z80 program rom */
-}GAME_ROMS;
-
 void gn_set_savedir(const char *dir);
 
 int gn_bios_load(const char*);
@@ -71,9 +32,6 @@ int gn_memcard_save(const char*);
 
 int gn_nvram_load(const char*);
 int gn_nvram_save(const char*);
-
-void convert_all_char(uint8_t *Ptr, int Taille, uint8_t *usage_ptr);
-void convert_all_tile(GAME_ROMS *r);
 
 int init_garou(void);
 int init_garouh(void);

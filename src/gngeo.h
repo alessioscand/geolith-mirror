@@ -24,7 +24,6 @@
 #ifndef GNGEO_H
 #define GNGEO_H
 
-#include "video.h"
 #include "roms.h"
 
 #define VERSION "1.0.0-pre1"
@@ -58,6 +57,26 @@ enum gn_loglevel {
     GN_LOG_ERR,
     GN_LOG_SCR
 };
+
+typedef struct ROM_REGION {
+    uint8_t* p;
+    size_t size;
+}ROM_REGION;
+
+typedef struct GAME_ROMS {
+    ROM_REGION cpu_m68k;
+    ROM_REGION cpu_z80;
+    ROM_REGION tiles;
+    ROM_REGION game_sfix;
+    ROM_REGION bios_sfix;
+    ROM_REGION bios_audio;
+    ROM_REGION bios_m68k;
+    ROM_REGION adpcma;
+    ROM_REGION adpcmb;
+    ROM_REGION spr_usage;
+}GAME_ROMS;
+
+#include "video.h"
 
 typedef struct neo_mem {
     GAME_ROMS rom;
