@@ -61,7 +61,6 @@ typedef struct ROM_REGION {
 typedef struct GAME_ROMS {
     ROM_REGION cpu_m68k;
     ROM_REGION cpu_z80;
-    ROM_REGION tiles;
     ROM_REGION game_sfix;
     ROM_REGION bios_sfix;
     ROM_REGION bios_audio;
@@ -75,8 +74,6 @@ typedef struct neo_mem {
     GAME_ROMS rom;
     uint8_t ram[0x10000];
     VIDEO vid;
-
-    uint32_t nb_of_tiles;
 
     uint8_t nvram[0x10000];
 

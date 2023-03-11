@@ -56,6 +56,7 @@ extern unsigned current_line;
 void video_set_buffer(uint32_t *ptr);
 
 void video_set_l0rom(uint8_t *l0);
+void video_romdata(uint8_t*, uint32_t);
 
 void video_fc_increment(void);
 

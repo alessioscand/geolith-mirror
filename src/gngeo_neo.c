@@ -149,9 +149,7 @@ int gn_neo_load(void *data, size_t size) {
         rom_offset += size_v1rom + size_v2rom;
     }
 
-    memory.rom.tiles.size = size_crom;
-    memory.rom.tiles.p = &romdata[rom_offset];
-    memory.nb_of_tiles = memory.rom.tiles.size >> 7;
+    video_romdata(&romdata[rom_offset], size_crom);
     rom_offset += size_crom;
     convert_all_tile(&(memory.rom));
 

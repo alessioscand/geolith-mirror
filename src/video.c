@@ -30,8 +30,11 @@
 uint32_t *vbuf;
 extern int neogeo_fix_bank_type;
 unsigned int neogeo_frame_counter;
+uint32_t numtiles;
 
 static uint8_t *l0rom = NULL;
+static uint8_t *cromdata = NULL;
+static size_t cromsize = 0;
 
 char *ldda_y_skip;
 char *dda_x_skip;
@@ -246,10 +249,10 @@ static int convert_roms_tile(uint8_t *g, int tileno) {
 
 void convert_all_tile(GAME_ROMS *r) {
     uint32_t i;
-    allocate_region(&r->spr_usage, (r->tiles.size >> 11) * sizeof (uint32_t));
+    allocate_region(&r->spr_usage, (cromsize >> 11) * sizeof(uint32_t));
     memset(r->spr_usage.p, 0, r->spr_usage.size);
-    for (i = 0; i < r->tiles.size >> 7; i++) {
-        ((uint32_t*) r->spr_usage.p)[i >> 4] |= convert_roms_tile(r->tiles.p, i);
+    for (i = 0; i < cromsize >> 7; i++) {
+        ((uint32_t*) r->spr_usage.p)[i >> 4] |= convert_roms_tile(cromdata, i);
     }
 }
 
@@ -432,9 +435,9 @@ void draw_screen_scanline(int start_line, int refresh) {
             tileno = vidram[offs + (tile << 1)];
             tileatr = vidram[offs + (tile << 1) + 1];
 
-            if (memory.nb_of_tiles > 0x10000 && (tileatr & 0x10)) tileno += 0x10000;
-            if (memory.nb_of_tiles > 0x20000 && (tileatr & 0x20)) tileno += 0x20000;
-            if (memory.nb_of_tiles > 0x40000 && (tileatr & 0x40)) tileno += 0x40000;
+            if (numtiles > 0x10000 && (tileatr & 0x10)) tileno += 0x10000;
+            if (numtiles > 0x20000 && (tileatr & 0x20)) tileno += 0x20000;
+            if (numtiles > 0x40000 && (tileatr & 0x40)) tileno += 0x40000;
 
             /* animation automatique */
             if (tileatr & 0x8) tileno = (tileno&~7)+((tileno + neogeo_frame_counter)&7);
@@ -454,6 +457,12 @@ void draw_screen_scanline(int start_line, int refresh) {
 
 void video_set_l0rom(uint8_t *l0) {
     l0rom = l0; // Set L0 ROM
+}
+
+void video_romdata(uint8_t *c, uint32_t sz) {
+    cromdata = c;
+    cromsize = sz;
+    numtiles = sz >> 7;
 }
 
 void video_fc_increment(void) {
