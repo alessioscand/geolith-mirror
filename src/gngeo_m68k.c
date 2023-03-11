@@ -392,7 +392,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
         switch (address) {
             // Writes to 0x300001 reset watchdog timer via DOGE pin
             case 0x300001: {
-                memory.watchdog = 0;
+                gn_watchdog_reset();
                 return;
             }
             case 0x320000: { // REG_SOUND
@@ -552,7 +552,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
         switch (address) {
             // Writes to 0x300001 reset watchdog timer via DOGE pin
             case 0x300001: {
-                memory.watchdog = 0;
+                gn_watchdog_reset();
                 return;
             }
             case 0x320000: { // REG_SOUND

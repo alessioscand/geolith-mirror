@@ -98,7 +98,6 @@ typedef struct neo_mem {
     uint32_t *bksw_offset;
 
     uint8_t memcard[0x800];
-    uint32_t watchdog;
 } neo_mem;
 
 int gn_bios_load(const char*);
@@ -132,6 +131,8 @@ extern uint8_t reg_dipsw;
 
 void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2);
 void gn_m68k_banksw_set(unsigned swtype, uint32_t addr);
+
+void gn_watchdog_reset(void);
 
 // Timer Interrupt (IRQ2)
 extern uint8_t irq2_ctrl;

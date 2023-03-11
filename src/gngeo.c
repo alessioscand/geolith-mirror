@@ -50,6 +50,9 @@ unsigned (*gn_input_stat_cb[NUMINPUTS_NG])(void);
 static int sys = 0;
 static int region = 0;
 
+// Watchdog (Anti-freezing system to reset games due to bugs/hardware faults)
+static uint32_t watchdog;
+
 neo_mem memory;
 
 uint8_t reg_dipsw = 0;
@@ -275,6 +278,7 @@ int gn_nvram_save(const char *filename) {
 void gn_reset(void) {
     sound_code = 0;
     result_code = 0;
+    watchdog = 0;
 
     if (memory.rom.cpu_m68k.size > 0x100000)
         bankaddress = 0x100000;
@@ -293,6 +297,22 @@ void gn_init(void) {
     gn_reset();
 }
 
+// Increment the watchdog counter
+static inline void gn_watchdog_increment(void) {
+    /* If more than 8 frames have passed since the Watchdog was kicked, assume
+       a bug or hardware fault and recover by resetting the system.
+    */
+    if (++watchdog > 8) {
+        gn_log(GN_LOG_WRN, "Watchdog reset\n");
+        gn_reset();
+    }
+}
+
+// Reset the Watchdog counter
+void gn_watchdog_reset(void) {
+    watchdog = 0;
+}
+
 void gn_exec(void) {
     mcycs = mextcycs;
     lcycs = lextcycs;
@@ -302,6 +322,9 @@ void gn_exec(void) {
     ymsamps = 0;
 
     draw_bg();
+
+    // Each frame starts with the VBLANK interrupt
+    gn_m68k_int(1);
 
     // Reload counter at the beginning of each frame
     if (irq2_ctrl & 0x40)
@@ -364,12 +387,9 @@ void gn_exec(void) {
     ++fc;
     ////
 
+    // Resample audio generated this frame for output to the frontend
     gn_mixer_resamp(ymsamps);
 
-    if (++memory.watchdog > 7) {
-        gn_log(GN_LOG_WRN, "Watchdog reset\n");
-        gn_m68k_reset();
-    }
-
-    gn_m68k_int(1);
+    // Increment the Watchdog counter at the end of each frame
+    gn_watchdog_increment();
 }
