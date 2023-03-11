@@ -53,21 +53,9 @@ enum gn_loglevel {
     GN_LOG_SCR
 };
 
-typedef struct ROM_REGION {
-    uint8_t* p;
-    size_t size;
-}ROM_REGION;
-
-typedef struct GAME_ROMS {
-    ROM_REGION bios_sfix;
-    ROM_REGION bios_audio;
-    ROM_REGION bios_m68k;
-}GAME_ROMS;
-
 #include "video.h"
 
 typedef struct neo_mem {
-    GAME_ROMS rom;
     uint8_t ram[0x10000];
     VIDEO vid;
 

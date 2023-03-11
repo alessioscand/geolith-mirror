@@ -41,6 +41,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define SMATAP 0x98ec // NEO-SMA Tapped bits - 2, 3, 5, 6, 7, 11, 12, and 15
 
+// BIOS ROM data
+uint8_t *biosdata = NULL;
+size_t biossize = 0;
+uint8_t *sfixdata = NULL;
+size_t sfixsize = 0;
+
 // Game ROM data
 uint8_t *promdata = NULL;
 size_t promsize = 0;
@@ -106,6 +112,12 @@ static inline void write08(uint8_t *ptr, uint32_t addr, uint8_t data) {
 static inline void write16(uint8_t *ptr, uint32_t addr, uint16_t data) {
     ptr[addr + 1] = data & 0xff;
     ptr[addr] = data >> 8;
+}
+
+static inline void swapb16_range(void *ptr, size_t len) {
+    uint16_t *x = (uint16_t*)ptr;
+    for (size_t i = 0; i < len >> 1; ++i)
+        x[i] = (x[i] << 8) | (x[i] >> 8);
 }
 
 // Default Bankswitch routine
@@ -283,7 +295,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
     }
     else if (address < 0xd00000) { // BIOS ROM
         address &= 0x1ffff;
-        return read08(memory.rom.bios_m68k.p, address);
+        return read08(biosdata, address);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
         address &= 0xffff;
@@ -361,7 +373,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
     }
     else if (address < 0xd00000) { // BIOS ROM
         address &= 0x1ffff;
-        return read16(memory.rom.bios_m68k.p, address);
+        return read16(biosdata, address);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
         address &= 0xffff;
@@ -444,7 +456,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a0003: { // REG_SWPBIOS
-                memcpy(promdata, memory.rom.bios_m68k.p, 0x80);
+                memcpy(promdata, biosdata, 0x80);
                 memory.current_vector = 0;
                 gn_log(GN_LOG_DBG, "Selected BIOS vector table\n");
                 return;
@@ -462,7 +474,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a000b: { // REG_BRDFIX
-                current_fix = memory.rom.bios_sfix.p;
+                current_fix = sfixdata;
                 fix_usage = memory.fix_board_usage;
                 memory.vid.currentfix = 0;
                 return;
@@ -709,9 +721,34 @@ void gn_m68k_prn_addrs(uint32_t a1, uint32_t a2) {
     addr_prn[1] = a2;
 }
 
+void gn_m68k_romdata_bios(uint8_t *p, size_t psz, uint8_t *s, size_t ssz) {
+    biosdata = p;
+    biossize = psz;
+    sfixdata = s;
+    sfixsize = ssz;
+}
+
 void gn_m68k_romdata_game(uint8_t *p, size_t psz, uint8_t *s, size_t ssz) {
     promdata = p;
     promsize = psz;
     sromdata = s;
     sromsize = ssz;
+}
+
+void gn_m68k_postload(void) {
+    // Byteswap the BIOS and P ROM
+    swapb16_range(biosdata, biossize);
+    swapb16_range(promdata, promsize);
+
+    memcpy(memory.game_vector, promdata, 0x80);
+    memcpy(promdata, biosdata, 0x80);
+
+    if (gn_get_system() == SYSTEM_AES) {
+        current_fix = sromdata;
+        fix_usage = memory.fix_game_usage;
+    }
+    else {
+        current_fix = sfixdata;
+        fix_usage = memory.fix_board_usage;
+    }
 }

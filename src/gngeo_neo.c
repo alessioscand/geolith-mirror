@@ -59,12 +59,6 @@ static inline uint32_t read32le(uint8_t *ptr, uint32_t addr) {
         (ptr[addr + 2] << 16) | (ptr[addr + 3] << 24);
 }
 
-static inline void swapb16_range(void *ptr, size_t len) {
-    uint16_t *x = (uint16_t*)ptr;
-    for (size_t i = 0; i < len >> 1; ++i)
-        x[i] = (x[i] << 8) | (x[i] >> 8);
-}
-
 int gn_neo_load(void *data, size_t size) {
     uint8_t *romdata = (uint8_t*)data; // Assign internal ROM pointer
     if (size) { }
@@ -115,17 +109,10 @@ int gn_neo_load(void *data, size_t size) {
     gn_log(GN_LOG_INF, "Name: %s\n", name);
     gn_log(GN_LOG_INF, "Manufacturer: %s\n", manu);
 
-    // Byteswap the BIOS
-    swapb16_range(memory.rom.bios_m68k.p, memory.rom.bios_m68k.size);
-
     // Assign pointers and sizes
     uint32_t rom_offset = 4096; // ROM data starts at byte 4096
     uint8_t *data_prom = &romdata[rom_offset];
     rom_offset += size_prom;
-    swapb16_range(data_prom, size_prom);
-
-    memcpy(memory.game_vector, data_prom, 0x80);
-    memcpy(data_prom, memory.rom.bios_m68k.p, 0x80);
 
     uint8_t *data_srom = &romdata[rom_offset];
     rom_offset += size_srom;
@@ -157,16 +144,8 @@ int gn_neo_load(void *data, size_t size) {
     current_pc_pal = (uint32_t*)memory.vid.pal_host[0];
     memory.current_vector = 0;
 
-    if (gn_get_system() == SYSTEM_AES) {
-        current_fix = data_srom;
-        fix_usage = memory.fix_game_usage;
-        memory.vid.currentfix = 1;
-    }
-    else {
-        current_fix = memory.rom.bios_sfix.p;
-        fix_usage = memory.fix_board_usage;
-        memory.vid.currentfix = 0;
-    }
+    // Temporary FIXME
+    gn_m68k_postload();
 
     // Handle special cases if necessary
     switch (ngh) {

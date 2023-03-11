@@ -54,6 +54,8 @@ static int region = 0;
 static uint32_t watchdog;
 
 static uint8_t *l0rom = NULL;
+static uint8_t *biosdata = NULL;
+static uint8_t *sfixdata = NULL;
 
 neo_mem memory;
 
@@ -112,8 +114,8 @@ int gn_get_system(void) {
 }
 
 int gn_bios_load(const char *biospath) {
-    GAME_ROMS *r = &(memory.rom);
     const char *biosrom;
+    size_t biossize, sfixsize;
 
     mz_zip_archive zip_archive;
     memset(&zip_archive, 0, sizeof(zip_archive));
@@ -152,13 +154,12 @@ int gn_bios_load(const char *biospath) {
     }
 
     gn_log(GN_LOG_DBG, "Loading %s\n", biosrom);
-    r->bios_m68k.p = mz_zip_reader_extract_file_to_heap(&zip_archive,
-        biosrom, &(r->bios_m68k.size), 0);
+    biosdata = mz_zip_reader_extract_file_to_heap(&zip_archive,
+        biosrom, &biossize, 0);
 
-    if (r->bios_m68k.p == NULL) {
+    if (biosdata == NULL) {
         mz_zip_reader_end(&zip_archive);
-        gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n",
-            biosrom);
+        gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n", biosrom);
         return 0;
     }
 
@@ -172,28 +173,29 @@ int gn_bios_load(const char *biospath) {
     }
 
     if (gn_get_system() != SYSTEM_AES) {
-        r->bios_sfix.p = mz_zip_reader_extract_file_to_heap(&zip_archive,
-            "sfix.sfix", &(r->bios_sfix.size), 0);
-        if (r->bios_sfix.p == NULL) {
+        sfixdata = mz_zip_reader_extract_file_to_heap(&zip_archive,
+            "sfix.sfix", &sfixsize, 0);
+        if (sfixdata == NULL) {
             mz_zip_reader_end(&zip_archive);
             gn_log(GN_LOG_ERR, "Failed to load sfix.sfix from BIOS archive!\n");
             return 0;
         }
 
         // convert bios fix char
-        convert_all_char(memory.rom.bios_sfix.p, 0x20000,
-            memory.fix_board_usage);
+        convert_all_char(sfixdata, 0x20000, memory.fix_board_usage);
     }
+
+    gn_m68k_romdata_bios(biosdata, biossize, sfixdata, sfixsize);
 
     mz_zip_reader_end(&zip_archive);
     return 1;
 }
 
 void gn_bios_unload(void) {
-    if (memory.rom.bios_m68k.p)
-        free(memory.rom.bios_m68k.p);
-    if (memory.rom.bios_sfix.p)
-        free(memory.rom.bios_sfix.p);
+    if (biosdata)
+        free(biosdata);
+    if (sfixdata)
+        free(sfixdata);
     if (l0rom)
         free(l0rom);
 }
