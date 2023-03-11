@@ -147,6 +147,9 @@ int gn_neo_load(void *data, size_t size) {
     // Temporary FIXME
     gn_m68k_postload();
 
+    // Set default bankswitching
+    gn_m68k_banksw_set(BANKSW_DEF);
+
     // Handle special cases if necessary
     switch (ngh) {
         case 151: case 251: { // KOF 99
@@ -154,9 +157,6 @@ int gn_neo_load(void *data, size_t size) {
                 gn_m68k_sma_init(sma_addr_kof99, sma_bank_kof99,
                     sma_scramble_kof99);
                 gn_m68k_banksw_set(BANKSW_SMA);
-            }
-            else { // Unencrypted
-                gn_m68k_banksw_set(BANKSW_DEF);
             }
             break;
         }
@@ -174,9 +174,7 @@ int gn_neo_load(void *data, size_t size) {
                     sma_scramble_garou);
                 gn_m68k_banksw_set(BANKSW_SMA);
             }
-            else { // Bootleg and Prototype don't have protection
-                gn_m68k_banksw_set(BANKSW_DEF);
-            }
+            // Bootleg and Prototype don't have protection
             break;
         }
         case 256: { // Metal Slug 3
@@ -193,9 +191,6 @@ int gn_neo_load(void *data, size_t size) {
                     sma_scramble_mslug3a);
                 gn_m68k_banksw_set(BANKSW_SMA);
             }*/
-            else { // Unencrypted
-                gn_m68k_banksw_set(BANKSW_DEF);
-            }
             break;
         }
         case 257: { // KOF 2000
@@ -206,23 +201,17 @@ int gn_neo_load(void *data, size_t size) {
                     sma_scramble_kof2000);
                 gn_m68k_banksw_set(BANKSW_SMA);
             }
-            else { // Unencrypted
-                gn_m68k_banksw_set(BANKSW_DEF);
-            }
             break;
         }
         case 263: { // Metal Slug 4
             neogeo_fix_bank_type = 1;
-            gn_m68k_banksw_set(BANKSW_DEF);
             break;
         }
         case 266: { // Matrimelee
             neogeo_fix_bank_type = 2;
-            gn_m68k_banksw_set(BANKSW_DEF);
             break;
         }
         default: {
-            gn_m68k_banksw_set(BANKSW_DEF); // Set default bankswitching
             break;
         }
     }
