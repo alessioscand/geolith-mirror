@@ -21,8 +21,8 @@
  *
  */
 
-#ifndef _EMU_H_
-#define _EMU_H_
+#ifndef GNGEO_H
+#define GNGEO_H
 
 #include "video.h"
 #include "roms.h"
@@ -37,31 +37,19 @@
 #define SIZE_32K    0x008000
 #define SIZE_64K    0x010000
 
-#define BANKSW_DEF 0x00 // Default
-#define BANKSW_SMA 0x01 // NEO-SMA
+#define BANKSW_DEF  0x00 // Default
+#define BANKSW_SMA  0x01 // NEO-SMA
 
-#define SYSTEM_AES 0x00
-#define SYSTEM_MVS 0x01
-#define SYSTEM_UNI 0x02
+#define SYSTEM_AES  0x00 // Console
+#define SYSTEM_MVS  0x01 // Arcade
+#define SYSTEM_UNI  0x02 // Universe BIOS
+
+#define REGION_US   0x00 // USA
+#define REGION_JP   0x01 // Japan
+#define REGION_AS   0x02 // Asia
+#define REGION_EU   0x03 // Europe
 
 #define NUMINPUTS_NG 2
-
-typedef enum COUNTRY {
-    CTY_USA,
-    CTY_JAPAN,
-    CTY_ASIA,
-    CTY_EUROPE,
-    CTY_MAX
-} COUNTRY;
-
-struct _conf_t {
-    char *game;
-    uint16_t sample_rate;
-    uint8_t extra_xor;
-    uint8_t pal;
-    COUNTRY country;
-};
-extern struct _conf_t conf;
 
 enum gn_loglevel {
     GN_LOG_DBG,
@@ -103,6 +91,9 @@ void gn_reset(void);
 void gn_log_set_callback(void (*)(int, const char *, ...));
 void gn_input_set_callback(unsigned, unsigned (*)(unsigned));
 void gn_input_stat_set_callback(unsigned, unsigned (*)(void));
+
+int gn_get_region(void);
+void gn_set_region(int);
 
 int gn_get_system(void);
 void gn_set_system(int);

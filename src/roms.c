@@ -323,19 +323,19 @@ int gn_bios_load(const char *biospath) {
             break;
         }
         case SYSTEM_MVS: {
-            switch (conf.country) {
-            default: case CTY_USA: // Winners don't use drugs
-                romfile = "sp-u2.sp1";
-                break;
-            case CTY_JAPAN:
-                romfile = "vs-bios.rom";
-                break;
-            case CTY_ASIA:
-                romfile = "sp-s3.sp1";
-                break;
-            case CTY_EUROPE:
-                romfile = "sp-s2.sp1";
-                break;
+            switch (gn_get_region()) {
+                default: case REGION_US: // Winners don't use drugs
+                    romfile = "sp-u2.sp1";
+                    break;
+                case REGION_JP:
+                    romfile = "vs-bios.rom";
+                    break;
+                case REGION_AS:
+                    romfile = "sp-s3.sp1";
+                    break;
+                case REGION_EU:
+                    romfile = "sp-s2.sp1";
+                    break;
             }
             break;
         }

@@ -258,7 +258,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                    Bits 0-2:  Auto animation counter
                 */
                 return (((current_line + 0xf8) << 7) |
-                    (conf.pal << 3) |
+                    //(conf.pal << 3) | // FIXME restore when PAL is supported
                     (neogeo_frame_counter & 0x07)) & 0xff;
             }
         }
@@ -338,7 +338,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
                    Bits 0-2:  Auto animation counter
                 */
                 return ((current_line + 0xf8) << 7) |
-                    (conf.pal << 3) |
+                    //(conf.pal << 3) | // FIXME restore when PAL is supported
                     (neogeo_frame_counter & 0x07);
             }
         }

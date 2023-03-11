@@ -46,8 +46,7 @@ unsigned (*gn_input_stat_cb[NUMINPUTS_NG])(void);
 
 // System being emulated
 static int sys = 0;
-
-struct _conf_t conf;
+static int region = 0;
 
 neo_mem memory;
 
@@ -85,6 +84,16 @@ void gn_input_set_callback(unsigned port, unsigned (*cb)(unsigned)) {
 }
 void gn_input_stat_set_callback(unsigned port, unsigned (*cb)(void)) {
     gn_input_stat_cb[port] = cb;
+}
+
+// Set the region of the system to be emulated
+void gn_set_region(int r) {
+    region = r;
+}
+
+// Get the region of the system currently being emulated
+int gn_get_region(void) {
+    return region;
 }
 
 // Set the system to be emulated

@@ -94,7 +94,7 @@ static jg_setting_t settings_gn[] = {
     { "region", "Region",
       "0 = US, 1 = JP, 2 = AS, 3 = EU",
       "Select the region",
-      3, 0, 3, JG_SETTING_RESTART
+      REGION_US, REGION_US, REGION_EU, JG_SETTING_RESTART
     }
 };
 
@@ -169,12 +169,10 @@ void jg_set_cb_rumble(jg_cb_rumble_t func) {
 
 int jg_init(void) {
     gn_log_set_callback(jg_cb_log);
-    conf.sample_rate = SAMPLERATE;
     gn_mixer_set_rate(SAMPLERATE);
     gn_mixer_init();
+    gn_set_region(settings_gn[REGION].val);
     gn_set_system(settings_gn[SYS].val);
-    conf.pal = 0; // Not currently supported
-    conf.country = settings_gn[REGION].val;
     return 1;
 }
 
