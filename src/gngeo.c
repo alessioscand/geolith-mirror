@@ -365,12 +365,10 @@ void gn_exec(void) {
         while (zcycs < mcycs) {
             size_t scycs = gn_z80_run(1);
             zcycs += scycs * DIV_Z80;
-
-            for (size_t s = 0; s < scycs; ++s) {
-                if (++ymcycs == 72) { // 72 for medium fidelity, 8 for high
-                    ymcycs = 0;
-                    ymsamps += ymfm_shim_exec();
-                }
+            ymcycs += scycs;
+            if (ymcycs >= 72) { // 72 for medium fidelity, 8 for high
+                ymcycs -= 72;
+                ymsamps += ymfm_shim_exec();
             }
         }
 
