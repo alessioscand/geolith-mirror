@@ -59,12 +59,9 @@ typedef struct neo_mem {
     uint8_t ram[0x10000];
     VIDEO vid;
 
-    uint8_t nvram[0x10000];
-
     uint8_t fix_board_usage[4096];
     uint8_t *fix_game_usage;
 
-    uint8_t memcard[0x800];
 } neo_mem;
 
 extern neo_mem memory;
@@ -105,6 +102,9 @@ void gn_watchdog_reset(void);
 extern uint8_t irq2_ctrl;
 extern uint32_t irq2_reload;
 extern int64_t irq2_counter;
+
+extern uint8_t nvram[0x10000];
+extern uint8_t memcard[0x800];
 
 /* Sound control */
 extern uint8_t sound_code;

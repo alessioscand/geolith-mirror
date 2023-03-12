@@ -67,6 +67,10 @@ uint32_t irq2_reload = 0;
 int64_t irq2_counter = 0;
 static unsigned irq2_frags = 0;
 
+// NVRAM and Memory Card
+uint8_t nvram[0x10000];
+uint8_t memcard[0x800];
+
 // Extra cycles stored at the end of scanlines/frames
 static uint32_t mextcycs = 0;
 static uint32_t lextcycs = 0;
@@ -219,7 +223,7 @@ int gn_memcard_load(const char *filename) {
         return 0;
 
     // Read the file into the system's NVRAM and then close it
-    result = fread(memory.nvram, sizeof(uint8_t), filesize, file);
+    result = fread(nvram, sizeof(uint8_t), filesize, file);
     if (result != filesize)
         return 0;
     fclose(file);
@@ -235,7 +239,7 @@ int gn_memcard_save(const char *filename) {
         return 0;
 
     // Write and close the file
-    fwrite(memory.nvram, 0x800, sizeof(uint8_t), file);
+    fwrite(nvram, 0x800, sizeof(uint8_t), file);
     fclose(file);
 
     return 1; // Success!
@@ -263,7 +267,7 @@ int gn_nvram_load(const char *filename) {
         return 0;
 
     // Read the file into the system's NVRAM and then close it
-    result = fread(memory.nvram, sizeof(uint8_t), filesize, file);
+    result = fread(nvram, sizeof(uint8_t), filesize, file);
     if (result != filesize)
         return 0;
     fclose(file);
@@ -282,7 +286,7 @@ int gn_nvram_save(const char *filename) {
         return 0;
 
     // Write and close the file
-    fwrite(memory.nvram, 0x10000, sizeof(uint8_t), file);
+    fwrite(nvram, 0x10000, sizeof(uint8_t), file);
     fclose(file);
 
     return 1; // Success!

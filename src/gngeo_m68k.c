@@ -296,7 +296,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         */
         if (address & 0x01)
             return 0xff;
-        return memory.memcard[(address >> 1) & 0x7ff];
+        return memcard[(address >> 1) & 0x7ff];
     }
     else if (address < 0xd00000) { // BIOS ROM
         address &= 0x1ffff;
@@ -304,7 +304,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
         address &= 0xffff;
-        return read08(memory.nvram, address);
+        return read08(nvram, address);
     }
 
     gn_log(GN_LOG_WRN, "Unknown 8-bit 68K Read at %06x\n", address);
@@ -378,7 +378,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
            the address must be divided by two to get the correct byte. The
            upper byte is always 0xff.
         */
-        return memory.memcard[(address >> 1) & 0x7ff] | 0xff00;
+        return memcard[(address >> 1) & 0x7ff] | 0xff00;
     }
     else if (address < 0xd00000) { // BIOS ROM
         address &= 0x1ffff;
@@ -386,7 +386,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
         address &= 0xffff;
-        return read16(memory.nvram, address);
+        return read16(nvram, address);
     }
 
     gn_log(GN_LOG_WRN, "Unknown 16-bit 68K Read at %06x\n", address);
@@ -547,7 +547,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
-        memory.memcard[(address >> 1) & 0x7ff] = value;
+        memcard[(address >> 1) & 0x7ff] = value;
     }
     else if (address < 0xd00000) { // BIOS ROM
         gn_log(GN_LOG_WRN, "68K write to BIOS ROM: %06x %02x\n",
@@ -555,7 +555,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
         if (!nvram_lock)
-            memory.nvram[address & 0xffff] = value;
+            nvram[address & 0xffff] = value;
     }
 }
 
@@ -658,7 +658,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
         mem68k_store_pal_word(address, value);
     }
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
-        memory.memcard[(address >> 1) & 0x7ff] = value & 0xff;
+        memcard[(address >> 1) & 0x7ff] = value & 0xff;
     }
     else if (address < 0xd00000) { // BIOS ROM
         gn_log(GN_LOG_WRN, "68K write to BIOS ROM: %06x %04x\n",
@@ -666,7 +666,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
         if (!nvram_lock)
-            write16(memory.nvram, address & 0xffff, value);
+            write16(nvram, address & 0xffff, value);
     }
 }
 
