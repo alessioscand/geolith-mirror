@@ -64,8 +64,9 @@ uint8_t reg_dipsw = 0;
 // Timer Interrupt (IRQ2)
 uint8_t irq2_ctrl = 0;
 uint32_t irq2_reload = 0;
-int64_t irq2_counter = 0;
-static unsigned irq2_frags = 0;
+uint32_t irq2_counter = 0;
+static uint32_t irq2_frags = 0;
+static uint32_t irq2_dec = 0;
 
 // NVRAM and Memory Card
 uint8_t nvram[0x10000];
@@ -349,23 +350,29 @@ void gn_exec(void) {
         lcycs += icycs * DIV_M68K;
 
         // Handle IRQ2 counter
-        irq2_counter -= icycs >> 1;
+        irq2_dec = icycs >> 1;
         irq2_frags += icycs & 0x01;
         if (irq2_frags == 2) {
             irq2_frags = 0;
-            --irq2_counter;
+            ++irq2_dec;
         }
 
-        if (irq2_counter <= 0) {
-            // Reload counter when it reaches 0
-            if (irq2_ctrl & 0x80)
-                irq2_counter += irq2_reload;
+        for (uint32_t i = 0; i < irq2_dec; ++i) {
+            if (--irq2_counter == 0) {
+                /* Reload counter when it reaches 0 - if this bit is not set,
+                   rely on unsigned integer underflow to prevent repeated
+                   assertion of the IRQ line.
+                */
+                if (irq2_ctrl & 0x80)
+                    irq2_counter += irq2_reload;
 
-            // Timer Interrupt Enabled, trigger when counter reaches 0
-            if (irq2_ctrl & 0x10)
-                gn_m68k_int(2);
+                // Timer Interrupt Enabled, trigger when counter reaches 0
+                if (irq2_ctrl & 0x10)
+                    gn_m68k_int(2);
+            }
         }
 
+        // Catch the Z80 and YM2610 up to the 68K
         while (zcycs < mcycs) {
             size_t scycs = gn_z80_run(1);
             zcycs += scycs * DIV_Z80;
@@ -376,6 +383,7 @@ void gn_exec(void) {
             }
         }
 
+        // Handle line related logic
         if (lcycs >= MCYC_PER_LINE) {
             lcycs -= MCYC_PER_LINE;
             if (current_line < 255)

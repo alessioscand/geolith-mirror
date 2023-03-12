@@ -101,7 +101,7 @@ void gn_watchdog_reset(void);
 // Timer Interrupt (IRQ2)
 extern uint8_t irq2_ctrl;
 extern uint32_t irq2_reload;
-extern int64_t irq2_counter;
+extern uint32_t irq2_counter;
 
 extern uint8_t nvram[0x10000];
 extern uint8_t memcard[0x800];
