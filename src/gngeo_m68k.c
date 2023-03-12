@@ -75,10 +75,6 @@ static uint32_t sma_addr = 0x00000000;
 static uint32_t *sma_offset;
 static uint8_t *sma_scramble;
 
-// Interrupt status
-static uint32_t irqlines = 0;
-static uint32_t irqack = 0;
-
 // Function pointer for 16-bit bankswitches
 static void (*gn_m68k_write_banksw_16)(uint32_t, uint16_t);
 
@@ -639,7 +635,13 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                    Bit 1: Ack HBlank
                    Bit 0: Ack IRQ3
                 */
-                irqack = value;
+                if (value & 0x04) // VBlank
+                    m68k_set_virq(1, 0);
+                if (value & 0x02) // HBlank/Timer
+                    m68k_set_virq(2, 0);
+                if (value & 0x01) // IRQ3 - Pending after reset
+                    m68k_set_virq(3, 0);
+
                 return;
             }
             case 0x3c000e: { // REG_TIMERSTOP
@@ -695,22 +697,14 @@ int gn_m68k_run(unsigned cycs) {
 }
 
 void gn_m68k_int(unsigned a) {
-    irqlines |= a;
-    m68k_set_irq(irqlines);
+    if ((m68k_get_virq(a)) == 0)
+        m68k_set_virq(a, 1);
 }
 
 // Acknowledge interrupts
 int gn_m68k_int_ack(int level) {
-    if (level) { } // Not used, but part of Musashi's function prototype
-
-    if (irqack & 0x04) // VBlank
-        irqlines &= ~0x01;
-    if (irqack & 0x02) // HBlank/Timer
-        irqlines &= ~0x02;
-    if (irqack & 0x01) // IRQ3 - Pending after reset
-        irqlines &= ~0x04;
-
-    m68k_set_irq(irqlines);
+    if (level) { }
+    //gn_log(GN_LOG_INF, "IRQ ACK Level: %02x\n", level);
     return M68K_INT_ACK_AUTOVECTOR;
 }
 
