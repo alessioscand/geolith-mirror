@@ -110,7 +110,4 @@ extern uint8_t memcard[0x800];
 extern uint8_t sound_code;
 extern uint8_t result_code;
 
-/* 68k cpu Banking control */
-extern uint32_t bankaddress;            /* current bank */
-
 #endif
