@@ -386,10 +386,10 @@ void gn_exec(void) {
         // Handle line related logic
         if (lcycs >= MCYC_PER_LINE) {
             lcycs -= MCYC_PER_LINE;
-            if (current_line < 255)
-                draw_screen_scanline(current_line, 0);
-            else if (current_line == 255)
-                draw_screen_scanline(current_line, 1);
+            if (current_line < 263 && current_line > 24)
+                draw_screen_scanline(current_line - 24, 0);
+            else if (current_line == 263)
+                draw_screen_scanline(current_line - 24, 1);
             ++current_line;
         }
     }
