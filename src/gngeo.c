@@ -35,6 +35,7 @@
 
 #define DIV_M68K 2
 #define DIV_Z80 6
+#define DIV_YM2610 72 // 72 for medium fidelity, 8 for high
 
 #define MCYC_PER_FRAME 405504
 #define MCYC_PER_LINE 1536
@@ -377,8 +378,8 @@ void gn_exec(void) {
             size_t scycs = gn_z80_run(1);
             zcycs += scycs * DIV_Z80;
             ymcycs += scycs;
-            if (ymcycs >= 72) { // 72 for medium fidelity, 8 for high
-                ymcycs -= 72;
+            if (ymcycs >= DIV_YM2610) {
+                ymcycs -= DIV_YM2610;
                 ymsamps += ymfm_shim_exec();
             }
         }
