@@ -42,26 +42,22 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SMATAP 0x98ec // NEO-SMA Tapped bits - 2, 3, 5, 6, 7, 11, 12, and 15
 
 // BIOS ROM data
-uint8_t *biosdata = NULL;
-size_t biossize = 0;
-uint8_t *sfixdata = NULL;
-size_t sfixsize = 0;
+static uint8_t *biosdata = NULL;
+static size_t biossize = 0;
+static uint8_t *sfixdata = NULL;
+static size_t sfixsize = 0;
 
 // Game ROM data
-uint8_t *promdata = NULL;
-size_t promsize = 0;
-uint8_t *sromdata = NULL;
-size_t sromsize = 0;
+static uint8_t *promdata = NULL;
+static size_t promsize = 0;
+static uint8_t *sromdata = NULL;
+static size_t sromsize = 0;
 
 // Switchable bank offset address
-uint32_t bankaddress = 0;
+static uint32_t banksw_addr = 0;
 
 // Vector Table currently in use
-uint8_t vectable = VECTOR_TABLE_BIOS;
-
-// Z80 command
-uint8_t sound_code;
-uint8_t result_code;
+static uint8_t vectable = VECTOR_TABLE_BIOS;
 
 // SRAM Lock
 static uint8_t nvram_lock;
@@ -74,6 +70,10 @@ static uint16_t sma_prn = 0x2345; // Pseudo-random number initial value
 static uint32_t sma_addr = 0x00000000;
 static uint32_t *sma_offset;
 static uint8_t *sma_scramble;
+
+// Z80 command
+uint8_t sound_code;
+uint8_t result_code;
 
 // Function pointer for 16-bit bankswitches
 static void (*gn_m68k_write_banksw_16)(uint32_t, uint16_t);
@@ -124,7 +124,7 @@ static inline void swapb16_range(void *ptr, size_t len) {
 // Default Bankswitch routine
 static void gn_m68k_write_banksw_16_default(uint32_t addr, uint16_t data) {
     if (addr >= 0x2ffff0)
-        bankaddress = ((data * 0x100000) + 0x100000) & 0xffffff;
+        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
     else
         gn_log(GN_LOG_WRN, "16-bit write at %06x\n", addr);
 }
@@ -149,7 +149,7 @@ static void gn_m68k_write_banksw_sma(uint32_t addr, uint16_t data) {
            6-bit unscrambled value derived above serves as the index into the
            Bankswitch LUT, which contains the memory offset value.
         */
-        bankaddress = (0x100000 + sma_offset[unscrambled]) & 0xffffff;
+        banksw_addr = (0x100000 + sma_offset[unscrambled]) & 0xffffff;
     }
 }
 
@@ -208,7 +208,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                 return gn_m68k_prn_read() & 0xff;
         }
         address &= 0xfffff;
-        return read08(promdata, address + bankaddress);
+        return read08(promdata, address + banksw_addr);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch (address) {
@@ -332,7 +332,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
                 return gn_m68k_prn_read();
         }
         address &= 0xfffff;
-        return read16(promdata, address + bankaddress);
+        return read16(promdata, address + banksw_addr);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch (address) {
@@ -411,7 +411,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         if (address >= 0x2ffff0)
-            bankaddress = ((value * 0x100000) + 0x100000) & 0xffffff;
+            banksw_addr = ((value * 0x100000) + 0x100000) & 0xffffff;
         else
             gn_log(GN_LOG_WRN, "8-bit write at %06x\n", address);
     }
@@ -681,9 +681,9 @@ void gn_m68k_reset(void) {
     nvram_lock = 0;
 
     if (promsize > 0x100000)
-        bankaddress = 0x100000;
+        banksw_addr = 0x100000;
     else
-        bankaddress = 0;
+        banksw_addr = 0;
 }
 
 void gn_m68k_init(void) {
