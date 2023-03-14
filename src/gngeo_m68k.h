@@ -37,12 +37,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VECTOR_TABLE_BIOS   0x00
 #define VECTOR_TABLE_CART   0x01
 
+#define IRQ_VBLANK  0x01
+#define IRQ_TIMER   0x02
+#define IRQ_RESET   0x03
+
+#define IRQ_TIMER_ENABLED       0x10
+#define IRQ_TIMER_RELOAD_WRITE  0x20
+#define IRQ_TIMER_RELOAD_VBLANK 0x40
+#define IRQ_TIMER_RELOAD_COUNT0 0x80
+
 void gn_m68k_init(void);
 void gn_m68k_reset(void);
 
 int gn_m68k_run(unsigned);
 
-void gn_m68k_int(unsigned);
+void gn_m68k_interrupt(unsigned);
 
 void gn_m68k_banksw_set(unsigned);
 void gn_m68k_sma_init(uint32_t*, uint32_t*, uint8_t*);

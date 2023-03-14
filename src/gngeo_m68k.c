@@ -618,14 +618,14 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3c0008: { // REG_TIMERHIGH
-                irq2_reload = (irq2_reload & 0xffff) | ((uint32_t)value << 16);
+                irq2_reload = (irq2_reload & 0xffff) | (value << 16);
                 return;
             }
             case 0x3c000a: { // REG_TIMERLOW
                 irq2_reload = (irq2_reload & 0xffff0000) | (value & 0xffff);
 
                 // Reload counter when REG_TIMERLOW is written
-                if (irq2_ctrl & 0x20)
+                if (irq2_ctrl & IRQ_TIMER_RELOAD_WRITE)
                     irq2_counter = irq2_reload;
 
                 return;
@@ -633,14 +633,14 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
             case 0x3c000c: { // REG_IRQACK
                 /* Bit 2: Ack VBlank
                    Bit 1: Ack HBlank
-                   Bit 0: Ack IRQ3
+                   Bit 0: Ack IRQ3 (Reset)
                 */
                 if (value & 0x04) // VBlank
-                    m68k_set_virq(1, 0);
+                    m68k_set_virq(IRQ_VBLANK, 0);
                 if (value & 0x02) // HBlank/Timer
-                    m68k_set_virq(2, 0);
+                    m68k_set_virq(IRQ_TIMER, 0);
                 if (value & 0x01) // IRQ3 - Pending after reset
-                    m68k_set_virq(3, 0);
+                    m68k_set_virq(IRQ_RESET, 0);
 
                 return;
             }
@@ -696,9 +696,9 @@ int gn_m68k_run(unsigned cycs) {
     return m68k_execute(cycs);
 }
 
-void gn_m68k_int(unsigned a) {
-    if ((m68k_get_virq(a)) == 0)
-        m68k_set_virq(a, 1);
+void gn_m68k_interrupt(unsigned level) {
+    if ((m68k_get_virq(level)) == 0)
+        m68k_set_virq(level, 1);
 }
 
 // Acknowledge interrupts

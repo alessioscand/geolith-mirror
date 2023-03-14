@@ -339,10 +339,10 @@ void gn_exec(void) {
     draw_bg();
 
     // Each frame starts with the VBLANK interrupt
-    gn_m68k_int(1);
+    gn_m68k_interrupt(IRQ_VBLANK);
 
     // Reload counter at the beginning of each frame
-    if (irq2_ctrl & 0x40)
+    if (irq2_ctrl & IRQ_TIMER_RELOAD_VBLANK)
         irq2_counter = irq2_reload;
 
     while (mcycs < MCYC_PER_FRAME) {
@@ -364,12 +364,12 @@ void gn_exec(void) {
                    rely on unsigned integer underflow to prevent repeated
                    assertion of the IRQ line.
                 */
-                if (irq2_ctrl & 0x80)
+                if (irq2_ctrl & IRQ_TIMER_RELOAD_COUNT0)
                     irq2_counter += irq2_reload;
 
-                // Timer Interrupt Enabled, trigger when counter reaches 0
-                if (irq2_ctrl & 0x10)
-                    gn_m68k_int(2);
+                // Timer Interrupt Enabled
+                if (irq2_ctrl & IRQ_TIMER_ENABLED)
+                    gn_m68k_interrupt(IRQ_TIMER);
             }
         }
 
