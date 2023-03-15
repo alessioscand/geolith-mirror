@@ -226,9 +226,8 @@ void gn_z80_init(void) {
 
     /* The NEO-ZMC initializes all banks to 0 (verified on hardware):
          https://wiki.neogeodev.org/index.php?title=Z80_bankswitching
-       However, this information seems suspect because some sound drivers
-       require the banks to be initialized to non-zero values. Two other
-       popular emulators also initialize the banks this way.
+       Some games did not do any bankswitching at all, so initial values are
+       set to handle such cases.
     */
     //zbank[0] = zbank[1] = zbank[2] = zbank[3] = 0x0000;
     zbank[0] = 0x8000;
