@@ -30,11 +30,10 @@
 
 #define PIXEL_PITCH 352
 
-uint32_t *vbuf;
-extern int neogeo_fix_bank_type;
 unsigned int neogeo_frame_counter;
-uint32_t numtiles;
 
+static uint32_t *vbuf;
+static uint32_t numtiles;
 static uint8_t *l0rom = NULL;
 
 static uint8_t *sromdata = NULL;
@@ -42,9 +41,8 @@ static size_t sromsize = 0;
 static uint8_t *cromdata = NULL;
 static size_t cromsize = 0;
 
-char *ldda_y_skip;
-char *dda_x_skip;
-char ddaxskip[16][16] = {
+static char *dda_x_skip;
+static char ddaxskip[16][16] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
     { 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
     { 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0},
@@ -62,16 +60,8 @@ char ddaxskip[16][16] = {
     { 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
     { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
 };
-uint32_t ddaxskip_i[16] = {
-    0x0080, 0x0880, 0x0888, 0x2888, 0x288a, 0x2a8a, 0x2aaa, 0xaaaa,
-    0xaaea, 0xbaea, 0xbaeb, 0xbbeb, 0xbbef, 0xfbef, 0xfbff, 0xffff
-};
-uint32_t dda_x_skip_i;
 
-char dda_y_skip[17];
-uint32_t dda_y_skip_i;
-uint32_t full_y_skip_i = 0xFFFE;
-char full_y_skip[16] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+static uint8_t *spr_usage = NULL;
 
 int neogeo_fix_bank_type = 0;
 uint8_t *current_pal;
@@ -79,7 +69,6 @@ uint32_t *current_pc_pal;
 uint8_t *current_fix;
 uint8_t *fix_usage;
 unsigned current_line;
-uint8_t *spr_usage = NULL;
 uint8_t fix_board_usage[4096];
 uint8_t *fix_game_usage;
 VIDEO vid;
