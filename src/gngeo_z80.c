@@ -43,7 +43,7 @@ static uint8_t *mromdata = NULL;
 static size_t mromsize = 0;
 static uint8_t zram[SIZE_2K];
 static uint32_t zbank[4];
-static bool nmi_enabled = false;
+static unsigned nmi_enabled = 0;
 
 /* Z80 Memory Map
  * =====================================================================
@@ -194,7 +194,7 @@ static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
             break;
         }
         case 0x08: case 0x09: case 0x0a: case 0x0b: {
-            nmi_enabled = true;
+            nmi_enabled = 1;
             break;
         }
         case 0x0c: {
@@ -206,7 +206,7 @@ static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
             break;
         }
         case 0x18: {
-            nmi_enabled = false;
+            nmi_enabled = 0;
             break;
         }
         default: {
@@ -216,14 +216,14 @@ static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
     }
 }
 
+// Reset the Z80
 void gn_z80_reset(void) {
     z80_reset(&z80ctx);
-    nmi_enabled = false;
+    nmi_enabled = 0;
 }
 
+// Initialize the Z80
 void gn_z80_init(void) {
-    z80_init(&z80ctx);
-
     /* The NEO-ZMC initializes all banks to 0 (verified on hardware):
          https://wiki.neogeodev.org/index.php?title=Z80_bankswitching
        Some games did not do any bankswitching at all, so initial values are
@@ -235,29 +235,35 @@ void gn_z80_init(void) {
     zbank[2] = 0xe000;
     zbank[3] = 0xf000;
 
+    z80_init(&z80ctx);
     z80ctx.read_byte = &gn_z80_mem_rd;
     z80ctx.write_byte = &gn_z80_mem_wr;
     z80ctx.port_in = &gn_z80_port_rd;
     z80ctx.port_out = &gn_z80_port_wr;
 }
 
+// Run at least N Z80 cycles
 int gn_z80_run(unsigned cycs) {
     return z80_step_n(&z80ctx, cycs);
 }
 
+// Pulse the Z80 NMI line
 void gn_z80_nmi(void) {
     if (nmi_enabled)
         z80_pulse_nmi(&z80ctx);
 }
 
+// Assert the Z80 IRQ line
 void gn_z80_assert_irq(unsigned l) {
     z80_assert_irq(&z80ctx, l & 0xff);
 }
 
+// Clear the Z80 IRQ line
 void gn_z80_clear_irq(void) {
     z80_clr_irq(&z80ctx);
 }
 
+// Assign M ROM pointer and size
 void gn_z80_romdata(uint8_t *m, size_t msz) {
     mromdata = m;
     mromsize = msz;
