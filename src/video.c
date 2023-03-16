@@ -77,18 +77,14 @@ void video_set_buffer(uint32_t *ptr) {
     vbuf = ptr;
 }
 
-#define fix_add(x, y) ((((vid.ram[0x7500 + (((y-1)&31) + 32 * (x/6))] >> (5-(x%6))*2) & 3) ^ 3))
-
 /* Drawing function generation */
-#define RENAME(name) name##_tile
 #define PUTPIXEL(dst,src) dst=src
 
 /* Tile drawing template
-   use RENAME to set the name of the function
    use PUTPIXEL(dest,src) to set the putpixel function/macro
 */
 
-static inline void RENAME(draw_scanline)(unsigned int tileno,int yoffs,int sx,int line,int zx,
+static inline void draw_scanline_tile(unsigned int tileno,int yoffs,int sx,int line,int zx,
                                          int color,int xflip,unsigned char *bmp)
 {
     unsigned int *gfxdata,myword;
@@ -215,7 +211,6 @@ static inline void RENAME(draw_scanline)(unsigned int tileno,int yoffs,int sx,in
     }
 }
 
-#undef RENAME
 #undef PUTPIXEL
 
 static inline void draw_fix_char(unsigned char *buf, int start, int end) {
@@ -267,7 +262,7 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
                         byte1 += 0x1000 * (garouoffsets[(y - 2)&31] ^ 3);
                         break;
                     case 2:
-                        byte1 += 0x1000 * fix_add(x, y);
+                        byte1 += 0x1000 * ((((vid.ram[0x7500 + (((y-1)&31) + 32 * (x/6))] >> (5-(x%6))*2) & 3) ^ 3));
                         break;
                 }
             }
