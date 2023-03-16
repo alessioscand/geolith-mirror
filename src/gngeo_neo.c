@@ -223,11 +223,13 @@ int gn_neo_load(void *data, size_t size) {
             break;
         }
         case 269: { // SNK vs. Capcom - SVC Chaos
+            neogeo_fix_bank_type = 2;
             gn_m68k_pvc_init();
             gn_m68k_banksw_set(BANKSW_PVC);
             break;
         }
         case 271: { // KOF 2003
+            neogeo_fix_bank_type = 2;
             gn_m68k_pvc_init();
             gn_m68k_banksw_set(BANKSW_PVC);
             break;
