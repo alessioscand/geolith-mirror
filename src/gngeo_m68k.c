@@ -320,7 +320,7 @@ void gn_m68k_pvc_init(void) {
         cartram[i] = 0x00;
 }
 
-// Jockey Grand Prix
+// Jockey Grand Prix - Cartridge RAM mapped to 0x200000-0x201ffff
 static uint8_t gn_m68k_read_banksw_8_jockeygp(uint32_t addr) {
     return read08(cartram, addr & 0x1fff);
 }
@@ -330,17 +330,11 @@ static uint16_t gn_m68k_read_banksw_16_jockeygp(uint32_t addr) {
 }
 
 static void gn_m68k_write_banksw_8_jockeygp(uint32_t addr, uint8_t data) {
-    if (addr >= 0x2ffff0)
-        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
-    else
-        write08(cartram, addr & 0x1fff, data);
+    write08(cartram, addr & 0x1fff, data);
 }
 
 static void gn_m68k_write_banksw_16_jockeygp(uint32_t addr, uint16_t data) {
-    if (addr >= 0x2ffff0)
-        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
-    else
-        write16(cartram, addr & 0x1fff, data);
+    write16(cartram, addr & 0x1fff, data);
 }
 
 /* 68K Memory Map
@@ -891,7 +885,7 @@ void gn_m68k_banksw_set(unsigned swtype) {
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_pvc;
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_pvc;
             break;
-        case BANKSW_JGP: // Jockey GP
+        case BANKSW_JGP: // Jockey Grand Prix
             gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_jockeygp;
             gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_jockeygp;
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_jockeygp;
