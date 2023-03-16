@@ -353,7 +353,6 @@ static int convert_roms_tile(uint8_t *g, int tileno) {
     }
 
     return 0;
-
 }
 
 static void convert_all_tile(void) {
@@ -378,26 +377,23 @@ void convert_all_char(uint8_t *Ptr, int Taille, uint8_t *usage_ptr) {
     sav_src = Src;
     memcpy(Src, Ptr, Taille);
 
-#define CONVERT_TILE *Ptr++ = *(Src+16);\
-                 usage |= *(Src+16);\
-                     *Ptr++ = *(Src+24);\
-             usage |= *(Src+24);\
-             *Ptr++ = *(Src);\
-             usage |= *(Src);\
-             *Ptr++ = *(Src+8);\
-             usage |= *(Src+8);\
-             Src++;
-
     for (i = Taille; i > 0; i -= 32) {
         usage = 0;
         for (j = 0; j < 8; j++) {
-            CONVERT_TILE
+            *Ptr++ = *(Src+16);
+            usage |= *(Src+16);
+            *Ptr++ = *(Src+24);
+            usage |= *(Src+24);
+            *Ptr++ = *(Src);
+            usage |= *(Src);
+            *Ptr++ = *(Src+8);
+            usage |= *(Src+8);
+            Src++;
         }
         Src += 24;
         *usage_ptr++ = usage;
     }
     free(sav_src);
-#undef CONVERT_TILE
 }
 
 void mem68k_store_pal_word(uint32_t addr, uint16_t data) {
