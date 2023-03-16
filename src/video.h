@@ -23,9 +23,6 @@
 #ifndef _VIDEO_H_
 #define _VIDEO_H_
 
-#include <stdio.h>
-#include <stdint.h>
-
 #define PIXEL_PITCH 352
 #define RASTER_LINES 261
 
