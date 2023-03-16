@@ -45,6 +45,10 @@ typedef struct VIDEO {
     int16_t modulo;
 }VIDEO;
 
+extern VIDEO vid;
+extern uint8_t fix_board_usage[4096];
+extern uint8_t *fix_game_usage;
+
 extern unsigned int neogeo_frame_counter;
 
 extern uint8_t *current_pal;

@@ -55,16 +55,6 @@ enum gn_loglevel {
 
 #include "video.h"
 
-typedef struct neo_mem {
-    VIDEO vid;
-
-    uint8_t fix_board_usage[4096];
-    uint8_t *fix_game_usage;
-
-} neo_mem;
-
-extern neo_mem memory;
-
 int gn_bios_load(const char*);
 void gn_bios_unload(void);
 

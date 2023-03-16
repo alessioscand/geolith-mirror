@@ -424,11 +424,11 @@ unsigned int m68k_read_memory_8(unsigned int address) {
             }
             case 0x3c0000: case 0x3c0002: case 0x3c0008: case 0x3c000a: {
                 // REG_VRAMADDR, REG_VRAMRW, REG_TIMERHIGH, REG_TIMERLOW
-                return memory.vid.ram[memory.vid.vptr] & 0xff;
+                return vid.ram[vid.vptr] & 0xff;
             }
             case 0x3c0004: case 0x3c000c: {
                 // REG_VRAMMOD, REG_IRQACK
-                return memory.vid.modulo & 0xff;
+                return vid.modulo & 0xff;
             }
             case 0x3c0006: case 0x3c000e: {
                 /* REG_LSPCMODE, REG_TIMERSTOP
@@ -500,11 +500,11 @@ unsigned int m68k_read_memory_16(unsigned int address) {
             }
             case 0x3c0000: case 0x3c0002: case 0x3c0008: case 0x3c000a: {
                 // REG_VRAMADDR, REG_VRAMRW, REG_TIMERHIGH, REG_TIMERLOW
-                return memory.vid.ram[memory.vid.vptr];
+                return vid.ram[vid.vptr];
             }
             case 0x3c0004: case 0x3c000c: {
                 // REG_VRAMMOD, REG_IRQACK
-                return (uint16_t)memory.vid.modulo;
+                return (uint16_t)vid.modulo;
             }
             case 0x3c0006: case 0x3c000e: {
                 /* REG_LSPCMODE, REG_TIMERSTOP
@@ -629,8 +629,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             }
             case 0x3a000b: { // REG_BRDFIX
                 current_fix = sfixdata;
-                fix_usage = memory.fix_board_usage;
-                memory.vid.currentfix = 0;
+                fix_usage = fix_board_usage;
+                vid.currentfix = 0;
                 return;
             }
             case 0x3a000d: { // REG_SRAMLOCK
@@ -664,8 +664,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             }
             case 0x3a001b: { // REG_CRTFIX
                 current_fix = sromdata;
-                fix_usage = memory.fix_game_usage;
-                memory.vid.currentfix = 1;
+                fix_usage = fix_game_usage;
+                vid.currentfix = 1;
                 return;
             }
             case 0x3a001d: { // REG_SRAMUNLOCK
@@ -735,21 +735,21 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3c0000: { // REG_VRAMADDR
-                memory.vid.vptr = value & 0xffff;
+                vid.vptr = value & 0xffff;
                 return;
             }
             case 0x3c0002: { // REG_VRAMRW
                 // Write to VRAM (modulo is applied after)
-                memory.vid.ram[memory.vid.vptr] = value;
-                memory.vid.vptr += memory.vid.modulo;
-                memory.vid.vptr &= 0xffff;
+                vid.ram[vid.vptr] = value;
+                vid.vptr += vid.modulo;
+                vid.vptr &= 0xffff;
                 return;
             }
             case 0x3c0004: { // REG_VRAMMOD
                 /* Set the signed value automatically added to the VRAM address
                    after a write
                 */
-                memory.vid.modulo = ((int16_t)value);
+                vid.modulo = ((int16_t)value);
                 return;
             }
             case 0x3c0006: { // REG_LSPCMODE
@@ -759,7 +759,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                    Bit 3:     Disable auto animation
                    Bits 0-2:  Unused
                 */
-                memory.vid.fc_speed = (((value >> 8) & 0xff) + 1);
+                vid.fc_speed = (((value >> 8) & 0xff) + 1);
                 irq2_ctrl = value & 0xff;
                 return;
             }
@@ -898,10 +898,10 @@ void gn_m68k_postload(void) {
 
     if (gn_get_system() == SYSTEM_AES) {
         current_fix = sromdata;
-        fix_usage = memory.fix_game_usage;
+        fix_usage = fix_game_usage;
     }
     else {
         current_fix = sfixdata;
-        fix_usage = memory.fix_board_usage;
+        fix_usage = fix_board_usage;
     }
 }

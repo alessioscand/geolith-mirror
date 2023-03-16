@@ -32,8 +32,6 @@ extern int neogeo_fix_bank_type;
 unsigned int neogeo_frame_counter;
 uint32_t numtiles;
 
-uint8_t *spr_usage = NULL;
-
 static uint8_t *l0rom = NULL;
 
 static uint8_t *sromdata = NULL;
@@ -78,12 +76,16 @@ uint32_t *current_pc_pal;
 uint8_t *current_fix;
 uint8_t *fix_usage;
 unsigned current_line;
+uint8_t *spr_usage = NULL;
+uint8_t fix_board_usage[4096];
+uint8_t *fix_game_usage;
+VIDEO vid;
 
 void video_set_buffer(uint32_t *ptr) {
     vbuf = ptr;
 }
 
-#define fix_add(x, y) ((((memory.vid.ram[0x7500 + (((y-1)&31) + 32 * (x/6))] >> (5-(x%6))*2) & 3) ^ 3))
+#define fix_add(x, y) ((((vid.ram[0x7500 + (((y-1)&31) + 32 * (x/6))] >> (5-(x%6))*2) & 3) ^ 3))
 
 /* Drawing function generation */
 #define RENAME(name) name##_tile
@@ -109,10 +111,10 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
         y = 0;
 
         while (y < 32) {
-            if (memory.vid.ram[0x7500 + k] == 0x0200 &&
-                    (memory.vid.ram[0x7580 + k] & 0xff00) == 0xff00) {
+            if (vid.ram[0x7500 + k] == 0x0200 &&
+                    (vid.ram[0x7580 + k] & 0xff00) == 0xff00) {
 
-                garoubank = memory.vid.ram[0x7580 + k] & 3;
+                garoubank = vid.ram[0x7580 + k] & 3;
                 garouoffsets[y++] = garoubank;
             }
             garouoffsets[y++] = garoubank;
@@ -128,7 +130,7 @@ static inline void draw_fix_char(unsigned char *buf, int start, int end) {
 
     for (y = ystart; y < yend; y++) {
         for (x = 1; x < 39; x++) {
-            byte1 = memory.vid.ram[0x7000 + y + (x << 5)];
+            byte1 = vid.ram[0x7000 + y + (x << 5)];
             byte2 = byte1 >> 12;
             byte1 = byte1 & 0xfff;
 
@@ -291,9 +293,9 @@ void mem68k_store_pal_word(uint32_t addr, uint16_t data) {
 }
 
 void palette_set(int palnum) {
-    current_pal = memory.vid.pal_neo[palnum];
-    current_pc_pal = (uint32_t *) memory.vid.pal_host[palnum];
-    memory.vid.currentpal = palnum;
+    current_pal = vid.pal_neo[palnum];
+    current_pc_pal = (uint32_t *) vid.pal_host[palnum];
+    vid.currentpal = palnum;
 }
 
 void draw_bg(void) {
@@ -307,7 +309,7 @@ void draw_screen_scanline(int start_line, int refresh) {
     int offs, count, y;
     int tileno, tileatr;
     int tctl1, tctl2, tctl3;
-    uint16_t *vidram = memory.vid.ram;
+    uint16_t *vidram = vid.ram;
 
     int yy;
     int tile, yoffs;
@@ -436,10 +438,10 @@ void video_romdata(uint8_t *s, uint32_t ssz, uint8_t *c, uint32_t csz) {
     sromdata = s;
     sromsize = ssz;
 
-    if (memory.fix_game_usage)
-        free(memory.fix_game_usage);
-    memory.fix_game_usage = (uint8_t*)calloc(1, ssz >> 5);
-    convert_all_char(s, ssz, memory.fix_game_usage);
+    if (fix_game_usage)
+        free(fix_game_usage);
+    fix_game_usage = (uint8_t*)calloc(1, ssz >> 5);
+    convert_all_char(s, ssz, fix_game_usage);
 
     cromdata = c;
     cromsize = csz;
@@ -451,20 +453,20 @@ void video_romdata(uint8_t *s, uint32_t ssz, uint8_t *c, uint32_t csz) {
 }
 
 void video_fc_increment(void) {
-    if (memory.vid.fc >= memory.vid.fc_speed) {
-        memory.vid.fc = 0;
+    if (vid.fc >= vid.fc_speed) {
+        vid.fc = 0;
         ++neogeo_frame_counter;
     }
-    ++memory.vid.fc;
+    ++vid.fc;
 }
 
 void init_video(void) {
-    memory.vid.modulo = 1;
+    vid.modulo = 1;
 }
 
 void deinit_video(void) {
     if (spr_usage)
         free(spr_usage);
-    if (memory.fix_game_usage)
-        free(memory.fix_game_usage);
+    if (fix_game_usage)
+        free(fix_game_usage);
 }

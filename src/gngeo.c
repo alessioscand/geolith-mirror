@@ -58,8 +58,6 @@ static uint8_t *l0rom = NULL;
 static uint8_t *biosdata = NULL;
 static uint8_t *sfixdata = NULL;
 
-neo_mem memory;
-
 // Timer Interrupt (IRQ2)
 uint8_t irq2_ctrl = 0;
 uint32_t irq2_reload = 0;
@@ -186,7 +184,7 @@ int gn_bios_load(const char *biospath) {
         }
 
         // convert bios fix char
-        convert_all_char(sfixdata, 0x20000, memory.fix_board_usage);
+        convert_all_char(sfixdata, 0x20000, fix_board_usage);
     }
 
     gn_m68k_romdata_bios(biosdata, biossize, sfixdata, sfixsize);
