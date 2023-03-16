@@ -53,6 +53,9 @@ static size_t promsize = 0;
 static uint8_t *sromdata = NULL;
 static size_t sromsize = 0;
 
+// Main RAM
+static uint8_t ram[SIZE_64K];
+
 // Switchable bank offset address
 static uint32_t banksw_addr = 0;
 
@@ -73,7 +76,7 @@ static uint32_t *sma_offset;
 static uint8_t *sma_scramble;
 
 // NEO-PVC cartridge RAM
-static uint8_t pvcram[0x2000];
+static uint8_t pvcram[SIZE_8K];
 
 // Z80 command
 uint8_t sound_code;
@@ -359,7 +362,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
         address &= 0xffff;
-        return read08(memory.ram, address);
+        return read08(ram, address);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         return gn_m68k_read_banksw_8(address);
@@ -475,7 +478,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
         address &= 0xffff;
-        return read16(memory.ram, address);
+        return read16(ram, address);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         return gn_m68k_read_banksw_16(address);
@@ -553,7 +556,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
         address &= 0xffff;
-        write08(memory.ram, address, value & 0xff);
+        write08(ram, address, value & 0xff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         gn_m68k_write_banksw_8(address, value);
@@ -711,7 +714,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
         address &= 0xffff;
-        write16(memory.ram, address, value & 0xffff);
+        write16(ram, address, value & 0xffff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         gn_m68k_write_banksw_16(address, value);

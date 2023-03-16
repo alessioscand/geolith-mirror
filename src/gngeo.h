@@ -56,7 +56,6 @@ enum gn_loglevel {
 #include "video.h"
 
 typedef struct neo_mem {
-    uint8_t ram[0x10000];
     VIDEO vid;
 
     uint8_t fix_board_usage[4096];
