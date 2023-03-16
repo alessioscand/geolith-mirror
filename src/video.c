@@ -28,6 +28,8 @@
 #include "gngeo.h"
 #include "video.h"
 
+#define PIXEL_PITCH 352
+
 uint32_t *vbuf;
 extern int neogeo_fix_bank_type;
 unsigned int neogeo_frame_counter;

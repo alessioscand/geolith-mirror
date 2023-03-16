@@ -23,9 +23,6 @@
 #ifndef _VIDEO_H_
 #define _VIDEO_H_
 
-#define PIXEL_PITCH 352
-#define RASTER_LINES 261
-
 typedef struct VIDEO {
     /* Video Ram&Pal */
     uint16_t ram[0x10000];
@@ -63,8 +60,6 @@ void video_fc_increment(void);
 
 void init_video(void);
 void deinit_video(void);
-void debug_draw_tile(unsigned int tileno,int sx,int sy,int zx,int zy,
-             int color,int xflip,int yflip,unsigned char *bmp);
 void draw_bg(void);
 void draw_screen_scanline(int start_line, int refresh);
 
