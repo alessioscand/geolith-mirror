@@ -40,6 +40,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ymfm/ymfm_shim.h"
 
+#include "video.h"
+
 #define DIV_M68K 2
 #define DIV_Z80 6
 #define DIV_YM2610 72 // 72 for medium fidelity, 8 for high

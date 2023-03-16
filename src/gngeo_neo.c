@@ -42,6 +42,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ymfm/ymfm_shim.h"
 
+#include "video.h"
+
 extern int neogeo_fix_bank_type;
 
 static inline uint32_t bcd_decimal(uint32_t hex) {

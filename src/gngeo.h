@@ -61,8 +61,6 @@ enum gn_loglevel {
     GN_LOG_SCR
 };
 
-#include "video.h"
-
 int gn_bios_load(const char*);
 void gn_bios_unload(void);
 
