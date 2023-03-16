@@ -51,9 +51,9 @@ extern uint8_t *current_fix;
 extern uint8_t *fix_usage;
 extern unsigned current_line;
 
-void video_set_buffer(uint32_t *ptr);
+void video_set_buffer(uint32_t*);
 
-void video_set_l0rom(uint8_t *l0);
+void video_set_l0rom(uint8_t*);
 void video_romdata(uint8_t*, uint32_t, uint8_t*, uint32_t);
 
 void video_fc_increment(void);
@@ -61,11 +61,11 @@ void video_fc_increment(void);
 void init_video(void);
 void deinit_video(void);
 void draw_bg(void);
-void draw_screen_scanline(int start_line, int refresh);
+void draw_screen_scanline(int, int);
 
-void convert_all_char(uint8_t *Ptr, int Taille, uint8_t *usage_ptr);
+void convert_all_char(uint8_t*, int, uint8_t*);
 
-void mem68k_store_pal_word(uint32_t addr, uint16_t data);
-void palette_set(int palnum);
+void mem68k_store_pal_word(uint32_t, uint16_t);
+void palette_set(int);
 
 #endif
