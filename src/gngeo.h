@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SIZE_16K    0x004000
 #define SIZE_32K    0x008000
 #define SIZE_64K    0x010000
+#define SIZE_128K   0x020000
 
 #define SYSTEM_AES  0x00 // Console
 #define SYSTEM_MVS  0x01 // Arcade
@@ -97,8 +98,8 @@ extern uint8_t irq2_ctrl;
 extern uint32_t irq2_reload;
 extern uint32_t irq2_counter;
 
-extern uint8_t nvram[0x10000];
-extern uint8_t memcard[0x800];
+extern uint8_t nvram[SIZE_64K];
+extern uint8_t memcard[SIZE_2K];
 
 // 68K/Z80 Communication
 extern uint8_t sound_code;

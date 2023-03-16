@@ -73,8 +73,8 @@ static uint32_t irq2_frags = 0;
 static uint32_t irq2_dec = 0;
 
 // NVRAM and Memory Card
-uint8_t nvram[0x10000];
-uint8_t memcard[0x800];
+uint8_t nvram[SIZE_64K];
+uint8_t memcard[SIZE_2K];
 
 // Extra cycles stored at the end of scanlines/frames
 static uint32_t mextcycs = 0;
@@ -191,7 +191,7 @@ int gn_bios_load(const char *biospath) {
         }
 
         // convert bios fix char
-        convert_all_char(sfixdata, 0x20000, fix_board_usage);
+        convert_all_char(sfixdata, SIZE_128K, fix_board_usage);
     }
 
     gn_m68k_romdata_bios(biosdata, biossize, sfixdata, sfixsize);
@@ -224,7 +224,7 @@ int gn_memcard_load(const char *filename) {
     filesize = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    if (filesize != 0x800)
+    if (filesize != SIZE_2K)
         return 0;
 
     // Read the file into the system's NVRAM and then close it
@@ -244,7 +244,7 @@ int gn_memcard_save(const char *filename) {
         return 0;
 
     // Write and close the file
-    fwrite(nvram, 0x800, sizeof(uint8_t), file);
+    fwrite(nvram, SIZE_2K, sizeof(uint8_t), file);
     fclose(file);
 
     return 1; // Success!
@@ -268,7 +268,7 @@ int gn_nvram_load(const char *filename) {
     filesize = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    if (filesize != 0x10000)
+    if (filesize != SIZE_64K)
         return 0;
 
     // Read the file into the system's NVRAM and then close it
@@ -291,7 +291,7 @@ int gn_nvram_save(const char *filename) {
         return 0;
 
     // Write and close the file
-    fwrite(nvram, 0x10000, sizeof(uint8_t), file);
+    fwrite(nvram, SIZE_64K, sizeof(uint8_t), file);
     fclose(file);
 
     return 1; // Success!
