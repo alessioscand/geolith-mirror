@@ -210,6 +210,21 @@ int gn_neo_load(void *data, size_t size) {
             neogeo_fix_bank_type = 2;
             break;
         }
+        case 268: { // Metal Slug 5
+            gn_m68k_pvc_init();
+            gn_m68k_banksw_set(BANKSW_PVC);
+            break;
+        }
+        case 269: { // SNK vs. Capcom - SVC Chaos
+            gn_m68k_pvc_init();
+            gn_m68k_banksw_set(BANKSW_PVC);
+            break;
+        }
+        case 271: { // KOF 2003
+            gn_m68k_pvc_init();
+            gn_m68k_banksw_set(BANKSW_PVC);
+            break;
+        }
         default: {
             break;
         }

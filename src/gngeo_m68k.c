@@ -71,11 +71,17 @@ static uint32_t sma_addr = 0x00000000;
 static uint32_t *sma_offset;
 static uint8_t *sma_scramble;
 
+// NEO-PVC cartridge RAM
+static uint8_t pvcram[0x2000];
+
 // Z80 command
 uint8_t sound_code;
 uint8_t result_code;
 
-// Function pointer for 16-bit bankswitches
+// Function pointers for handling switchable bank area
+static uint8_t (*gn_m68k_read_banksw_8)(uint32_t);
+static uint16_t (*gn_m68k_read_banksw_16)(uint32_t);
+static void (*gn_m68k_write_banksw_8)(uint32_t, uint8_t);
 static void (*gn_m68k_write_banksw_16)(uint32_t, uint16_t);
 
 static inline uint16_t parity(uint16_t v) {
@@ -115,13 +121,33 @@ static inline void write16(uint8_t *ptr, uint32_t addr, uint16_t data) {
     ptr[addr] = data >> 8;
 }
 
+static inline void write16be(uint8_t *ptr, uint32_t addr, uint16_t data) {
+    ptr[addr] = data & 0xff;
+    ptr[addr + 1] = data >> 8;
+}
+
 static inline void swapb16_range(void *ptr, size_t len) {
     uint16_t *x = (uint16_t*)ptr;
     for (size_t i = 0; i < len >> 1; ++i)
         x[i] = (x[i] << 8) | (x[i] >> 8);
 }
 
-// Default Bankswitch routine
+// Default Switchable Bank Routines
+static uint8_t gn_m68k_read_banksw_8_default(uint32_t addr) {
+    return read08(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static uint16_t gn_m68k_read_banksw_16_default(uint32_t addr) {
+    return read16(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static void gn_m68k_write_banksw_8_default(uint32_t addr, uint8_t data) {
+    if (addr >= 0x2ffff0)
+        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
+    else
+        gn_log(GN_LOG_WRN, "8-bit write at %06x\n", addr);
+}
+
 static void gn_m68k_write_banksw_16_default(uint32_t addr, uint16_t data) {
     if (addr >= 0x2ffff0)
         banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
@@ -129,8 +155,30 @@ static void gn_m68k_write_banksw_16_default(uint32_t addr, uint16_t data) {
         gn_log(GN_LOG_WRN, "16-bit write at %06x\n", addr);
 }
 
-// NEO-SMA Scrambled Bankswitch
-static void gn_m68k_write_banksw_sma(uint32_t addr, uint16_t data) {
+// NEO-SMA Switchable Bank Routines
+static uint8_t gn_m68k_read_banksw_8_sma(uint32_t addr) {
+    // Read SMA Chip Presence
+    if (addr == 0x2fe446)
+        return 0x37; // Always return this value for SMA presence
+    else if (addr == 0x2fe447)
+        return 0x9a; // Always return this value for SMA presence
+    else if (addr == sma_prn_addr[0] || addr == sma_prn_addr[1])
+        return gn_m68k_prn_read() & 0xff;
+
+    return read08(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static uint16_t gn_m68k_read_banksw_16_sma(uint32_t addr) {
+    // Read SMA Chip Presence at 0x2fe447 - mask bit 0 for 16-bit reads
+    if (addr == 0x2fe446)
+        return 0x9a37; // Always return this value for SMA presence
+    else if (addr == sma_prn_addr[0] || addr == sma_prn_addr[1])
+        return gn_m68k_prn_read();
+
+    return read16(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static void gn_m68k_write_banksw_16_sma(uint32_t addr, uint16_t data) {
     /* If the NEO-SMA bankswitch address is written to, the data must be
        unscrambled. A 6-bit bank value is derived by shifting the original
        value by 6 Lookup Table (LUT) entries, and then ORing the least
@@ -151,6 +199,127 @@ static void gn_m68k_write_banksw_sma(uint32_t addr, uint16_t data) {
         */
         banksw_addr = (0x100000 + sma_offset[unscrambled]) & 0xffffff;
     }
+}
+
+// Set the SMA LUTs and pseudo-random number generator read addresses
+void gn_m68k_sma_init(uint32_t *a, uint32_t *b, uint8_t *s) {
+    sma_prn_addr[0] = a[0];
+    sma_prn_addr[1] = a[1];
+    sma_addr = a[2];
+    sma_offset = b;
+    sma_scramble = s;
+}
+
+// NEO-PVC Switchable Bank Routines
+
+/* PVC Palette Protection Packing/Unpacking
+   Colour data may be packed or unpacked. Packed values are 16-bit while
+   unpacked values are 32-bit. No data is lost packing or unpacking, as a byte
+   is used to store R, G, B, (5 bits) and D (1 bit) each. Packing simply merges
+   the data into a 16-bit value with no space wasted.
+
+   Packed Format:
+   DrgbRRRR GGGGBBBB
+
+   Unpacked Format:
+   0000000D 000RRRRr 000GGGGg 000BBBBb
+*/
+
+// Unpack a value from 0x2fffe0 to 0x2fffe2 and 0x2fffe4
+static inline void gn_m68k_pvc_unpack(void) {
+    uint8_t d = pvcram[0x1fe1] >> 7; // 0000 000D
+    uint8_t r = // 000R RRRr
+        ((pvcram[0x1fe1] & 0x40) >> 6) | ((pvcram[0x1fe1] & 0x0f) << 1);
+    uint8_t g = // 000G GGGg
+        ((pvcram[0x1fe1] & 0x20) >> 5) | ((pvcram[0x1fe0] & 0xf0) >> 3);
+    uint8_t b = // 000B BBBb
+        ((pvcram[0x1fe1] & 0x10) >> 4) | ((pvcram[0x1fe0] & 0x0f) << 1);
+
+    pvcram[0x1fe5] = d;
+    pvcram[0x1fe4] = r;
+    pvcram[0x1fe3] = g;
+    pvcram[0x1fe2] = b;
+}
+
+// Pack a value from 0x2fffe8 and 0x2fffea to 0x2fffec
+static inline void gn_m68k_pvc_pack(void) {
+    uint8_t d = pvcram[0x1feb] & 0x01;
+    uint8_t r = pvcram[0x1fea] & 0x1f;
+    uint8_t g = pvcram[0x1fe9] & 0x1f;
+    uint8_t b = pvcram[0x1fe8] & 0x1f;
+
+    pvcram[0x1fec] = (b >> 1) | ((g & 0x1e) << 3); // GGGG BBBB
+    pvcram[0x1fed] = (r >> 1) | ((b & 0x01) << 4) | ((g & 0x01) << 5) |
+        ((r & 0x01) << 6) | (d << 7); // Drgb RRRR
+}
+
+// Swap Banks (PVC)
+static inline void gn_m68k_pvc_bankswap(void) {
+    /* The offset into ROM for the Switchable Bank Area is a 24-bit value:
+       0x2ffff2 is used for the upper 16 bits, and the most significant byte of
+       0x2ffff0 is used for the lower 8 bits. This is again offset by 0x100000.
+       The magic numbers applied after calculating the bank offset come from
+       both FB Neo and MAME - further information is seemingly unavailable.
+    */
+    uint32_t bankaddress =
+        (pvcram[0x1ff3] << 16) | (pvcram[0x1ff2] << 8) | pvcram[0x1ff1];
+
+    pvcram[0x1ff0] = 0xa0;
+    pvcram[0x1ff1] &= 0xfe;
+    pvcram[0x1ff3] &= 0x7f;
+
+    banksw_addr = (bankaddress + 0x100000) & 0xffffff;
+}
+
+static uint8_t gn_m68k_read_banksw_8_pvc(uint32_t addr) {
+    if (addr >= 0x2fe000)
+        return pvcram[(addr & 0x1fff) ^ 1];
+
+    return read08(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static uint16_t gn_m68k_read_banksw_16_pvc(uint32_t addr) {
+    if (addr >= 0x2fe000)
+        return read16be(pvcram, addr & 0x1fff);
+
+    return read16(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static void gn_m68k_write_banksw_8_pvc(uint32_t addr, uint8_t data) {
+    if (addr >= 0x2fe000)
+        write08(pvcram, (addr & 0x1fff) ^ 1, data & 0xff);
+
+    if (addr >= 0x2fffe0 && addr <= 0x2fffe3) { // Unpack
+        gn_m68k_pvc_unpack();
+    }
+    else if (addr >= 0x2fffe8 && addr <= 0x2fffeb) { // Pack
+        gn_m68k_pvc_pack();
+    }
+    else if (addr >= 0x2ffff0 && addr <= 0x2ffff3) { // Bankswap
+        gn_m68k_pvc_bankswap();
+    }
+}
+
+static void gn_m68k_write_banksw_16_pvc(uint32_t addr, uint16_t data) {
+    if (addr >= 0x2fe000)
+        write16be(pvcram, addr & 0x1fff, data & 0xffff);
+
+    if (addr >= 0x2fffe0 && addr <= 0x2fffe3) {
+        gn_m68k_pvc_unpack();
+    }
+    else if (addr >= 0x2fffe8 && addr <= 0x2fffeb) {
+        gn_m68k_pvc_pack();
+    }
+    else if (addr >= 0x2ffff0 && addr <= 0x2ffff3) {
+        gn_m68k_pvc_bankswap();
+    }
+}
+
+// Set up NEO-PVC
+void gn_m68k_pvc_init(void) {
+    // Zero the memory - should this be randomized instead?
+    for (size_t i = 0; i < 0x2000; ++i)
+        pvcram[i] = 0x00;
 }
 
 /* 68K Memory Map
@@ -198,17 +367,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         return read08(memory.ram, address);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        if (sma_scramble) {
-            // Read SMA Chip Presence
-            if (address == 0x2fe446)
-                return 0x37; // Always return this value for SMA presence
-            else if (address == 0x2fe447)
-                return 0x9a; // Always return this value for SMA presence
-            else if (address == sma_prn_addr[0] || address == sma_prn_addr[1])
-                return gn_m68k_prn_read() & 0xff;
-        }
-        address &= 0xfffff;
-        return read08(promdata, address + banksw_addr);
+        return gn_m68k_read_banksw_8(address);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch (address) {
@@ -324,15 +483,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         return read16(memory.ram, address);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        if (sma_scramble) {
-            // Read SMA Chip Presence at 0x2fe447 - mask bit 0 for 16-bit reads
-            if (address == 0x2fe446)
-                return 0x9a37; // Always return this value for SMA presence
-            else if (address == sma_prn_addr[0] || address == sma_prn_addr[1])
-                return gn_m68k_prn_read();
-        }
-        address &= 0xfffff;
-        return read16(promdata, address + banksw_addr);
+        return gn_m68k_read_banksw_16(address);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch (address) {
@@ -410,10 +561,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
         write08(memory.ram, address, value & 0xff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        if (address >= 0x2ffff0)
-            banksw_addr = ((value * 0x100000) + 0x100000) & 0xffffff;
-        else
-            gn_log(GN_LOG_WRN, "8-bit write at %06x\n", address);
+        gn_m68k_write_banksw_8(address, value);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch (address) {
@@ -711,21 +859,24 @@ int gn_m68k_int_ack(int level) {
 void gn_m68k_banksw_set(unsigned swtype) {
     switch (swtype) {
         case BANKSW_SMA: // NEO-SMA Bankswitching
-            gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_sma;
+            gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_sma;
+            gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_sma;
+            gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_default;
+            gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_sma;
+            break;
+        case BANKSW_PVC: // NEO-PVC Bankswitching
+            gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_pvc;
+            gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_pvc;
+            gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_pvc;
+            gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_pvc;
             break;
         default: // Default
+            gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_default;
+            gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_default;
+            gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_default;
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_default;
             break;
     }
-}
-
-// Set the SMA LUTs and pseudo-random number generator read addresses
-void gn_m68k_sma_init(uint32_t *a, uint32_t *b, uint8_t *s) {
-    sma_prn_addr[0] = a[0];
-    sma_prn_addr[1] = a[1];
-    sma_addr = a[2];
-    sma_offset = b;
-    sma_scramble = s;
 }
 
 void gn_m68k_romdata_bios(uint8_t *p, size_t psz, uint8_t *s, size_t ssz) {

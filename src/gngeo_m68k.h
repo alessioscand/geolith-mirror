@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define BANKSW_DEF  0x00 // Default
 #define BANKSW_SMA  0x01 // NEO-SMA
+#define BANKSW_PVC  0x02 // NEO-PVC
 
 #define VECTOR_TABLE_BIOS   0x00
 #define VECTOR_TABLE_CART   0x01
@@ -55,6 +56,7 @@ void gn_m68k_interrupt(unsigned);
 
 void gn_m68k_banksw_set(unsigned);
 void gn_m68k_sma_init(uint32_t*, uint32_t*, uint8_t*);
+void gn_m68k_pvc_init(void);
 
 void gn_m68k_romdata_bios(uint8_t*, size_t, uint8_t*, size_t);
 void gn_m68k_romdata_game(uint8_t*, size_t, uint8_t*, size_t);
