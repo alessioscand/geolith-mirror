@@ -59,11 +59,9 @@ static uint32_t banksw_addr = 0;
 // Vector Table currently in use
 static uint8_t vectable = VECTOR_TABLE_BIOS;
 
-// SRAM Lock
-static uint8_t nvram_lock;
-
-// DIP Switches
-static uint8_t reg_dipsw = 0;
+// Registers
+static uint8_t reg_sramlock = 0; // SRAM Lock
+static uint8_t reg_dipsw = 0; // DIP Switches
 
 // NEO-SMA Pseudo-Random Number addresses
 static uint32_t sma_prn_addr[2] = { 0, 0 };
@@ -193,7 +191,7 @@ static void gn_m68k_write_banksw_16_sma(uint32_t addr, uint16_t data) {
     if (addr == sma_addr) {
         uint8_t unscrambled = 0;
 
-        for (unsigned i = 0; i < 6; ++i)
+        for (size_t i = 0; i < 6; ++i)
             unscrambled |= (((data >> sma_scramble[i]) & 0x01) << i);
 
         /* A 64 entry LUT is used to determine the offset into P ROM. The
@@ -292,30 +290,24 @@ static void gn_m68k_write_banksw_8_pvc(uint32_t addr, uint8_t data) {
     if (addr >= 0x2fe000)
         write08(pvcram, (addr & 0x1fff) ^ 1, data & 0xff);
 
-    if (addr >= 0x2fffe0 && addr <= 0x2fffe3) { // Unpack
+    if (addr >= 0x2fffe0 && addr <= 0x2fffe3) // Unpack
         gn_m68k_pvc_unpack();
-    }
-    else if (addr >= 0x2fffe8 && addr <= 0x2fffeb) { // Pack
+    else if (addr >= 0x2fffe8 && addr <= 0x2fffeb) // Pack
         gn_m68k_pvc_pack();
-    }
-    else if (addr >= 0x2ffff0 && addr <= 0x2ffff3) { // Bankswap
+    else if (addr >= 0x2ffff0 && addr <= 0x2ffff3) // Bankswap
         gn_m68k_pvc_bankswap();
-    }
 }
 
 static void gn_m68k_write_banksw_16_pvc(uint32_t addr, uint16_t data) {
     if (addr >= 0x2fe000)
         write16be(pvcram, addr & 0x1fff, data & 0xffff);
 
-    if (addr >= 0x2fffe0 && addr <= 0x2fffe3) {
+    if (addr >= 0x2fffe0 && addr <= 0x2fffe3) // Unpack
         gn_m68k_pvc_unpack();
-    }
-    else if (addr >= 0x2fffe8 && addr <= 0x2fffeb) {
+    else if (addr >= 0x2fffe8 && addr <= 0x2fffeb) // Pack
         gn_m68k_pvc_pack();
-    }
-    else if (addr >= 0x2ffff0 && addr <= 0x2ffff3) {
+    else if (addr >= 0x2ffff0 && addr <= 0x2ffff3) // Bankswap
         gn_m68k_pvc_bankswap();
-    }
 }
 
 // Set up NEO-PVC
@@ -639,7 +631,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a000d: { // REG_SRAMLOCK
-                nvram_lock = 1;
+                reg_sramlock = 1;
                 return;
             }
             case 0x3a000f: { // REG_PALBANK1
@@ -674,7 +666,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a001d: { // REG_SRAMUNLOCK
-                nvram_lock = 0;
+                reg_sramlock = 0;
                 return;
             }
             case 0x3a001f: { // REG_PALBANK0
@@ -705,7 +697,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        if (!nvram_lock)
+        if (!reg_sramlock)
             nvram[address & 0xffff] = value;
     }
 }
@@ -816,7 +808,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        if (!nvram_lock)
+        if (!reg_sramlock)
             write16(nvram, address & 0xffff, value);
     }
 }
@@ -829,7 +821,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 void gn_m68k_reset(void) {
     m68k_pulse_reset();
     sma_prn = 0x2345;
-    nvram_lock = 0;
+    reg_sramlock = 0;
 
     if (promsize > 0x100000)
         banksw_addr = 0x100000;
