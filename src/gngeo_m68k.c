@@ -62,6 +62,9 @@ static uint8_t vectable = VECTOR_TABLE_BIOS;
 // SRAM Lock
 static uint8_t nvram_lock;
 
+// DIP Switches
+static uint8_t reg_dipsw = 0;
+
 // NEO-SMA Pseudo-Random Number addresses
 static uint32_t sma_prn_addr[2] = { 0, 0 };
 static uint16_t sma_prn = 0x2345; // Pseudo-random number initial value

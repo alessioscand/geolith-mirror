@@ -60,8 +60,6 @@ static uint8_t *sfixdata = NULL;
 
 neo_mem memory;
 
-uint8_t reg_dipsw = 0;
-
 // Timer Interrupt (IRQ2)
 uint8_t irq2_ctrl = 0;
 uint32_t irq2_reload = 0;

@@ -94,8 +94,6 @@ extern void (*gn_log)(int, const char *, ...);
 extern unsigned (*gn_input_cb[NUMINPUTS_NG])(unsigned);
 extern unsigned (*gn_input_stat_cb[NUMINPUTS_NG])(void);
 
-extern uint8_t reg_dipsw;
-
 void gn_watchdog_reset(void);
 
 // Timer Interrupt (IRQ2)
