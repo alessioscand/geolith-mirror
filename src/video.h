@@ -58,7 +58,6 @@ void video_romdata(uint8_t*, uint32_t, uint8_t*, uint32_t);
 
 void video_fc_increment(void);
 
-void init_video(void);
 void deinit_video(void);
 void draw_bg(void);
 void draw_screen_scanline(int, int);
