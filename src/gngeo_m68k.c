@@ -56,6 +56,9 @@ static size_t sromsize = 0;
 // Main RAM
 static uint8_t ram[SIZE_64K];
 
+// Cartridge RAM
+static uint8_t cartram[SIZE_8K];
+
 // Switchable bank offset address
 static uint32_t banksw_addr = 0;
 
@@ -74,9 +77,6 @@ static uint16_t sma_prn = 0x2345; // Pseudo-random number initial value
 static uint32_t sma_addr = 0x00000000;
 static uint32_t *sma_offset;
 static uint8_t *sma_scramble;
-
-// NEO-PVC cartridge RAM
-static uint8_t pvcram[SIZE_8K];
 
 // Z80 command
 uint8_t sound_code;
@@ -231,29 +231,29 @@ void gn_m68k_sma_init(uint32_t *a, uint32_t *b, uint8_t *s) {
 
 // Unpack a value from 0x2fffe0 to 0x2fffe2 and 0x2fffe4
 static inline void gn_m68k_pvc_unpack(void) {
-    uint8_t d = pvcram[0x1fe1] >> 7; // 0000 000D
+    uint8_t d = cartram[0x1fe1] >> 7; // 0000 000D
     uint8_t r = // 000R RRRr
-        ((pvcram[0x1fe1] & 0x40) >> 6) | ((pvcram[0x1fe1] & 0x0f) << 1);
+        ((cartram[0x1fe1] & 0x40) >> 6) | ((cartram[0x1fe1] & 0x0f) << 1);
     uint8_t g = // 000G GGGg
-        ((pvcram[0x1fe1] & 0x20) >> 5) | ((pvcram[0x1fe0] & 0xf0) >> 3);
+        ((cartram[0x1fe1] & 0x20) >> 5) | ((cartram[0x1fe0] & 0xf0) >> 3);
     uint8_t b = // 000B BBBb
-        ((pvcram[0x1fe1] & 0x10) >> 4) | ((pvcram[0x1fe0] & 0x0f) << 1);
+        ((cartram[0x1fe1] & 0x10) >> 4) | ((cartram[0x1fe0] & 0x0f) << 1);
 
-    pvcram[0x1fe5] = d;
-    pvcram[0x1fe4] = r;
-    pvcram[0x1fe3] = g;
-    pvcram[0x1fe2] = b;
+    cartram[0x1fe5] = d;
+    cartram[0x1fe4] = r;
+    cartram[0x1fe3] = g;
+    cartram[0x1fe2] = b;
 }
 
 // Pack a value from 0x2fffe8 and 0x2fffea to 0x2fffec
 static inline void gn_m68k_pvc_pack(void) {
-    uint8_t d = pvcram[0x1feb] & 0x01;
-    uint8_t r = pvcram[0x1fea] & 0x1f;
-    uint8_t g = pvcram[0x1fe9] & 0x1f;
-    uint8_t b = pvcram[0x1fe8] & 0x1f;
+    uint8_t d = cartram[0x1feb] & 0x01;
+    uint8_t r = cartram[0x1fea] & 0x1f;
+    uint8_t g = cartram[0x1fe9] & 0x1f;
+    uint8_t b = cartram[0x1fe8] & 0x1f;
 
-    pvcram[0x1fec] = (b >> 1) | ((g & 0x1e) << 3); // GGGG BBBB
-    pvcram[0x1fed] = (r >> 1) | ((b & 0x01) << 4) | ((g & 0x01) << 5) |
+    cartram[0x1fec] = (b >> 1) | ((g & 0x1e) << 3); // GGGG BBBB
+    cartram[0x1fed] = (r >> 1) | ((b & 0x01) << 4) | ((g & 0x01) << 5) |
         ((r & 0x01) << 6) | (d << 7); // Drgb RRRR
 }
 
@@ -266,32 +266,32 @@ static inline void gn_m68k_pvc_bankswap(void) {
        both FB Neo and MAME - further information is seemingly unavailable.
     */
     uint32_t bankaddress =
-        (pvcram[0x1ff3] << 16) | (pvcram[0x1ff2] << 8) | pvcram[0x1ff1];
+        (cartram[0x1ff3] << 16) | (cartram[0x1ff2] << 8) | cartram[0x1ff1];
 
-    pvcram[0x1ff0] = 0xa0;
-    pvcram[0x1ff1] &= 0xfe;
-    pvcram[0x1ff3] &= 0x7f;
+    cartram[0x1ff0] = 0xa0;
+    cartram[0x1ff1] &= 0xfe;
+    cartram[0x1ff3] &= 0x7f;
 
     banksw_addr = (bankaddress + 0x100000) & 0xffffff;
 }
 
 static uint8_t gn_m68k_read_banksw_8_pvc(uint32_t addr) {
     if (addr >= 0x2fe000)
-        return pvcram[(addr & 0x1fff) ^ 1];
+        return cartram[(addr & 0x1fff) ^ 1];
 
     return read08(promdata, (addr & 0xfffff) + banksw_addr);
 }
 
 static uint16_t gn_m68k_read_banksw_16_pvc(uint32_t addr) {
     if (addr >= 0x2fe000)
-        return read16be(pvcram, addr & 0x1fff);
+        return read16be(cartram, addr & 0x1fff);
 
     return read16(promdata, (addr & 0xfffff) + banksw_addr);
 }
 
 static void gn_m68k_write_banksw_8_pvc(uint32_t addr, uint8_t data) {
     if (addr >= 0x2fe000)
-        write08(pvcram, (addr & 0x1fff) ^ 1, data & 0xff);
+        write08(cartram, (addr & 0x1fff) ^ 1, data & 0xff);
 
     if (addr >= 0x2fffe0 && addr <= 0x2fffe3) // Unpack
         gn_m68k_pvc_unpack();
@@ -303,7 +303,7 @@ static void gn_m68k_write_banksw_8_pvc(uint32_t addr, uint8_t data) {
 
 static void gn_m68k_write_banksw_16_pvc(uint32_t addr, uint16_t data) {
     if (addr >= 0x2fe000)
-        write16be(pvcram, addr & 0x1fff, data & 0xffff);
+        write16be(cartram, addr & 0x1fff, data & 0xffff);
 
     if (addr >= 0x2fffe0 && addr <= 0x2fffe3) // Unpack
         gn_m68k_pvc_unpack();
@@ -317,7 +317,30 @@ static void gn_m68k_write_banksw_16_pvc(uint32_t addr, uint16_t data) {
 void gn_m68k_pvc_init(void) {
     // Zero the memory - should this be randomized instead?
     for (size_t i = 0; i < 0x2000; ++i)
-        pvcram[i] = 0x00;
+        cartram[i] = 0x00;
+}
+
+// Jockey Grand Prix
+static uint8_t gn_m68k_read_banksw_8_jockeygp(uint32_t addr) {
+    return read08(cartram, addr & 0x1fff);
+}
+
+static uint16_t gn_m68k_read_banksw_16_jockeygp(uint32_t addr) {
+    return read16(cartram, addr & 0x1fff);
+}
+
+static void gn_m68k_write_banksw_8_jockeygp(uint32_t addr, uint8_t data) {
+    if (addr >= 0x2ffff0)
+        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
+    else
+        write08(cartram, addr & 0x1fff, data);
+}
+
+static void gn_m68k_write_banksw_16_jockeygp(uint32_t addr, uint16_t data) {
+    if (addr >= 0x2ffff0)
+        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
+    else
+        write16(cartram, addr & 0x1fff, data);
 }
 
 /* 68K Memory Map
@@ -867,6 +890,12 @@ void gn_m68k_banksw_set(unsigned swtype) {
             gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_pvc;
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_pvc;
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_pvc;
+            break;
+        case BANKSW_JGP: // Jockey GP
+            gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_jockeygp;
+            gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_jockeygp;
+            gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_jockeygp;
+            gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_jockeygp;
             break;
         default: // Default
             gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_default;

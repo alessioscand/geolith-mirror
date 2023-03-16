@@ -153,6 +153,11 @@ int gn_neo_load(void *data, size_t size) {
 
     // Handle special cases if necessary
     switch (ngh) {
+        case 8: { // Jockey Grand Prix
+            gn_m68k_pvc_init(); // For Cart RAM, FIXME
+            gn_m68k_banksw_set(BANKSW_JGP);
+            break;
+        }
         case 151: case 251: { // KOF 99
             if (size_prom > 0x500000) { // Encrypted
                 gn_m68k_sma_init(sma_addr_kof99, sma_bank_kof99,
