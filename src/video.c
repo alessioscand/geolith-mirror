@@ -77,13 +77,6 @@ void video_set_buffer(uint32_t *ptr) {
     vbuf = ptr;
 }
 
-/* Drawing function generation */
-#define PUTPIXEL(dst,src) dst=src
-
-/* Tile drawing template
-   use PUTPIXEL(dest,src) to set the putpixel function/macro
-*/
-
 static inline void draw_scanline_tile(unsigned int tileno,int yoffs,int sx,int line,int zx,
                                          int color,int xflip,unsigned char *bmp)
 {
@@ -109,24 +102,24 @@ static inline void draw_scanline_tile(unsigned int tileno,int yoffs,int sx,int l
 #endif
 
             myword = gfxdata[1];
-            col=(myword>>0)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
-            col=(myword>>4)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
-            col=(myword>>8)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
-            col=(myword>>12)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
-            col=(myword>>16)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
-            col=(myword>>20)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
-            col=(myword>>24)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
-            col=(myword>>28)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
+            col=(myword>>0)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>4)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>8)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>12)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>16)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>20)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>24)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>28)&0xf; if (col) *br=paldata[col]; br++;
 
             myword = gfxdata[0];
-            col=(myword>>0)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
-            col=(myword>>4)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
-            col=(myword>>8)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
-            col=(myword>>12)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
-            col=(myword>>16)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
-            col=(myword>>20)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
-            col=(myword>>24)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
-            col=(myword>>28)&0xf; if (col) PUTPIXEL(*br,paldata[col]); br++;
+            col=(myword>>0)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>4)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>8)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>12)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>16)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>20)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>24)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>28)&0xf; if (col) *br=paldata[col]; br++;
         }else {
 #ifdef DEBUG_VIDEO
             br= (uint32_t *)bmp+(line)*(512+32)+sx;
@@ -134,24 +127,24 @@ static inline void draw_scanline_tile(unsigned int tileno,int yoffs,int sx,int l
             br= (uint32_t *)bmp+(line)*pixel_pitch+sx;
 #endif
             myword = gfxdata[0];
-            col=(myword>>28)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
-            col=(myword>>24)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
-            col=(myword>>20)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
-            col=(myword>>16)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
-            col=(myword>>12)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
-            col=(myword>>8)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
-            col=(myword>>4)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
-            col=(myword>>0)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
+            col=(myword>>28)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>24)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>20)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>16)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>12)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>8)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>4)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>0)&0xf; if (col) *br=paldata[col]; br++;
 
             myword = gfxdata[1];
-            col=(myword>>28)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
-            col=(myword>>24)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
-            col=(myword>>20)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
-            col=(myword>>16)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
-            col=(myword>>12)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
-            col=(myword>>8)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
-            col=(myword>>4)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
-            col=(myword>>0)&0xf; if (col) PUTPIXEL(*br,paldata[col]);br++;
+            col=(myword>>28)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>24)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>20)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>16)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>12)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>8)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>4)&0xf; if (col) *br=paldata[col]; br++;
+            col=(myword>>0)&0xf; if (col) *br=paldata[col]; br++;
         }
     }else { // zx!=16
         if (xflip) {
@@ -161,24 +154,24 @@ static inline void draw_scanline_tile(unsigned int tileno,int yoffs,int sx,int l
             br= (uint32_t *)bmp+(line)*pixel_pitch+sx;
 #endif
             myword = gfxdata[1];
-            if (dda_x_skip[ 0]) {if  ((col=((myword>>0)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 1]) {if  ((col=((myword>>4)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 2]) {if  ((col=((myword>>8)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 3]) {if  ((col=((myword>>12)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 4]) {if  ((col=((myword>>16)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 5]) {if  ((col=((myword>>20)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 6]) {if  ((col=((myword>>24)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 7]) {if  ((col=((myword>>28)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
+            if (dda_x_skip[ 0]) {if  ((col=((myword>>0)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 1]) {if  ((col=((myword>>4)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 2]) {if  ((col=((myword>>8)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 3]) {if  ((col=((myword>>12)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 4]) {if  ((col=((myword>>16)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 5]) {if  ((col=((myword>>20)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 6]) {if  ((col=((myword>>24)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 7]) {if  ((col=((myword>>28)&0xf))) *br=paldata[col]; br++;}
 
             myword = gfxdata[0];
-            if (dda_x_skip[ 8]) {if  ((col=((myword>>0)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 9]) {if  ((col=((myword>>4)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[10]) {if  ((col=((myword>>8)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[11]) {if  ((col=((myword>>12)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[12]) {if  ((col=((myword>>16)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[13]) {if  ((col=((myword>>20)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[14]) {if  ((col=((myword>>24)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[15]) {if  ((col=((myword>>28)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
+            if (dda_x_skip[ 8]) {if  ((col=((myword>>0)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 9]) {if  ((col=((myword>>4)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[10]) {if  ((col=((myword>>8)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[11]) {if  ((col=((myword>>12)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[12]) {if  ((col=((myword>>16)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[13]) {if  ((col=((myword>>20)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[14]) {if  ((col=((myword>>24)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[15]) {if  ((col=((myword>>28)&0xf))) *br=paldata[col]; br++;}
 
         }else {
 #ifdef DEBUG_VIDEO
@@ -188,30 +181,28 @@ static inline void draw_scanline_tile(unsigned int tileno,int yoffs,int sx,int l
 #endif
 
             myword = gfxdata[0];
-            if (dda_x_skip[ 0]) {if ((col=((myword>>28)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 1]) {if ((col=((myword>>24)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 2]) {if ((col=((myword>>20)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 3]) {if ((col=((myword>>16)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 4]) {if ((col=((myword>>12)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 5]) {if ((col=((myword>>8)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 6]) {if ((col=((myword>>4)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 7]) {if ((col=((myword>>0)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
+            if (dda_x_skip[ 0]) {if ((col=((myword>>28)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 1]) {if ((col=((myword>>24)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 2]) {if ((col=((myword>>20)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 3]) {if ((col=((myword>>16)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 4]) {if ((col=((myword>>12)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 5]) {if ((col=((myword>>8)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 6]) {if ((col=((myword>>4)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 7]) {if ((col=((myword>>0)&0xf))) *br=paldata[col]; br++;}
 
             myword = gfxdata[1];
-            if (dda_x_skip[ 8]) {if ((col=((myword>>28)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[ 9]) {if ((col=((myword>>24)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[10]) {if ((col=((myword>>20)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[11]) {if ((col=((myword>>16)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[12]) {if ((col=((myword>>12)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[13]) {if ((col=((myword>>8)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[14]) {if ((col=((myword>>4)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
-            if (dda_x_skip[15]) {if ((col=((myword>>0)&0xf))) PUTPIXEL(*br,paldata[col]);br++;}
+            if (dda_x_skip[ 8]) {if ((col=((myword>>28)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[ 9]) {if ((col=((myword>>24)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[10]) {if ((col=((myword>>20)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[11]) {if ((col=((myword>>16)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[12]) {if ((col=((myword>>12)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[13]) {if ((col=((myword>>8)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[14]) {if ((col=((myword>>4)&0xf))) *br=paldata[col]; br++;}
+            if (dda_x_skip[15]) {if ((col=((myword>>0)&0xf))) *br=paldata[col]; br++;}
 
         }
     }
 }
-
-#undef PUTPIXEL
 
 static inline void draw_fix_char(unsigned char *buf, int start, int end) {
     unsigned int *gfxdata, myword;
