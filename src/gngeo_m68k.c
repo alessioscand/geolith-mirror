@@ -78,6 +78,10 @@ static uint32_t sma_addr = 0x00000000;
 static uint32_t *sma_offset;
 static uint8_t *sma_scramble;
 
+// Metal Slug X Protection
+static uint16_t mslugx_command = 0;
+static uint16_t mslugx_counter = 0;
+
 // Z80 command
 uint8_t sound_code;
 uint8_t result_code;
@@ -320,7 +324,7 @@ void gn_m68k_pvc_init(void) {
         cartram[i] = 0x00;
 }
 
-// Jockey Grand Prix - Cartridge RAM mapped to 0x200000-0x201ffff
+// Jockey Grand Prix - Cartridge RAM mapped to 0x200000-0x201fff
 static uint8_t gn_m68k_read_banksw_8_jockeygp(uint32_t addr) {
     return read08(cartram, addr & 0x1fff);
 }
@@ -335,6 +339,69 @@ static void gn_m68k_write_banksw_8_jockeygp(uint32_t addr, uint8_t data) {
 
 static void gn_m68k_write_banksw_16_jockeygp(uint32_t addr, uint16_t data) {
     write16(cartram, addr & 0x1fff, data);
+}
+
+// Metal Slug X - Challenge/Response Protection
+/* There is no real documentation available on this beyond the code, but the
+   same code is used in any emulators supporting this board type without dirty
+   soft patching. It's magic!
+*/
+static uint16_t gn_m68k_read_banksw_16_mslugx(uint32_t addr) {
+    if (addr >= 0x2fffe0 && addr <= 0x2fffef) {
+        switch (mslugx_command) {
+            case 0x0001: {
+                uint16_t ret =
+                    (read08(promdata, 0xdedd2 + ((mslugx_counter >> 3) & 0xfff))
+                    >> (~mslugx_counter & 0x07)) & 0x0001;
+                ++mslugx_counter;
+                return ret;
+            }
+            case 0x0fff: {
+                int32_t select = read16(ram, 0xf00a) - 1;
+                return (read08(promdata, 0xdedd2 + ((select >> 3) & 0x0fff))
+                    >> (~select & 0x07)) & 0x0001;
+            }
+            default: {
+                gn_log(GN_LOG_WRN, "mslugx read: %06x\n", addr);
+                break;
+            }
+        }
+    }
+
+    return read16(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static void gn_m68k_write_banksw_16_mslugx(uint32_t addr, uint16_t data) {
+    if (addr >= 0x2fffe0 && addr <= 0x2fffef) {
+        switch (addr) {
+            case 0x2fffe0: {
+                mslugx_command = 0;
+                break;
+            }
+            case 0x2fffe2: case 0x2fffe4: {
+                mslugx_command |= data;
+                break;
+            }
+            case 0x2fffe6: {
+                break;
+            }
+            case 0x2fffea: {
+                mslugx_command = 0;
+                mslugx_counter = 0;
+                break;
+            }
+            default: {
+                gn_log(GN_LOG_WRN, "mslugx write: %06x, %04x\n", addr, data);
+                break;
+            }
+        }
+    }
+    else if (addr >= 0x2ffff0) {
+        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
+    }
+    else {
+        gn_log(GN_LOG_WRN, "16-bit write at %06x\n", addr);
+    }
 }
 
 /* 68K Memory Map
@@ -885,11 +952,17 @@ void gn_m68k_banksw_set(unsigned swtype) {
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_pvc;
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_pvc;
             break;
-        case BANKSW_JGP: // Jockey Grand Prix
+        case BANKSW_JOCKEYGP: // Jockey Grand Prix
             gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_jockeygp;
             gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_jockeygp;
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_jockeygp;
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_jockeygp;
+            break;
+        case BANKSW_MSLUGX: // Metal Slug X
+            gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_default;
+            gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_mslugx;
+            gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_default;
+            gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_mslugx;
             break;
         default: // Default
             gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_default;

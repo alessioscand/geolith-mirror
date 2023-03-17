@@ -31,10 +31,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef GN_M68K_H
 #define GN_M68K_H
 
-#define BANKSW_DEF  0x00 // Default
-#define BANKSW_SMA  0x01 // NEO-SMA
-#define BANKSW_PVC  0x02 // NEO-PVC
-#define BANKSW_JGP  0x03 // Jockey Grand Prix
+#define BANKSW_DEF      0x00 // Default
+#define BANKSW_SMA      0x01 // NEO-SMA
+#define BANKSW_PVC      0x02 // NEO-PVC
+#define BANKSW_JOCKEYGP 0x03 // Jockey Grand Prix
+#define BANKSW_MSLUGX   0x04 // Metal Slug X
 
 #define VECTOR_TABLE_BIOS   0x00
 #define VECTOR_TABLE_CART   0x01

@@ -155,7 +155,11 @@ int gn_neo_load(void *data, size_t size) {
     switch (ngh) {
         case 8: { // Jockey Grand Prix
             gn_m68k_pvc_init(); // For Cart RAM, FIXME
-            gn_m68k_banksw_set(BANKSW_JGP);
+            gn_m68k_banksw_set(BANKSW_JOCKEYGP);
+            break;
+        }
+        case 250: { // Metal Slug X
+            gn_m68k_banksw_set(BANKSW_MSLUGX);
             break;
         }
         case 151: case 251: { // KOF 99
