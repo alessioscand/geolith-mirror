@@ -404,6 +404,16 @@ static void gn_m68k_write_banksw_16_mslugx(uint32_t addr, uint16_t data) {
     }
 }
 
+// Metal Slug 5 Plus (bootleg)
+/* Shift the data left 16 when 16-bit writes to 0x2ffff4 occur to get the new
+   switchable bank address offset. Simple. Everything else about the board is
+   the typical behaviour.
+*/
+static void gn_m68k_write_banksw_16_ms5plus(uint32_t addr, uint16_t data) {
+    if (addr == 0x2ffff4)
+        banksw_addr = data << 16;
+}
+
 /* 68K Memory Map
  * =====================================================================
  * |    Address Range    | Size |             Description              |
@@ -963,6 +973,12 @@ void gn_m68k_banksw_set(unsigned swtype) {
             gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_mslugx;
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_default;
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_mslugx;
+            break;
+        case BANKSW_MS5PLUS: // Metal Slug 5 Plus (bootleg)
+            gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_default;
+            gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_default;
+            gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_default;
+            gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_ms5plus;
             break;
         default: // Default
             gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_default;

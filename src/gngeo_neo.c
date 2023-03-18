@@ -222,8 +222,14 @@ int gn_neo_load(void *data, size_t size) {
             break;
         }
         case 268: { // Metal Slug 5
-            gn_m68k_pvc_init();
-            gn_m68k_banksw_set(BANKSW_PVC);
+            // Use heuristics to detect Metal Slug 5 Plus (bootleg)
+            if (romdata[0x1000 + 0x26b] == 0xb9) {
+                gn_m68k_banksw_set(BANKSW_MS5PLUS);
+            }
+            else {
+                gn_m68k_pvc_init();
+                gn_m68k_banksw_set(BANKSW_PVC);
+            }
             break;
         }
         case 269: { // SNK vs. Capcom - SVC Chaos

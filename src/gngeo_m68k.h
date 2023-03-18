@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define BANKSW_PVC      0x02 // NEO-PVC
 #define BANKSW_JOCKEYGP 0x03 // Jockey Grand Prix
 #define BANKSW_MSLUGX   0x04 // Metal Slug X
+#define BANKSW_MS5PLUS  0x05 // Metal Slug 5 Plus (bootleg)
 
 #define VECTOR_TABLE_BIOS   0x00
 #define VECTOR_TABLE_CART   0x01
