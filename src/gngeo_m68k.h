@@ -59,7 +59,6 @@ void gn_m68k_interrupt(unsigned);
 
 void gn_m68k_banksw_set(unsigned);
 void gn_m68k_sma_init(uint32_t*, uint32_t*, uint8_t*);
-void gn_m68k_pvc_init(void);
 
 void gn_m68k_romdata_bios(uint8_t*, size_t, uint8_t*, size_t);
 void gn_m68k_romdata_game(uint8_t*, size_t, uint8_t*, size_t);

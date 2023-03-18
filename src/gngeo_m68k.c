@@ -317,13 +317,6 @@ static void gn_m68k_write_banksw_16_pvc(uint32_t addr, uint16_t data) {
         gn_m68k_pvc_bankswap();
 }
 
-// Set up NEO-PVC
-void gn_m68k_pvc_init(void) {
-    // Zero the memory - should this be randomized instead?
-    for (size_t i = 0; i < 0x2000; ++i)
-        cartram[i] = 0x00;
-}
-
 // Jockey Grand Prix - Cartridge RAM mapped to 0x200000-0x201fff
 static uint8_t gn_m68k_read_banksw_8_jockeygp(uint32_t addr) {
     return read08(cartram, addr & 0x1fff);
@@ -455,8 +448,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         return read08(promdata, address);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
-        address &= 0xffff;
-        return read08(ram, address);
+        return read08(ram, address & 0xffff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         return gn_m68k_read_banksw_8(address);
@@ -550,12 +542,10 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         return memcard[(address >> 1) & 0x7ff];
     }
     else if (address < 0xd00000) { // BIOS ROM
-        address &= 0x1ffff;
-        return read08(biosdata, address);
+        return read08(biosdata, address & 0x1ffff);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        address &= 0xffff;
-        return read08(nvram, address);
+        return read08(nvram, address & 0xffff);
     }
 
     gn_log(GN_LOG_WRN, "Unknown 8-bit 68K Read at %06x\n", address);
@@ -571,8 +561,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         return read16(promdata, address);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
-        address &= 0xffff;
-        return read16(ram, address);
+        return read16(ram, address & 0xffff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         return gn_m68k_read_banksw_16(address);
@@ -624,12 +613,10 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         return memcard[(address >> 1) & 0x7ff] | 0xff00;
     }
     else if (address < 0xd00000) { // BIOS ROM
-        address &= 0x1ffff;
-        return read16(biosdata, address);
+        return read16(biosdata, address & 0x1ffff);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        address &= 0xffff;
-        return read16(nvram, address);
+        return read16(nvram, address & 0xffff);
     }
 
     gn_log(GN_LOG_WRN, "Unknown 16-bit 68K Read at %06x\n", address);
@@ -649,8 +636,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
-        address &= 0xffff;
-        write08(ram, address, value & 0xff);
+        write08(ram, address & 0xffff, value & 0xff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         gn_m68k_write_banksw_8(address, value);
@@ -807,8 +793,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
-        address &= 0xffff;
-        write16(ram, address, value & 0xffff);
+        write16(ram, address & 0xffff, value & 0xffff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
         gn_m68k_write_banksw_16(address, value);
@@ -930,6 +915,10 @@ void gn_m68k_init(void) {
     // Initialize the 68K CPU
     m68k_init();
     m68k_set_cpu_type(M68K_CPU_TYPE_68000);
+
+    // Zero the cartridge memory - should this be randomized instead?
+    for (size_t i = 0; i < 0x2000; ++i)
+        cartram[i] = 0x00;
 }
 
 int gn_m68k_run(unsigned cycs) {
