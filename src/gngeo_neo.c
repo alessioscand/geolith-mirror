@@ -229,8 +229,15 @@ int gn_neo_load(void *data, size_t size) {
             break;
         }
         case 269: { // SNK vs. Capcom - SVC Chaos
-            neogeo_fix_bank_type = 2;
-            gn_m68k_banksw_set(BANKSW_PVC);
+            /* The official release, SNK vs. Capcom (bootleg), and
+               SNK vs. Capcom Super Plus use the NEO-PVC. The official release
+               also uses Fix Bankswitching Type 2 (per-tile banking). The other
+               known bootlegs use neither.
+            */
+            if (romdata[0x1000 + 0x3d25] == 0xc4) // Official Release Only
+                neogeo_fix_bank_type = 2;
+            if (romdata[0x1000 + 0x2f8f] == 0xc0)
+                gn_m68k_banksw_set(BANKSW_PVC);
             break;
         }
         case 271: { // KOF 2003
