@@ -59,6 +59,9 @@ static uint8_t ram[SIZE_64K];
 // Cartridge RAM
 static uint8_t cartram[SIZE_8K];
 
+// Cartridge Register (general purpose usage)
+static uint8_t cartreg = 0;
+
 // Switchable bank offset address
 static uint32_t banksw_addr = 0;
 
@@ -431,6 +434,35 @@ static void gn_m68k_write_banksw_16_kf2k3bla(uint32_t addr, uint16_t data) {
         gn_m68k_pvc_pack();
     else if (addr >= 0x2ffff0 && addr <= 0x2ffff3) // Bankswap
         gn_m68k_kf2k3bla_bankswap();
+}
+
+// Linkable Multiplayer Boards
+/* Some boards could be daisy-chained using a 3.5mm stereo jack cable to allow
+   multiple systems to be linked together for special multiplayer modes.
+   Information about this seems lacking but some initial research was done by
+   FB Neo, which allows enough faking of the functionality to allow Riding Hero
+   to run correctly in AES single cartridge mode.
+   League Bowling, Riding Hero, and Thrash Rally are known to have this option.
+*/
+static uint8_t gn_m68k_read_banksw_8_linkable(uint32_t addr) {
+    if (addr == 0x200000) {
+        cartreg ^= 0x08;
+        return cartreg;
+    }
+    else if (addr == 0x200001) {
+        return 0;
+    }
+
+    return read08(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static void gn_m68k_write_banksw_8_linkable(uint32_t addr, uint8_t data) {
+    if (addr >= 0x2ffff0)
+        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
+    else if (addr == 0x200001)
+        return; // More research is required
+    else
+        gn_log(GN_LOG_WRN, "8-bit write at %06x\n", addr);
 }
 
 /* 68K Memory Map
@@ -945,6 +977,9 @@ void gn_m68k_init(void) {
     // Zero the cartridge memory - should this be randomized instead?
     for (size_t i = 0; i < 0x2000; ++i)
         cartram[i] = 0x00;
+
+    // Zero the cartridge register (most games do not use this)
+    cartreg = 0;
 }
 
 int gn_m68k_run(unsigned cycs) {
@@ -1000,6 +1035,12 @@ void gn_m68k_board_set(unsigned btype) {
             gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_pvc;
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_pvc;
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_kf2k3bla;
+            break;
+        case BOARD_LINKABLE: // Riding Hero
+            gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_linkable;
+            gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_default;
+            gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_linkable;
+            gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_default;
             break;
         default: // Default
             gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_default;

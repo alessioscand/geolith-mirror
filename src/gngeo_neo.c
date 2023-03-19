@@ -153,6 +153,11 @@ int gn_neo_load(void *data, size_t size) {
 
     // Handle special cases if necessary
     switch (ngh) {
+        case 6: case 19: case 38: {
+            // Riding Hero, League Bowling, Thrash Rally
+            gn_m68k_board_set(BOARD_LINKABLE);
+            break;
+        }
         case 8: { // Jockey Grand Prix
             gn_m68k_board_set(BOARD_JOCKEYGP);
             break;

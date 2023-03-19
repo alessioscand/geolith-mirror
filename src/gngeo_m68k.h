@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define BOARD_MSLUGX    0x04 // Metal Slug X
 #define BOARD_MS5PLUS   0x05 // Metal Slug 5 Plus (bootleg)
 #define BOARD_KF2K3BLA  0x06 // The King of Fighters 2003 (bootleg set 2)
+#define BOARD_LINKABLE  0x07 // Linkable Multiplayer Boards
 
 #define VECTOR_TABLE_BIOS   0x00
 #define VECTOR_TABLE_CART   0x01
