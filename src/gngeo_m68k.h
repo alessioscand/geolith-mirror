@@ -31,13 +31,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef GN_M68K_H
 #define GN_M68K_H
 
-#define BANKSW_DEF      0x00 // Default
-#define BANKSW_SMA      0x01 // NEO-SMA
-#define BANKSW_PVC      0x02 // NEO-PVC
-#define BANKSW_JOCKEYGP 0x03 // Jockey Grand Prix
-#define BANKSW_MSLUGX   0x04 // Metal Slug X
-#define BANKSW_MS5PLUS  0x05 // Metal Slug 5 Plus (bootleg)
-#define BANKSW_KF2K3BLA 0x06 // The King of Fighters 2003 (bootleg set 2)
+#define BOARD_DEF       0x00 // Default
+#define BOARD_SMA       0x01 // NEO-SMA
+#define BOARD_PVC       0x02 // NEO-PVC
+#define BOARD_JOCKEYGP  0x03 // Jockey Grand Prix
+#define BOARD_MSLUGX    0x04 // Metal Slug X
+#define BOARD_MS5PLUS   0x05 // Metal Slug 5 Plus (bootleg)
+#define BOARD_KF2K3BLA  0x06 // The King of Fighters 2003 (bootleg set 2)
 
 #define VECTOR_TABLE_BIOS   0x00
 #define VECTOR_TABLE_CART   0x01
@@ -58,7 +58,7 @@ int gn_m68k_run(unsigned);
 
 void gn_m68k_interrupt(unsigned);
 
-void gn_m68k_banksw_set(unsigned);
+void gn_m68k_board_set(unsigned);
 void gn_m68k_sma_init(uint32_t*, uint32_t*, uint8_t*);
 
 void gn_m68k_romdata_bios(uint8_t*, size_t, uint8_t*, size_t);

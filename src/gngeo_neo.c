@@ -149,23 +149,23 @@ int gn_neo_load(void *data, size_t size) {
     gn_m68k_postload();
 
     // Set default bankswitching
-    gn_m68k_banksw_set(BANKSW_DEF);
+    gn_m68k_board_set(BOARD_DEF);
 
     // Handle special cases if necessary
     switch (ngh) {
         case 8: { // Jockey Grand Prix
-            gn_m68k_banksw_set(BANKSW_JOCKEYGP);
+            gn_m68k_board_set(BOARD_JOCKEYGP);
             break;
         }
         case 250: { // Metal Slug X
-            gn_m68k_banksw_set(BANKSW_MSLUGX);
+            gn_m68k_board_set(BOARD_MSLUGX);
             break;
         }
         case 151: case 251: { // KOF 99
             if (size_prom > 0x500000) { // Encrypted
                 gn_m68k_sma_init(sma_addr_kof99, sma_bank_kof99,
                     sma_scramble_kof99);
-                gn_m68k_banksw_set(BANKSW_SMA);
+                gn_m68k_board_set(BOARD_SMA);
             }
             break;
         }
@@ -176,12 +176,12 @@ int gn_neo_load(void *data, size_t size) {
             if (romdata[0xc1000 + 0x3e481] == 0x9f) { // NEO-SMA KE (AES)
                 gn_m68k_sma_init(sma_addr_garouh, sma_bank_garouh,
                     sma_scramble_garouh);
-                gn_m68k_banksw_set(BANKSW_SMA);
+                gn_m68k_board_set(BOARD_SMA);
             }
             else if (romdata[0xc1000 + 0x3e481] == 0x41) { // NEO-SMA KF (MVS)
                 gn_m68k_sma_init(sma_addr_garou, sma_bank_garou,
                     sma_scramble_garou);
-                gn_m68k_banksw_set(BANKSW_SMA);
+                gn_m68k_board_set(BOARD_SMA);
             }
             // Bootleg and Prototype don't have protection
             break;
@@ -192,13 +192,13 @@ int gn_neo_load(void *data, size_t size) {
             if (size_prom > 0x500000) { // Encrypted
                 gn_m68k_sma_init(sma_addr_mslug3, sma_bank_mslug3,
                     sma_scramble_mslug3);
-                gn_m68k_banksw_set(BANKSW_SMA);
+                gn_m68k_board_set(BOARD_SMA);
             }
             // FIXME: Support mslug3a
             /*else if (mslug3a) {
                 gn_m68k_sma_init(sma_addr_mslug3a, sma_bank_mslug3a,
                     sma_scramble_mslug3a);
-                gn_m68k_banksw_set(BANKSW_SMA);
+                gn_m68k_board_set(BOARD_SMA);
             }*/
             break;
         }
@@ -208,7 +208,7 @@ int gn_neo_load(void *data, size_t size) {
             if (size_prom > 0x500000) { // Encrypted
                 gn_m68k_sma_init(sma_addr_kof2000, sma_bank_kof2000,
                     sma_scramble_kof2000);
-                gn_m68k_banksw_set(BANKSW_SMA);
+                gn_m68k_board_set(BOARD_SMA);
             }
             break;
         }
@@ -223,9 +223,9 @@ int gn_neo_load(void *data, size_t size) {
         case 268: { // Metal Slug 5
             // Use heuristics to detect Metal Slug 5 Plus (bootleg)
             if (romdata[0x1000 + 0x26b] == 0xb9)
-                gn_m68k_banksw_set(BANKSW_MS5PLUS);
+                gn_m68k_board_set(BOARD_MS5PLUS);
             else
-                gn_m68k_banksw_set(BANKSW_PVC);
+                gn_m68k_board_set(BOARD_PVC);
             break;
         }
         case 269: { // SNK vs. Capcom - SVC Chaos
@@ -237,16 +237,16 @@ int gn_neo_load(void *data, size_t size) {
             if (romdata[0x1000 + 0x3d25] == 0xc4) // Official Release Only
                 neogeo_fix_bank_type = 2;
             if (romdata[0x1000 + 0x2f8f] == 0xc0)
-                gn_m68k_banksw_set(BANKSW_PVC);
+                gn_m68k_board_set(BOARD_PVC);
             break;
         }
         case 271: { // KOF 2003
             if (romdata[0x1000 + 0xc1] == 0x38) { // Official Release
                 neogeo_fix_bank_type = 2;
-                gn_m68k_banksw_set(BANKSW_PVC);
+                gn_m68k_board_set(BOARD_PVC);
             }
             else if (romdata[0x1000 + 0x689] == 0x10) { // kf2k3bla/kf2k3pl
-                gn_m68k_banksw_set(BANKSW_KF2K3BLA);
+                gn_m68k_board_set(BOARD_KF2K3BLA);
             }
             else {
                 // FIXME - implement kf2k3bl and kf2k3upl

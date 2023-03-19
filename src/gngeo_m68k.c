@@ -963,39 +963,39 @@ int gn_m68k_int_ack(int level) {
     return M68K_INT_ACK_AUTOVECTOR;
 }
 
-void gn_m68k_banksw_set(unsigned swtype) {
-    switch (swtype) {
-        case BANKSW_SMA: // NEO-SMA Bankswitching
+void gn_m68k_board_set(unsigned btype) {
+    switch (btype) {
+        case BOARD_SMA: // NEO-SMA Bankswitching
             gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_sma;
             gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_sma;
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_default;
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_sma;
             break;
-        case BANKSW_PVC: // NEO-PVC Bankswitching
+        case BOARD_PVC: // NEO-PVC Bankswitching
             gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_pvc;
             gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_pvc;
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_pvc;
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_pvc;
             break;
-        case BANKSW_JOCKEYGP: // Jockey Grand Prix
+        case BOARD_JOCKEYGP: // Jockey Grand Prix
             gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_jockeygp;
             gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_jockeygp;
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_jockeygp;
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_jockeygp;
             break;
-        case BANKSW_MSLUGX: // Metal Slug X
+        case BOARD_MSLUGX: // Metal Slug X
             gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_default;
             gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_mslugx;
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_default;
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_mslugx;
             break;
-        case BANKSW_MS5PLUS: // Metal Slug 5 Plus (bootleg)
+        case BOARD_MS5PLUS: // Metal Slug 5 Plus (bootleg)
             gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_default;
             gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_default;
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_default;
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_ms5plus;
             break;
-        case BANKSW_KF2K3BLA: // The King of Fighters 2003 (bootleg 2)
+        case BOARD_KF2K3BLA: // The King of Fighters 2003 (bootleg 2)
             gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_pvc;
             gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_pvc;
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_pvc;
