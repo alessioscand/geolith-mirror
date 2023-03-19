@@ -407,6 +407,32 @@ static void gn_m68k_write_banksw_16_ms5plus(uint32_t addr, uint16_t data) {
         banksw_addr = data << 16;
 }
 
+// The King of Fighters 2003 (bootleg 2) and The King of Fighters 2004 Plus
+/* This is merely a variation on the regular NEO-PVC bank swapping. All logic
+   beyond 16-bit writes which result in a bankswap are equivalent to NEO-PVC.
+*/
+static inline void gn_m68k_kf2k3bla_bankswap(void) {
+    uint32_t bankaddress =
+        (cartram[0x1ff3] << 16) | (cartram[0x1ff2] << 8) | cartram[0x1ff0];
+
+    cartram[0x1ff0] &= 0xfe;
+    cartram[0x1ff3] &= 0x7f;
+
+    banksw_addr = (bankaddress + 0x100000) & 0xffffff;
+}
+
+static void gn_m68k_write_banksw_16_kf2k3bla(uint32_t addr, uint16_t data) {
+    if (addr >= 0x2fe000)
+        write16be(cartram, addr & 0x1fff, data & 0xffff);
+
+    if (addr >= 0x2fffe0 && addr <= 0x2fffe3) // Unpack
+        gn_m68k_pvc_unpack();
+    else if (addr >= 0x2fffe8 && addr <= 0x2fffeb) // Pack
+        gn_m68k_pvc_pack();
+    else if (addr >= 0x2ffff0 && addr <= 0x2ffff3) // Bankswap
+        gn_m68k_kf2k3bla_bankswap();
+}
+
 /* 68K Memory Map
  * =====================================================================
  * |    Address Range    | Size |             Description              |
@@ -968,6 +994,12 @@ void gn_m68k_banksw_set(unsigned swtype) {
             gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_default;
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_default;
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_ms5plus;
+            break;
+        case BANKSW_KF2K3BLA: // The King of Fighters 2003 (bootleg 2)
+            gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_pvc;
+            gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_pvc;
+            gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_pvc;
+            gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_kf2k3bla;
             break;
         default: // Default
             gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_default;

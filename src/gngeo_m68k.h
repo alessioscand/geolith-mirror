@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define BANKSW_JOCKEYGP 0x03 // Jockey Grand Prix
 #define BANKSW_MSLUGX   0x04 // Metal Slug X
 #define BANKSW_MS5PLUS  0x05 // Metal Slug 5 Plus (bootleg)
+#define BANKSW_KF2K3BLA 0x06 // The King of Fighters 2003 (bootleg set 2)
 
 #define VECTOR_TABLE_BIOS   0x00
 #define VECTOR_TABLE_CART   0x01

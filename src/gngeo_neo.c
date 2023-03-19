@@ -241,8 +241,16 @@ int gn_neo_load(void *data, size_t size) {
             break;
         }
         case 271: { // KOF 2003
-            neogeo_fix_bank_type = 2;
-            gn_m68k_banksw_set(BANKSW_PVC);
+            if (romdata[0x1000 + 0xc1] == 0x38) { // Official Release
+                neogeo_fix_bank_type = 2;
+                gn_m68k_banksw_set(BANKSW_PVC);
+            }
+            else if (romdata[0x1000 + 0x689] == 0x10) { // kf2k3bla/kf2k3pl
+                gn_m68k_banksw_set(BANKSW_KF2K3BLA);
+            }
+            else {
+                // FIXME - implement kf2k3bl and kf2k3upl
+            }
             break;
         }
         default: {
