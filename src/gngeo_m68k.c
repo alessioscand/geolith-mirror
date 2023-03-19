@@ -59,8 +59,8 @@ static uint8_t ram[SIZE_64K];
 // Cartridge RAM
 static uint8_t cartram[SIZE_8K];
 
-// Cartridge Register (general purpose usage)
-static uint8_t cartreg = 0;
+// Cartridge Registers (general purpose usage)
+static uint16_t cartreg[2]= { 0, 0 };
 
 // Switchable bank offset address
 static uint32_t banksw_addr = 0;
@@ -80,10 +80,6 @@ static uint16_t sma_prn = 0x2345; // Pseudo-random number initial value
 static uint32_t sma_addr = 0x00000000;
 static uint32_t *sma_offset;
 static uint8_t *sma_scramble;
-
-// Metal Slug X Protection
-static uint16_t mslugx_command = 0;
-static uint16_t mslugx_counter = 0;
 
 // Z80 command
 uint8_t sound_code;
@@ -342,14 +338,15 @@ static void gn_m68k_write_banksw_16_jockeygp(uint32_t addr, uint16_t data) {
    same code is used in any emulators supporting this board type without dirty
    soft patching. It's magic!
 */
+// cartreg[0] is the "command" register, cartreg[1] is the "counter" register
 static uint16_t gn_m68k_read_banksw_16_mslugx(uint32_t addr) {
     if (addr >= 0x2fffe0 && addr <= 0x2fffef) {
-        switch (mslugx_command) {
+        switch (cartreg[0]) {
             case 0x0001: {
                 uint16_t ret =
-                    (read08(promdata, 0xdedd2 + ((mslugx_counter >> 3) & 0xfff))
-                    >> (~mslugx_counter & 0x07)) & 0x0001;
-                ++mslugx_counter;
+                    (read08(promdata, 0xdedd2 + ((cartreg[1] >> 3) & 0xfff))
+                    >> (~cartreg[1] & 0x07)) & 0x0001;
+                ++cartreg[1];
                 return ret;
             }
             case 0x0fff: {
@@ -371,19 +368,19 @@ static void gn_m68k_write_banksw_16_mslugx(uint32_t addr, uint16_t data) {
     if (addr >= 0x2fffe0 && addr <= 0x2fffef) {
         switch (addr) {
             case 0x2fffe0: {
-                mslugx_command = 0;
+                cartreg[0] = 0;
                 break;
             }
             case 0x2fffe2: case 0x2fffe4: {
-                mslugx_command |= data;
+                cartreg[0] |= data;
                 break;
             }
             case 0x2fffe6: {
                 break;
             }
             case 0x2fffea: {
-                mslugx_command = 0;
-                mslugx_counter = 0;
+                cartreg[0] = 0;
+                cartreg[1] = 0;
                 break;
             }
             default: {
@@ -446,8 +443,8 @@ static void gn_m68k_write_banksw_16_kf2k3bla(uint32_t addr, uint16_t data) {
 */
 static uint8_t gn_m68k_read_banksw_8_linkable(uint32_t addr) {
     if (addr == 0x200000) {
-        cartreg ^= 0x08;
-        return cartreg;
+        cartreg[0] ^= 0x08;
+        return cartreg[0];
     }
     else if (addr == 0x200001) {
         return 0;
@@ -978,8 +975,8 @@ void gn_m68k_init(void) {
     for (size_t i = 0; i < 0x2000; ++i)
         cartram[i] = 0x00;
 
-    // Zero the cartridge register (most games do not use this)
-    cartreg = 0;
+    // Zero the cartridge registers (most games do not use these)
+    cartreg[0] = cartreg[1] = 0;
 }
 
 int gn_m68k_run(unsigned cycs) {
