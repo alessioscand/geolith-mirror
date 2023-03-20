@@ -126,7 +126,7 @@ int gn_get_system(void) {
 
 int gn_bios_load(const char *biospath) {
     const char *biosrom;
-    size_t biossize, sfixsize;
+    size_t biossize, sfixsize = 0;
 
     mz_zip_archive zip_archive;
     memset(&zip_archive, 0, sizeof(zip_archive));
