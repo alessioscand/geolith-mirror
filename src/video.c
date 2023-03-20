@@ -307,7 +307,7 @@ static int convert_roms_tile(uint8_t *g, int tileno) {
     unsigned char swap[128];
     unsigned int *gfxdata;
     int x, y;
-    unsigned int pen, usage = 0;
+    unsigned int pen = 0;
     gfxdata = (uint32_t*) & g[tileno << 7];
 
     memcpy(swap, gfxdata, 128);
@@ -325,7 +325,6 @@ static int convert_roms_tile(uint8_t *g, int tileno) {
             //if (!pen) filed=0;
             dw |= pen << ((7 - x) << 2);
             //memory.pen_usage[tileno]  |= (1 << pen);
-            usage |= (1 << pen);
         }
         *(gfxdata++) = dw;
 
@@ -338,7 +337,6 @@ static int convert_roms_tile(uint8_t *g, int tileno) {
             //if (!pen) filed=0;
             dw |= pen << ((7 - x) << 2);
             //memory.pen_usage[tileno]  |= (1 << pen);
-            usage |= (1 << pen);
         }
         *(gfxdata++) = dw;
     }
