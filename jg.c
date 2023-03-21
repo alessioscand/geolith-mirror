@@ -130,6 +130,14 @@ static unsigned gn_input_poll_stat_b(void) {
     return s;
 }
 
+// Test button, slot type
+static unsigned gn_input_poll_systype(void) {
+    unsigned t = 0xc0;
+    if (input_device[2]->button[3]) // Test
+        t &= 0x40;
+    return t;
+}
+
 // Neo Geo Joystick
 static unsigned gn_input_poll_js(unsigned port) {
     unsigned b = 0xff;
@@ -254,8 +262,9 @@ int jg_game_load(void) {
 
     gn_input_set_callback(0, &gn_input_poll_js);
     gn_input_set_callback(1, &gn_input_poll_js);
-    gn_input_stat_set_callback(0, &gn_input_poll_stat_a);
-    gn_input_stat_set_callback(1, &gn_input_poll_stat_b);
+    gn_input_sys_set_callback(0, &gn_input_poll_stat_a);
+    gn_input_sys_set_callback(1, &gn_input_poll_stat_b);
+    gn_input_sys_set_callback(2, &gn_input_poll_systype);
 
     jg_cb_frametime(FRAMERATE);
 

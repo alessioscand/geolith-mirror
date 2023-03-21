@@ -76,7 +76,7 @@ void gn_reset(void);
 
 void gn_log_set_callback(void (*)(int, const char *, ...));
 void gn_input_set_callback(unsigned, unsigned (*)(unsigned));
-void gn_input_stat_set_callback(unsigned, unsigned (*)(void));
+void gn_input_sys_set_callback(unsigned, unsigned (*)(void));
 
 int gn_get_region(void);
 void gn_set_region(int);
@@ -87,7 +87,7 @@ void gn_set_system(int);
 extern void (*gn_log)(int, const char *, ...);
 
 extern unsigned (*gn_input_cb[NUMINPUTS_NG])(unsigned);
-extern unsigned (*gn_input_stat_cb[NUMINPUTS_NG])(void);
+extern unsigned (*gn_input_sys_cb[3])(void);
 
 void gn_watchdog_reset(void);
 

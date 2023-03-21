@@ -55,7 +55,7 @@ void (*gn_log)(int, const char *, ...);
 
 // Input poll callbacks
 unsigned (*gn_input_cb[NUMINPUTS_NG])(unsigned);
-unsigned (*gn_input_stat_cb[NUMINPUTS_NG])(void);
+unsigned (*gn_input_sys_cb[3])(void);
 
 // System being emulated
 static int sys = 0;
@@ -101,8 +101,10 @@ void gn_log_set_callback(void (*cb)(int, const char *, ...)) {
 void gn_input_set_callback(unsigned port, unsigned (*cb)(unsigned)) {
     gn_input_cb[port] = cb;
 }
-void gn_input_stat_set_callback(unsigned port, unsigned (*cb)(void)) {
-    gn_input_stat_cb[port] = cb;
+
+// Set the Status A/B and System Type Register Callbacks
+void gn_input_sys_set_callback(unsigned port, unsigned (*cb)(void)) {
+    gn_input_sys_cb[port] = cb;
 }
 
 // Set the region of the system to be emulated

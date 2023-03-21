@@ -531,7 +531,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                    Bit 6:    0 = 2 slots, 1 = 4 or 6 slots
                    Bits 0-5: Unknown
                 */
-                return 0xc0; // Active Low
+                return gn_input_sys_cb[2](); // Active Low
             }
             case 0x320000: { // REG_SOUND
                 return result_code; // Z80 Reply Code
@@ -546,7 +546,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                    Bit 1:    Coin-in 2
                    Bit 0:    Coin-in 1
                 */
-                return gn_input_stat_cb[0]() | (gn_rtc_rd() << 6);
+                return gn_input_sys_cb[0]() | (gn_rtc_rd() << 6);
             }
             case 0x340000: { // REG_P2CNT
                 return gn_input_cb[1](1);
@@ -561,7 +561,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                    Bit 1:    Player 1 Select
                    Bit 0:    Player 1 Start
                 */
-                return gn_input_stat_cb[1]() |
+                return gn_input_sys_cb[1]() |
                     (gn_get_system() == SYSTEM_AES ? 0x00 : 0x80);
             }
             case 0x3c0000: case 0x3c0002: case 0x3c0008: case 0x3c000a: {
@@ -633,7 +633,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
                 return (val << 8) | val; // Is this the correct way? FIXME
             }
             case 0x380000: { // REG_STATUS_B
-                uint8_t val = gn_input_stat_cb[1]() |
+                uint8_t val = gn_input_sys_cb[1]() |
                     (gn_get_system() == SYSTEM_AES ? 0x00 : 0x80);
                 return (val << 8) | val; // Is this the correct way? FIXME
             }
