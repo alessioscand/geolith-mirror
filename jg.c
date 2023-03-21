@@ -102,6 +102,8 @@ enum {
     REGION,
 };
 
+static const char *defs_ngsys[4] = { "Coin1", "Coin2", "Service", "Test" };
+
 // Coin Slots, Service Button, # of Slots
 static unsigned gn_input_poll_stat_a(void) {
     unsigned c = 0x07;
@@ -109,6 +111,8 @@ static unsigned gn_input_poll_stat_a(void) {
         c &= 0x06;
     if (input_device[2]->button[1]) // Coin 2
         c &= 0x05;
+    if (input_device[2]->button[2]) // Service
+        c &= 0x03;
     return c;
 }
 
@@ -242,7 +246,11 @@ int jg_game_load(void) {
 
     inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_JS);
     inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_JS);
-    inputinfo[2] = jg_neogeo_inputinfo(2, JG_NEOGEO_SYS);
+    //inputinfo[2] = jg_neogeo_inputinfo(2, JG_NEOGEO_SYS);
+    inputinfo[2] = (jg_inputinfo_t){
+        JG_INPUT_EXTERNAL, 2, "neogeosystem", "Neo Geo System",
+        defs_ngsys, 0, 4
+    };
 
     gn_input_set_callback(0, &gn_input_poll_js);
     gn_input_set_callback(1, &gn_input_poll_js);
