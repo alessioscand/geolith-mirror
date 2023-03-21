@@ -37,3 +37,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 void gn_rtc_init(void) {
 }
+
+uint8_t gn_rtc_rd(void) {
+    return 0;
+}
+
+void gn_rtc_wr(uint8_t data) {
+    if (data) { }
+}
+
+void gn_rtc_sync(unsigned scycs) {
+    if (scycs) { }
+}

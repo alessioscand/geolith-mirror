@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gngeo.h"
 #include "gngeo_m68k.h"
 #include "gngeo_mixer.h"
+#include "gngeo_rtc.h"
 #include "gngeo_z80.h"
 
 #include "ymfm/ymfm_shim.h"
@@ -313,6 +314,7 @@ void gn_init(void) {
     gn_m68k_init();
     gn_z80_init();
     ymfm_shim_init();
+    gn_rtc_init();
     video_set_l0rom(l0rom);
     gn_reset();
 }
@@ -354,6 +356,10 @@ void gn_exec(void) {
         icycs = gn_m68k_run(1);
         mcycs += icycs * DIV_M68K;
         lcycs += icycs * DIV_M68K;
+
+        // If this is an arcade system, update the RTC
+        if (sys)
+            gn_rtc_sync(icycs);
 
         // Handle IRQ2 counter
         irq2_dec = icycs >> 1;

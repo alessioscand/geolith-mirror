@@ -33,4 +33,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 void gn_rtc_init(void);
 
+uint8_t gn_rtc_rd(void);
+void gn_rtc_wr(uint8_t);
+
+void gn_rtc_sync(unsigned);
+
 #endif
