@@ -152,14 +152,14 @@ static void gn_m68k_write_banksw_8_default(uint32_t addr, uint8_t data) {
     if (addr >= 0x2ffff0)
         banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
     else
-        gn_log(GN_LOG_WRN, "8-bit write at %06x\n", addr);
+        gn_log(GN_LOG_WRN, "8-bit write at %06x: %02x\n", addr, data);
 }
 
 static void gn_m68k_write_banksw_16_default(uint32_t addr, uint16_t data) {
     if (addr >= 0x2ffff0)
         banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
     else
-        gn_log(GN_LOG_WRN, "16-bit write at %06x\n", addr);
+        gn_log(GN_LOG_WRN, "16-bit write at %06x: %04x\n", addr, data);
 }
 
 // NEO-SMA Switchable Bank Routines
