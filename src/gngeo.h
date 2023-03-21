@@ -51,7 +51,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define REGION_AS   0x02 // Asia
 #define REGION_EU   0x03 // Europe
 
-#define NUMINPUTS_NG 2
+#define NUMINPUTS_NG    2
+#define NUMINPUTS_SYS   4
 
 enum gn_loglevel {
     GN_LOG_DBG,
@@ -87,7 +88,7 @@ void gn_set_system(int);
 extern void (*gn_log)(int, const char *, ...);
 
 extern unsigned (*gn_input_cb[NUMINPUTS_NG])(unsigned);
-extern unsigned (*gn_input_sys_cb[3])(void);
+extern unsigned (*gn_input_sys_cb[NUMINPUTS_SYS])(void);
 
 void gn_watchdog_reset(void);
 

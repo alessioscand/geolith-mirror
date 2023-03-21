@@ -94,12 +94,24 @@ static jg_setting_t settings_gn[] = {
       "0 = US, 1 = JP, 2 = AS, 3 = EU",
       "Select the region",
       REGION_US, REGION_US, REGION_EU, JG_SETTING_RESTART
+    },
+    { "freeplay", "Freeplay (DIP)",
+      "0 = Off, 1 = On",
+      "Play for free!",
+      0, 0, 1, 0
+    },
+    { "settingmode", "Setting Mode (DIP)",
+      "0 = Off, 1 = On",
+      "Activate Hardware Settings Menu at Boot",
+      0, 0, 1, 0
     }
 };
 
 enum {
     SYS,
     REGION,
+    FREEPLAY,
+    SETTINGMODE
 };
 
 static const char *defs_ngsys[4] = { "Coin1", "Coin2", "Service", "Test" };
@@ -136,6 +148,16 @@ static unsigned gn_input_poll_systype(void) {
     if (input_device[2]->button[3]) // Test
         t &= 0x40;
     return t;
+}
+
+// Poll DIP Switches
+static unsigned gn_input_poll_dipsw(void) {
+    unsigned d = 0xff;
+    if (settings_gn[FREEPLAY].val)
+        d &= ~0x40;
+    if (settings_gn[SETTINGMODE].val)
+        d &= ~0x01;
+    return d;
 }
 
 // Neo Geo Joystick
@@ -265,6 +287,7 @@ int jg_game_load(void) {
     gn_input_sys_set_callback(0, &gn_input_poll_stat_a);
     gn_input_sys_set_callback(1, &gn_input_poll_stat_b);
     gn_input_sys_set_callback(2, &gn_input_poll_systype);
+    gn_input_sys_set_callback(3, &gn_input_poll_dipsw);
 
     jg_cb_frametime(FRAMERATE);
 

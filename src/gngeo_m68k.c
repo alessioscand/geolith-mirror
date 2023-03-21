@@ -71,7 +71,6 @@ static uint8_t vectable = VECTOR_TABLE_BIOS;
 
 // Registers
 static uint8_t reg_sramlock = 0; // SRAM Lock
-static uint8_t reg_dipsw = 0; // DIP Switches
 
 // NEO-SMA Pseudo-Random Number addresses
 static uint32_t sma_prn_addr[2] = { 0, 0 };
@@ -524,7 +523,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                    Bit 1:    0 = 1 Chute, 1 = 2 Chutes
                    Bit 0:    Settings Mode
                 */
-                return ~reg_dipsw; // Complemented because it is active low
+                return gn_input_sys_cb[3]();
             }
             case 0x300081: { // REG_SYSTYPE
                 /* Bit 7:    Test button - FIXME more documentation...

@@ -55,7 +55,7 @@ void (*gn_log)(int, const char *, ...);
 
 // Input poll callbacks
 unsigned (*gn_input_cb[NUMINPUTS_NG])(unsigned);
-unsigned (*gn_input_sys_cb[3])(void);
+unsigned (*gn_input_sys_cb[NUMINPUTS_SYS])(void);
 
 // System being emulated
 static int sys = 0;
