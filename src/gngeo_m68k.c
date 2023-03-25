@@ -526,7 +526,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                 return gn_input_sys_cb[3]();
             }
             case 0x300081: { // REG_SYSTYPE
-                /* Bit 7:    Test button - FIXME more documentation...
+                /* Bit 7:    Test button - Activates system menu
                    Bit 6:    0 = 2 slots, 1 = 4 or 6 slots
                    Bits 0-5: Unknown
                 */
