@@ -488,6 +488,9 @@ static void gn_m68k_write_banksw_16_kof98(uint32_t addr, uint16_t data) {
             promdata[0x103] = 0x2d;
         }
     }
+    else if (addr == 0x205554) { // Unknown protection or debug related write?
+        return; // Always writes 0x0055
+    }
     else if (addr >= 0x2ffff0) {
         banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
     }
