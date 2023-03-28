@@ -645,6 +645,9 @@ unsigned int m68k_read_memory_8(unsigned int address) {
 }
 
 unsigned int m68k_read_memory_16(unsigned int address) {
+    if (address & 0x01)
+        gn_log(GN_LOG_WRN, "Unaligned 16-bit rd: %06x\n", address);
+
     if (address < 0x000080) { // Vector Table
         return vectable ?
             read16(promdata, address) : read16(biosdata, address);
@@ -880,6 +883,9 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
 }
 
 void m68k_write_memory_16(unsigned int address, unsigned int value) {
+    if (address & 0x01)
+        gn_log(GN_LOG_WRN, "Unaligned 16-bit wr: %06x %04x\n", address, value);
+
     address &= 0xffffff;
 
     if (address < 0x100000) { // Fixed 1M Program ROM Bank
