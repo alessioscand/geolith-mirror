@@ -162,6 +162,10 @@ int gn_neo_load(void *data, size_t size) {
             gn_m68k_board_set(BOARD_JOCKEYGP);
             break;
         }
+        case 242: { // KOF 98
+            gn_m68k_board_set(BOARD_KOF98);
+            break;
+        }
         case 250: { // Metal Slug X
             gn_m68k_board_set(BOARD_MSLUGX);
             break;

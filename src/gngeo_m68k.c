@@ -462,6 +462,40 @@ static void gn_m68k_write_banksw_8_linkable(uint32_t addr, uint8_t data) {
         gn_log(GN_LOG_WRN, "8-bit write at %06x\n", addr);
 }
 
+// The King of Fighters '98
+/* Encrypted sets use an overlay system for copy protection. Writes to
+   0x20aaaa containing the 16-bit value 0x0090 will activate the overlay, which
+   affects fixed PROM addresses 0x100-0x103. When 0x00f0 is written to the same
+   address, the original ROM data is used -- the first four characters of the
+   "NEO-GEO" header, stored in 16-bit big endian format originally. Since ROM
+   data in this emulator is byteswapped to 16-bit little endian at boot, the
+   overlay values are similarly used in their 16-bit little endian form here.
+*/
+static void gn_m68k_write_banksw_16_kof98(uint32_t addr, uint16_t data) {
+    if (addr == 0x20aaaa) {
+        cartreg[0] = data;
+
+        if (cartreg[0] == 0x0090) { // Apply the protection overlay
+            promdata[0x100] = 0x00;
+            promdata[0x101] = 0xc2;
+            promdata[0x102] = 0x00;
+            promdata[0x103] = 0xfd;
+        }
+        else if (cartreg[0] == 0x00f0) { // Use the original ROM data (NEO-)
+            promdata[0x100] = 0x4e;
+            promdata[0x101] = 0x45;
+            promdata[0x102] = 0x4f;
+            promdata[0x103] = 0x2d;
+        }
+    }
+    else if (addr >= 0x2ffff0) {
+        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
+    }
+    else {
+        gn_log(GN_LOG_WRN, "16-bit write at %06x: %04x\n", addr, data);
+    }
+}
+
 /* 68K Memory Map
  * =====================================================================
  * |    Address Range    | Size |             Description              |
@@ -1042,6 +1076,12 @@ void gn_m68k_board_set(unsigned btype) {
             gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_default;
             gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_linkable;
             gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_default;
+            break;
+        case BOARD_KOF98: // The King of Fighters '98
+            gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_default;
+            gn_m68k_read_banksw_16 = &gn_m68k_read_banksw_16_default;
+            gn_m68k_write_banksw_8 = &gn_m68k_write_banksw_8_default;
+            gn_m68k_write_banksw_16 = &gn_m68k_write_banksw_16_kof98;
             break;
         default: // Default
             gn_m68k_read_banksw_8 = &gn_m68k_read_banksw_8_default;
