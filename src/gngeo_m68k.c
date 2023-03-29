@@ -900,19 +900,9 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
     }
     else if (address < 0x400000) { // Memory Mapped Registers
         switch (address) {
-            // Writes to 0x300001 reset watchdog timer via DOGE pin
-            case 0x300001: {
-                gn_watchdog_reset();
-                return;
-            }
             case 0x320000: { // REG_SOUND
                 sound_code = (value >> 8) & 0xff; // Use the upper byte
                 gn_z80_nmi();
-                return;
-            }
-            case 0x380051: { // REG_RTCCTRL
-                if (gn_get_system())
-                    gn_rtc_wr(value & 0x07);
                 return;
             }
             case 0x3c0000: { // REG_VRAMADDR
