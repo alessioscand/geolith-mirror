@@ -40,7 +40,7 @@
 #define SPEEX_RESAMPLER_H
 
 #define OUTSIDE_SPEEX
-#define RANDOM_PREFIX gngeo
+#define RANDOM_PREFIX geo
 
 #ifdef OUTSIDE_SPEEX
 
