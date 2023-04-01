@@ -50,6 +50,7 @@ CSRCS := m68k/m68kcpu.c \
 	ymfm/ymfm_ssg.c \
 	z80/z80.c \
 	geo.c \
+	geo_lspc.c \
 	geo_m68k.c \
 	geo_mixer.c \
 	geo_neo.c \
