@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdint.h>
 #include <time.h>
 
-#include "gngeo_rtc.h"
+#include "geo_rtc.h"
 
 // 68K @ 12MHz == 12,000,000Hz
 #define CYCS_68K_PER_SECOND 12000000
@@ -86,7 +86,7 @@ static uint8_t stb = 0;
 static uint8_t timer_1hz = 0;
 static uint8_t tp = 0;
 
-void gn_rtc_init(void) {
+void geo_rtc_init(void) {
     // Zero the 1Hz Interval Timer and Command register
     cycs = 0;
     cmdreg = 0;
@@ -123,7 +123,7 @@ void gn_rtc_init(void) {
     tpinterval = CYCS_68K_PER_SECOND;
 }
 
-uint8_t gn_rtc_rd(void) {
+uint8_t geo_rtc_rd(void) {
     /* In Register Hold Mode and Time Read Mode, the DATA OUT pin is set to the
        1Hz Interval Timer value, otherwise it is set to the lowest bit of the
        Shift Register.
@@ -137,7 +137,7 @@ uint8_t gn_rtc_rd(void) {
     return dataout | tp;
 }
 
-void gn_rtc_wr(uint8_t data) {
+void geo_rtc_wr(uint8_t data) {
     // Check for CLK and STB going from low to high
     int clk_lowhigh = !clk && (data & 0x02);
     int stb_lowhigh = !stb && (data & 0x04);
@@ -291,7 +291,7 @@ void gn_rtc_wr(uint8_t data) {
     }
 }
 
-static inline void gngeo_rtc_clk_inc(void) {
+static inline void geo_rtc_clk_inc(void) {
     if (++second < 60)
         return;
     else
@@ -333,12 +333,12 @@ static inline void gngeo_rtc_clk_inc(void) {
     year = 0; // If you really trigger this, you win at life.
 }
 
-void gn_rtc_sync(unsigned scycs) {
+void geo_rtc_sync(unsigned scycs) {
     cycs += scycs;
 
     if (cycs >= CYCS_68K_PER_SECOND) {
         // Increment the clock by one second
-        gngeo_rtc_clk_inc();
+        geo_rtc_clk_inc();
 
         cycs -= CYCS_68K_PER_SECOND;
     }

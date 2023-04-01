@@ -28,9 +28,14 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef GN_NEO_H
-#define GN_NEO_H
+#ifndef GEO_MIXER_H
+#define GEO_MIXER_H
 
-int gn_neo_load(void*, size_t);
+void geo_mixer_set_buffer(int16_t*);
+void geo_mixer_set_callback(void (*)(size_t));
+void geo_mixer_set_rate(size_t);
+void geo_mixer_deinit(void);
+void geo_mixer_init(void);
+void geo_mixer_resamp(size_t);
 
 #endif

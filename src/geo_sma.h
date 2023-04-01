@@ -30,8 +30,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // These values ultimately come from MAME, but are available at neogeodev
 
-#ifndef GN_SMA_H
-#define GN_SMA_H
+#ifndef GEO_SMA_H
+#define GEO_SMA_H
 
 uint32_t sma_addr_kof99[3] = { 0x2ffff8, 0x2ffffa, 0x2ffff0 };
 uint32_t sma_bank_kof99[64] = {

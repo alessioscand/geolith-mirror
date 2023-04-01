@@ -28,8 +28,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef GN_M68K_H
-#define GN_M68K_H
+#ifndef GEO_M68K_H
+#define GEO_M68K_H
 
 #define BOARD_DEF       0x00 // Default
 #define BOARD_SMA       0x01 // NEO-SMA
@@ -53,19 +53,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define IRQ_TIMER_RELOAD_VBLANK 0x40
 #define IRQ_TIMER_RELOAD_COUNT0 0x80
 
-void gn_m68k_init(void);
-void gn_m68k_reset(void);
+void geo_m68k_init(void);
+void geo_m68k_reset(void);
 
-int gn_m68k_run(unsigned);
+int geo_m68k_run(unsigned);
 
-void gn_m68k_interrupt(unsigned);
+void geo_m68k_interrupt(unsigned);
 
-void gn_m68k_board_set(unsigned);
-void gn_m68k_sma_init(uint32_t*, uint32_t*, uint8_t*);
+void geo_m68k_board_set(unsigned);
+void geo_m68k_sma_init(uint32_t*, uint32_t*, uint8_t*);
 
-void gn_m68k_romdata_bios(uint8_t*, size_t, uint8_t*, size_t);
-void gn_m68k_romdata_game(uint8_t*, size_t, uint8_t*, size_t);
+void geo_m68k_romdata_bios(uint8_t*, size_t, uint8_t*, size_t);
+void geo_m68k_romdata_game(uint8_t*, size_t, uint8_t*, size_t);
 
-void gn_m68k_postload(void);
+void geo_m68k_postload(void);
 
 #endif

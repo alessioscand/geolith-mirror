@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <speex/speex_resampler.h>
 
-#include "gngeo_mixer.h"
+#include "geo_mixer.h"
 #include "ymfm/ymfm_shim.h"
 
 // 55555 becomes 56340 to compensate for 60.0Hz vs ~59.18Hz
@@ -48,25 +48,25 @@ static SpeexResamplerState *resampler = NULL;
 static int err;
 
 // Callback to notify the fronted that N samples are ready
-static void (*gn_mixer_cb)(size_t);
+static void (*geo_mixer_cb)(size_t);
 
 // Set the pointer to the output audio buffer
-void gn_mixer_set_buffer(int16_t *ptr) {
+void geo_mixer_set_buffer(int16_t *ptr) {
     abuf = ptr;
 }
 
 // Set the callback that notifies the frontend that N audio samples are ready
-void gn_mixer_set_callback(void (*cb)(size_t)) {
-    gn_mixer_cb = cb;
+void geo_mixer_set_callback(void (*cb)(size_t)) {
+    geo_mixer_cb = cb;
 }
 
 // Set the output sample rate
-void gn_mixer_set_rate(size_t rate) {
+void geo_mixer_set_rate(size_t rate) {
     samplerate = rate;
 }
 
 // Deinitialize the resampler
-void gn_mixer_deinit(void) {
+void geo_mixer_deinit(void) {
     if (resampler) {
         speex_resampler_destroy(resampler);
         resampler = NULL;
@@ -74,11 +74,11 @@ void gn_mixer_deinit(void) {
 }
 
 // Bring up the Speex resampler
-void gn_mixer_init(void) {
+void geo_mixer_init(void) {
     resampler = speex_resampler_init(2, SAMPLERATE_YM2610, samplerate, 3, &err);
 }
 
-void gn_mixer_resamp(size_t in_ym) {
+void geo_mixer_resamp(size_t in_ym) {
     int16_t *ybuf = ymfm_shim_get_buffer();
     spx_uint32_t insamps = in_ym;
     spx_uint32_t outsamps = samplerate / framerate;
@@ -86,5 +86,5 @@ void gn_mixer_resamp(size_t in_ym) {
     err = speex_resampler_process_interleaved_int(resampler,
         (spx_int16_t*)ybuf, &insamps, (spx_int16_t*)abuf, &outsamps);
 
-    gn_mixer_cb(outsamps << 1);
+    geo_mixer_cb(outsamps << 1);
 }

@@ -1,5 +1,5 @@
 *.so
 *.dll
 *.dylib
-gngeo/
+geolith/
 objs/

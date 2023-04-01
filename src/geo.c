@@ -33,11 +33,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <miniz.h>
 
-#include "gngeo.h"
-#include "gngeo_m68k.h"
-#include "gngeo_mixer.h"
-#include "gngeo_rtc.h"
-#include "gngeo_z80.h"
+#include "geo.h"
+#include "geo_m68k.h"
+#include "geo_mixer.h"
+#include "geo_rtc.h"
+#include "geo_z80.h"
 
 #include "ymfm/ymfm_shim.h"
 
@@ -51,11 +51,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MCYC_PER_LINE 1536
 
 // Log callback
-void (*gn_log)(int, const char *, ...);
+void (*geo_log)(int, const char *, ...);
 
 // Input poll callbacks
-unsigned (*gn_input_cb[NUMINPUTS_NG])(unsigned);
-unsigned (*gn_input_sys_cb[NUMINPUTS_SYS])(void);
+unsigned (*geo_input_cb[NUMINPUTS_NG])(unsigned);
+unsigned (*geo_input_sys_cb[NUMINPUTS_SYS])(void);
 
 // System being emulated
 static int sys = 0;
@@ -93,41 +93,41 @@ static unsigned icycs = 0;
 static unsigned lcycs = 0;
 
 // Set the log callback
-void gn_log_set_callback(void (*cb)(int, const char *, ...)) {
-    gn_log = cb;
+void geo_log_set_callback(void (*cb)(int, const char *, ...)) {
+    geo_log = cb;
 }
 
 // Set the Input Callbacks to allow the emulator to strobe the input state
-void gn_input_set_callback(unsigned port, unsigned (*cb)(unsigned)) {
-    gn_input_cb[port] = cb;
+void geo_input_set_callback(unsigned port, unsigned (*cb)(unsigned)) {
+    geo_input_cb[port] = cb;
 }
 
 // Set the Status A/B and System Type Register Callbacks
-void gn_input_sys_set_callback(unsigned port, unsigned (*cb)(void)) {
-    gn_input_sys_cb[port] = cb;
+void geo_input_sys_set_callback(unsigned port, unsigned (*cb)(void)) {
+    geo_input_sys_cb[port] = cb;
 }
 
 // Set the region of the system to be emulated
-void gn_set_region(int r) {
+void geo_set_region(int r) {
     region = r;
 }
 
 // Get the region of the system currently being emulated
-int gn_get_region(void) {
+int geo_get_region(void) {
     return region;
 }
 
 // Set the system to be emulated
-void gn_set_system(int s) {
+void geo_set_system(int s) {
     sys = s;
 }
 
 // Get the system currently being emulated
-int gn_get_system(void) {
+int geo_get_system(void) {
     return sys;
 }
 
-int gn_bios_load(const char *biospath) {
+int geo_bios_load(const char *biospath) {
     const char *biosrom;
     size_t biossize, sfixsize = 0;
 
@@ -138,14 +138,14 @@ int gn_bios_load(const char *biospath) {
     if (!mz_zip_reader_init_file(&zip_archive, biospath, 0))
         return 0;
 
-    switch (gn_get_system()) {
+    switch (geo_get_system()) {
         default: case SYSTEM_AES: {
-            biosrom = gn_get_region() == REGION_JP ?
+            biosrom = geo_get_region() == REGION_JP ?
                 "neo-po.bin" : "neo-epo.bin";
             break;
         }
         case SYSTEM_MVS: {
-            switch (gn_get_region()) {
+            switch (geo_get_region()) {
                 default: case REGION_US: // Winners don't use drugs
                     biosrom = "sp-u2.sp1";
                     break;
@@ -167,13 +167,13 @@ int gn_bios_load(const char *biospath) {
         }
     }
 
-    gn_log(GN_LOG_DBG, "Loading %s\n", biosrom);
+    geo_log(GEO_LOG_DBG, "Loading %s\n", biosrom);
     biosdata = mz_zip_reader_extract_file_to_heap(&zip_archive,
         biosrom, &biossize, 0);
 
     if (biosdata == NULL) {
         mz_zip_reader_end(&zip_archive);
-        gn_log(GN_LOG_ERR, "Failed to load %s from BIOS archive!\n", biosrom);
+        geo_log(GEO_LOG_ERR, "Failed to load %s from BIOS archive!\n", biosrom);
         return 0;
     }
 
@@ -182,16 +182,16 @@ int gn_bios_load(const char *biospath) {
         "000-lo.lo", NULL, 0);
     if (l0rom == NULL) {
         mz_zip_reader_end(&zip_archive);
-        gn_log(GN_LOG_ERR, "Failed to load 000-lo.lo from BIOS archive!\n");
+        geo_log(GEO_LOG_ERR, "Failed to load 000-lo.lo from BIOS archive!\n");
         return 0;
     }
 
-    if (gn_get_system() != SYSTEM_AES) {
+    if (geo_get_system() != SYSTEM_AES) {
         sfixdata = mz_zip_reader_extract_file_to_heap(&zip_archive,
             "sfix.sfix", &sfixsize, 0);
         if (sfixdata == NULL) {
             mz_zip_reader_end(&zip_archive);
-            gn_log(GN_LOG_ERR, "Failed to load sfix.sfix from BIOS archive!\n");
+            geo_log(GEO_LOG_ERR, "Failed to load sfix.sfix from BIOS archive!\n");
             return 0;
         }
 
@@ -199,13 +199,13 @@ int gn_bios_load(const char *biospath) {
         convert_all_char(sfixdata, SIZE_128K, fix_board_usage);
     }
 
-    gn_m68k_romdata_bios(biosdata, biossize, sfixdata, sfixsize);
+    geo_m68k_romdata_bios(biosdata, biossize, sfixdata, sfixsize);
 
     mz_zip_reader_end(&zip_archive);
     return 1;
 }
 
-void gn_bios_unload(void) {
+void geo_bios_unload(void) {
     if (biosdata)
         free(biosdata);
     if (sfixdata)
@@ -215,7 +215,7 @@ void gn_bios_unload(void) {
 }
 
 // Load Memory Card
-int gn_memcard_load(const char *filename) {
+int geo_memcard_load(const char *filename) {
     FILE *file;
     size_t filesize, result;
 
@@ -242,7 +242,7 @@ int gn_memcard_load(const char *filename) {
 }
 
 // Save Memory Card
-int gn_memcard_save(const char *filename) {
+int geo_memcard_save(const char *filename) {
     FILE *file;
     file = fopen(filename, "wb");
     if (!file)
@@ -256,8 +256,8 @@ int gn_memcard_save(const char *filename) {
 }
 
 // Load NVRAM
-int gn_nvram_load(const char *filename) {
-    if (gn_get_system() == SYSTEM_AES)
+int geo_nvram_load(const char *filename) {
+    if (geo_get_system() == SYSTEM_AES)
         return 2;
 
     FILE *file;
@@ -286,8 +286,8 @@ int gn_nvram_load(const char *filename) {
 }
 
 // Save NVRAM
-int gn_nvram_save(const char *filename) {
-    if (gn_get_system() == SYSTEM_AES)
+int geo_nvram_save(const char *filename) {
+    if (geo_get_system() == SYSTEM_AES)
         return 2;
 
     FILE *file;
@@ -302,42 +302,42 @@ int gn_nvram_save(const char *filename) {
     return 1; // Success!
 }
 
-void gn_reset(void) {
+void geo_reset(void) {
     sound_code = 0;
     result_code = 0;
     watchdog = 0;
 
-    gn_m68k_reset();
-    gn_z80_reset();
+    geo_m68k_reset();
+    geo_z80_reset();
     ymfm_shim_reset(); // Reset the YM2610 to make sure everything is defaulted
 }
 
-void gn_init(void) {
-    gn_m68k_init();
-    gn_z80_init();
+void geo_init(void) {
+    geo_m68k_init();
+    geo_z80_init();
     ymfm_shim_init();
-    gn_rtc_init();
+    geo_rtc_init();
     video_set_l0rom(l0rom);
-    gn_reset();
+    geo_reset();
 }
 
 // Increment the watchdog counter
-static inline void gn_watchdog_increment(void) {
+static inline void geo_watchdog_increment(void) {
     /* If more than 8 frames have passed since the Watchdog was kicked, assume
        a bug or hardware fault and recover by resetting the system.
     */
     if (++watchdog > 8) {
-        gn_log(GN_LOG_WRN, "Watchdog reset\n");
-        gn_reset();
+        geo_log(GEO_LOG_WRN, "Watchdog reset\n");
+        geo_reset();
     }
 }
 
 // Reset the Watchdog counter
-void gn_watchdog_reset(void) {
+void geo_watchdog_reset(void) {
     watchdog = 0;
 }
 
-void gn_exec(void) {
+void geo_exec(void) {
     mcycs = mextcycs;
     lcycs = lextcycs;
     zcycs = zextcycs;
@@ -348,20 +348,20 @@ void gn_exec(void) {
     draw_bg();
 
     // Each frame starts with the VBLANK interrupt
-    gn_m68k_interrupt(IRQ_VBLANK);
+    geo_m68k_interrupt(IRQ_VBLANK);
 
     // Reload counter at the beginning of each frame
     if (irq2_ctrl & IRQ_TIMER_RELOAD_VBLANK)
         irq2_counter = irq2_reload;
 
     while (mcycs < MCYC_PER_FRAME) {
-        icycs = gn_m68k_run(1);
+        icycs = geo_m68k_run(1);
         mcycs += icycs * DIV_M68K;
         lcycs += icycs * DIV_M68K;
 
         // If this is an arcade system, update the RTC
         if (sys)
-            gn_rtc_sync(icycs);
+            geo_rtc_sync(icycs);
 
         // Handle IRQ2 counter
         irq2_dec = icycs >> 1;
@@ -382,13 +382,13 @@ void gn_exec(void) {
 
                 // Timer Interrupt Enabled
                 if (irq2_ctrl & IRQ_TIMER_ENABLED)
-                    gn_m68k_interrupt(IRQ_TIMER);
+                    geo_m68k_interrupt(IRQ_TIMER);
             }
         }
 
         // Catch the Z80 and YM2610 up to the 68K
         while (zcycs < mcycs) {
-            size_t scycs = gn_z80_run(1);
+            size_t scycs = geo_z80_run(1);
             zcycs += scycs * DIV_Z80;
             ymcycs += scycs;
             if (ymcycs >= DIV_YM2610) {
@@ -416,8 +416,8 @@ void gn_exec(void) {
     video_fc_increment();
 
     // Resample audio generated this frame for output to the frontend
-    gn_mixer_resamp(ymsamps);
+    geo_mixer_resamp(ymsamps);
 
     // Increment the Watchdog counter at the end of each frame
-    gn_watchdog_increment();
+    geo_watchdog_increment();
 }

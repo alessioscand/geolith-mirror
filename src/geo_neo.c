@@ -34,11 +34,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 
-#include "gngeo.h"
-#include "gngeo_m68k.h"
-#include "gngeo_z80.h"
-#include "gngeo_neo.h"
-#include "gngeo_sma.h"
+#include "geo.h"
+#include "geo_m68k.h"
+#include "geo_z80.h"
+#include "geo_neo.h"
+#include "geo_sma.h"
 
 #include "ymfm/ymfm_shim.h"
 
@@ -61,14 +61,14 @@ static inline uint32_t read32le(uint8_t *ptr, uint32_t addr) {
         (ptr[addr + 2] << 16) | (ptr[addr + 3] << 24);
 }
 
-int gn_neo_load(void *data, size_t size) {
+int geo_neo_load(void *data, size_t size) {
     uint8_t *romdata = (uint8_t*)data; // Assign internal ROM pointer
     if (size) { }
 
     // Bytes 0-3 should be 'N' 'E' 'O' 1
     if (romdata[0] != 'N' || romdata[1] != 'E' ||
         romdata[2] != 'O' || romdata[3] != 0x01) {
-        gn_log(GN_LOG_ERR, "Not a valid NEO ROM: %c %c %c %c\n",
+        geo_log(GEO_LOG_ERR, "Not a valid NEO ROM: %c %c %c %c\n",
             romdata[0], romdata[1], romdata[2], romdata[3]);
         return 0;
     }
@@ -81,12 +81,12 @@ int gn_neo_load(void *data, size_t size) {
     uint32_t size_v2rom = read32le(romdata, 20);
     uint32_t size_crom = read32le(romdata, 24);
 
-    gn_log(GN_LOG_INF, "P  ROM Size: %d\n", size_prom);
-    gn_log(GN_LOG_INF, "S  ROM Size: %d\n", size_srom);
-    gn_log(GN_LOG_INF, "M1 ROM Size: %d\n", size_mrom);
-    gn_log(GN_LOG_INF, "V1 ROM Size: %d\n", size_v1rom);
-    gn_log(GN_LOG_INF, "V2 ROM Size: %d\n", size_v2rom);
-    gn_log(GN_LOG_INF, "C  ROM Size: %d\n", size_crom);
+    geo_log(GEO_LOG_INF, "P  ROM Size: %d\n", size_prom);
+    geo_log(GEO_LOG_INF, "S  ROM Size: %d\n", size_srom);
+    geo_log(GEO_LOG_INF, "M1 ROM Size: %d\n", size_mrom);
+    geo_log(GEO_LOG_INF, "V1 ROM Size: %d\n", size_v1rom);
+    geo_log(GEO_LOG_INF, "V2 ROM Size: %d\n", size_v2rom);
+    geo_log(GEO_LOG_INF, "C  ROM Size: %d\n", size_crom);
 
     // Parse Year, Genre, Screenshot, and NGH info
     uint32_t year = read32le(romdata, 28);
@@ -104,12 +104,12 @@ int gn_neo_load(void *data, size_t size) {
     memcpy((char*)manu, (uint8_t*)romdata + 77, 17);
     manu[17] = '\0';
 
-    gn_log(GN_LOG_INF, "Year: %d\n", year);
-    gn_log(GN_LOG_INF, "Genre: %d\n", genre);
-    gn_log(GN_LOG_INF, "Screenshot: %d\n", screenshot);
-    gn_log(GN_LOG_INF, "NGH: %03d\n", ngh);
-    gn_log(GN_LOG_INF, "Name: %s\n", name);
-    gn_log(GN_LOG_INF, "Manufacturer: %s\n", manu);
+    geo_log(GEO_LOG_INF, "Year: %d\n", year);
+    geo_log(GEO_LOG_INF, "Genre: %d\n", genre);
+    geo_log(GEO_LOG_INF, "Screenshot: %d\n", screenshot);
+    geo_log(GEO_LOG_INF, "NGH: %03d\n", ngh);
+    geo_log(GEO_LOG_INF, "Name: %s\n", name);
+    geo_log(GEO_LOG_INF, "Manufacturer: %s\n", manu);
 
     // Assign pointers and sizes
     uint32_t rom_offset = 4096; // ROM data starts at byte 4096
@@ -119,10 +119,10 @@ int gn_neo_load(void *data, size_t size) {
     uint8_t *data_srom = &romdata[rom_offset];
     rom_offset += size_srom;
 
-    gn_m68k_romdata_game(data_prom, size_prom, data_srom, size_srom);
+    geo_m68k_romdata_game(data_prom, size_prom, data_srom, size_srom);
 
     uint8_t *data_mrom = &romdata[rom_offset];
-    gn_z80_romdata(data_mrom, size_mrom);
+    geo_z80_romdata(data_mrom, size_mrom);
     rom_offset += size_mrom;
 
     if (!size_v2rom) { // Single V ROM
@@ -146,35 +146,35 @@ int gn_neo_load(void *data, size_t size) {
     current_pc_pal = (uint32_t*)vid.pal_host[0];
 
     // Temporary FIXME
-    gn_m68k_postload();
+    geo_m68k_postload();
 
     // Set default bankswitching
-    gn_m68k_board_set(BOARD_DEF);
+    geo_m68k_board_set(BOARD_DEF);
 
     // Handle special cases if necessary
     switch (ngh) {
         case 6: case 19: case 38: {
             // Riding Hero, League Bowling, Thrash Rally
-            gn_m68k_board_set(BOARD_LINKABLE);
+            geo_m68k_board_set(BOARD_LINKABLE);
             break;
         }
         case 8: { // Jockey Grand Prix
-            gn_m68k_board_set(BOARD_JOCKEYGP);
+            geo_m68k_board_set(BOARD_JOCKEYGP);
             break;
         }
         case 242: { // KOF 98
-            gn_m68k_board_set(BOARD_KOF98);
+            geo_m68k_board_set(BOARD_KOF98);
             break;
         }
         case 250: { // Metal Slug X
-            gn_m68k_board_set(BOARD_MSLUGX);
+            geo_m68k_board_set(BOARD_MSLUGX);
             break;
         }
         case 151: case 251: { // KOF 99
             if (size_prom > 0x500000) { // Encrypted
-                gn_m68k_sma_init(sma_addr_kof99, sma_bank_kof99,
+                geo_m68k_sma_init(sma_addr_kof99, sma_bank_kof99,
                     sma_scramble_kof99);
-                gn_m68k_board_set(BOARD_SMA);
+                geo_m68k_board_set(BOARD_SMA);
             }
             break;
         }
@@ -183,14 +183,14 @@ int gn_neo_load(void *data, size_t size) {
 
             // Use heuristics to handle descrambling differences
             if (romdata[0xc1000 + 0x3e481] == 0x9f) { // NEO-SMA KE (AES)
-                gn_m68k_sma_init(sma_addr_garouh, sma_bank_garouh,
+                geo_m68k_sma_init(sma_addr_garouh, sma_bank_garouh,
                     sma_scramble_garouh);
-                gn_m68k_board_set(BOARD_SMA);
+                geo_m68k_board_set(BOARD_SMA);
             }
             else if (romdata[0xc1000 + 0x3e481] == 0x41) { // NEO-SMA KF (MVS)
-                gn_m68k_sma_init(sma_addr_garou, sma_bank_garou,
+                geo_m68k_sma_init(sma_addr_garou, sma_bank_garou,
                     sma_scramble_garou);
-                gn_m68k_board_set(BOARD_SMA);
+                geo_m68k_board_set(BOARD_SMA);
             }
             // Bootleg and Prototype don't have protection
             break;
@@ -199,15 +199,15 @@ int gn_neo_load(void *data, size_t size) {
             neogeo_fix_bank_type = 1;
 
             if (size_prom > 0x500000) { // Encrypted
-                gn_m68k_sma_init(sma_addr_mslug3, sma_bank_mslug3,
+                geo_m68k_sma_init(sma_addr_mslug3, sma_bank_mslug3,
                     sma_scramble_mslug3);
-                gn_m68k_board_set(BOARD_SMA);
+                geo_m68k_board_set(BOARD_SMA);
             }
             // FIXME: Support mslug3a
             /*else if (mslug3a) {
-                gn_m68k_sma_init(sma_addr_mslug3a, sma_bank_mslug3a,
+                geo_m68k_sma_init(sma_addr_mslug3a, sma_bank_mslug3a,
                     sma_scramble_mslug3a);
-                gn_m68k_board_set(BOARD_SMA);
+                geo_m68k_board_set(BOARD_SMA);
             }*/
             break;
         }
@@ -215,9 +215,9 @@ int gn_neo_load(void *data, size_t size) {
             neogeo_fix_bank_type = 2;
 
             if (size_prom > 0x500000) { // Encrypted
-                gn_m68k_sma_init(sma_addr_kof2000, sma_bank_kof2000,
+                geo_m68k_sma_init(sma_addr_kof2000, sma_bank_kof2000,
                     sma_scramble_kof2000);
-                gn_m68k_board_set(BOARD_SMA);
+                geo_m68k_board_set(BOARD_SMA);
             }
             break;
         }
@@ -232,9 +232,9 @@ int gn_neo_load(void *data, size_t size) {
         case 268: { // Metal Slug 5
             // Use heuristics to detect Metal Slug 5 Plus (bootleg)
             if (romdata[0x1000 + 0x26b] == 0xb9)
-                gn_m68k_board_set(BOARD_MS5PLUS);
+                geo_m68k_board_set(BOARD_MS5PLUS);
             else
-                gn_m68k_board_set(BOARD_PVC);
+                geo_m68k_board_set(BOARD_PVC);
             break;
         }
         case 269: { // SNK vs. Capcom - SVC Chaos
@@ -246,16 +246,16 @@ int gn_neo_load(void *data, size_t size) {
             if (romdata[0x1000 + 0x3d25] == 0xc4) // Official Release Only
                 neogeo_fix_bank_type = 2;
             if (romdata[0x1000 + 0x2f8f] == 0xc0)
-                gn_m68k_board_set(BOARD_PVC);
+                geo_m68k_board_set(BOARD_PVC);
             break;
         }
         case 271: { // KOF 2003
             if (romdata[0x1000 + 0xc1] == 0x38) { // Official Release
                 neogeo_fix_bank_type = 2;
-                gn_m68k_board_set(BOARD_PVC);
+                geo_m68k_board_set(BOARD_PVC);
             }
             else if (romdata[0x1000 + 0x689] == 0x10) { // kf2k3bla/kf2k3pl
-                gn_m68k_board_set(BOARD_KF2K3BLA);
+                geo_m68k_board_set(BOARD_KF2K3BLA);
             }
             else {
                 // FIXME - implement kf2k3bl and kf2k3upl

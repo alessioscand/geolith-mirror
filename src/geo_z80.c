@@ -32,8 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stddef.h>
 #include <stdint.h>
 
-#include "gngeo.h"
-#include "gngeo_z80.h"
+#include "geo.h"
+#include "geo_z80.h"
 #include "ymfm/ymfm_opn.h"
 #include "z80/z80.h"
 
@@ -65,7 +65,7 @@ static unsigned nmi_enabled = 0;
  * The NEO-ZMC (Z80 Memory Controller) is a chip on the cartridge which
  * handles memory mapping.
  */
-static uint8_t gn_z80_mem_rd(void *userdata, uint16_t addr) {
+static uint8_t geo_z80_mem_rd(void *userdata, uint16_t addr) {
     if (userdata) { } // Unused
 
     if (addr < 0x8000) // Static main code bank
@@ -83,13 +83,13 @@ static uint8_t gn_z80_mem_rd(void *userdata, uint16_t addr) {
     return zram[addr & 0x07ff];
 }
 
-static void gn_z80_mem_wr(void *userdata, uint16_t addr, uint8_t data) {
+static void geo_z80_mem_wr(void *userdata, uint16_t addr, uint8_t data) {
     if (userdata) { } // Unused
 
     if (addr > 0xf7ff)
         zram[addr & 0x07ff] = data;
     else
-        gn_log(GN_LOG_WRN, "Z80 write outside RAM: %04x %02x\n", addr, data);
+        geo_log(GEO_LOG_WRN, "Z80 write outside RAM: %04x %02x\n", addr, data);
 }
 
 /* Z80 Port Map
@@ -113,7 +113,7 @@ static void gn_z80_mem_wr(void *userdata, uint16_t addr, uint8_t data) {
  * |      0x18 | Address 0x08 (?)              | Disable NMIs   | 0x1c |
  * ---------------------------------------------------------------------
  */
-static inline void gn_z80_bankswap(uint8_t bank, uint16_t port) {
+static inline void geo_z80_bankswap(uint8_t bank, uint16_t port) {
     /* The NEO-ZMC switches ROM banks through Z80 IO Port reads. The 8 most
        significant bits of the port address are used to determine the ROM bank
        to swap in.
@@ -134,7 +134,7 @@ static inline void gn_z80_bankswap(uint8_t bank, uint16_t port) {
     }
 }
 
-static uint8_t gn_z80_port_rd(z80 *userdata, uint16_t port) {
+static uint8_t geo_z80_port_rd(z80 *userdata, uint16_t port) {
     if (userdata) { } // Unused
 
     switch (port & 0xff) {
@@ -146,23 +146,23 @@ static uint8_t gn_z80_port_rd(z80 *userdata, uint16_t port) {
             return ym2610_read(port);
         }
         case 0x08: {
-            gn_z80_bankswap(3, port);
+            geo_z80_bankswap(3, port);
             break;
         }
         case 0x09: {
-            gn_z80_bankswap(2, port);
+            geo_z80_bankswap(2, port);
             break;
         }
         case 0x0a: {
-            gn_z80_bankswap(1, port);
+            geo_z80_bankswap(1, port);
             break;
         }
         case 0x0b: {
-            gn_z80_bankswap(0, port);
+            geo_z80_bankswap(0, port);
             break;
         }
         case 0x0c: {
-            gn_log(GN_LOG_WRN, "Z80 port read 0x0c\n");
+            geo_log(GEO_LOG_WRN, "Z80 port read 0x0c\n");
             break;
         }
         case 0x0e: {
@@ -170,18 +170,18 @@ static uint8_t gn_z80_port_rd(z80 *userdata, uint16_t port) {
             break;
         }
         case 0x18: {
-            gn_log(GN_LOG_WRN, "Z80 port read 0x18\n");
+            geo_log(GEO_LOG_WRN, "Z80 port read 0x18\n");
             break;
         }
         default: {
-            gn_log(GN_LOG_WRN, "Z80 port read 0x%04x\n", port);
+            geo_log(GEO_LOG_WRN, "Z80 port read 0x%04x\n", port);
             break;
         }
     }
     return 0;
 }
 
-static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
+static void geo_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
     if (userdata) { } // Unused
 
     switch (port & 0xff) {
@@ -210,20 +210,20 @@ static void gn_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
             break;
         }
         default: {
-            gn_log(GN_LOG_WRN, "Z80 port write: %04x, %02x\n", port, value);
+            geo_log(GEO_LOG_WRN, "Z80 port write: %04x, %02x\n", port, value);
             break;
         }
     }
 }
 
 // Reset the Z80
-void gn_z80_reset(void) {
+void geo_z80_reset(void) {
     z80_reset(&z80ctx);
     nmi_enabled = 0;
 }
 
 // Initialize the Z80
-void gn_z80_init(void) {
+void geo_z80_init(void) {
     /* The NEO-ZMC initializes all banks to 0 (verified on hardware):
          https://wiki.neogeodev.org/index.php?title=Z80_bankswitching
        Some games did not do any bankswitching at all, so initial values are
@@ -236,35 +236,35 @@ void gn_z80_init(void) {
     zbank[3] = 0xf000;
 
     z80_init(&z80ctx);
-    z80ctx.read_byte = &gn_z80_mem_rd;
-    z80ctx.write_byte = &gn_z80_mem_wr;
-    z80ctx.port_in = &gn_z80_port_rd;
-    z80ctx.port_out = &gn_z80_port_wr;
+    z80ctx.read_byte = &geo_z80_mem_rd;
+    z80ctx.write_byte = &geo_z80_mem_wr;
+    z80ctx.port_in = &geo_z80_port_rd;
+    z80ctx.port_out = &geo_z80_port_wr;
 }
 
 // Run at least N Z80 cycles
-int gn_z80_run(unsigned cycs) {
+int geo_z80_run(unsigned cycs) {
     return z80_step_n(&z80ctx, cycs);
 }
 
 // Pulse the Z80 NMI line
-void gn_z80_nmi(void) {
+void geo_z80_nmi(void) {
     if (nmi_enabled)
         z80_pulse_nmi(&z80ctx);
 }
 
 // Assert the Z80 IRQ line
-void gn_z80_assert_irq(unsigned l) {
+void geo_z80_assert_irq(unsigned l) {
     z80_assert_irq(&z80ctx, l & 0xff);
 }
 
 // Clear the Z80 IRQ line
-void gn_z80_clear_irq(void) {
+void geo_z80_clear_irq(void) {
     z80_clr_irq(&z80ctx);
 }
 
 // Assign M ROM pointer and size
-void gn_z80_romdata(uint8_t *m, size_t msz) {
+void geo_z80_romdata(uint8_t *m, size_t msz) {
     mromdata = m;
     mromsize = msz;
 }

@@ -1,5 +1,5 @@
 /*
- * Gngeo JG
+ * GnGeo
  *
  * Copyright (c) 2001-2015 Mathieu Peponas
  *

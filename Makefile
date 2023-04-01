@@ -15,7 +15,7 @@ INCLUDES := -I$(SRCDIR)
 PIC := -fPIC
 SHARED := $(PIC)
 
-NAME := gngeo
+NAME := geolith
 PREFIX ?= /usr/local
 DATAROOTDIR ?= $(PREFIX)/share
 DATADIR ?= $(DATAROOTDIR)
@@ -49,12 +49,12 @@ CSRCS := m68k/m68kcpu.c \
 	ymfm/ymfm_shim.c \
 	ymfm/ymfm_ssg.c \
 	z80/z80.c \
-	gngeo.c \
-	gngeo_m68k.c \
-	gngeo_mixer.c \
-	gngeo_neo.c \
-	gngeo_rtc.c \
-	gngeo_z80.c \
+	geo.c \
+	geo_m68k.c \
+	geo_mixer.c \
+	geo_neo.c \
+	geo_rtc.c \
+	geo_z80.c \
 	video.c \
 	jg.c
 

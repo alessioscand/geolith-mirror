@@ -1,5 +1,5 @@
 /*
- * Gngeo JG
+ * GnGeo
  *
  * Copyright (c) 2001-2015 Mathieu Peponas
  *
@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "gngeo.h"
+#include "geo.h"
 #include "video.h"
 
 #define PIXEL_PITCH 352

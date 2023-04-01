@@ -37,9 +37,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <jg/jg.h>
 #include <jg/jg_neogeo.h>
 
-#include "gngeo.h"
-#include "gngeo_mixer.h"
-#include "gngeo_neo.h"
+#include "geo.h"
+#include "geo_mixer.h"
+#include "geo_neo.h"
 
 #include "video.h"
 
@@ -54,7 +54,7 @@ static jg_cb_log_t jg_cb_log;
 static jg_cb_rumble_t jg_cb_rumble;
 
 static jg_coreinfo_t coreinfo = {
-    "gngeo", "Gngeo JG", VERSION, "neogeo", NUMINPUTS, 0
+    "geolith", "Geolith", VERSION, "neogeo", NUMINPUTS, 0
 };
 
 static jg_videoinfo_t vidinfo = {
@@ -117,7 +117,7 @@ enum {
 static const char *defs_ngsys[4] = { "Coin1", "Coin2", "Service", "Test" };
 
 // Coin Slots, Service Button, # of Slots
-static unsigned gn_input_poll_stat_a(void) {
+static unsigned geo_input_poll_stat_a(void) {
     unsigned c = 0x07;
     if (input_device[2]->button[0]) // Coin 1
         c &= 0x06;
@@ -129,7 +129,7 @@ static unsigned gn_input_poll_stat_a(void) {
 }
 
 // P1/P2 Select/Start, Memcard status, AES/MVS setting
-static unsigned gn_input_poll_stat_b(void) {
+static unsigned geo_input_poll_stat_b(void) {
     unsigned s = 0x0f;
     if (input_device[0]->button[4])
         s &= 0x0d;
@@ -143,7 +143,7 @@ static unsigned gn_input_poll_stat_b(void) {
 }
 
 // Test button, slot type
-static unsigned gn_input_poll_systype(void) {
+static unsigned geo_input_poll_systype(void) {
     unsigned t = 0xc0;
     if (input_device[2]->button[3]) // Test
         t &= 0x40;
@@ -151,7 +151,7 @@ static unsigned gn_input_poll_systype(void) {
 }
 
 // Poll DIP Switches
-static unsigned gn_input_poll_dipsw(void) {
+static unsigned geo_input_poll_dipsw(void) {
     unsigned d = 0xff;
     if (settings_gn[FREEPLAY].val)
         d &= ~0x40;
@@ -161,7 +161,7 @@ static unsigned gn_input_poll_dipsw(void) {
 }
 
 // Neo Geo Joystick
-static unsigned gn_input_poll_js(unsigned port) {
+static unsigned geo_input_poll_js(unsigned port) {
     unsigned b = 0xff;
 
     if (input_device[port]->button[0])
@@ -201,26 +201,26 @@ void jg_set_cb_rumble(jg_cb_rumble_t func) {
 }
 
 int jg_init(void) {
-    gn_log_set_callback(jg_cb_log);
-    gn_mixer_set_rate(SAMPLERATE);
-    gn_mixer_init();
-    gn_set_region(settings_gn[REGION].val);
-    gn_set_system(settings_gn[SYS].val);
+    geo_log_set_callback(jg_cb_log);
+    geo_mixer_set_rate(SAMPLERATE);
+    geo_mixer_init();
+    geo_set_region(settings_gn[REGION].val);
+    geo_set_system(settings_gn[SYS].val);
     return 1;
 }
 
 void jg_deinit(void) {
-    gn_mixer_deinit();
+    geo_mixer_deinit();
     deinit_video();
 }
 
 void jg_reset(int hard) {
     if (hard) { }
-    gn_reset();
+    geo_reset();
 }
 
 void jg_exec_frame(void) {
-    gn_exec();
+    geo_exec();
 }
 
 int jg_game_load(void) {
@@ -233,19 +233,19 @@ int jg_game_load(void) {
         char biospath[512];
         snprintf(biospath, sizeof(biospath), "%s/%s", pathinfo.bios,
             settings_gn[SYS].val == SYSTEM_AES ? "aes.zip" : "neogeo.zip");
-        if (!gn_bios_load(biospath)) {
-            gn_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
+        if (!geo_bios_load(biospath)) {
+            geo_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
             return 0;
         }
 
         // Load the NEO file
-        gn_neo_load(gameinfo.data, gameinfo.size);
+        geo_neo_load(gameinfo.data, gameinfo.size);
 
         // Load NVRAM
         char savename[292];
         snprintf(savename, sizeof(savename),
             "%s/%s.nv", pathinfo.save, gameinfo.name);
-        int savestat = gn_nvram_load((const char*)savename);
+        int savestat = geo_nvram_load((const char*)savename);
 
         if (savestat == 1)
             jg_cb_log(JG_LOG_DBG, "NVRAM Loaded: %s\n", savename);
@@ -257,7 +257,7 @@ int jg_game_load(void) {
         // Load Memory Card
         snprintf(savename, sizeof(savename),
             "%s/%s.mcr", pathinfo.save, gameinfo.name);
-        savestat = gn_memcard_load((const char*)savename);
+        savestat = geo_memcard_load((const char*)savename);
 
         if (savestat == 1)
             jg_cb_log(JG_LOG_DBG, "Memory Card Loaded: %s\n", savename);
@@ -268,7 +268,7 @@ int jg_game_load(void) {
             jg_cb_log(JG_LOG_DBG, "Memory Card Load Failed: %s\n", savename);
 
         // Initialize the rest of the emulator
-        gn_init();
+        geo_init();
     }
     else { // Only NEO supported
         return 0;
@@ -282,12 +282,12 @@ int jg_game_load(void) {
         defs_ngsys, 0, 4
     };
 
-    gn_input_set_callback(0, &gn_input_poll_js);
-    gn_input_set_callback(1, &gn_input_poll_js);
-    gn_input_sys_set_callback(0, &gn_input_poll_stat_a);
-    gn_input_sys_set_callback(1, &gn_input_poll_stat_b);
-    gn_input_sys_set_callback(2, &gn_input_poll_systype);
-    gn_input_sys_set_callback(3, &gn_input_poll_dipsw);
+    geo_input_set_callback(0, &geo_input_poll_js);
+    geo_input_set_callback(1, &geo_input_poll_js);
+    geo_input_sys_set_callback(0, &geo_input_poll_stat_a);
+    geo_input_sys_set_callback(1, &geo_input_poll_stat_b);
+    geo_input_sys_set_callback(2, &geo_input_poll_systype);
+    geo_input_sys_set_callback(3, &geo_input_poll_dipsw);
 
     jg_cb_frametime(FRAMERATE);
 
@@ -301,7 +301,7 @@ int jg_game_unload(void) {
     // NVRAM
     snprintf(savename, sizeof(savename),
         "%s/%s.nv", pathinfo.save, gameinfo.name);
-    int savestat = gn_nvram_save((const char*)savename);
+    int savestat = geo_nvram_save((const char*)savename);
 
     if (savestat == 1)
         jg_cb_log(JG_LOG_DBG, "NVRAM Saved: %s\n", savename);
@@ -313,7 +313,7 @@ int jg_game_unload(void) {
     // Memcard
     snprintf(savename, sizeof(savename),
         "%s/%s.mcr", pathinfo.save, gameinfo.name);
-    savestat = gn_memcard_save((const char*)savename);
+    savestat = geo_memcard_save((const char*)savename);
 
     if (savestat == 1)
         jg_cb_log(JG_LOG_DBG, "Memory Card Saved: %s\n", savename);
@@ -321,7 +321,7 @@ int jg_game_unload(void) {
         jg_cb_log(JG_LOG_DBG, "Memory Card Save Failed: %s\n", savename);
 
     // Clean up memory allocated for BIOS ROMs
-    gn_bios_unload();
+    geo_bios_unload();
 
     return 1;
 }
@@ -394,8 +394,8 @@ void jg_setup_video(void) {
 }
 
 void jg_setup_audio(void) {
-    gn_mixer_set_buffer(audinfo.buf);
-    gn_mixer_set_callback(jg_cb_audio);
+    geo_mixer_set_buffer(audinfo.buf);
+    geo_mixer_set_callback(jg_cb_audio);
 }
 
 void jg_set_inputstate(jg_inputstate_t *ptr, int port) {

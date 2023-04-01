@@ -28,15 +28,14 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef GN_Z80_H
-#define GN_Z80_H
+#ifndef GEO_RTC_H
+#define GEO_RTC_H
 
-int gn_z80_run(unsigned);
-void gn_z80_nmi(void);
-void gn_z80_assert_irq(unsigned);
-void gn_z80_clear_irq(void);
-void gn_z80_init(void);
-void gn_z80_reset(void);
-void gn_z80_romdata(uint8_t*, size_t);
+void geo_rtc_init(void);
+
+uint8_t geo_rtc_rd(void);
+void geo_rtc_wr(uint8_t);
+
+void geo_rtc_sync(unsigned);
 
 #endif

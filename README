@@ -1,14 +1,10 @@
-PRE-ALPHA
+ALPHA
 ---------
-This core is pre-alpha. It is not fit for everyday use or packaging.
+This core's status is alpha. It is not fit for everyday use or packaging.
 
-Gngeo JG
---------
-Gngeo JG is an emulator for the Neo Geo AES and MVS.
-
-This is a fork of Gngeo 0.8.1 with nearly all components removed, replaced, or
-rewritten. The standalone interface code was removed, and the only original
-code remaining is the video renderer.
+Geolith
+-------
+Geolith is an emulator for the Neo Geo AES and MVS.
 
 This emulator supports TerraOnion's .NEO file format only.
 
@@ -39,13 +35,21 @@ BSD:
 Windows (MSYS2):
   make
 
-The build will be output to "gngeo/". This directory may be used as is
+The build will be output to "geolith/". This directory may be used as is
 locally by copying it to your local "cores" directory, or may be installed
 system-wide using the "install" target specified in the Makefile.
 
+Notes
+-----
+This project begain life as a fork of Gngeo 0.8.1. Most original components
+were removed, replaced, or rewritten. At this point in time, the only original
+code remaining is the video renderer. It no longer bears resemblance to the
+original, so whether this constitutes an original or derivative work is a
+question for philosophers -- see "Grandfather's Axe" or "The Ship of Theseus".
+
 Copyright
 ---------
-Gngeo JG
+Geolith
   Copyright (c) 2001-2015 Mathieu Peponas (GPL-2.0-or-later)
   Copyright (c) 2022-2023 Rupert Carmichael (BSD-3-Clause)
   See COPYING, and individual license headers in source files
