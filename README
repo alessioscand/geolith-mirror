@@ -12,7 +12,7 @@ BIOS files from a recent MAME set are required:
  - aes.zip for Neo Geo AES (Home Console)
  - neogeo.zip for Neo Geo MVS (Arcade) and Unibios
 
-This repository lives at https://gitlab.com/jgemu/gngeo
+This repository lives at https://gitlab.com/jgemu/geolith
 
 Compiling
 ---------
