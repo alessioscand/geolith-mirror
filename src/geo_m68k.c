@@ -691,7 +691,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         }
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        // FIXME - palette RAM
+        return geo_lspc_palram_rd(address);
     }
     else if (address < 0xc00000) { // Memory Card
         /* Emulate an 8-bit, 2K memory card - since only the low byte is used,
@@ -806,7 +806,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a000f: { // REG_PALBANK1
-                // FIXME - set the active palette
+                geo_lspc_palram_bank(1);
                 break;
             }
             case 0x3a0011: { // REG_SHADOW
@@ -839,7 +839,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a001f: { // REG_PALBANK0
-                // FIXME - set the active palette
+                geo_lspc_palram_bank(0);
                 return;
             }
             case 0x3c0000: case 0x3c0002: case 0x3c0004: case 0x3c0006:
@@ -959,7 +959,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        // FIXME - Palette RAM write
+        geo_lspc_palram_wr(address, value);
     }
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
         memcard[(address >> 1) & 0x7ff] = value & 0xff;

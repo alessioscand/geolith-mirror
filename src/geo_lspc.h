@@ -46,9 +46,9 @@ typedef struct _lspc_t {
     uint16_t vram[(SIZE_64K + SIZE_4K) >> 1];
 
     // 2 banks of 256 16-entry palettes, 16-bit colours
-    uint16_t paletteram[SIZE_16K >> 1];
+    uint16_t palram[SIZE_16K >> 1];
 
-    // Palette bank currently in use
+    // Palette bank offset currently in use
     uint8_t palbank;
 
     // Signed 16-bit "modulo" value applied to VRAM address after writes
@@ -59,6 +59,10 @@ void geo_lspc_set_buffer(uint32_t*);
 void geo_lspc_set_fix_banksw(unsigned);
 
 void geo_lspc_romdata(uint8_t*, uint32_t, uint8_t*, uint32_t);
+
+uint16_t geo_lspc_palram_rd(uint32_t);
+void geo_lspc_palram_wr(uint32_t, uint16_t);
+void geo_lspc_palram_bank(unsigned);
 
 uint16_t geo_lspc_vrammod_rd(void);
 void geo_lspc_vrammod_wr(int16_t);

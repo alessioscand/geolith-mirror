@@ -90,6 +90,21 @@ void geo_lspc_romdata(uint8_t *s, uint32_t ssz, uint8_t *c, uint32_t csz) {
    ------------------------------------------------------------------
 */
 
+// Read a palette RAM entry from the active bank
+uint16_t geo_lspc_palram_rd(uint32_t addr) {
+    return lspc.palram[(addr & 0x1fff) + lspc.palbank ? SIZE_4K : 0];
+}
+
+// Write a value to the active bank of palette RAM
+void geo_lspc_palram_wr(uint32_t addr, uint16_t data) {
+    lspc.palram[(addr & 0x1fff) + lspc.palbank ? SIZE_4K : 0] = data;
+}
+
+// Set the active palette bank
+void geo_lspc_palram_bank(unsigned bank) {
+    lspc.palbank = bank;
+}
+
 // Return REG_VRAMMOD as a 16-bit unsigned integer
 uint16_t geo_lspc_vrammod_rd(void) {
     return lspc.vrammod;
