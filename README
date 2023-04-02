@@ -41,7 +41,7 @@ system-wide using the "install" target specified in the Makefile.
 
 Notes
 -----
-This project begain life as a fork of GnGeo 0.8.1. All original components
+This project began life as a fork of GnGeo 0.8.1. All original components
 were removed or replaced as the project progressed, with the resulting codebase
 being entirely new. All non-commercial and GPL code has been removed, and all
 new code has been written under the BSD 3-Clause license. This process has
