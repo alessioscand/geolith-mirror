@@ -33,12 +33,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "m68k/m68k.h"
 
+#include "geo_lspc.h"
 #include "geo_m68k.h"
 #include "geo_rtc.h"
 #include "geo_z80.h"
 #include "geo.h"
-
-#include "video.h"
 
 #define SMATAP 0x98ec // NEO-SMA Tapped bits - 2, 3, 5, 6, 7, 11, 12, and 15
 
@@ -602,11 +601,11 @@ unsigned int m68k_read_memory_8(unsigned int address) {
             }
             case 0x3c0000: case 0x3c0002: case 0x3c0008: case 0x3c000a: {
                 // REG_VRAMADDR, REG_VRAMRW, REG_TIMERHIGH, REG_TIMERLOW
-                return vid.ram[vid.vptr] & 0xff;
+                break;
             }
             case 0x3c0004: case 0x3c000c: {
                 // REG_VRAMMOD, REG_IRQACK
-                return vid.modulo & 0xff;
+                break;
             }
             case 0x3c0006: case 0x3c000e: {
                 /* REG_LSPCMODE, REG_TIMERSTOP
@@ -615,14 +614,10 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                    Bit 3:     0 = 60Hz, 1 = 50Hz
                    Bits 0-2:  Auto animation counter
                 */
-                return (((current_line + 0xf8) << 7) |
-                    //(conf.pal << 3) | // FIXME restore when PAL is supported
-                    (neogeo_frame_counter & 0x07)) & 0xff;
             }
         }
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        return read08(current_pal, address & 0x1fff);
     }
     else if (address < 0xc00000) { // Memory Card
         //geo_log(GEO_LOG_DBG, "8-bit Memory Card Read: %06x\n", address);
@@ -678,11 +673,12 @@ unsigned int m68k_read_memory_16(unsigned int address) {
             }
             case 0x3c0000: case 0x3c0002: case 0x3c0008: case 0x3c000a: {
                 // REG_VRAMADDR, REG_VRAMRW, REG_TIMERHIGH, REG_TIMERLOW
-                return vid.ram[vid.vptr];
+                break;
             }
             case 0x3c0004: case 0x3c000c: {
                 // REG_VRAMMOD, REG_IRQACK
-                return (uint16_t)vid.modulo;
+                // FIXME return modulo as unsigned 16-bit integer
+                break;
             }
             case 0x3c0006: case 0x3c000e: {
                 /* REG_LSPCMODE, REG_TIMERSTOP
@@ -691,14 +687,12 @@ unsigned int m68k_read_memory_16(unsigned int address) {
                    Bit 3:     0 = 60Hz, 1 = 50Hz
                    Bits 0-2:  Auto animation counter
                 */
-                return ((current_line + 0xf8) << 7) |
-                    //(conf.pal << 3) | // FIXME restore when PAL is supported
-                    (neogeo_frame_counter & 0x07);
+                break;
             }
         }
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        return read16be(current_pal, address & 0x1fff);
+        // FIXME - palette RAM
     }
     else if (address < 0xc00000) { // Memory Card
         /* Emulate an 8-bit, 2K memory card - since only the low byte is used,
@@ -805,18 +799,16 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a000b: { // REG_BRDFIX
-                current_fix = sfixdata;
-                fix_usage = fix_board_usage;
-                vid.currentfix = 0;
-                return;
+                // FIXME - set FIX layer to system ROM
+                break;
             }
             case 0x3a000d: { // REG_SRAMLOCK
                 reg_sramlock = 1;
                 return;
             }
             case 0x3a000f: { // REG_PALBANK1
-                palette_set(1);
-                return;
+                // FIXME - set the active palette
+                break;
             }
             case 0x3a0011: { // REG_SHADOW
                 geo_log(GEO_LOG_DBG, "REG_SHADOW write: %02x\n", value);
@@ -840,17 +832,15 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a001b: { // REG_CRTFIX
-                current_fix = sromdata;
-                fix_usage = fix_game_usage;
-                vid.currentfix = 1;
-                return;
+                // FIXME - set FIX layer to cart
+                break;
             }
             case 0x3a001d: { // REG_SRAMUNLOCK
                 reg_sramlock = 0;
                 return;
             }
             case 0x3a001f: { // REG_PALBANK0
-                palette_set(0);
+                // FIXME - set the active palette
                 return;
             }
             case 0x3c0000: case 0x3c0002: case 0x3c0004: case 0x3c0006:
@@ -906,21 +896,19 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3c0000: { // REG_VRAMADDR
-                vid.vptr = value & 0xffff;
-                return;
+                // FIXME - VRAM address write
+                break;
             }
             case 0x3c0002: { // REG_VRAMRW
                 // Write to VRAM (modulo is applied after)
-                vid.ram[vid.vptr] = value;
-                vid.vptr += vid.modulo;
-                vid.vptr &= 0xffff;
+                // FIXME VRAM write
                 return;
             }
             case 0x3c0004: { // REG_VRAMMOD
                 /* Set the signed value automatically added to the VRAM address
                    after a write
                 */
-                vid.modulo = ((int16_t)value);
+                // FIXME - signed modulo value - ((int16_t)value)
                 return;
             }
             case 0x3c0006: { // REG_LSPCMODE
@@ -930,7 +918,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                    Bit 3:     Disable auto animation
                    Bits 0-2:  Unused
                 */
-                vid.fc_speed = (((value >> 8) & 0xff) + 1);
+                // FIXME - set auto-anim speed to (((value >> 8) & 0xff) + 1)
                 irq2_ctrl = value & 0xff;
                 return;
             }
@@ -972,7 +960,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        mem68k_store_pal_word(address, value);
+        // FIXME - Palette RAM write
     }
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
         memcard[(address >> 1) & 0x7ff] = value & 0xff;
@@ -1100,12 +1088,5 @@ void geo_m68k_postload(void) {
     swapb16_range(biosdata, biossize);
     swapb16_range(promdata, promsize);
 
-    if (geo_get_system() == SYSTEM_AES) {
-        current_fix = sromdata;
-        fix_usage = fix_game_usage;
-    }
-    else {
-        current_fix = sfixdata;
-        fix_usage = fix_board_usage;
-    }
+    // FIXME - set up Fix layer pointers etc
 }

@@ -31,6 +31,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef GEO_LSPC_H
 #define GEO_LSPC_H
 
+#define LSPC_WIDTH          352
+#define LSPC_WIDTH_VISIBLE  304
+#define LSPC_HEIGHT         256
+#define LSPC_HEIGHT_VISIBLE 224
+#define LSPC_SCANLINES      264
+
+#define FIX_BANKSW_NONE 0
+#define FIX_BANKSW_LINE 1
+#define FIX_BANKSW_TILE 2
+
+void geo_lspc_set_buffer(uint32_t*);
+void geo_lspc_set_fix_banksw(unsigned);
+
+void geo_lspc_romdata(uint8_t*, uint32_t, uint8_t*, uint32_t);
+
 void geo_lspc_init(void);
 
 #endif

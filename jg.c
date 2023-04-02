@@ -38,10 +38,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <jg/jg_neogeo.h>
 
 #include "geo.h"
+#include "geo_lspc.h"
 #include "geo_mixer.h"
 #include "geo_neo.h"
-
-#include "video.h"
 
 #define SAMPLERATE 48000
 #define FRAMERATE 60
@@ -58,16 +57,16 @@ static jg_coreinfo_t coreinfo = {
 };
 
 static jg_videoinfo_t vidinfo = {
-    JG_PIXFMT_XRGB8888, // pixfmt
-    352,                // wmax
-    256,                // hmax
-    304,                // w
-    224,                // h
-    24,                 // x
-    16,                 // y
-    352,                // p
-    304.0/224.0,        // aspect
-    NULL                // buf
+    JG_PIXFMT_XRGB8888,     // pixfmt
+    LSPC_WIDTH,             // wmax
+    LSPC_HEIGHT,            // hmax
+    LSPC_WIDTH_VISIBLE,     // w
+    LSPC_HEIGHT_VISIBLE,    // h
+    24,                     // x
+    16,                     // y
+    LSPC_WIDTH,             // p
+    304.0/224.0,            // aspect
+    NULL                    // buf
 };
 
 static jg_audioinfo_t audinfo = {
@@ -211,7 +210,6 @@ int jg_init(void) {
 
 void jg_deinit(void) {
     geo_mixer_deinit();
-    deinit_video();
 }
 
 void jg_reset(int hard) {
@@ -390,7 +388,7 @@ jg_setting_t* jg_get_settings(size_t *numsettings) {
 }
 
 void jg_setup_video(void) {
-    video_set_buffer(vidinfo.buf);
+    geo_lspc_set_buffer(vidinfo.buf);
 }
 
 void jg_setup_audio(void) {

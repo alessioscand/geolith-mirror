@@ -33,5 +33,35 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "geo_lspc.h"
 
+static uint32_t *vbuf = NULL;
+static unsigned fix_banksw = 0;
+
+static uint8_t *sromdata = NULL;
+static size_t sromsize = 0;
+static uint8_t *cromdata = NULL;
+static size_t cromsize = 0;
+
+// Set the pointer to the video buffer
+void geo_lspc_set_buffer(uint32_t *ptr) {
+    vbuf = ptr;
+}
+
+// Set the Fix Layer bank switching type
+void geo_lspc_set_fix_banksw(unsigned f) {
+    /* Type 0: Nonoe
+       Type 1: Per-line banking
+       Type 2: Per-tile banking
+    */
+    if (f <= FIX_BANKSW_TILE)
+        fix_banksw = f;
+}
+
+void geo_lspc_romdata(uint8_t *s, uint32_t ssz, uint8_t *c, uint32_t csz) {
+    sromdata = s;
+    sromsize = ssz;
+    cromdata = c;
+    cromsize = csz;
+}
+
 void geo_lspc_init(void) {
 }

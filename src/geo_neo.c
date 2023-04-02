@@ -35,14 +35,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 
 #include "geo.h"
+#include "geo_lspc.h"
 #include "geo_m68k.h"
 #include "geo_z80.h"
 #include "geo_neo.h"
 #include "geo_sma.h"
 
 #include "ymfm/ymfm_shim.h"
-
-#include "video.h"
 
 extern int neogeo_fix_bank_type;
 
@@ -139,11 +138,8 @@ int geo_neo_load(void *data, size_t size) {
     uint8_t *data_crom = &romdata[rom_offset];
     rom_offset += size_crom;
 
-    // Pass S ROM and C ROM data to video renderer
-    video_romdata(data_srom, size_srom, data_crom, size_crom);
-
-    current_pal = vid.pal_neo[0];
-    current_pc_pal = (uint32_t*)vid.pal_host[0];
+    // Pass S ROM and C ROM data to LSPC
+    geo_lspc_romdata(data_srom, size_srom, data_crom, size_crom);
 
     // Temporary FIXME
     geo_m68k_postload();
@@ -179,7 +175,7 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 253: { // Garou - Mark of the Wolves
-            neogeo_fix_bank_type = 1;
+            geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
 
             // Use heuristics to handle descrambling differences
             if (romdata[0xc1000 + 0x3e481] == 0x9f) { // NEO-SMA KE (AES)
@@ -196,7 +192,7 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 256: { // Metal Slug 3
-            neogeo_fix_bank_type = 1;
+            geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
 
             if (size_prom > 0x500000) { // Encrypted
                 geo_m68k_sma_init(sma_addr_mslug3, sma_bank_mslug3,
@@ -212,7 +208,7 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 257: { // KOF 2000
-            neogeo_fix_bank_type = 2;
+            geo_lspc_set_fix_banksw(FIX_BANKSW_TILE);
 
             if (size_prom > 0x500000) { // Encrypted
                 geo_m68k_sma_init(sma_addr_kof2000, sma_bank_kof2000,
@@ -222,11 +218,11 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 263: { // Metal Slug 4
-            neogeo_fix_bank_type = 1;
+            geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
             break;
         }
         case 266: { // Matrimelee
-            neogeo_fix_bank_type = 2;
+            geo_lspc_set_fix_banksw(FIX_BANKSW_TILE);
             break;
         }
         case 268: { // Metal Slug 5
@@ -244,14 +240,14 @@ int geo_neo_load(void *data, size_t size) {
                known bootlegs use neither.
             */
             if (romdata[0x1000 + 0x3d25] == 0xc4) // Official Release Only
-                neogeo_fix_bank_type = 2;
+                geo_lspc_set_fix_banksw(FIX_BANKSW_TILE);
             if (romdata[0x1000 + 0x2f8f] == 0xc0)
                 geo_m68k_board_set(BOARD_PVC);
             break;
         }
         case 271: { // KOF 2003
             if (romdata[0x1000 + 0xc1] == 0x38) { // Official Release
-                neogeo_fix_bank_type = 2;
+                geo_lspc_set_fix_banksw(FIX_BANKSW_TILE);
                 geo_m68k_board_set(BOARD_PVC);
             }
             else if (romdata[0x1000 + 0x689] == 0x10) { // kf2k3bla/kf2k3pl

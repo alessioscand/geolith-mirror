@@ -56,7 +56,6 @@ CSRCS := m68k/m68kcpu.c \
 	geo_neo.c \
 	geo_rtc.c \
 	geo_z80.c \
-	video.c \
 	jg.c
 
 ifeq ($(USE_EXTERNAL_MINIZ), 0)
@@ -136,7 +135,6 @@ install: all
 	@mkdir -p $(DESTDIR)$(DOCDIR)
 	@mkdir -p $(DESTDIR)$(LIBDIR)/jollygood
 	cp $(NAME)/$(TARGET) $(DESTDIR)$(LIBDIR)/jollygood/
-	cp $(SOURCEDIR)/COPYING $(DESTDIR)$(DOCDIR)
 	cp $(SOURCEDIR)/LICENSE $(DESTDIR)$(DOCDIR)
 	cp $(SOURCEDIR)/README $(DESTDIR)$(DOCDIR)
 	$(Q_MINIZ)if test $(USE_EXTERNAL_MINIZ) = 0; then \

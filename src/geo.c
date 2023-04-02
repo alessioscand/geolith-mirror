@@ -41,8 +41,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ymfm/ymfm_shim.h"
 
-#include "video.h"
-
 #define DIV_M68K 2
 #define DIV_Z80 6
 #define DIV_YM2610 72 // 72 for medium fidelity, 8 for high
@@ -194,9 +192,6 @@ int geo_bios_load(const char *biospath) {
             geo_log(GEO_LOG_ERR, "Failed to load sfix.sfix from BIOS archive!\n");
             return 0;
         }
-
-        // convert bios fix char
-        convert_all_char(sfixdata, SIZE_128K, fix_board_usage);
     }
 
     geo_m68k_romdata_bios(biosdata, biossize, sfixdata, sfixsize);
@@ -317,7 +312,7 @@ void geo_init(void) {
     geo_z80_init();
     ymfm_shim_init();
     geo_rtc_init();
-    video_set_l0rom(l0rom);
+    //video_set_l0rom(l0rom);
     geo_reset();
 }
 
@@ -341,11 +336,7 @@ void geo_exec(void) {
     mcycs = mextcycs;
     lcycs = lextcycs;
     zcycs = zextcycs;
-
-    current_line = 0;
     ymsamps = 0;
-
-    draw_bg();
 
     // Each frame starts with the VBLANK interrupt
     geo_m68k_interrupt(IRQ_VBLANK);
@@ -400,11 +391,6 @@ void geo_exec(void) {
         // Handle line related logic
         if (lcycs >= MCYC_PER_LINE) {
             lcycs -= MCYC_PER_LINE;
-            if (current_line < 263 && current_line > 24)
-                draw_screen_scanline(current_line - 24, 0);
-            else if (current_line == 263)
-                draw_screen_scanline(current_line - 24, 1);
-            ++current_line;
         }
     }
 
@@ -413,7 +399,7 @@ void geo_exec(void) {
     lextcycs = lcycs;
 
     // Increment Frame Counter
-    video_fc_increment();
+    //video_fc_increment();
 
     // Resample audio generated this frame for output to the frontend
     geo_mixer_resamp(ymsamps);
