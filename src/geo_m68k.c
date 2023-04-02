@@ -807,7 +807,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             }
             case 0x3a000f: { // REG_PALBANK1
                 geo_lspc_palram_bank(1);
-                break;
+                return;
             }
             case 0x3a0011: { // REG_SHADOW
                 geo_log(GEO_LOG_DBG, "REG_SHADOW write: %02x\n", value);
@@ -895,12 +895,11 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3c0000: { // REG_VRAMADDR
-                // FIXME - VRAM address write
-                break;
+                geo_lspc_vramaddr_wr(value);
+                return;
             }
             case 0x3c0002: { // REG_VRAMRW
-                // Write to VRAM (modulo is applied after)
-                // FIXME VRAM write
+                geo_lspc_vram_wr(value);
                 return;
             }
             case 0x3c0004: { // REG_VRAMMOD

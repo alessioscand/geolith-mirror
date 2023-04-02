@@ -51,6 +51,9 @@ typedef struct _lspc_t {
     // Palette bank offset currently in use
     uint8_t palbank;
 
+    // VRAM Address
+    uint16_t vramaddr;
+
     // Signed 16-bit "modulo" value applied to VRAM address after writes
     int16_t vrammod;
 } lspc_t;
@@ -63,6 +66,9 @@ void geo_lspc_romdata(uint8_t*, uint32_t, uint8_t*, uint32_t);
 uint16_t geo_lspc_palram_rd(uint32_t);
 void geo_lspc_palram_wr(uint32_t, uint16_t);
 void geo_lspc_palram_bank(unsigned);
+
+void geo_lspc_vramaddr_wr(uint16_t);
+void geo_lspc_vram_wr(uint16_t);
 
 uint16_t geo_lspc_vrammod_rd(void);
 void geo_lspc_vrammod_wr(int16_t);

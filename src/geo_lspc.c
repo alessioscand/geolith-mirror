@@ -105,6 +105,17 @@ void geo_lspc_palram_bank(unsigned bank) {
     lspc.palbank = bank;
 }
 
+// Write the VRAM Address to work with
+void geo_lspc_vramaddr_wr(uint16_t addr) {
+    lspc.vramaddr = addr;
+}
+
+// Write to VRAM
+void geo_lspc_vram_wr(uint16_t data) {
+    lspc.vram[lspc.vramaddr] = data; // Perform the write
+    lspc.vramaddr += lspc.vrammod; // Apply the modulo after the write
+}
+
 // Return REG_VRAMMOD as a 16-bit unsigned integer
 uint16_t geo_lspc_vrammod_rd(void) {
     return lspc.vrammod;
@@ -117,5 +128,6 @@ void geo_lspc_vrammod_wr(int16_t mod) {
 
 void geo_lspc_init(void) {
     lspc.palbank = 0;
+    lspc.vramaddr = 0;
     lspc.vrammod = 0;
 }
