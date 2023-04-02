@@ -41,18 +41,21 @@ system-wide using the "install" target specified in the Makefile.
 
 Notes
 -----
-This project begain life as a fork of Gngeo 0.8.1. Most original components
-were removed, replaced, or rewritten. At this point in time, the only original
-code remaining is the video renderer. It no longer bears resemblance to the
-original, so whether this constitutes an original or derivative work is a
-question for philosophers -- see "Grandfather's Axe" or "The Ship of Theseus".
+This project begain life as a fork of GnGeo 0.8.1. All original components
+were removed or replaced as the project progressed, with the resulting codebase
+being entirely new. All non-commercial and GPL code has been removed, and all
+new code has been written under the BSD 3-Clause license. This process has
+similarities to the creation of the BSD operating system itself, which was
+built over time by replacing all components of AT&T UNIX with new, permissively
+licensed ones. With this being stated, a special thanks goes out to Mathieu
+Peponas for creating the original GnGeo emulator which allowed this process to
+take place.
 
 Copyright
 ---------
-Geolith
-  Copyright (c) 2001-2015 Mathieu Peponas (GPL-2.0-or-later)
-  Copyright (c) 2022-2023 Rupert Carmichael (BSD-3-Clause)
-  See COPYING, and individual license headers in source files
+Geolith (BSD-3-Clause)
+  Copyright (c) 2022-2023 Rupert Carmichael
+  See LICENSE
 
 Jolly Good Z80 (MIT)
   Copyright (c) 2019 Nicolas Allemand
