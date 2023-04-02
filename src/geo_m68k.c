@@ -33,11 +33,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "m68k/m68k.h"
 
+#include "geo.h"
 #include "geo_lspc.h"
 #include "geo_m68k.h"
 #include "geo_rtc.h"
 #include "geo_z80.h"
-#include "geo.h"
 
 #define SMATAP 0x98ec // NEO-SMA Tapped bits - 2, 3, 5, 6, 7, 11, 12, and 15
 
@@ -677,8 +677,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
             }
             case 0x3c0004: case 0x3c000c: {
                 // REG_VRAMMOD, REG_IRQACK
-                // FIXME return modulo as unsigned 16-bit integer
-                break;
+                return geo_lspc_vrammod_rd();
             }
             case 0x3c0006: case 0x3c000e: {
                 /* REG_LSPCMODE, REG_TIMERSTOP
@@ -908,7 +907,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                 /* Set the signed value automatically added to the VRAM address
                    after a write
                 */
-                // FIXME - signed modulo value - ((int16_t)value)
+                geo_lspc_vrammod_wr((int16_t)value);
                 return;
             }
             case 0x3c0006: { // REG_LSPCMODE

@@ -41,10 +41,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define FIX_BANKSW_LINE 1
 #define FIX_BANKSW_TILE 2
 
+typedef struct _lspc_t {
+    // 64K + 4K = 68K, broken into Lower and Upper segments of 16-bit values
+    uint16_t vram[(SIZE_64K + SIZE_4K) >> 1];
+
+    // 2 banks of 256 16-entry palettes, 16-bit colours
+    uint16_t paletteram[SIZE_16K >> 1];
+
+    // Palette bank currently in use
+    uint8_t palbank;
+
+    // Signed 16-bit "modulo" value applied to VRAM address after writes
+    int16_t vrammod;
+} lspc_t;
+
 void geo_lspc_set_buffer(uint32_t*);
 void geo_lspc_set_fix_banksw(unsigned);
 
 void geo_lspc_romdata(uint8_t*, uint32_t, uint8_t*, uint32_t);
+
+uint16_t geo_lspc_vrammod_rd(void);
+void geo_lspc_vrammod_wr(int16_t);
 
 void geo_lspc_init(void);
 

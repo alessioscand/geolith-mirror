@@ -31,7 +31,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stddef.h>
 #include <stdint.h>
 
+#include "geo.h"
 #include "geo_lspc.h"
+
+static lspc_t lspc;
 
 static uint32_t *vbuf = NULL;
 static unsigned fix_banksw = 0;
@@ -48,7 +51,7 @@ void geo_lspc_set_buffer(uint32_t *ptr) {
 
 // Set the Fix Layer bank switching type
 void geo_lspc_set_fix_banksw(unsigned f) {
-    /* Type 0: Nonoe
+    /* Type 0: None
        Type 1: Per-line banking
        Type 2: Per-tile banking
     */
@@ -63,5 +66,41 @@ void geo_lspc_romdata(uint8_t *s, uint32_t ssz, uint8_t *c, uint32_t csz) {
     cromsize = csz;
 }
 
+/* VRAM Memory Map
+   ==================================================================
+   | Range           | Words | Zone  | Description                  |
+   ==================================================================
+   | 0x0000 - 0x6fff |   28K |       | SBC1                         |
+   |-------------------------|       |------------------------------|
+   | 0x7000 - 0x74ff |       | Lower | Fix map                      |
+   |-----------------|    4K |       |------------------------------|
+   | 0x7500 - 0x7fff |       |       | Extension                    |
+   ------------------------------------------------------------------
+   | 0x8000 - 0x81ff |   512 |       | SBC2                         |
+   |-----------------|-------|       |------------------------------|
+   | 0x8200 - 0x83ff |   512 |       | SBC3                         |
+   |-----------------|-------|       |------------------------------|
+   | 0x8400 - 0x85ff |   512 | Upper | SBC4                         |
+   |-----------------|-------|       |------------------------------|
+   | 0x8600 - 0x867f |   128 |       | Sprite list (even scanlines) |
+   |-----------------|-------|       |------------------------------|
+   | 0x8680 - 0x86ff |   128 |       | Sprite list (odd scanlines)  |
+   ------------------------------------------------------------------
+   | 0x8700 - 0x87ff |   256 | Unused                               |
+   ------------------------------------------------------------------
+*/
+
+// Return REG_VRAMMOD as a 16-bit unsigned integer
+uint16_t geo_lspc_vrammod_rd(void) {
+    return lspc.vrammod;
+}
+
+// Write a value to REG_VRAMMOD as a 16-bit signed integer
+void geo_lspc_vrammod_wr(int16_t mod) {
+    lspc.vrammod = mod;
+}
+
 void geo_lspc_init(void) {
+    lspc.palbank = 0;
+    lspc.vrammod = 0;
 }
