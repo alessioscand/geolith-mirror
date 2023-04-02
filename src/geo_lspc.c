@@ -126,8 +126,58 @@ void geo_lspc_vrammod_wr(int16_t mod) {
     lspc.vrammod = mod;
 }
 
+// Read REG_LSPCMODE
+uint16_t geo_lspc_mode_rd(void) {
+    /* Bits 7-15: Raster line counter (with offset of 0xf8)
+       Bits 4-6:  000
+       Bit 3:     0 = 60Hz, 1 = 50Hz
+       Bits 0-2:  Auto animation counter
+    */
+    // FIXME - support 50Hz
+    return ((lspc.scanline + 0xf8) << 7) | lspc.aa_counter;
+}
+
+// Write to REG_LSPCMODE
+void geo_lspc_mode_wr(uint16_t data) {
+    /* Bits 8-15: Auto animation speed - tick every N+1 frames
+       Bits 7-5:  Timer interrupt mode
+       Bit 4:     Timer interrupt enable
+       Bit 3:     Disable auto animation
+       Bits 0-2:  Unused
+    */
+    lspc.aa_reload = (data >> 8) + 1;
+    irq2_ctrl = data & 0xf0;
+    lspc.aa_disable = data & 0x08;
+}
+
 void geo_lspc_init(void) {
     lspc.palbank = 0;
     lspc.vramaddr = 0;
     lspc.vrammod = 0;
+    lspc.aa_counter = 0;
+    lspc.aa_disable = 0;
+    lspc.aa_speed = 0;
+    lspc.aa_ticks = 0;
+    lspc.scanline = 0;
+}
+
+void geo_lspc_scanline(void) {
+    if (++lspc.scanline == LSPC_SCANLINES) { // Handle final scanline
+        lspc.scanline = 0;
+
+        /* Tick the auto animation timer every frame, and increment the counter
+           when the timer reaches the auto animation speed setting. These
+           timers run even if auto animation is disabled.
+        */
+        if (++lspc.aa_ticks >= lspc.aa_speed) {
+            // Reset auto animation timer
+            lspc.aa_ticks = 0;
+
+            // Reload auto animation speed value
+            lspc.aa_speed = lspc.aa_reload;
+
+            // Increment auto animation counter (3 bits)
+            lspc.aa_counter = (lspc.aa_counter + 1) & 0x07;
+        }
+    }
 }

@@ -680,13 +680,8 @@ unsigned int m68k_read_memory_16(unsigned int address) {
                 return geo_lspc_vrammod_rd();
             }
             case 0x3c0006: case 0x3c000e: {
-                /* REG_LSPCMODE, REG_TIMERSTOP
-                   Bits 7-15: Raster line counter (with offset of 0xf8)
-                   Bits 4-6:  000
-                   Bit 3:     0 = 60Hz, 1 = 50Hz
-                   Bits 0-2:  Auto animation counter
-                */
-                break;
+                // REG_LSPCMODE, REG_TIMERSTOP
+                return geo_lspc_mode_rd();
             }
         }
     }
@@ -903,21 +898,11 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3c0004: { // REG_VRAMMOD
-                /* Set the signed value automatically added to the VRAM address
-                   after a write
-                */
                 geo_lspc_vrammod_wr((int16_t)value);
                 return;
             }
             case 0x3c0006: { // REG_LSPCMODE
-                /* Bits 8-15: Auto animation speed - tick every N+1 frames
-                   Bits 7-5:  Timer interrupt mode
-                   Bit 4:     Timer interrupt enable
-                   Bit 3:     Disable auto animation
-                   Bits 0-2:  Unused
-                */
-                // FIXME - set auto-anim speed to (((value >> 8) & 0xff) + 1)
-                irq2_ctrl = value & 0xff;
+                geo_lspc_mode_wr(value);
                 return;
             }
             case 0x3c0008: { // REG_TIMERHIGH

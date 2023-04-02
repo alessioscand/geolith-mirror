@@ -56,6 +56,15 @@ typedef struct _lspc_t {
 
     // Signed 16-bit "modulo" value applied to VRAM address after writes
     int16_t vrammod;
+
+    // Auto animation
+    uint8_t aa_counter;
+    uint8_t aa_disable;
+    uint8_t aa_reload;
+    uint8_t aa_speed;
+    uint8_t aa_ticks;
+
+    uint32_t scanline;
 } lspc_t;
 
 void geo_lspc_set_buffer(uint32_t*);
@@ -73,6 +82,11 @@ void geo_lspc_vram_wr(uint16_t);
 uint16_t geo_lspc_vrammod_rd(void);
 void geo_lspc_vrammod_wr(int16_t);
 
+uint16_t geo_lspc_mode_rd(void);
+void geo_lspc_mode_wr(uint16_t);
+
 void geo_lspc_init(void);
+
+void geo_lspc_scanline(void);
 
 #endif

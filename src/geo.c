@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <miniz.h>
 
 #include "geo.h"
+#include "geo_lspc.h"
 #include "geo_m68k.h"
 #include "geo_mixer.h"
 #include "geo_rtc.h"
@@ -391,6 +392,7 @@ void geo_exec(void) {
         // Handle line related logic
         if (lcycs >= MCYC_PER_LINE) {
             lcycs -= MCYC_PER_LINE;
+            geo_lspc_scanline();
         }
     }
 
