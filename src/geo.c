@@ -172,7 +172,8 @@ int geo_bios_load(const char *biospath) {
 
     if (biosdata == NULL) {
         mz_zip_reader_end(&zip_archive);
-        geo_log(GEO_LOG_ERR, "Failed to load %s from BIOS archive!\n", biosrom);
+        geo_log(GEO_LOG_ERR,
+            "Failed to load %s from BIOS archive!\n", biosrom);
         return 0;
     }
 
@@ -190,7 +191,8 @@ int geo_bios_load(const char *biospath) {
             "sfix.sfix", &sfixsize, 0);
         if (sfixdata == NULL) {
             mz_zip_reader_end(&zip_archive);
-            geo_log(GEO_LOG_ERR, "Failed to load sfix.sfix from BIOS archive!\n");
+            geo_log(GEO_LOG_ERR,
+                "Failed to load sfix.sfix from BIOS archive!\n");
             return 0;
         }
     }
@@ -306,6 +308,7 @@ void geo_reset(void) {
     geo_m68k_reset();
     geo_z80_reset();
     ymfm_shim_reset(); // Reset the YM2610 to make sure everything is defaulted
+    geo_lspc_init();
 }
 
 void geo_init(void) {
@@ -314,6 +317,7 @@ void geo_init(void) {
     ymfm_shim_init();
     geo_rtc_init();
     //video_set_l0rom(l0rom);
+    geo_lspc_init();
     geo_reset();
 }
 
@@ -399,9 +403,6 @@ void geo_exec(void) {
     mextcycs = mcycs - MCYC_PER_FRAME;
     zextcycs = zcycs - MCYC_PER_FRAME;
     lextcycs = lcycs;
-
-    // Increment Frame Counter
-    //video_fc_increment();
 
     // Resample audio generated this frame for output to the frontend
     geo_mixer_resamp(ymsamps);
