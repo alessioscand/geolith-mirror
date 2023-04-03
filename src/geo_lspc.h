@@ -77,6 +77,8 @@ void geo_lspc_palram_wr(uint32_t, uint16_t);
 void geo_lspc_palram_bank(unsigned);
 
 void geo_lspc_vramaddr_wr(uint16_t);
+
+uint16_t geo_lspc_vram_rd(void);
 void geo_lspc_vram_wr(uint16_t);
 
 uint16_t geo_lspc_vrammod_rd(void);

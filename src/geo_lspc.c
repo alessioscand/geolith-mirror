@@ -120,13 +120,14 @@ static inline void geo_lspc_palconv(uint16_t addr, uint16_t data) {
 
 // Read a palette RAM entry from the active bank
 uint16_t geo_lspc_palram_rd(uint32_t addr) {
-    return lspc.palram[(addr & 0x1fff) + lspc.palbank ? SIZE_4K : 0];
+    return lspc.palram[((addr >> 1) & 0xfff) + lspc.palbank ? SIZE_4K : 0];
 }
 
 // Write a value to the active bank of palette RAM
 void geo_lspc_palram_wr(uint32_t addr, uint16_t data) {
-    lspc.palram[(addr & 0x1fff) + lspc.palbank ? SIZE_4K : 0] = data;
-    geo_lspc_palconv((addr & 0x1fff) + lspc.palbank ? SIZE_4K : 0, data);
+    addr >>= 1; // The address should access 16-bit values rather than bytes
+    lspc.palram[(addr & 0xfff) + (lspc.palbank ? SIZE_4K : 0)] = data;
+    geo_lspc_palconv((addr & 0xfff) + (lspc.palbank ? SIZE_4K : 0), data);
 }
 
 // Set the active palette bank
@@ -137,6 +138,11 @@ void geo_lspc_palram_bank(unsigned bank) {
 // Write the VRAM Address to work with
 void geo_lspc_vramaddr_wr(uint16_t addr) {
     lspc.vramaddr = addr;
+}
+
+// Read from VRAM
+uint16_t geo_lspc_vram_rd(void) {
+    return lspc.vram[lspc.vramaddr];
 }
 
 // Write to VRAM

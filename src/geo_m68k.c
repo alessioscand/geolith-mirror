@@ -673,7 +673,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
             }
             case 0x3c0000: case 0x3c0002: case 0x3c0008: case 0x3c000a: {
                 // REG_VRAMADDR, REG_VRAMRW, REG_TIMERHIGH, REG_TIMERLOW
-                break;
+                return geo_lspc_vram_rd();
             }
             case 0x3c0004: case 0x3c000c: {
                 // REG_VRAMMOD, REG_IRQACK
