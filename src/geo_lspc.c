@@ -44,6 +44,9 @@ static size_t sromsize = 0;
 static uint8_t *cromdata = NULL;
 static size_t cromsize = 0;
 
+// Dynamic output palette with values converted from palette RAM
+static uint32_t palette[SIZE_8K];
+
 // Set the pointer to the video buffer
 void geo_lspc_set_buffer(uint32_t *ptr) {
     vbuf = ptr;
@@ -90,6 +93,26 @@ void geo_lspc_romdata(uint8_t *s, uint32_t ssz, uint8_t *c, uint32_t csz) {
    ------------------------------------------------------------------
 */
 
+// Convert a palette RAM entry to a host-friendly output value
+static inline void geo_lspc_palconv(uint16_t addr, uint16_t data) {
+    /* Colour Format
+       =================================================
+       |D0|R1|G1|B1|R5|R4|R3|R2|G5|G4|G3|G2|B5|B4|B3|B2|
+       =================================================
+       Colour values are 6 bits, made up of 5 colour bits and a global "dark"
+       bit which acts as the least significant bit for the R, G, and B values.
+       These values can simply be shifted left twice to give 8-bit equivalent
+       values which can then ORed together for output.
+    */
+    unsigned r = (((data >> 6) & 0x3c) | ((data >> 13) & 0x02) |
+        ((data >> 15) & 0x01)) << 2;
+    unsigned g = (((data >> 2) & 0x3c) | ((data >> 12) & 0x02) |
+        ((data >> 15) & 0x01)) << 2;
+    unsigned b = (((data << 2) & 0x3c) | ((data >> 11) & 0x02) |
+        ((data >> 15) & 0x01)) << 2;
+    palette[addr] = 0xff000000 | (r << 16) | (g << 8) | b;
+}
+
 // Read a palette RAM entry from the active bank
 uint16_t geo_lspc_palram_rd(uint32_t addr) {
     return lspc.palram[(addr & 0x1fff) + lspc.palbank ? SIZE_4K : 0];
@@ -98,6 +121,7 @@ uint16_t geo_lspc_palram_rd(uint32_t addr) {
 // Write a value to the active bank of palette RAM
 void geo_lspc_palram_wr(uint32_t addr, uint16_t data) {
     lspc.palram[(addr & 0x1fff) + lspc.palbank ? SIZE_4K : 0] = data;
+    geo_lspc_palconv((addr & 0x1fff) + lspc.palbank ? SIZE_4K : 0, data);
 }
 
 // Set the active palette bank
