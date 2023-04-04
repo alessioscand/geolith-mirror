@@ -48,8 +48,9 @@ new code has been written under the BSD 3-Clause license. This process has
 similarities to the creation of the BSD operating system itself, which was
 built over time by replacing all components of AT&T UNIX with new, permissively
 licensed ones. With this being stated, a special thanks goes out to Mathieu
-Peponas for creating the original GnGeo emulator which allowed this process to
-take place.
+Peponas who both created the original GnGeo emulator, and also approved the
+distribution of this new work as a whole with new licensing. This resolves the
+"Grandfather's Axe" or "Ship of Theseus" question.
 
 Copyright
 ---------
