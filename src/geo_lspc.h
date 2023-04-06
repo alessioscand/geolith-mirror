@@ -31,11 +31,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef GEO_LSPC_H
 #define GEO_LSPC_H
 
-#define LSPC_WIDTH          352
-#define LSPC_WIDTH_VISIBLE  304
-#define LSPC_HEIGHT         256
-#define LSPC_HEIGHT_VISIBLE 224
+// HBlank, Back Porch, Active, Front Porch: 28 + 28 + 320 + 8
+#define LSPC_PIXELS         356
+
+// VBlank, Top Border, Active, Bottom Border: 8 + 16 + 224 + 16
 #define LSPC_SCANLINES      264
+
+// First active line is drawn after 8 VBlank lines
+#define LSPC_LINE_ACTIVE    8
+
+#define LSPC_WIDTH          320 // Active drawing
+#define LSPC_WIDTH_VISIBLE  304 // 8 pixel horizontal overscan on left/right
+#define LSPC_HEIGHT         256 // Active drawing including top/bottom border
+#define LSPC_HEIGHT_VISIBLE 224 // 16 pixel vertical overscan on top/bottom
 
 #define FIX_BANKSW_NONE 0
 #define FIX_BANKSW_LINE 1

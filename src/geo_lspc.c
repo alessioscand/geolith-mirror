@@ -31,6 +31,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stddef.h>
 #include <stdint.h>
 
+#include <stdio.h>
+
 #include "geo.h"
 #include "geo_lspc.h"
 
@@ -98,6 +100,14 @@ static inline uint32_t geo_lspc_backdrop(void) {
     return palette[(lspc.palbank ? SIZE_4K : 0) + 4095];
 }
 
+// Draw a line of backdrop pixels
+static inline void geo_lspc_bdline(void) {
+    uint32_t bdcol = geo_lspc_backdrop();
+    uint32_t *ptr = vbuf + ((lspc.scanline - LSPC_LINE_ACTIVE) * LSPC_WIDTH);
+    for (unsigned i = 0; i < LSPC_WIDTH; ++i)
+            ptr[i] = bdcol;
+}
+
 // Convert a palette RAM entry to a host-friendly output value
 static inline void geo_lspc_palconv(uint16_t addr, uint16_t data) {
     /* Colour Format
@@ -120,14 +130,14 @@ static inline void geo_lspc_palconv(uint16_t addr, uint16_t data) {
 
 // Read a palette RAM entry from the active bank
 uint16_t geo_lspc_palram_rd(uint32_t addr) {
-    return lspc.palram[((addr >> 1) & 0xfff) + lspc.palbank ? SIZE_4K : 0];
+    return lspc.palram[((addr >> 1) & 0x0fff) + lspc.palbank ? SIZE_4K : 0];
 }
 
 // Write a value to the active bank of palette RAM
 void geo_lspc_palram_wr(uint32_t addr, uint16_t data) {
     addr >>= 1; // The address should access 16-bit values rather than bytes
-    lspc.palram[(addr & 0xfff) + (lspc.palbank ? SIZE_4K : 0)] = data;
-    geo_lspc_palconv((addr & 0xfff) + (lspc.palbank ? SIZE_4K : 0), data);
+    lspc.palram[(addr & 0x0fff) + (lspc.palbank ? SIZE_4K : 0)] = data;
+    geo_lspc_palconv((addr & 0x0fff) + (lspc.palbank ? SIZE_4K : 0), data);
 }
 
 // Set the active palette bank
@@ -197,6 +207,11 @@ void geo_lspc_init(void) {
 }
 
 void geo_lspc_scanline(void) {
+    // Draw only during active lines
+    if (lspc.scanline >= LSPC_LINE_ACTIVE) {
+        geo_lspc_bdline();
+    }
+
     if (++lspc.scanline == LSPC_SCANLINES) { // Handle final scanline
         lspc.scanline = 0;
 
