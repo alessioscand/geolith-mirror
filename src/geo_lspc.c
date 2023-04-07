@@ -77,6 +77,8 @@ void geo_lspc_romdata(uint8_t *s, uint32_t ssz, uint8_t *c, uint32_t csz) {
     sromsize = ssz;
     cromdata = c;
     cromsize = csz;
+    if (!fixdata)
+        fixdata = sromdata;
 }
 
 void geo_lspc_sfixdata(uint8_t *s, uint32_t ssz) {

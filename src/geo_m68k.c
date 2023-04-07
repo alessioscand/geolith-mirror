@@ -795,7 +795,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             case 0x3a000b: { // REG_BRDFIX
                 // FIXME - set SM1 ROM
                 geo_lspc_set_fix(LSPC_FIX_BOARD);
-                break;
+                return;
             }
             case 0x3a000d: { // REG_SRAMLOCK
                 reg_sramlock = 1;
@@ -829,7 +829,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             case 0x3a001b: { // REG_CRTFIX
                 // FIXME - set M1 ROM
                 geo_lspc_set_fix(LSPC_FIX_CART);
-                break;
+                return;
             }
             case 0x3a001d: { // REG_SRAMUNLOCK
                 reg_sramlock = 0;
