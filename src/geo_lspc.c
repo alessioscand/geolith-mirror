@@ -206,10 +206,97 @@ void geo_lspc_init(void) {
     lspc.scanline = 0;
 }
 
+static inline void geo_lspc_fixline(void) {
+    /* The "fix map" is located in VRAM from 0x7000 to 0x74ff. Each map entry
+       is a 16-bit value, where the bottom 12 bits are the tile number and the
+       top 4 bits are the palette number. This limits the fix layer to the
+       first 16 palettes of whatever palette bank is active. Tiles are mapped
+       from top to bottom, 40 columns of 32 rows.
+
+       Map Entry
+       =======================================================================
+       | 15 | 14 | 13 | 12 | 11 | 10 | 9 | 8 | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
+       -----------------------------------------------------------------------
+       | Palette Number    | Tile Number                                     |
+       -----------------------------------------------------------------------
+
+       Fix Map
+       =======================================================================
+       | 0x7000 | 0x7020 | 0x7040 |   ........    | 0x74a0 | 0x74c0 | 0x74e0 |
+       | 0x7001 | 0x7021 | 0x7041 |   ........    | 0x74a1 | 0x74c1 | 0x74e1 |
+       |                              ........                               |
+       | 0x701f | 0x703f | 0x705f |   ........    | 0x74bf | 0x74df | 0x74ff |
+       -----------------------------------------------------------------------
+    */
+
+    unsigned y = (lspc.scanline - LSPC_LINE_ACTIVE);
+
+    for (unsigned x = 0; x < LSPC_FIXTILES_H; ++x) {
+        // Addresses increment vertically downwards
+        uint16_t addr = 0x7000 + (y >> 3) + (x << 5);
+        uint16_t entry = lspc.vram[addr];
+
+        /* The 4 bits making up the palette number can be easily used to create
+           an offset into palette memory by virtue of palettes being 16 values
+           (a power of 2). The offset can be used in conjunction with the tile
+           data to determine the exact value in palette memory that defines the
+           final output pixel's colour.
+        */
+        unsigned poffset = ((entry >> 8) & 0xf0) +
+            (lspc.palbank ? SIZE_4K : 0);
+
+        /* Tiles are 8x8 pixels, with 4 bits representing a pixel --  in other
+           words, representing the entry in a 16-bit palette. The pixel data is
+           arranged in columns, with the second vertical half of the tile
+           defined first:
+           0x10, 0x18, 0x00, 0x08
+           0x11, 0x19, 0x01, 0x09
+           ....
+           0x17, 0x1f, 0x07, 0x0f
+
+           Each tile is 4 bytes wide and 8 bytes tall, for a total of 32 bytes.
+        */
+        unsigned tnum = entry & 0x0fff;
+        uint8_t *tdata = &sromdata[tnum << 5];
+
+        // Offset into video buffer to draw the tile row into
+        uint32_t *voffset = vbuf + (LSPC_WIDTH * y) + (x << 3);
+
+        // Row in the 8 pixel high tile
+        unsigned row = y & 0x07;
+
+        // If the palette entry is non-zero, output a colour
+        uint32_t pentry = tdata[0x10 + row] & 0x0f;
+        if (pentry) voffset[0] = palette[poffset + pentry];
+
+        pentry = (tdata[0x10 + row] >> 4) & 0x0f;
+        if (pentry) voffset[1] = palette[poffset + pentry];
+
+        pentry = tdata[0x18 + row] & 0x0f;
+        if (pentry) voffset[2] = palette[poffset + pentry];
+
+        pentry =  (tdata[0x18 + row] >> 4) & 0x0f;
+        if (pentry) voffset[3] = palette[poffset + pentry];
+
+        pentry = tdata[0x00 + row] & 0x0f;
+        if (pentry) voffset[4] = palette[poffset + pentry];
+
+        pentry = (tdata[0x00 + row] >> 4) & 0x0f;
+        if (pentry) voffset[5] = palette[poffset + pentry];
+
+        pentry = tdata[0x08 + row] & 0x0f;
+        if (pentry) voffset[6] = palette[poffset + pentry];
+
+        pentry = (tdata[0x08 + row] >> 4) & 0x0f;
+        if (pentry) voffset[7] = palette[poffset + pentry];
+    }
+}
+
 void geo_lspc_scanline(void) {
     // Draw only during active lines
     if (lspc.scanline >= LSPC_LINE_ACTIVE) {
         geo_lspc_bdline();
+        geo_lspc_fixline();
     }
 
     if (++lspc.scanline == LSPC_SCANLINES) { // Handle final scanline

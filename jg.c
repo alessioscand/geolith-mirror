@@ -59,7 +59,7 @@ static jg_coreinfo_t coreinfo = {
 static jg_videoinfo_t vidinfo = {
     JG_PIXFMT_XRGB8888,     // pixfmt
     LSPC_WIDTH,             // wmax
-    LSPC_HEIGHT,            // hmax
+    LSPC_SCANLINES,            // hmax
     LSPC_WIDTH,//_VISIBLE,     // w
     LSPC_HEIGHT,//_VISIBLE,    // h
     0,//16,                     // x
