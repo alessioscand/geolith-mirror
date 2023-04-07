@@ -47,6 +47,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define LSPC_FIXTILES_H     40
 #define LSPC_FIXTILES_V     32
+#define LSPC_FIX_BOARD      0
+#define LSPC_FIX_CART       1
 
 #define FIX_BANKSW_NONE 0
 #define FIX_BANKSW_LINE 1
@@ -80,8 +82,10 @@ typedef struct _lspc_t {
 
 void geo_lspc_set_buffer(uint32_t*);
 void geo_lspc_set_fix_banksw(unsigned);
+void geo_lspc_set_fix(unsigned);
 
 void geo_lspc_romdata(uint8_t*, uint32_t, uint8_t*, uint32_t);
+void geo_lspc_sfixdata(uint8_t*, uint32_t);
 
 uint16_t geo_lspc_palram_rd(uint32_t);
 void geo_lspc_palram_wr(uint32_t, uint16_t);

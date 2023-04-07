@@ -195,6 +195,7 @@ int geo_bios_load(const char *biospath) {
                 "Failed to load sfix.sfix from BIOS archive!\n");
             return 0;
         }
+        geo_lspc_sfixdata(sfixdata, sfixsize);
     }
 
     geo_m68k_romdata_bios(biosdata, biossize, sfixdata, sfixsize);

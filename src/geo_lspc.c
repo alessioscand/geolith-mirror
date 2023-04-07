@@ -41,6 +41,9 @@ static lspc_t lspc;
 static uint32_t *vbuf = NULL;
 static unsigned fix_banksw = 0;
 
+static uint8_t *fixdata = NULL;
+static uint8_t *sfixdata = NULL;
+static size_t sfixsize = 0;
 static uint8_t *sromdata = NULL;
 static size_t sromsize = 0;
 static uint8_t *cromdata = NULL;
@@ -52,6 +55,11 @@ static uint32_t palette[SIZE_8K];
 // Set the pointer to the video buffer
 void geo_lspc_set_buffer(uint32_t *ptr) {
     vbuf = ptr;
+}
+
+// Set the active Fix ROM
+void geo_lspc_set_fix(unsigned f) {
+    fixdata = f ? sromdata : sfixdata;
 }
 
 // Set the Fix Layer bank switching type
@@ -69,6 +77,11 @@ void geo_lspc_romdata(uint8_t *s, uint32_t ssz, uint8_t *c, uint32_t csz) {
     sromsize = ssz;
     cromdata = c;
     cromsize = csz;
+}
+
+void geo_lspc_sfixdata(uint8_t *s, uint32_t ssz) {
+    sfixdata = s;
+    sfixsize = ssz;
 }
 
 /* VRAM Memory Map
@@ -257,7 +270,7 @@ static inline void geo_lspc_fixline(void) {
            Each tile is 4 bytes wide and 8 bytes tall, for a total of 32 bytes.
         */
         unsigned tnum = entry & 0x0fff;
-        uint8_t *tdata = &sromdata[tnum << 5];
+        uint8_t *tdata = &fixdata[tnum << 5];
 
         // Offset into video buffer to draw the tile row into
         uint32_t *voffset = vbuf + (LSPC_WIDTH * y) + (x << 3);
