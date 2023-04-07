@@ -105,7 +105,7 @@ static inline void geo_lspc_bdline(void) {
     uint32_t bdcol = geo_lspc_backdrop();
     uint32_t *ptr = vbuf + ((lspc.scanline - LSPC_LINE_ACTIVE) * LSPC_WIDTH);
     for (unsigned i = 0; i < LSPC_WIDTH; ++i)
-            ptr[i] = bdcol;
+        ptr[i] = bdcol;
 }
 
 // Convert a palette RAM entry to a host-friendly output value
@@ -130,7 +130,7 @@ static inline void geo_lspc_palconv(uint16_t addr, uint16_t data) {
 
 // Read a palette RAM entry from the active bank
 uint16_t geo_lspc_palram_rd(uint32_t addr) {
-    return lspc.palram[((addr >> 1) & 0x0fff) + lspc.palbank ? SIZE_4K : 0];
+    return lspc.palram[((addr >> 1) & 0x0fff) + (lspc.palbank ? SIZE_4K : 0)];
 }
 
 // Write a value to the active bank of palette RAM
