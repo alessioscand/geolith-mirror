@@ -185,6 +185,7 @@ int geo_bios_load(const char *biospath) {
         geo_log(GEO_LOG_ERR, "Failed to load 000-lo.lo from BIOS archive!\n");
         return 0;
     }
+    geo_lspc_set_l0rom(l0rom);
 
     if (geo_get_system() != SYSTEM_AES) {
         sfixdata = mz_zip_reader_extract_file_to_heap(&zip_archive,
@@ -317,7 +318,6 @@ void geo_init(void) {
     geo_z80_init();
     ymfm_shim_init();
     geo_rtc_init();
-    //video_set_l0rom(l0rom);
     geo_lspc_init();
     geo_reset();
 }
