@@ -255,8 +255,7 @@ static inline void geo_lspc_fixline(void) {
 
     for (unsigned x = 0; x < LSPC_FIXTILES_H; ++x) {
         // Addresses increment vertically downwards
-        uint16_t addr = 0x7000 + (y >> 3) + (x << 5);
-        uint16_t entry = lspc.vram[addr];
+        uint16_t entry = lspc.vram[0x7000 + (y >> 3) + (x << 5)];
 
         /* The 4 bits making up the palette number can be easily used to create
            an offset into palette memory by virtue of palettes being 16 values
@@ -287,29 +286,13 @@ static inline void geo_lspc_fixline(void) {
         unsigned row = y & 0x07;
 
         // If the palette entry is non-zero, output a colour
-        uint32_t pentry = tdata[0x10 + row] & 0x0f;
-        if (pentry) voffset[0] = palette[poffset + pentry];
+        for (unsigned p = 0, f = 0x10; p < 4; ++p, f = (f + 0x08) & 0x18) {
+            uint32_t pentry = tdata[f + row] & 0x0f;
+            if (pentry) voffset[p << 1] = palette[poffset + pentry];
 
-        pentry = (tdata[0x10 + row] >> 4) & 0x0f;
-        if (pentry) voffset[1] = palette[poffset + pentry];
-
-        pentry = tdata[0x18 + row] & 0x0f;
-        if (pentry) voffset[2] = palette[poffset + pentry];
-
-        pentry =  (tdata[0x18 + row] >> 4) & 0x0f;
-        if (pentry) voffset[3] = palette[poffset + pentry];
-
-        pentry = tdata[0x00 + row] & 0x0f;
-        if (pentry) voffset[4] = palette[poffset + pentry];
-
-        pentry = (tdata[0x00 + row] >> 4) & 0x0f;
-        if (pentry) voffset[5] = palette[poffset + pentry];
-
-        pentry = tdata[0x08 + row] & 0x0f;
-        if (pentry) voffset[6] = palette[poffset + pentry];
-
-        pentry = (tdata[0x08 + row] >> 4) & 0x0f;
-        if (pentry) voffset[7] = palette[poffset + pentry];
+            pentry = (tdata[f + row] >> 4) & 0x0f;
+            if (pentry) voffset[(p << 1) + 1] = palette[poffset + pentry];
+        }
     }
 }
 
