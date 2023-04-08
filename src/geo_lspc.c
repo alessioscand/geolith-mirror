@@ -54,6 +54,26 @@ static uint8_t *l0romdata = NULL;
 // Dynamic output palette with values converted from palette RAM
 static uint32_t palette[SIZE_8K];
 
+// Horizontal Shrink LUT -- from neogeodev
+static unsigned lut_hshrink[0x10][0x10] = {
+    { 0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0 }, // (15 pixel skipped, 1 remaining)
+    { 0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0 }, // (14 pixels skipped...)
+    { 0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0 },
+    { 0,0,1,0,1,0,0,0,1,0,0,0,1,0,0,0 },
+    { 0,0,1,0,1,0,0,0,1,0,0,0,1,0,1,0 },
+    { 0,0,1,0,1,0,1,0,1,0,0,0,1,0,1,0 },
+    { 0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0 },
+    { 1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0 },
+    { 1,0,1,0,1,0,1,0,1,1,1,0,1,0,1,0 },
+    { 1,0,1,1,1,0,1,0,1,1,1,0,1,0,1,0 },
+    { 1,0,1,1,1,0,1,0,1,1,1,0,1,0,1,1 },
+    { 1,0,1,1,1,0,1,1,1,1,1,0,1,0,1,1 },
+    { 1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1 },
+    { 1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1 },
+    { 1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1 }, // (...1 pixel skipped)
+    { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 }, // (no pixels skipped, full size)
+};
+
 // Set the pointer to the video buffer
 void geo_lspc_set_buffer(uint32_t *ptr) {
     vbuf = ptr;
@@ -286,8 +306,9 @@ static inline void geo_lspc_fixline(void) {
         unsigned row = y & 0x07;
 
         // If the palette entry is non-zero, output a colour
+        uint32_t pentry = 0;
         for (unsigned p = 0, f = 0x10; p < 4; ++p, f = (f + 0x08) & 0x18) {
-            uint32_t pentry = tdata[f + row] & 0x0f;
+            pentry = tdata[f + row] & 0x0f;
             if (pentry) voffset[p << 1] = palette[poffset + pentry];
 
             pentry = (tdata[f + row] >> 4) & 0x0f;
