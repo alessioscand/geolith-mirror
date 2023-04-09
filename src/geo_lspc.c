@@ -329,10 +329,10 @@ static inline unsigned geo_lspc_tpix(unsigned tbase, unsigned x, unsigned y) {
     v1 | 0 | 1 | 0 | 0 | 0 | 1 | 0 | 1 | correct bit. Do this for 4 consecutive
     v2 | 1 | 0 | 1 | 1 | 0 | 0 | 1 | 1 | bytes, then shift and OR the bits
     v3 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | together to create a 4-bit palette
-       ---------------------------------  entry.
+       --------------------------------- entry.
 
        Bytes 0 and 1 come from odd numbered C ROMs, while bytes 2 and 3 come
-       from even numbered C ROMs. Because the bytes from the C ROM pairs are
+       from even numbered C ROMs. Because the data from the C ROM pairs are
        interleaved every byte, the second byte is in the third position, and
        the third byte is in the second position.
 
