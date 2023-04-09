@@ -317,6 +317,35 @@ static inline void geo_lspc_fixline(void) {
     }
 }
 
+static inline unsigned geo_lspc_tpix(unsigned tbase, unsigned x, unsigned y) {
+    /* Sprite Tile Decoding
+       Tiles are 8x8 with palette index values represented in a planar format,
+       which spans 4 bytes per horizontal line. Each bit in a byte represents
+       one component of a 4-bit palette entry:
+       =================================
+       | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 | Take the tile's base address in C ROM
+       ================================= and shift right by 7 minus the X
+    v0 | 1 | 1 | 0 | 1 | 0 | 0 | 0 | 1 | offset in the tile to isolate the
+    v1 | 0 | 1 | 0 | 0 | 0 | 1 | 0 | 1 | correct bit. Do this for 4 consecutive
+    v2 | 1 | 0 | 1 | 1 | 0 | 0 | 1 | 1 | bytes, then shift and OR the bits
+    v3 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | together to create a 4-bit palette
+       ---------------------------------  entry.
+
+       Bytes 0 and 1 come from odd numbered C ROMs, while bytes 2 and 3 come
+       from even numbered C ROMs. Because the bytes from the C ROM pairs are
+       interleaved every byte, the second byte is in the third position, and
+       the third byte is in the second position.
+
+       Notes: Since there are 4 bytes per row of pixels, multiply the tile's
+              base address by 4 to select the specific row in the tile.
+    */
+    unsigned v0 = (cromdata[(tbase + 0) + (y << 2)]) >> (7 - x);
+    unsigned v1 = (cromdata[(tbase + 2) + (y << 2)]) >> (7 - x);
+    unsigned v2 = (cromdata[(tbase + 1) + (y << 2)]) >> (7 - x);
+    unsigned v3 = (cromdata[(tbase + 3) + (y << 2)]) >> (7 - x);
+    return (v0 & 0x01) | (v1 & 0x01) << 1 | (v2 & 0x01) << 2 | (v3 & 0x01) << 3;
+}
+
 void geo_lspc_scanline(void) {
     // Draw only during active lines
     if (lspc.scanline >= LSPC_LINE_ACTIVE) {
