@@ -401,7 +401,7 @@ static inline void geo_lspc_sprline(void) {
             continue;
 
         // 96 sprites may be drawn per line
-        if (++sprcount == 96)
+        if (sprcount++ == 96)
             break;
 
         /* L0 ROM is a 64K ROM chip containing vertical shrinking values. The
