@@ -66,6 +66,7 @@ typedef struct _lspc_t {
 
     // VRAM Address
     uint16_t vramaddr;
+    uint16_t vrambank;
 
     // Signed 16-bit "modulo" value applied to VRAM address after writes
     int16_t vrammod;
