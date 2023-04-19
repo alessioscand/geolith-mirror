@@ -199,7 +199,9 @@ uint16_t geo_lspc_vram_rd(void) {
 
 // Write to VRAM
 void geo_lspc_vram_wr(uint16_t data) {
-    lspc.vram[lspc.vramaddr] = data; // Perform the write
+    // Writing beyond the boundary is not a winning endeavour
+    if (lspc.vramaddr < 0x8800)
+        lspc.vram[lspc.vramaddr] = data; // Perform the write
     lspc.vramaddr += lspc.vrammod; // Apply the modulo after the write
 }
 
@@ -324,12 +326,12 @@ static inline unsigned geo_lspc_tpix(unsigned tbase, unsigned x, unsigned y) {
        one component of a 4-bit palette entry:
        =================================
        | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 | Take the tile's base address in C ROM
-       ================================= and shift right by 7 minus the X
-    v0 | 1 | 1 | 0 | 1 | 0 | 0 | 0 | 1 | offset in the tile to isolate the
-    v1 | 0 | 1 | 0 | 0 | 0 | 1 | 0 | 1 | correct bit. Do this for 4 consecutive
-    v2 | 1 | 0 | 1 | 1 | 0 | 0 | 1 | 1 | bytes, then shift and OR the bits
-    v3 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | together to create a 4-bit palette
-       --------------------------------- entry.
+       ================================= and shift right by the X offset in the
+    v0 | 1 | 1 | 0 | 1 | 0 | 0 | 0 | 1 | tile to isolate the correct bit. Do
+    v1 | 0 | 1 | 0 | 0 | 0 | 1 | 0 | 1 | this for 4 consecutive bytes, then
+    v2 | 1 | 0 | 1 | 1 | 0 | 0 | 1 | 1 | shift and OR the bits together to
+    v3 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | create a 4-bit palette entry.
+       ---------------------------------
 
        Bytes 0 and 1 come from odd numbered C ROMs, while bytes 2 and 3 come
        from even numbered C ROMs. Because the data from the C ROM pairs are
@@ -338,25 +340,198 @@ static inline unsigned geo_lspc_tpix(unsigned tbase, unsigned x, unsigned y) {
 
        Notes: Since there are 4 bytes per row of pixels, multiply the tile's
               base address by 4 to select the specific row in the tile.
+              The pixel data is stored right to left -- this means it is in
+              reverse order from how it is displayed unless horizontal flip
+              is enabled for the tile.
     */
-    unsigned v0 = (cromdata[(tbase + 0) + (y << 2)]) >> (7 - x);
-    unsigned v1 = (cromdata[(tbase + 2) + (y << 2)]) >> (7 - x);
-    unsigned v2 = (cromdata[(tbase + 1) + (y << 2)]) >> (7 - x);
-    unsigned v3 = (cromdata[(tbase + 3) + (y << 2)]) >> (7 - x);
+    unsigned v0 = (cromdata[(tbase + 0) + (y << 2)]) >> (x);
+    unsigned v1 = (cromdata[(tbase + 2) + (y << 2)]) >> (x);
+    unsigned v2 = (cromdata[(tbase + 1) + (y << 2)]) >> (x);
+    unsigned v3 = (cromdata[(tbase + 3) + (y << 2)]) >> (x);
     return (v0 & 0x01) | (v1 & 0x01) << 1 | (v2 & 0x01) << 2 | (v3 & 0x01) << 3;
 }
+
+static inline void geo_lspc_pixel(unsigned x, unsigned y, uint32_t c) {
+    if (x < LSPC_WIDTH && y < LSPC_HEIGHT)
+        vbuf[x + (y * LSPC_WIDTH)] = c;
+}
+
+static inline void geo_lspc_sprline(void) {
+    unsigned line = lspc.scanline - LSPC_LINE_ACTIVE;
+    unsigned sprcount = 0; // Counter for sprite limit
+
+    unsigned xpos = 0;
+    unsigned ypos = 0;
+    unsigned sprsize = 0;
+    unsigned hshrink = 0x0f; // Start at full width (no shrinking)
+    unsigned vshrink = 0xff; // Start at full height (no shrinking)
+
+    for (unsigned i = 0; i < 381; ++i) {
+        if (lspc.vram[0x8200 + i] & 0x40) { // Sticky/Chain bit set
+            /* Attach this sprite to the edge of the previous one, and do not
+               set a new Y position or size/height. Account for any horizontal
+               shrinking from the last sprite by using its hshrink value
+            */
+            xpos += (hshrink + 1);
+        }
+        else {
+            xpos = (lspc.vram[0x8400 + i] >> 7) & 0x1ff;
+            ypos = (lspc.vram[0x8200 + i] >> 7) & 0x1ff; // 512-Y
+            sprsize = lspc.vram[0x8200 + i] & 0x3f; // Height in tiles
+            vshrink = lspc.vram[0x8000 + i] & 0xff;
+
+            // Special value, loops border FIXME need test case/documentation
+            if (sprsize == 33)
+                sprsize = 32;
+        }
+
+        // Set horizontal shrinking value
+        hshrink = (lspc.vram[0x8000 + i] >> 8) & 0x0f;
+
+        // Sprite Row - vertical offset for the line of the sprite to be drawn
+        unsigned srow = (line - (0x200 - ypos)) & 0x1ff;
+
+        // If no rows of the sprite are on this line, this iteration is done
+        if ((srow >= (sprsize << 4)) || (sprsize == 0))
+            continue;
+
+        // 96 sprites may be drawn per line
+        if (++sprcount == 96)
+            break;
+
+        /* L0 ROM is a 64K ROM chip containing vertical shrinking values. The
+           data is made up of 256 tables of 256 bytes. The vshrink value from
+           SBC2 selects the table. For the first 256 lines (top half of a full
+           sprite), the index in the table is the line number of the sprite
+           currently being drawn (sprite row). For the last 256 lines (bottom
+           half of a full sprite), the index in the table is complemented.
+           For the first half, the upper nybble of the value contains the index
+           in the tilemap (0-15), with the lower nybble being the line number
+           of the tile. For the second half, the upper nybble is the index with
+           a XOR 0x1f applied (16-31, meaning the 8th bit is always set), with
+           the lower nybble being the line number in the tile with a XOR 0xf
+           applied.
+        */
+        srow = srow > 0xff ?
+            (l0romdata[(vshrink << 8) + ((~srow) & 0xff)] ^ 0x1ff) :
+            l0romdata[(vshrink << 8) + (srow & 0xff)];
+
+        /* Each sprite has a 64-word table, where each pair of values
+           correspond to a tile in the sprite, top to bottom. Even 16-bit words
+           contain tile number LSBs, while odd 16-bit words contain palette,
+           tile number MSBs, auto-animation bits, and the vertical and
+           horizontal flip bits.
+
+           Sprite tiles are 16 pixels high, with a maximum height of 32 tiles,
+           for a total of 512 pixels. Dividing the sprite row by 8 will
+           determine which word pair to use, and masking off the lowest bit
+           will give the offset to the even word. Adding 1 to this gives the
+           odd word. The max value is 62, so use 0x3e as the mask.
+        */
+
+        // Offset to the even word of this tile's map entry
+        unsigned tmapoffset = (i << 6) + ((srow >> 3) & 0x3e);
+
+        unsigned tnum = lspc.vram[tmapoffset] |
+            ((lspc.vram[tmapoffset + 1] & 0x00f0) << 12);
+
+        // Horizontal and Vertical flip
+        unsigned hflip = lspc.vram[tmapoffset + 1] & 0x01;
+        unsigned vflip = lspc.vram[tmapoffset + 1] & 0x02;
+
+        // Auto-animation bits
+        unsigned aabits = (lspc.vram[tmapoffset + 1] & 0x0c) >> 2;
+
+        // Palette offset -- 0th entry of nth palette
+        unsigned poffset = ((lspc.vram[tmapoffset + 1] >> 4) & 0x0ff0) +
+            (lspc.palbank * SIZE_4K);
+
+        /* Auto-animation
+           ===================================================
+           | Bit 3 | Bit 2 | Effect                          |
+           ===================================================
+           |     0 |     0 | No auto-animation for this tile |
+           |     0 |     1 | Auto-animation over 4 tiles     |
+           |     1 |     0 | Auto-animation over 8 tiles     |
+           |     1 |     1 | Auto-animation over 8 tiles     |
+           ---------------------------------------------------
+           When Bit 3 is set, auto-animation happens over 8 tiles, regardless
+           of Bit 2. Bit 2 activates auto-animation over 4 tiles when it is the
+           only one set. The auto-animation counter values replace the bottom 2
+           or 3 bits of the tile number.
+        */
+        if (!lspc.aa_disable) {
+            switch (aabits) {
+                case 1: {
+                    tnum &= ~0x03;
+                    tnum |= lspc.aa_counter & 0x03;
+                    break;
+                }
+                case 2: case 3: {
+                    tnum &= ~0x07;
+                    tnum |= lspc.aa_counter & 0x07;
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+        }
+
+        /* Tiles are 128 bytes: 16 * 16 pixels * 4 bits per pixel = 1024 bits
+           Multiply the tile number by 128 to get the offset of the tile in
+           C ROM.
+        */
+        unsigned toffset = tnum << 7;
+
+        // Prevent segfaults
+        if (toffset > cromsize)
+            continue;
+
+        // Y value in the sprite tile to be drawn, flipped if necessary
+        unsigned y = vflip ? (0x0f - (srow & 0x0f)) : (srow & 0x0f);
+
+        unsigned pentry = 0; // Palette entry
+
+        /* If hflip is enabled, the horizontal order of the tiles is reversed,
+           as are the pixels in each tile. To make this work in a single loop,
+           some magic was done using XOR to either enable or disable a 64 byte
+           tile address offset in the middle of the loop, and to invert the
+           order in which pixels are drawn.
+        */
+        unsigned ftile = hflip ? 0x00 : 0x08; // Reverse tile address
+        unsigned fpix = hflip ? 0x07 : 0x00; // Reverse pixel drawing order
+
+        // Draw position must be separate from loop iterator due to hshrink
+        unsigned drawpos = 0;
+
+        for (unsigned p = 0; p < 16; ++p) {
+            if (lut_hshrink[hshrink][p]) {
+                pentry = geo_lspc_tpix(toffset + (((0x08 & p) ^ ftile) << 3),
+                    (p & 0x07) ^ fpix, y);
+                if (pentry) {
+                    geo_lspc_pixel((xpos + drawpos) & 0x1ff, line,
+                        palette[poffset + pentry]);
+                }
+                ++drawpos; // Increment for coloured and transparent pixels
+            }
+        }
+    }
+}
+
 
 void geo_lspc_scanline(void) {
     // Draw only during active lines
     if (lspc.scanline >= LSPC_LINE_ACTIVE) {
         geo_lspc_bdline();
+        geo_lspc_sprline();
         geo_lspc_fixline();
     }
 
     if (++lspc.scanline == LSPC_SCANLINES) { // Handle final scanline
         lspc.scanline = 0;
 
-        /* Tick the auto animation timer every frame, and increment the counter
+        /* Tick the auto-animation timer every frame, and increment the counter
            when the timer reaches the auto animation speed setting. These
            timers run even if auto animation is disabled.
         */
