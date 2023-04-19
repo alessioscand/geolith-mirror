@@ -40,7 +40,7 @@ static lspc_t lspc;
 
 static uint32_t *vbuf = NULL;
 static unsigned fix_banksw = 0;
-static unsigned tilemask = 0;
+static unsigned numtiles = 0;
 
 static uint8_t *fixdata = NULL;
 static uint8_t *sfixdata = NULL;
@@ -107,7 +107,7 @@ void geo_lspc_romdata(uint8_t *s, uint32_t ssz, uint8_t *c, uint32_t csz) {
     cromsize = csz;
     if (!fixdata)
         fixdata = sromdata;
-    tilemask = (csz >> 7) - 1;
+    numtiles = csz >> 7;
 }
 
 void geo_lspc_sfixdata(uint8_t *s, uint32_t ssz) {
@@ -438,7 +438,7 @@ static inline void geo_lspc_sprline(void) {
         unsigned tmapoffset = (i << 6) + ((srow >> 3) & 0x3e);
 
         unsigned tnum = (lspc.vram[tmapoffset] |
-            ((lspc.vram[tmapoffset + 1] & 0x00f0) << 12)) & tilemask;
+            ((lspc.vram[tmapoffset + 1] & 0x00f0) << 12)) % numtiles;
 
         // Horizontal and Vertical flip
         unsigned hflip = lspc.vram[tmapoffset + 1] & 0x01;
