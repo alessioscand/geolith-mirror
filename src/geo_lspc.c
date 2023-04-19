@@ -40,6 +40,7 @@ static lspc_t lspc;
 
 static uint32_t *vbuf = NULL;
 static unsigned fix_banksw = 0;
+static unsigned tilemask = 0;
 
 static uint8_t *fixdata = NULL;
 static uint8_t *sfixdata = NULL;
@@ -106,6 +107,7 @@ void geo_lspc_romdata(uint8_t *s, uint32_t ssz, uint8_t *c, uint32_t csz) {
     cromsize = csz;
     if (!fixdata)
         fixdata = sromdata;
+    tilemask = (csz >> 7) - 1;
 }
 
 void geo_lspc_sfixdata(uint8_t *s, uint32_t ssz) {
@@ -435,8 +437,8 @@ static inline void geo_lspc_sprline(void) {
         // Offset to the even word of this tile's map entry
         unsigned tmapoffset = (i << 6) + ((srow >> 3) & 0x3e);
 
-        unsigned tnum = lspc.vram[tmapoffset] |
-            ((lspc.vram[tmapoffset + 1] & 0x00f0) << 12);
+        unsigned tnum = (lspc.vram[tmapoffset] |
+            ((lspc.vram[tmapoffset + 1] & 0x00f0) << 12)) & tilemask;
 
         // Horizontal and Vertical flip
         unsigned hflip = lspc.vram[tmapoffset + 1] & 0x01;
@@ -487,10 +489,6 @@ static inline void geo_lspc_sprline(void) {
         */
         unsigned toffset = tnum << 7;
 
-        // Prevent segfaults
-        if (toffset > cromsize)
-            continue;
-
         // Y value in the sprite tile to be drawn, flipped if necessary
         unsigned y = vflip ? (0x0f - (srow & 0x0f)) : (srow & 0x0f);
 
@@ -521,7 +519,6 @@ static inline void geo_lspc_sprline(void) {
         }
     }
 }
-
 
 void geo_lspc_scanline(void) {
     // Draw only during active lines
