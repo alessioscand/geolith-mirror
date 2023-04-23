@@ -147,6 +147,9 @@ int geo_neo_load(void *data, size_t size) {
     // Set default bankswitching
     geo_m68k_board_set(BOARD_DEF);
 
+    // Set default Fix Layer bank switching type
+    geo_lspc_set_fix_banksw(FIX_BANKSW_NONE);
+
     // Handle special cases if necessary
     switch (ngh) {
         case 6: case 19: case 38: {
@@ -218,6 +221,7 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 263: { // Metal Slug 4
+            // FIXME - ms4plus does not use bankswitching
             geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
             break;
         }

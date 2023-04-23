@@ -38,8 +38,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 static lspc_t lspc;
 
+static void (*geo_lspc_fixline)(void);
+
 static uint32_t *vbuf = NULL;
-static unsigned fix_banksw = 0;
 static unsigned numtiles = 0;
 
 static uint8_t *fixdata = NULL;
@@ -83,16 +84,6 @@ void geo_lspc_set_buffer(uint32_t *ptr) {
 // Set the active Fix ROM
 void geo_lspc_set_fix(unsigned f) {
     fixdata = f ? sromdata : sfixdata;
-}
-
-// Set the Fix Layer bank switching type
-void geo_lspc_set_fix_banksw(unsigned f) {
-    /* Type 0: None
-       Type 1: Per-line banking
-       Type 2: Per-tile banking
-    */
-    if (f <= FIX_BANKSW_TILE)
-        fix_banksw = f;
 }
 
 // Set the vertical shrink ROM
@@ -255,7 +246,8 @@ void geo_lspc_init(void) {
     lspc.scanline = 0;
 }
 
-static inline void geo_lspc_fixline(void) {
+// No Fix Layer Banking (Default)
+static void geo_lspc_fixline_default(void) {
     /* The "fix map" is located in VRAM from 0x7000 to 0x74ff. Each map entry
        is a 16-bit value, where the bottom 12 bits are the tile number and the
        top 4 bits are the palette number. This limits the fix layer to the
@@ -278,11 +270,11 @@ static inline void geo_lspc_fixline(void) {
        -----------------------------------------------------------------------
     */
 
-    unsigned y = (lspc.scanline - LSPC_LINE_ACTIVE);
+    unsigned line = (lspc.scanline - LSPC_LINE_ACTIVE);
 
     for (unsigned x = 0; x < LSPC_FIXTILES_H; ++x) {
         // Addresses increment vertically downwards
-        uint16_t entry = lspc.vram[0x7000 + (y >> 3) + (x << 5)];
+        uint16_t entry = lspc.vram[0x7000 + (line >> 3) + (x << 5)];
 
         /* The 4 bits making up the palette number can be easily used to create
            an offset into palette memory by virtue of palettes being 16 values
@@ -307,10 +299,10 @@ static inline void geo_lspc_fixline(void) {
         uint8_t *tdata = &fixdata[tnum << 5];
 
         // Offset into video buffer to draw the tile row into
-        uint32_t *voffset = vbuf + (LSPC_WIDTH * y) + (x << 3);
+        uint32_t *voffset = vbuf + (LSPC_WIDTH * line) + (x << 3);
 
         // Row in the 8 pixel high tile
-        unsigned row = y & 0x07;
+        unsigned row = line & 0x07;
 
         // If the palette entry is non-zero, output a colour
         uint32_t pentry = 0;
@@ -320,6 +312,73 @@ static inline void geo_lspc_fixline(void) {
 
             pentry = (tdata[f + row] >> 4) & 0x0f;
             if (pentry) voffset[(p << 1) + 1] = palette[poffset + pentry];
+        }
+    }
+}
+
+// Per-Line Banking (Type 1)
+static void geo_lspc_fixline_line(void) {
+    /* Most everything is the same as the default fix layer drawing routine,
+       with the exception of banking offsets which work for a minimum of two
+       rows whenever switched. The documentation on this is less than ideal
+       at the time this code was written, and the algorithm was shamelessly
+       taken from MAME. This is an area where more reverse engineering would
+       be beneficial, but it works well enough for the three games using it to
+       run without issue.
+    */
+    unsigned line = (lspc.scanline - LSPC_LINE_ACTIVE);
+    unsigned trow = line >> 3; // Tile row
+
+    unsigned offsets[34];
+    unsigned bank = 0;
+    unsigned k = 0;
+    unsigned y = 0;
+    while (y < 32) {
+        /* A value of 0x0200 in the 0x7500-0x753f block indicates a bank switch
+           should be done. A corresponding value in 0x7580-0x75bf containing
+           all 1s in the upper 8 bits will determine the bank using the
+           complement of the lowest 3 bits.
+        */
+        if (lspc.vram[0x7500 + k] == 0x0200 &&
+            (lspc.vram[0x7580 + k] & 0xff00) == 0xff00) {
+            // Choose one of 4 banks of 4096 tiles
+            bank = (~lspc.vram[0x7580 + k] & 0x03) * SIZE_4K;
+            offsets[y++] = bank;
+        }
+        offsets[y++] = bank;
+        k += 2;
+    }
+
+    for (unsigned x = 0; x < LSPC_FIXTILES_H; ++x) {
+        uint16_t entry = lspc.vram[0x7000 + trow + (x << 5)];
+        unsigned poffset = ((entry >> 8) & 0xf0) + (lspc.palbank * SIZE_4K);
+        unsigned tnum = (entry & 0x0fff) + offsets[(trow - 2) & 31];
+        uint8_t *tdata = &fixdata[tnum << 5];
+        uint32_t *voffset = vbuf + (LSPC_WIDTH * line) + (x << 3);
+        unsigned row = line & 0x07;
+        uint32_t pentry = 0;
+        for (unsigned p = 0, f = 0x10; p < 4; ++p, f = (f + 0x08) & 0x18) {
+            pentry = tdata[f + row] & 0x0f;
+            if (pentry) voffset[p << 1] = palette[poffset + pentry];
+
+            pentry = (tdata[f + row] >> 4) & 0x0f;
+            if (pentry) voffset[(p << 1) + 1] = palette[poffset + pentry];
+        }
+    }
+}
+
+// Set the Fix Layer bank switching type
+void geo_lspc_set_fix_banksw(unsigned f) {
+    /* Type 0: None
+       Type 1: Per-line banking
+       Type 2: Per-tile banking
+    */
+    switch (f) {
+        default: {
+            geo_lspc_fixline = &geo_lspc_fixline_default; break;
+        }
+        case FIX_BANKSW_LINE: {
+            geo_lspc_fixline = &geo_lspc_fixline_line; break;
         }
     }
 }
