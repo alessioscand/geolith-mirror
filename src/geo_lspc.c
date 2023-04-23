@@ -352,10 +352,48 @@ static void geo_lspc_fixline_line(void) {
     for (unsigned x = 0; x < LSPC_FIXTILES_H; ++x) {
         uint16_t entry = lspc.vram[0x7000 + trow + (x << 5)];
         unsigned poffset = ((entry >> 8) & 0xf0) + (lspc.palbank * SIZE_4K);
-        unsigned tnum = (entry & 0x0fff) + offsets[(trow - 2) & 31];
+        unsigned tnum = (entry & 0x0fff) + offsets[(trow - 2) & 0x1f];
         uint8_t *tdata = &fixdata[tnum << 5];
         uint32_t *voffset = vbuf + (LSPC_WIDTH * line) + (x << 3);
         unsigned row = line & 0x07;
+        uint32_t pentry = 0;
+        for (unsigned p = 0, f = 0x10; p < 4; ++p, f = (f + 0x08) & 0x18) {
+            pentry = tdata[f + row] & 0x0f;
+            if (pentry) voffset[p << 1] = palette[poffset + pentry];
+
+            pentry = (tdata[f + row] >> 4) & 0x0f;
+            if (pentry) voffset[(p << 1) + 1] = palette[poffset + pentry];
+        }
+    }
+}
+
+// Per-Tile Banking (Type 2)
+static void geo_lspc_fixline_tile(void) {
+    unsigned line = (lspc.scanline - LSPC_LINE_ACTIVE);
+    unsigned trow = line >> 3; // Tile row
+
+    for (unsigned x = 0; x < LSPC_FIXTILES_H; ++x) {
+        uint16_t entry = lspc.vram[0x7000 + (line >> 3) + (x << 5)];
+        unsigned poffset = ((entry >> 8) & 0xf0) + (lspc.palbank * SIZE_4K);
+
+        /* The lower 12 bits of 16-bit words stored at 0x7500-0x75df are used
+           to control the bank offset for 6 consecutive horizontal tiles -- 2
+           bits each, complemented, select one of 4 banks of 4096 tiles. This
+           algorithm is shamelessly taken from MAME.
+        */
+        unsigned offset =
+            ~(lspc.vram[0x7500 + ((trow - 1) & 0x1f) + 32 * (x / 6)] >>
+            (5 - (x % 6)) * 2) & 0x03;
+        unsigned tnum = (entry & 0x0fff) + (offset * SIZE_4K);
+        uint8_t *tdata = &fixdata[tnum << 5];
+
+        // Offset into video buffer to draw the tile row into
+        uint32_t *voffset = vbuf + (LSPC_WIDTH * line) + (x << 3);
+
+        // Row in the 8 pixel high tile
+        unsigned row = line & 0x07;
+
+        // If the palette entry is non-zero, output a colour
         uint32_t pentry = 0;
         for (unsigned p = 0, f = 0x10; p < 4; ++p, f = (f + 0x08) & 0x18) {
             pentry = tdata[f + row] & 0x0f;
@@ -379,6 +417,9 @@ void geo_lspc_set_fix_banksw(unsigned f) {
         }
         case FIX_BANKSW_LINE: {
             geo_lspc_fixline = &geo_lspc_fixline_line; break;
+        }
+        case FIX_BANKSW_TILE: {
+            geo_lspc_fixline = &geo_lspc_fixline_tile; break;
         }
     }
 }
