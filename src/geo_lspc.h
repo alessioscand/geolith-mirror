@@ -32,13 +32,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define GEO_LSPC_H
 
 // HBlank, Back Porch, Active, Front Porch: 28 + 28 + 320 + 8
-#define LSPC_PIXELS         384
+#define LSPC_PIXELS     384
 
 // VBlank, Top Border, Active, Bottom Border: 8 + 16 + 224 + 16
-#define LSPC_SCANLINES      264
+#define LSPC_SCANLINES  264
 
 // First active line is drawn after 8 VBlank lines
-#define LSPC_LINE_ACTIVE    8
+#define LSPC_LINE_BORDER_TOP    8
+#define LSPC_LINE_ACTIVE        24
+#define LSPC_LINE_BORDER_BOTTOM 248
 
 #define LSPC_WIDTH          320 // Active drawing
 #define LSPC_WIDTH_VISIBLE  304 // 8 pixel horizontal overscan on left/right
