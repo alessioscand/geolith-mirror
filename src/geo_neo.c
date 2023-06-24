@@ -261,8 +261,8 @@ int geo_neo_load(void *data, size_t size) {
             else if (romdata[0x1000 + 0x689] == 0x10) { // kf2k3bla/kf2k3pl
                 geo_m68k_board_set(BOARD_KF2K3BLA);
             }
-            else {
-                // FIXME - implement kf2k3bl and kf2k3upl
+            else { // kf2k3bl and kf2k3upl
+                geo_m68k_board_set(BOARD_KF2K3BL);
             }
             break;
         }

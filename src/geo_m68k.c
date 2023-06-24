@@ -85,7 +85,8 @@ static uint8_t *sma_scramble;
 uint8_t sound_code;
 uint8_t result_code;
 
-// Function pointers for handling switchable bank area
+// Function pointers for handling fixed and switchable bank areas
+static uint8_t (*geo_m68k_read_fixed_8)(uint32_t);
 static uint8_t (*geo_m68k_read_banksw_8)(uint32_t);
 static uint16_t (*geo_m68k_read_banksw_16)(uint32_t);
 static void (*geo_m68k_write_banksw_8)(uint32_t, uint8_t);
@@ -137,6 +138,21 @@ static inline void swapb16_range(void *ptr, size_t len) {
     uint16_t *x = (uint16_t*)ptr;
     for (size_t i = 0; i < len >> 1; ++i)
         x[i] = (x[i] << 8) | (x[i] >> 8);
+}
+
+// Default Fixed Bank Routines
+static uint8_t geo_m68k_read_fixed_8_default(uint32_t addr) {
+    return read08(promdata, addr);
+}
+
+// The King of Fighters 2003 (bootleg 1), The King of Fighters 2004 Ultra Plus
+/* This is a typical NEO-PVC board with 8-bit reads into the Fixed Program ROM
+   area at 0x58197 mapped to the PVC RAM at 0x1ff2.
+*/
+static uint8_t geo_m68k_read_fixed_8_kf2k3bl(uint32_t addr) {
+    if (addr == 0x058197)
+        return cartram[0x1ff2];
+    return read08(promdata, addr);
 }
 
 // Default Switchable Bank Routines
@@ -626,7 +642,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
             read08(promdata, address) : read08(biosdata, address);
     }
     else if (address < 0x100000) { // Fixed 1M Program ROM Bank
-        return read08(promdata, address);
+        return geo_m68k_read_fixed_8(address);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
         return read08(ram, address & 0xffff);
@@ -1097,6 +1113,7 @@ int geo_m68k_int_ack(int level) {
 
 void geo_m68k_board_set(unsigned btype) {
     // Set default handlers
+    geo_m68k_read_fixed_8 = &geo_m68k_read_fixed_8_default;
     geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_default;
     geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_default;
     geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_default;
@@ -1146,6 +1163,13 @@ void geo_m68k_board_set(unsigned btype) {
             geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_ct0;
             geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_ct0;
             geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_ct0;
+            break;
+        case BOARD_KF2K3BL: // The King of Fighters 2003 (bootleg 1)
+            geo_m68k_read_fixed_8 = &geo_m68k_read_fixed_8_kf2k3bl;
+            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_pvc;
+            geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_pvc;
+            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_pvc;
+            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_pvc;
             break;
     }
 }
