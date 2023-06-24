@@ -604,6 +604,20 @@ static void geo_m68k_write_banksw_16_ct0(uint32_t addr, uint16_t data) {
         banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
 }
 
+// Crouching Tiger Hidden Dragon 2003 (Original and Super Plus)
+/* This board uses a simple LUT to determine the bank to switch to. There are
+   8 entries, selectable by the bottom 3 bits of the data written.
+*/
+static void geo_m68k_write_banksw_16_cthd2003(uint32_t addr, uint16_t data) {
+    if (addr == 0x2ffff0) {
+        unsigned boffsets[8] = {
+            0x200000, 0x100000, 0x200000, 0x100000,
+            0x200000, 0x100000, 0x400000, 0x300000
+        };
+        banksw_addr = boffsets[data & 0x07];
+    }
+}
+
 /* 68K Memory Map
  * =====================================================================
  * |    Address Range    | Size |             Description              |
@@ -1170,6 +1184,9 @@ void geo_m68k_board_set(unsigned btype) {
             geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_pvc;
             geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_pvc;
             geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_pvc;
+            break;
+        case BOARD_CTHD2003: // Crouching Tiger Hidden Dragon 2003
+            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_cthd2003;
             break;
     }
 }

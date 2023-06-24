@@ -152,6 +152,16 @@ int geo_neo_load(void *data, size_t size) {
 
     // Handle special cases if necessary
     switch (ngh) {
+        case 3: { // Top Player's Golf, Crouching Tiger Hidden Dragon bootlegs
+            /* NGH 003 is assigned to Top Player's Golf, but the Crouching
+               Tiger Hidden Dragon bootlegs also use it. Simple heuristics are
+               used to determine which one it is. Top Player's Golf requires no
+               special handling.
+            */
+            if (size_prom > 0x100000) // Crouching Tiger Hidden Dragon 2003
+                geo_m68k_board_set(BOARD_CTHD2003);
+            break;
+        }
         case 6: case 19: case 38: {
             // Riding Hero, League Bowling, Thrash Rally
             geo_m68k_board_set(BOARD_LINKABLE);

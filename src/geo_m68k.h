@@ -42,6 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define BOARD_KOF98     0x08 // The King of Fighters '98
 #define BOARD_CT0       0x09 // PRO-CT0
 #define BOARD_KF2K3BL   0x0a // The King of Fighters 2003 (bootleg set 1)
+#define BOARD_CTHD2003  0x0b // Crouching Tiger Hidden Dragon 2003
 
 #define VECTOR_TABLE_BIOS   0x00
 #define VECTOR_TABLE_CART   0x01
