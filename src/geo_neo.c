@@ -145,7 +145,7 @@ int geo_neo_load(void *data, size_t size) {
     geo_m68k_postload();
 
     // Set default bankswitching
-    geo_m68k_board_set(BOARD_DEF);
+    geo_m68k_board_set(BOARD_DEFAULT);
 
     // Set default Fix Layer bank switching type
     geo_lspc_set_fix_banksw(FIX_BANKSW_NONE);
@@ -159,6 +159,10 @@ int geo_neo_load(void *data, size_t size) {
         }
         case 8: { // Jockey Grand Prix
             geo_m68k_board_set(BOARD_JOCKEYGP);
+            break;
+        }
+        case 47: case 52: { // Fatal Fury 2, Super Sidekicks
+            geo_m68k_board_set(BOARD_CT0);
             break;
         }
         case 242: { // KOF 98

@@ -61,6 +61,7 @@ static uint8_t cartram[SIZE_8K];
 
 // Cartridge Registers (general purpose usage)
 static uint16_t cartreg[2]= { 0, 0 };
+static uint32_t protreg = 0x00000000;
 
 // Switchable bank offset address
 static uint32_t banksw_addr = 0;
@@ -496,6 +497,95 @@ static void geo_m68k_write_banksw_16_kof98(uint32_t addr, uint16_t data) {
     else {
         geo_log(GEO_LOG_WRN, "16-bit write at %06x: %04x\n", addr, data);
     }
+}
+
+// PRO-CT0
+/* PRO-CT0 is also known as SNK-9201 and ALPHA-8921, and was used for sprite
+   graphics serialization in the same manner as the NEO-ZMC2, but more
+   importantly was used for a simple challenge-response anti-piracy system in
+   two known games: Fatal Fury 2 and Super Sidekicks. The current
+   implementation in this emulator uses hardcoded responses like older versions
+   of MAME and FB Neo, but lower level emulation is possible.
+*/
+static uint8_t geo_m68k_read_banksw_8_ct0(uint32_t addr) {
+    uint16_t ret = (protreg >> 24) & 0xff;
+
+    switch (addr) {
+        case 0x200001:
+        case 0x236001:
+        case 0x236009:
+        case 0x255551:
+        case 0x2ff001:
+        case 0x2ffff1:
+            return ret;
+        case 0x236005:
+        case 0x23600D:
+            return ((ret & 0x0f) << 4) | ((ret & 0xf0) >> 4);
+    }
+
+    return read08(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static uint16_t geo_m68k_read_banksw_16_ct0(uint32_t addr) {
+    uint16_t ret = (protreg >> 24) & 0xff;
+
+    switch (addr) {
+        case 0x200000:
+        case 0x236000:
+        case 0x236008:
+        case 0x255550:
+        case 0x2ff000:
+        case 0x2ffff0:
+            return ret;
+        case 0x236004:
+        case 0x23600c:
+            return ((ret & 0x0f) << 4) | ((ret & 0xf0) >> 4);
+    }
+
+    return read16(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static void geo_m68k_write_banksw_8_ct0(uint32_t addr, uint8_t data) {
+    switch (addr) {
+        case 0x236001:
+        case 0x236005:
+        case 0x236009:
+        case 0x23600d:
+        case 0x255551:
+        case 0x2ff001:
+        case 0x2ffff1:
+            protreg <<= 8;
+            return;
+    }
+
+    if (addr >= 0x2ffff0)
+        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
+}
+
+static void geo_m68k_write_banksw_16_ct0(uint32_t addr, uint16_t data) {
+    switch (addr) {
+        case 0x211112:
+            protreg = 0xff000000;
+            return;
+        case 0x233332:
+            protreg = 0x0000ffff;
+            return;
+        case 0x242812:
+            protreg = 0x81422418;
+            return;
+        case 0x244442:
+            protreg = 0x00ff0000;
+            return;
+        case 0x255552:
+            protreg = 0xff00ff00;
+            return;
+        case 0x256782:
+            protreg = 0xf05a3601;
+            return;
+    }
+
+    if (addr >= 0x2ffff0)
+        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
 }
 
 /* 68K Memory Map
@@ -1050,6 +1140,12 @@ void geo_m68k_board_set(unsigned btype) {
             break;
         case BOARD_KOF98: // The King of Fighters '98
             geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_kof98;
+            break;
+        case BOARD_CT0: // PRO-CT0
+            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_ct0;
+            geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_ct0;
+            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_ct0;
+            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_ct0;
             break;
     }
 }

@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef GEO_M68K_H
 #define GEO_M68K_H
 
-#define BOARD_DEF       0x00 // Default
+#define BOARD_DEFAULT   0x00 // Default
 #define BOARD_SMA       0x01 // NEO-SMA
 #define BOARD_PVC       0x02 // NEO-PVC
 #define BOARD_JOCKEYGP  0x03 // Jockey Grand Prix
@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define BOARD_KF2K3BLA  0x06 // The King of Fighters 2003 (bootleg set 2)
 #define BOARD_LINKABLE  0x07 // Linkable Multiplayer Boards
 #define BOARD_KOF98     0x08 // The King of Fighters '98
+#define BOARD_CT0       0x09 // PRO-CT0
 
 #define VECTOR_TABLE_BIOS   0x00
 #define VECTOR_TABLE_CART   0x01
