@@ -46,8 +46,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define DIV_Z80 6
 #define DIV_YM2610 72 // 72 for medium fidelity, 8 for high
 
-#define MCYC_PER_FRAME 405504
 #define MCYC_PER_LINE 1536
+#define MCYC_PER_FRAME (MCYC_PER_LINE * 264) // 405504
 
 // Log callback
 void (*geo_log)(int, const char *, ...);
