@@ -178,6 +178,124 @@ static void geo_m68k_write_banksw_16_default(uint32_t addr, uint16_t data) {
         geo_log(GEO_LOG_WRN, "16-bit write at %06x: %04x\n", addr, data);
 }
 
+// Linkable Multiplayer Boards
+/* Some boards could be daisy-chained using a 3.5mm stereo jack cable to allow
+   multiple systems to be linked together for special multiplayer modes.
+   Information about this seems lacking but some initial research was done by
+   FB Neo, which allows enough faking of the functionality to allow Riding Hero
+   to run correctly in AES single cartridge mode.
+   League Bowling, Riding Hero, and Thrash Rally are known to have this option.
+*/
+static uint8_t geo_m68k_read_banksw_8_linkable(uint32_t addr) {
+    if (addr == 0x200000) {
+        cartreg[0] ^= 0x08;
+        return cartreg[0];
+    }
+    else if (addr == 0x200001) {
+        return 0;
+    }
+
+    return read08(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static void geo_m68k_write_banksw_8_linkable(uint32_t addr, uint8_t data) {
+    if (addr >= 0x2ffff0)
+        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
+    else if (addr == 0x200001)
+        return; // More research is required
+    else
+        geo_log(GEO_LOG_WRN, "8-bit write at %06x\n", addr);
+}
+
+// PRO-CT0
+/* PRO-CT0 is also known as SNK-9201 and ALPHA-8921, and was used for sprite
+   graphics serialization in the same manner as the NEO-ZMC2, but more
+   importantly was used for a simple challenge-response anti-piracy system in
+   two known games: Fatal Fury 2 and Super Sidekicks. The current
+   implementation in this emulator uses hardcoded responses like older versions
+   of MAME and FB Neo, but lower level emulation is possible.
+*/
+static uint8_t geo_m68k_read_banksw_8_ct0(uint32_t addr) {
+    uint16_t ret = (protreg >> 24) & 0xff;
+
+    switch (addr) {
+        case 0x200001:
+        case 0x236001:
+        case 0x236009:
+        case 0x255551:
+        case 0x2ff001:
+        case 0x2ffff1:
+            return ret;
+        case 0x236005:
+        case 0x23600D:
+            return ((ret & 0x0f) << 4) | ((ret & 0xf0) >> 4);
+    }
+
+    return read08(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static uint16_t geo_m68k_read_banksw_16_ct0(uint32_t addr) {
+    uint16_t ret = (protreg >> 24) & 0xff;
+
+    switch (addr) {
+        case 0x200000:
+        case 0x236000:
+        case 0x236008:
+        case 0x255550:
+        case 0x2ff000:
+        case 0x2ffff0:
+            return ret;
+        case 0x236004:
+        case 0x23600c:
+            return ((ret & 0x0f) << 4) | ((ret & 0xf0) >> 4);
+    }
+
+    return read16(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static void geo_m68k_write_banksw_8_ct0(uint32_t addr, uint8_t data) {
+    switch (addr) {
+        case 0x236001:
+        case 0x236005:
+        case 0x236009:
+        case 0x23600d:
+        case 0x255551:
+        case 0x2ff001:
+        case 0x2ffff1:
+            protreg <<= 8;
+            return;
+    }
+
+    if (addr >= 0x2ffff0)
+        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
+}
+
+static void geo_m68k_write_banksw_16_ct0(uint32_t addr, uint16_t data) {
+    switch (addr) {
+        case 0x211112:
+            protreg = 0xff000000;
+            return;
+        case 0x233332:
+            protreg = 0x0000ffff;
+            return;
+        case 0x242812:
+            protreg = 0x81422418;
+            return;
+        case 0x244442:
+            protreg = 0x00ff0000;
+            return;
+        case 0x255552:
+            protreg = 0xff00ff00;
+            return;
+        case 0x256782:
+            protreg = 0xf05a3601;
+            return;
+    }
+
+    if (addr >= 0x2ffff0)
+        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
+}
+
 // NEO-SMA Switchable Bank Routines
 static uint8_t geo_m68k_read_banksw_8_sma(uint32_t addr) {
     // Read SMA Chip Presence
@@ -234,7 +352,6 @@ void geo_m68k_sma_init(uint32_t *a, uint32_t *b, uint8_t *s) {
 }
 
 // NEO-PVC Switchable Bank Routines
-
 /* PVC Palette Protection Packing/Unpacking
    Colour data may be packed or unpacked. Packed values are 16-bit while
    unpacked values are 32-bit. No data is lost packing or unpacking, as a byte
@@ -332,21 +449,67 @@ static void geo_m68k_write_banksw_16_pvc(uint32_t addr, uint16_t data) {
         geo_m68k_pvc_bankswap();
 }
 
-// Jockey Grand Prix - Cartridge RAM mapped to 0x200000-0x201fff
-static uint8_t geo_m68k_read_banksw_8_jockeygp(uint32_t addr) {
-    return read08(cartram, addr & 0x1fff);
+// The King of Fighters '98
+/* Encrypted sets use an overlay system for copy protection. Writes to
+   0x20aaaa containing the 16-bit value 0x0090 will activate the overlay, which
+   affects fixed PROM addresses 0x100-0x103. When 0x00f0 is written to the same
+   address, the original ROM data is used -- the first four characters of the
+   "NEO-GEO" header, stored in 16-bit big endian format originally. Since ROM
+   data in this emulator is byteswapped to 16-bit little endian at boot, the
+   overlay values are similarly used in their 16-bit little endian form here.
+*/
+static void geo_m68k_write_banksw_16_kof98(uint32_t addr, uint16_t data) {
+    if (addr == 0x20aaaa) {
+        cartreg[0] = data;
+
+        if (cartreg[0] == 0x0090) { // Apply the protection overlay
+            promdata[0x100] = 0x00;
+            promdata[0x101] = 0xc2;
+            promdata[0x102] = 0x00;
+            promdata[0x103] = 0xfd;
+        }
+        else if (cartreg[0] == 0x00f0) { // Use the original ROM data (NEO-)
+            promdata[0x100] = 0x4e;
+            promdata[0x101] = 0x45;
+            promdata[0x102] = 0x4f;
+            promdata[0x103] = 0x2d;
+        }
+    }
+    else if (addr == 0x205554) { // Unknown protection or debug related write?
+        return; // Always writes 0x0055
+    }
+    else if (addr >= 0x2ffff0) {
+        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
+    }
+    else {
+        geo_log(GEO_LOG_WRN, "16-bit write at %06x: %04x\n", addr, data);
+    }
 }
 
-static uint16_t geo_m68k_read_banksw_16_jockeygp(uint32_t addr) {
-    return read16(cartram, addr & 0x1fff);
+// The King of Fighters 2003 (bootleg 2) and The King of Fighters 2004 Plus
+/* This is merely a variation on the regular NEO-PVC bank swapping. All logic
+   beyond 16-bit writes which result in a bankswap are equivalent to NEO-PVC.
+*/
+static inline void geo_m68k_kf2k3bla_bankswap(void) {
+    uint32_t bankaddress =
+        (cartram[0x1ff3] << 16) | (cartram[0x1ff2] << 8) | cartram[0x1ff0];
+
+    cartram[0x1ff0] &= 0xfe;
+    cartram[0x1ff3] &= 0x7f;
+
+    banksw_addr = (bankaddress + 0x100000) & 0xffffff;
 }
 
-static void geo_m68k_write_banksw_8_jockeygp(uint32_t addr, uint8_t data) {
-    write08(cartram, addr & 0x1fff, data);
-}
+static void geo_m68k_write_banksw_16_kf2k3bla(uint32_t addr, uint16_t data) {
+    if (addr >= 0x2fe000)
+        write16be(cartram, addr & 0x1fff, data & 0xffff);
 
-static void geo_m68k_write_banksw_16_jockeygp(uint32_t addr, uint16_t data) {
-    write16(cartram, addr & 0x1fff, data);
+    if (addr >= 0x2fffe0 && addr <= 0x2fffe3) // Unpack
+        geo_m68k_pvc_unpack();
+    else if (addr >= 0x2fffe8 && addr <= 0x2fffeb) // Pack
+        geo_m68k_pvc_pack();
+    else if (addr >= 0x2ffff0 && addr <= 0x2ffff3) // Bankswap
+        geo_m68k_kf2k3bla_bankswap();
 }
 
 // Metal Slug X - Challenge/Response Protection
@@ -423,187 +586,6 @@ static void geo_m68k_write_banksw_16_ms5plus(uint32_t addr, uint16_t data) {
         banksw_addr = data << 16;
 }
 
-// The King of Fighters 2003 (bootleg 2) and The King of Fighters 2004 Plus
-/* This is merely a variation on the regular NEO-PVC bank swapping. All logic
-   beyond 16-bit writes which result in a bankswap are equivalent to NEO-PVC.
-*/
-static inline void geo_m68k_kf2k3bla_bankswap(void) {
-    uint32_t bankaddress =
-        (cartram[0x1ff3] << 16) | (cartram[0x1ff2] << 8) | cartram[0x1ff0];
-
-    cartram[0x1ff0] &= 0xfe;
-    cartram[0x1ff3] &= 0x7f;
-
-    banksw_addr = (bankaddress + 0x100000) & 0xffffff;
-}
-
-static void geo_m68k_write_banksw_16_kf2k3bla(uint32_t addr, uint16_t data) {
-    if (addr >= 0x2fe000)
-        write16be(cartram, addr & 0x1fff, data & 0xffff);
-
-    if (addr >= 0x2fffe0 && addr <= 0x2fffe3) // Unpack
-        geo_m68k_pvc_unpack();
-    else if (addr >= 0x2fffe8 && addr <= 0x2fffeb) // Pack
-        geo_m68k_pvc_pack();
-    else if (addr >= 0x2ffff0 && addr <= 0x2ffff3) // Bankswap
-        geo_m68k_kf2k3bla_bankswap();
-}
-
-// Linkable Multiplayer Boards
-/* Some boards could be daisy-chained using a 3.5mm stereo jack cable to allow
-   multiple systems to be linked together for special multiplayer modes.
-   Information about this seems lacking but some initial research was done by
-   FB Neo, which allows enough faking of the functionality to allow Riding Hero
-   to run correctly in AES single cartridge mode.
-   League Bowling, Riding Hero, and Thrash Rally are known to have this option.
-*/
-static uint8_t geo_m68k_read_banksw_8_linkable(uint32_t addr) {
-    if (addr == 0x200000) {
-        cartreg[0] ^= 0x08;
-        return cartreg[0];
-    }
-    else if (addr == 0x200001) {
-        return 0;
-    }
-
-    return read08(promdata, (addr & 0xfffff) + banksw_addr);
-}
-
-static void geo_m68k_write_banksw_8_linkable(uint32_t addr, uint8_t data) {
-    if (addr >= 0x2ffff0)
-        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
-    else if (addr == 0x200001)
-        return; // More research is required
-    else
-        geo_log(GEO_LOG_WRN, "8-bit write at %06x\n", addr);
-}
-
-// The King of Fighters '98
-/* Encrypted sets use an overlay system for copy protection. Writes to
-   0x20aaaa containing the 16-bit value 0x0090 will activate the overlay, which
-   affects fixed PROM addresses 0x100-0x103. When 0x00f0 is written to the same
-   address, the original ROM data is used -- the first four characters of the
-   "NEO-GEO" header, stored in 16-bit big endian format originally. Since ROM
-   data in this emulator is byteswapped to 16-bit little endian at boot, the
-   overlay values are similarly used in their 16-bit little endian form here.
-*/
-static void geo_m68k_write_banksw_16_kof98(uint32_t addr, uint16_t data) {
-    if (addr == 0x20aaaa) {
-        cartreg[0] = data;
-
-        if (cartreg[0] == 0x0090) { // Apply the protection overlay
-            promdata[0x100] = 0x00;
-            promdata[0x101] = 0xc2;
-            promdata[0x102] = 0x00;
-            promdata[0x103] = 0xfd;
-        }
-        else if (cartreg[0] == 0x00f0) { // Use the original ROM data (NEO-)
-            promdata[0x100] = 0x4e;
-            promdata[0x101] = 0x45;
-            promdata[0x102] = 0x4f;
-            promdata[0x103] = 0x2d;
-        }
-    }
-    else if (addr == 0x205554) { // Unknown protection or debug related write?
-        return; // Always writes 0x0055
-    }
-    else if (addr >= 0x2ffff0) {
-        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
-    }
-    else {
-        geo_log(GEO_LOG_WRN, "16-bit write at %06x: %04x\n", addr, data);
-    }
-}
-
-// PRO-CT0
-/* PRO-CT0 is also known as SNK-9201 and ALPHA-8921, and was used for sprite
-   graphics serialization in the same manner as the NEO-ZMC2, but more
-   importantly was used for a simple challenge-response anti-piracy system in
-   two known games: Fatal Fury 2 and Super Sidekicks. The current
-   implementation in this emulator uses hardcoded responses like older versions
-   of MAME and FB Neo, but lower level emulation is possible.
-*/
-static uint8_t geo_m68k_read_banksw_8_ct0(uint32_t addr) {
-    uint16_t ret = (protreg >> 24) & 0xff;
-
-    switch (addr) {
-        case 0x200001:
-        case 0x236001:
-        case 0x236009:
-        case 0x255551:
-        case 0x2ff001:
-        case 0x2ffff1:
-            return ret;
-        case 0x236005:
-        case 0x23600D:
-            return ((ret & 0x0f) << 4) | ((ret & 0xf0) >> 4);
-    }
-
-    return read08(promdata, (addr & 0xfffff) + banksw_addr);
-}
-
-static uint16_t geo_m68k_read_banksw_16_ct0(uint32_t addr) {
-    uint16_t ret = (protreg >> 24) & 0xff;
-
-    switch (addr) {
-        case 0x200000:
-        case 0x236000:
-        case 0x236008:
-        case 0x255550:
-        case 0x2ff000:
-        case 0x2ffff0:
-            return ret;
-        case 0x236004:
-        case 0x23600c:
-            return ((ret & 0x0f) << 4) | ((ret & 0xf0) >> 4);
-    }
-
-    return read16(promdata, (addr & 0xfffff) + banksw_addr);
-}
-
-static void geo_m68k_write_banksw_8_ct0(uint32_t addr, uint8_t data) {
-    switch (addr) {
-        case 0x236001:
-        case 0x236005:
-        case 0x236009:
-        case 0x23600d:
-        case 0x255551:
-        case 0x2ff001:
-        case 0x2ffff1:
-            protreg <<= 8;
-            return;
-    }
-
-    if (addr >= 0x2ffff0)
-        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
-}
-
-static void geo_m68k_write_banksw_16_ct0(uint32_t addr, uint16_t data) {
-    switch (addr) {
-        case 0x211112:
-            protreg = 0xff000000;
-            return;
-        case 0x233332:
-            protreg = 0x0000ffff;
-            return;
-        case 0x242812:
-            protreg = 0x81422418;
-            return;
-        case 0x244442:
-            protreg = 0x00ff0000;
-            return;
-        case 0x255552:
-            protreg = 0xff00ff00;
-            return;
-        case 0x256782:
-            protreg = 0xf05a3601;
-            return;
-    }
-
-    if (addr >= 0x2ffff0)
-        banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
-}
-
 // Crouching Tiger Hidden Dragon 2003 (Original and Super Plus)
 /* This board uses a simple LUT to determine the bank to switch to. There are
    8 entries, selectable by the bottom 3 bits of the data written.
@@ -616,6 +598,23 @@ static void geo_m68k_write_banksw_16_cthd2003(uint32_t addr, uint16_t data) {
         };
         banksw_addr = boffsets[data & 0x07];
     }
+}
+
+// Jockey Grand Prix - Cartridge RAM mapped to 0x200000-0x201fff
+static uint8_t geo_m68k_read_banksw_8_jockeygp(uint32_t addr) {
+    return read08(cartram, addr & 0x1fff);
+}
+
+static uint16_t geo_m68k_read_banksw_16_jockeygp(uint32_t addr) {
+    return read16(cartram, addr & 0x1fff);
+}
+
+static void geo_m68k_write_banksw_8_jockeygp(uint32_t addr, uint8_t data) {
+    write08(cartram, addr & 0x1fff, data);
+}
+
+static void geo_m68k_write_banksw_16_jockeygp(uint32_t addr, uint16_t data) {
+    write16(cartram, addr & 0x1fff, data);
 }
 
 /* 68K Memory Map
@@ -1135,22 +1134,42 @@ void geo_m68k_board_set(unsigned btype) {
 
     // Set special handlers
     switch (btype) {
-        case BOARD_SMA: // NEO-SMA Bankswitching
+        case BOARD_LINKABLE: // Linkable Multiplayer Boards
+            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_linkable;
+            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_linkable;
+            break;
+        case BOARD_CT0: // PRO-CT0
+            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_ct0;
+            geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_ct0;
+            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_ct0;
+            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_ct0;
+            break;
+        case BOARD_SMA: // NEO-SMA
             geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_sma;
             geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_sma;
             geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_sma;
             break;
-        case BOARD_PVC: // NEO-PVC Bankswitching
+        case BOARD_PVC: // NEO-PVC
             geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_pvc;
             geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_pvc;
             geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_pvc;
             geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_pvc;
             break;
-        case BOARD_JOCKEYGP: // Jockey Grand Prix
-            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_jockeygp;
-            geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_jockeygp;
-            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_jockeygp;
-            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_jockeygp;
+        case BOARD_KOF98: // The King of Fighters '98
+            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_kof98;
+            break;
+        case BOARD_KF2K3BL: // The King of Fighters 2003 (bootleg set 1)
+            geo_m68k_read_fixed_8 = &geo_m68k_read_fixed_8_kf2k3bl;
+            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_pvc;
+            geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_pvc;
+            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_pvc;
+            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_pvc;
+            break;
+        case BOARD_KF2K3BLA: // The King of Fighters 2003 (bootleg set 2)
+            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_pvc;
+            geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_pvc;
+            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_pvc;
+            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_kf2k3bla;
             break;
         case BOARD_MSLUGX: // Metal Slug X
             geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_mslugx;
@@ -1159,34 +1178,14 @@ void geo_m68k_board_set(unsigned btype) {
         case BOARD_MS5PLUS: // Metal Slug 5 Plus (bootleg)
             geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_ms5plus;
             break;
-        case BOARD_KF2K3BLA: // The King of Fighters 2003 (bootleg 2)
-            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_pvc;
-            geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_pvc;
-            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_pvc;
-            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_kf2k3bla;
-            break;
-        case BOARD_LINKABLE: // Riding Hero
-            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_linkable;
-            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_linkable;
-            break;
-        case BOARD_KOF98: // The King of Fighters '98
-            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_kof98;
-            break;
-        case BOARD_CT0: // PRO-CT0
-            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_ct0;
-            geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_ct0;
-            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_ct0;
-            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_ct0;
-            break;
-        case BOARD_KF2K3BL: // The King of Fighters 2003 (bootleg 1)
-            geo_m68k_read_fixed_8 = &geo_m68k_read_fixed_8_kf2k3bl;
-            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_pvc;
-            geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_pvc;
-            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_pvc;
-            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_pvc;
-            break;
         case BOARD_CTHD2003: // Crouching Tiger Hidden Dragon 2003
             geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_cthd2003;
+            break;
+        case BOARD_JOCKEYGP: // Jockey Grand Prix
+            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_jockeygp;
+            geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_jockeygp;
+            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_jockeygp;
+            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_jockeygp;
             break;
     }
 }
