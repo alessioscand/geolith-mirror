@@ -621,8 +621,8 @@ static inline void geo_lspc_sprline(void) {
 }
 
 static inline void geo_lspc_aa(void) {
-    /* An internal 8-bit timer is ticked down each frame. When it
-       underflows, two things happen:
+    /* An internal 8-bit timer is ticked down each frame. When it underflows,
+       two things happen:
        - The timer is reloaded with the 8 highest bits of REG_LSPCMODE
        - An internal 3-bit animation counter is incremented
     */

@@ -216,6 +216,9 @@ void geo_bios_unload(void) {
 
 // Load Memory Card
 int geo_memcard_load(const char *filename) {
+    // Blank the memory card in all cases
+    memset(memcard, 0x00, SIZE_2K);
+
     FILE *file;
     size_t filesize, result;
 
@@ -232,8 +235,8 @@ int geo_memcard_load(const char *filename) {
     if (filesize != SIZE_2K)
         return 0;
 
-    // Read the file into the system's NVRAM and then close it
-    result = fread(nvram, sizeof(uint8_t), filesize, file);
+    // Read the file into the memory card and then close it
+    result = fread(memcard, sizeof(uint8_t), filesize, file);
     if (result != filesize)
         return 0;
     fclose(file);
@@ -249,7 +252,7 @@ int geo_memcard_save(const char *filename) {
         return 0;
 
     // Write and close the file
-    fwrite(nvram, SIZE_2K, sizeof(uint8_t), file);
+    fwrite(memcard, SIZE_2K, sizeof(uint8_t), file);
     fclose(file);
 
     return 1; // Success!
@@ -259,6 +262,9 @@ int geo_memcard_save(const char *filename) {
 int geo_nvram_load(const char *filename) {
     if (geo_get_system() == SYSTEM_AES)
         return 2;
+
+    // Blank the NVRAM in all cases
+    memset(nvram, 0x00, SIZE_64K);
 
     FILE *file;
     size_t filesize, result;
