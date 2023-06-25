@@ -56,9 +56,6 @@ static size_t sromsize = 0;
 // Main RAM
 static uint8_t ram[SIZE_64K];
 
-// Cartridge RAM
-static uint8_t cartram[SIZE_8K];
-
 // Cartridge Registers (general purpose usage)
 static uint16_t cartreg[2]= { 0, 0 };
 static uint32_t protreg = 0x00000000;
@@ -600,21 +597,34 @@ static void geo_m68k_write_banksw_16_cthd2003(uint32_t addr, uint16_t data) {
     }
 }
 
-// Jockey Grand Prix - Cartridge RAM mapped to 0x200000-0x201fff
+// Jockey Grand Prix
+/* Jockey Grand Prix contains 8K of battery backed RAM mapped to
+   0x200000-0x201fff. Reads outside of this space but still within the
+   Switchable Bank area should return all 1s, while writes to this space should
+   be ignored. If this is not done correctly, the game will boot directly to
+   the betting screen and not show the title screen or demo. The game will also
+   boot directly to the betting screen if there are any unused credits.
+*/
 static uint8_t geo_m68k_read_banksw_8_jockeygp(uint32_t addr) {
-    return read08(cartram, addr & 0x1fff);
+    if (addr <= 0x201fff)
+        return read08(cartram, addr & 0x1fff);
+    return 0xff;
 }
 
 static uint16_t geo_m68k_read_banksw_16_jockeygp(uint32_t addr) {
-    return read16(cartram, addr & 0x1fff);
+    if (addr <= 0x201fff)
+        return read16(cartram, addr & 0x1fff);
+    return 0xffff;
 }
 
 static void geo_m68k_write_banksw_8_jockeygp(uint32_t addr, uint8_t data) {
-    write08(cartram, addr & 0x1fff, data);
+    if (addr <= 0x201fff)
+        write08(cartram, addr & 0x1fff, data);
 }
 
 static void geo_m68k_write_banksw_16_jockeygp(uint32_t addr, uint16_t data) {
-    write16(cartram, addr & 0x1fff, data);
+    if (addr <= 0x201fff)
+        write16(cartram, addr & 0x1fff, data);
 }
 
 /* 68K Memory Map
@@ -1099,10 +1109,6 @@ void geo_m68k_init(void) {
     // Initialize the 68K CPU
     m68k_init();
     m68k_set_cpu_type(M68K_CPU_TYPE_68000);
-
-    // Zero the cartridge memory - should this be randomized instead?
-    for (size_t i = 0; i < 0x2000; ++i)
-        cartram[i] = 0x00;
 
     // Zero the cartridge registers (most games do not use these)
     cartreg[0] = cartreg[1] = 0;

@@ -103,6 +103,7 @@ extern uint32_t irq2_reload;
 extern uint32_t irq2_counter;
 
 extern uint8_t nvram[SIZE_64K];
+extern uint8_t cartram[SIZE_8K];
 extern uint8_t memcard[SIZE_2K];
 
 // 68K/Z80 Communication

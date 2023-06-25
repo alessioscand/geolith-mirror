@@ -74,8 +74,9 @@ uint32_t irq2_counter = 0;
 static uint32_t irq2_frags = 0;
 static uint32_t irq2_dec = 0;
 
-// NVRAM and Memory Card
+// NVRAM, Cartridge RAM, and Memory Card
 uint8_t nvram[SIZE_64K];
+uint8_t cartram[SIZE_8K];
 uint8_t memcard[SIZE_2K];
 
 // Extra cycles stored at the end of scanlines/frames
