@@ -57,7 +57,7 @@ static size_t sromsize = 0;
 static uint8_t ram[SIZE_64K];
 
 // Cartridge Registers (general purpose usage)
-static uint16_t cartreg[2]= { 0, 0 };
+static uint16_t cartreg[2] = { 0, 0 };
 static uint32_t protreg = 0x00000000;
 
 // Switchable bank offset address
@@ -1192,6 +1192,7 @@ void geo_m68k_board_set(unsigned btype) {
             geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_jockeygp;
             geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_jockeygp;
             geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_jockeygp;
+            cartram_present = 1;
             break;
     }
 }

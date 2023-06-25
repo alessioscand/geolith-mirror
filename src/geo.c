@@ -56,6 +56,9 @@ void (*geo_log)(int, const char *, ...);
 unsigned (*geo_input_cb[NUMINPUTS_NG])(unsigned);
 unsigned (*geo_input_sys_cb[NUMINPUTS_SYS])(void);
 
+// Cartridge RAM (Battery Backed SRAM) Presence
+int cartram_present = 0;
+
 // System being emulated
 static int sys = 0;
 static int region = 0;
@@ -215,10 +218,31 @@ void geo_bios_unload(void) {
         free(l0rom);
 }
 
-// Load Memory Card
-int geo_memcard_load(const char *filename) {
-    // Blank the memory card in all cases
-    memset(memcard, 0x00, SIZE_2K);
+// Load NVRAM, Cartridge RAM, or Memory Card data
+int geo_savedata_load(unsigned datatype, const char *filename) {
+    uint8_t *dataptr = NULL;
+    size_t datasize = 0;
+
+    switch (datatype) {
+        case GEO_SAVEDATA_NVRAM: {
+            if (geo_get_system() == SYSTEM_AES)
+                return 2;
+            dataptr = nvram;
+            datasize = SIZE_64K;
+            break;
+        }
+        case GEO_SAVEDATA_CARTRAM: {
+            dataptr = cartram;
+            datasize = SIZE_8K;
+            break;
+        }
+        case GEO_SAVEDATA_MEMCARD: {
+            dataptr = memcard;
+            datasize = SIZE_2K;
+            break;
+        }
+        default: return 2;
+    }
 
     FILE *file;
     size_t filesize, result;
@@ -233,11 +257,11 @@ int geo_memcard_load(const char *filename) {
     filesize = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    if (filesize != SIZE_2K)
+    if (filesize != datasize)
         return 0;
 
     // Read the file into the memory card and then close it
-    result = fread(memcard, sizeof(uint8_t), filesize, file);
+    result = fread(dataptr, sizeof(uint8_t), filesize, file);
     if (result != filesize)
         return 0;
     fclose(file);
@@ -245,57 +269,33 @@ int geo_memcard_load(const char *filename) {
     return 1; // Success!
 }
 
-// Save Memory Card
-int geo_memcard_save(const char *filename) {
-    FILE *file;
-    file = fopen(filename, "wb");
-    if (!file)
-        return 0;
+// Save NVRAM, Cartridge RAM, or Memory Card data
+int geo_savedata_save(unsigned datatype, const char *filename) {
+    uint8_t *dataptr = NULL;
+    size_t datasize = 0;
 
-    // Write and close the file
-    fwrite(memcard, SIZE_2K, sizeof(uint8_t), file);
-    fclose(file);
-
-    return 1; // Success!
-}
-
-// Load NVRAM
-int geo_nvram_load(const char *filename) {
-    if (geo_get_system() == SYSTEM_AES)
-        return 2;
-
-    // Blank the NVRAM in all cases
-    memset(nvram, 0x00, SIZE_64K);
-
-    FILE *file;
-    size_t filesize, result;
-
-    // Open the file for reading
-    file = fopen(filename, "rb");
-    if (!file)
-        return 2;
-
-    // Find out the file's size
-    fseek(file, 0, SEEK_END);
-    filesize = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    if (filesize != SIZE_64K)
-        return 0;
-
-    // Read the file into the system's NVRAM and then close it
-    result = fread(nvram, sizeof(uint8_t), filesize, file);
-    if (result != filesize)
-        return 0;
-    fclose(file);
-
-    return 1; // Success!
-}
-
-// Save NVRAM
-int geo_nvram_save(const char *filename) {
-    if (geo_get_system() == SYSTEM_AES)
-        return 2;
+    switch (datatype) {
+        case GEO_SAVEDATA_NVRAM: {
+            if (geo_get_system() == SYSTEM_AES)
+                return 2;
+            dataptr = nvram;
+            datasize = SIZE_64K;
+            break;
+        }
+        case GEO_SAVEDATA_CARTRAM: {
+            if (!cartram_present)
+                return 2;
+            dataptr = cartram;
+            datasize = SIZE_8K;
+            break;
+        }
+        case GEO_SAVEDATA_MEMCARD: {
+            dataptr = memcard;
+            datasize = SIZE_2K;
+            break;
+        }
+        default: return 2;
+    }
 
     FILE *file;
     file = fopen(filename, "wb");
@@ -303,7 +303,7 @@ int geo_nvram_save(const char *filename) {
         return 0;
 
     // Write and close the file
-    fwrite(nvram, SIZE_64K, sizeof(uint8_t), file);
+    fwrite(dataptr, datasize, sizeof(uint8_t), file);
     fclose(file);
 
     return 1; // Success!

@@ -239,31 +239,26 @@ int jg_game_load(void) {
         // Load the NEO file
         geo_neo_load(gameinfo.data, gameinfo.size);
 
-        // Load NVRAM
+        // Load saved data
         char savename[292];
-        snprintf(savename, sizeof(savename),
-            "%s/%s.nv", pathinfo.save, gameinfo.name);
-        int savestat = geo_nvram_load((const char*)savename);
+        char *datatype[] = { "NVRAM", "SRAM", "Memory Card" };
+        char *fext[] = { "nv", "srm", "mcr" };
 
-        if (savestat == 1)
-            jg_cb_log(JG_LOG_DBG, "NVRAM Loaded: %s\n", savename);
-        else if (savestat == 2)
-            jg_cb_log(JG_LOG_DBG, "NVRAM file non-existent: %s\n", savename);
-        else
-            jg_cb_log(JG_LOG_DBG, "NVRAM Load Failed: %s\n", savename);
+        for (unsigned i = 0; i < GEO_SAVEDATA_MAX; ++i) {
+            snprintf(savename, sizeof(savename),
+                "%s/%s.%s", pathinfo.save, gameinfo.name, fext[i]);
+            int savestat = geo_savedata_load(i, (const char*)savename);
 
-        // Load Memory Card
-        snprintf(savename, sizeof(savename),
-            "%s/%s.mcr", pathinfo.save, gameinfo.name);
-        savestat = geo_memcard_load((const char*)savename);
-
-        if (savestat == 1)
-            jg_cb_log(JG_LOG_DBG, "Memory Card Loaded: %s\n", savename);
-        else if (savestat == 2)
-            jg_cb_log(JG_LOG_DBG, "Memory Card file non-existent: %s\n",
-                savename);
-        else
-            jg_cb_log(JG_LOG_DBG, "Memory Card Load Failed: %s\n", savename);
+            if (savestat == 1)
+                jg_cb_log(JG_LOG_DBG, "%s Loaded: %s\n", datatype[i], savename);
+            else if (savestat == 2)
+                jg_cb_log(JG_LOG_DBG,
+                    "Invalid data type for current system/board: %s\n",
+                    datatype[i]);
+            else
+                jg_cb_log(JG_LOG_DBG, "%s Load Failed: %s\n",
+                    datatype[i], savename);
+        }
 
         // Initialize the rest of the emulator
         geo_init();
@@ -293,30 +288,26 @@ int jg_game_load(void) {
 }
 
 int jg_game_unload(void) {
-    // Save NVRAM and Memory Card
+    // Save NVRAM, Cartridge RAM, and Memory Card
     char savename[292];
+    char *datatype[] = { "NVRAM", "SRAM", "Memory Card" };
+    char *fext[] = { "nv", "srm", "mcr" };
 
-    // NVRAM
-    snprintf(savename, sizeof(savename),
-        "%s/%s.nv", pathinfo.save, gameinfo.name);
-    int savestat = geo_nvram_save((const char*)savename);
+    for (unsigned i = 0; i < GEO_SAVEDATA_MAX; ++i) {
+        snprintf(savename, sizeof(savename),
+            "%s/%s.%s", pathinfo.save, gameinfo.name, fext[i]);
+        int savestat = geo_savedata_save(i, (const char*)savename);
 
-    if (savestat == 1)
-        jg_cb_log(JG_LOG_DBG, "NVRAM Saved: %s\n", savename);
-    else if (savestat == 2)
-        jg_cb_log(JG_LOG_DBG, "Neo Geo AES does not contain NVRAM\n");
-    else
-        jg_cb_log(JG_LOG_DBG, "NVRAM Save Failed: %s\n", savename);
-
-    // Memcard
-    snprintf(savename, sizeof(savename),
-        "%s/%s.mcr", pathinfo.save, gameinfo.name);
-    savestat = geo_memcard_save((const char*)savename);
-
-    if (savestat == 1)
-        jg_cb_log(JG_LOG_DBG, "Memory Card Saved: %s\n", savename);
-    else
-        jg_cb_log(JG_LOG_DBG, "Memory Card Save Failed: %s\n", savename);
+        if (savestat == 1)
+            jg_cb_log(JG_LOG_DBG, "%s Saved: %s\n", datatype[i], savename);
+        else if (savestat == 2)
+            jg_cb_log(JG_LOG_DBG,
+                "Invalid data type for current system/board: %s\n",
+                datatype[i]);
+        else
+            jg_cb_log(JG_LOG_DBG, "%s Save Failed: %s\n",
+                datatype[i], savename);
+    }
 
     // Clean up memory allocated for BIOS ROMs
     geo_bios_unload();

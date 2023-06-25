@@ -59,6 +59,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define NUMINPUTS_NG    2
 #define NUMINPUTS_SYS   4
 
+enum geo_savedata {
+    GEO_SAVEDATA_NVRAM,
+    GEO_SAVEDATA_CARTRAM,
+    GEO_SAVEDATA_MEMCARD,
+    GEO_SAVEDATA_MAX
+};
+
 enum geo_loglevel {
     GEO_LOG_DBG,
     GEO_LOG_INF,
@@ -70,11 +77,8 @@ enum geo_loglevel {
 int geo_bios_load(const char*);
 void geo_bios_unload(void);
 
-int geo_memcard_load(const char*);
-int geo_memcard_save(const char*);
-
-int geo_nvram_load(const char*);
-int geo_nvram_save(const char*);
+int geo_savedata_load(unsigned, const char*);
+int geo_savedata_save(unsigned, const char*);
 
 void geo_exec(void);
 void geo_init(void);
@@ -96,6 +100,9 @@ extern unsigned (*geo_input_cb[NUMINPUTS_NG])(unsigned);
 extern unsigned (*geo_input_sys_cb[NUMINPUTS_SYS])(void);
 
 void geo_watchdog_reset(void);
+
+// Cartridge RAM (Battery Backed SRAM) Presence
+extern int cartram_present;
 
 // Timer Interrupt (IRQ2)
 extern uint8_t irq2_ctrl;
