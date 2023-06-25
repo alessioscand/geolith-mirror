@@ -224,13 +224,13 @@ uint16_t geo_lspc_mode_rd(void) {
 
 // Write to REG_LSPCMODE
 void geo_lspc_mode_wr(uint16_t data) {
-    /* Bits 8-15: Auto animation speed - tick every N+1 frames
-       Bits 7-5:  Timer interrupt mode
+    /* Bits 8-15: Auto animation speed
+       Bits 5-7:  Timer interrupt mode
        Bit 4:     Timer interrupt enable
        Bit 3:     Disable auto animation
        Bits 0-2:  Unused
     */
-    lspc.aa_reload = (data >> 8) + 1;
+    lspc.aa_reload = (data >> 8);
     irq2_ctrl = data & 0xf0;
     lspc.aa_disable = data & 0x08;
 }
@@ -241,8 +241,8 @@ void geo_lspc_init(void) {
     lspc.vrammod = 0;
     lspc.aa_counter = 0;
     lspc.aa_disable = 0;
-    lspc.aa_speed = 0;
-    lspc.aa_ticks = 0;
+    lspc.aa_reload = 0;
+    lspc.aa_timer = 0;
     lspc.scanline = 0;
 }
 
@@ -620,6 +620,18 @@ static inline void geo_lspc_sprline(void) {
     }
 }
 
+static inline void geo_lspc_aa(void) {
+    /* An internal 8-bit timer is ticked down each frame. When it
+       underflows, two things happen:
+       - The timer is reloaded with the 8 highest bits of REG_LSPCMODE
+       - An internal 3-bit animation counter is incremented
+    */
+    if (--lspc.aa_timer == 0xff) {
+        lspc.aa_counter = (lspc.aa_counter + 1) & 0x07;
+        lspc.aa_timer = lspc.aa_reload;
+    }
+}
+
 void geo_lspc_scanline(void) {
     // Always draw backdrop
     geo_lspc_bdline();
@@ -631,22 +643,8 @@ void geo_lspc_scanline(void) {
         geo_lspc_fixline();
     }
 
-    if (++lspc.scanline == LSPC_SCANLINES) { // Handle final scanline
+    if (++lspc.scanline == LSPC_SCANLINES) // Handle final scanline
         lspc.scanline = 0;
-
-        /* Tick the auto-animation timer every frame, and increment the counter
-           when the timer reaches the auto animation speed setting. These
-           timers run even if auto animation is disabled.
-        */
-        if (++lspc.aa_ticks >= lspc.aa_speed) {
-            // Reset auto animation timer
-            lspc.aa_ticks = 0;
-
-            // Reload auto animation speed value
-            lspc.aa_speed = lspc.aa_reload;
-
-            // Increment auto animation counter (3 bits)
-            lspc.aa_counter = (lspc.aa_counter + 1) & 0x07;
-        }
-    }
+    else if (lspc.scanline == LSPC_LINE_BORDER_TOP)
+        geo_lspc_aa();
 }

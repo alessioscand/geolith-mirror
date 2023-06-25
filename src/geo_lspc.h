@@ -77,8 +77,7 @@ typedef struct _lspc_t {
     uint8_t aa_counter;
     uint8_t aa_disable;
     uint8_t aa_reload;
-    uint8_t aa_speed;
-    uint8_t aa_ticks;
+    uint8_t aa_timer;
 
     uint32_t scanline;
 } lspc_t;
