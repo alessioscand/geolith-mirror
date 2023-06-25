@@ -156,9 +156,10 @@ int geo_neo_load(void *data, size_t size) {
             /* NGH 003 is assigned to Top Player's Golf, but the Crouching
                Tiger Hidden Dragon bootlegs also use it. Simple heuristics are
                used to determine which one it is. Top Player's Golf requires no
-               special handling.
+               special handling. Crouching Tiger Hidden Dragon 2003 Super Plus
+               Alternative also requires no special handling.
             */
-            if (size_prom > 0x100000) // Crouching Tiger Hidden Dragon 2003
+            if (size_prom > 0x100000 && romdata[0x1000 + 0x30d9] != 0x03)
                 geo_m68k_board_set(BOARD_CTHD2003);
             break;
         }
