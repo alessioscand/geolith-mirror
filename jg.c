@@ -222,50 +222,41 @@ void jg_exec_frame(void) {
 }
 
 int jg_game_load(void) {
-    const char *ext = strrchr(gameinfo.path, '.');
-    if (ext != NULL)
-        ext++;
-
-    if (!strncmp(ext, "neo", 3)) { // NEO file
-        // Load the BIOS
-        char biospath[512];
-        snprintf(biospath, sizeof(biospath), "%s/%s", pathinfo.bios,
-            settings_gn[SYS].val == SYSTEM_AES ? "aes.zip" : "neogeo.zip");
-        if (!geo_bios_load(biospath)) {
-            geo_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
-            return 0;
-        }
-
-        // Load the NEO file
-        geo_neo_load(gameinfo.data, gameinfo.size);
-
-        // Load saved data
-        char savename[292];
-        char *datatype[] = { "NVRAM", "SRAM", "Memory Card" };
-        char *fext[] = { "nv", "srm", "mcr" };
-
-        for (unsigned i = 0; i < GEO_SAVEDATA_MAX; ++i) {
-            snprintf(savename, sizeof(savename),
-                "%s/%s.%s", pathinfo.save, gameinfo.name, fext[i]);
-            int savestat = geo_savedata_load(i, (const char*)savename);
-
-            if (savestat == 1)
-                jg_cb_log(JG_LOG_DBG, "%s Loaded: %s\n", datatype[i], savename);
-            else if (savestat == 2)
-                jg_cb_log(JG_LOG_DBG,
-                    "Invalid data type for current system/board: %s\n",
-                    datatype[i]);
-            else
-                jg_cb_log(JG_LOG_DBG, "%s Load Failed: %s\n",
-                    datatype[i], savename);
-        }
-
-        // Initialize the rest of the emulator
-        geo_init();
-    }
-    else { // Only NEO supported
+    // Load the BIOS
+    char biospath[512];
+    snprintf(biospath, sizeof(biospath), "%s/%s", pathinfo.bios,
+        settings_gn[SYS].val == SYSTEM_AES ? "aes.zip" : "neogeo.zip");
+    if (!geo_bios_load(biospath)) {
+        geo_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
         return 0;
     }
+
+    // Load the NEO file
+    geo_neo_load(gameinfo.data, gameinfo.size);
+
+    // Load saved data
+    char savename[292];
+    char *datatype[] = { "NVRAM", "Cartridge RAM", "Memory Card" };
+    char *fext[] = { "nv", "srm", "mcr" };
+
+    for (unsigned i = 0; i < GEO_SAVEDATA_MAX; ++i) {
+        snprintf(savename, sizeof(savename),
+            "%s/%s.%s", pathinfo.save, gameinfo.name, fext[i]);
+        int savestat = geo_savedata_load(i, (const char*)savename);
+
+        if (savestat == 1)
+            jg_cb_log(JG_LOG_DBG, "%s Loaded: %s\n", datatype[i], savename);
+        else if (savestat == 2)
+            jg_cb_log(JG_LOG_DBG,
+                "Invalid data type for current system/board: %s\n",
+                datatype[i]);
+        else
+            jg_cb_log(JG_LOG_DBG, "%s Load Failed: %s\n",
+                datatype[i], savename);
+    }
+
+    // Initialize the rest of the emulator
+    geo_init();
 
     inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_JS);
     inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_JS);
@@ -290,7 +281,7 @@ int jg_game_load(void) {
 int jg_game_unload(void) {
     // Save NVRAM, Cartridge RAM, and Memory Card
     char savename[292];
-    char *datatype[] = { "NVRAM", "SRAM", "Memory Card" };
+    char *datatype[] = { "NVRAM", "Cartridge RAM", "Memory Card" };
     char *fext[] = { "nv", "srm", "mcr" };
 
     for (unsigned i = 0; i < GEO_SAVEDATA_MAX; ++i) {

@@ -250,7 +250,7 @@ int geo_savedata_load(unsigned datatype, const char *filename) {
     // Open the file for reading
     file = fopen(filename, "rb");
     if (!file)
-        return 2;
+        return 0;
 
     // Find out the file's size
     fseek(file, 0, SEEK_END);
