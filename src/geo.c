@@ -327,6 +327,10 @@ void geo_init(void) {
     geo_rtc_init();
     geo_lspc_init();
     geo_reset();
+
+    memset(nvram, 0x00, SIZE_64K);
+    memset(cartram, 0x00, SIZE_8K);
+    memset(memcard, 0x00, SIZE_2K);
 }
 
 // Increment the watchdog counter

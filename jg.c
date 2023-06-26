@@ -234,6 +234,9 @@ int jg_game_load(void) {
     // Load the NEO file
     geo_neo_load(gameinfo.data, gameinfo.size);
 
+    // Initialize the rest of the emulator
+    geo_init();
+
     // Load saved data
     char savename[292];
     char *datatype[] = { "NVRAM", "Cartridge RAM", "Memory Card" };
@@ -254,9 +257,6 @@ int jg_game_load(void) {
             jg_cb_log(JG_LOG_DBG, "%s Load Failed: %s\n",
                 datatype[i], savename);
     }
-
-    // Initialize the rest of the emulator
-    geo_init();
 
     inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_JS);
     inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_JS);
