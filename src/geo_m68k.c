@@ -68,6 +68,8 @@ static uint8_t vectable = VECTOR_TABLE_BIOS;
 
 // Registers
 static uint8_t reg_sramlock = 0; // SRAM Lock
+static uint8_t reg_crdlock[2] = { 0, 0 }; // Memory Card Lock
+static uint8_t reg_crdregsel = 0; // Register Select for Memory Card
 
 // NEO-SMA Pseudo-Random Number addresses
 static uint32_t sma_prn_addr[2] = { 0, 0 };
@@ -743,6 +745,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                    Bit 3:     0 = 60Hz, 1 = 50Hz
                    Bits 0-2:  Auto animation counter
                 */
+                break;
             }
         }
     }
@@ -832,7 +835,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
     }
 
     geo_log(GEO_LOG_WRN, "Unknown 16-bit 68K Read at %06x\n", address);
-    return 0xf0f0;
+    return 0xffff;
 }
 
 unsigned int m68k_read_memory_32(unsigned int address) {
@@ -911,14 +914,17 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             }
             case 0x3a0005: { // REG_CRDUNLOCK1
                 geo_log(GEO_LOG_DBG, "REG_CRDUNLOCK1 write: %02x\n", value);
+                reg_crdlock[0] = 0;
                 return;
             }
             case 0x3a0007: { // REG_CRDLOCK2
                 geo_log(GEO_LOG_DBG, "REG_CRDLOCK2 write: %02x\n", value);
+                reg_crdlock[1] = 1;
                 return;
             }
             case 0x3a0009: { // REG_CRDREGSEL
                 geo_log(GEO_LOG_DBG, "REG_CRDREGSEL write: %02x\n", value);
+                reg_crdregsel = 1;
                 return;
             }
             case 0x3a000b: { // REG_BRDFIX
@@ -945,14 +951,17 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             }
             case 0x3a0015: { // REG_CRDLOCK1
                 geo_log(GEO_LOG_DBG, "REG_CRDLOCK1 write: %02x\n", value);
+                reg_crdlock[0] = 1;
                 return;
             }
             case 0x3a0017: { // REG_CRDUNLOCK2
                 geo_log(GEO_LOG_DBG, "REG_CRDUNLOCK2 write: %02x\n", value);
+                reg_crdlock[1] = 0;
                 return;
             }
-            case 0x3a0019: { // REG_CRDREGSEL
-                geo_log(GEO_LOG_DBG, "REG_CRDREGSEL write: %02x\n", value);
+            case 0x3a0019: { // REG_CRDNORMAL
+                geo_log(GEO_LOG_DBG, "REG_CRDNORMAL write: %02x\n", value);
+                reg_crdregsel = 0;
                 return;
             }
             case 0x3a001b: { // REG_CRTFIX
@@ -1098,6 +1107,8 @@ void geo_m68k_reset(void) {
     m68k_pulse_reset();
     sma_prn = 0x2345;
     reg_sramlock = 0;
+    reg_crdlock[0] = reg_crdlock[1] = 0;
+    reg_crdregsel = 0;
 
     if (promsize > 0x100000)
         banksw_addr = 0x100000;
