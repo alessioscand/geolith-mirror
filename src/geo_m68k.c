@@ -752,13 +752,13 @@ unsigned int m68k_read_memory_8(unsigned int address) {
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
     }
     else if (address < 0xc00000) { // Memory Card
-        /* 8-bit Memory Card reads return 0xff for odd addresses, and memcard
-           data for even addresses. This is effectively half of a 16-bit read.
+        /* 8-bit Memory Card reads return 0xff for even addresses, and memcard
+           data for odd addresses. This is effectively half of a 16-bit read.
         */
         geo_log(GEO_LOG_DBG, "8-bit Memory Card Read: %06x\n", address);
         if (address & 0x01)
-            return 0xff;
-        return memcard[(address >> 1) & 0x7ff];
+            return memcard[(address >> 1) & 0x7ff];
+        return 0xff;
     }
     else if (address < 0xd00000) { // BIOS ROM
         return read08(biosdata, address & 0x1ffff);
