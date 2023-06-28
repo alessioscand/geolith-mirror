@@ -752,10 +752,10 @@ unsigned int m68k_read_memory_8(unsigned int address) {
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
     }
     else if (address < 0xc00000) { // Memory Card
-        //geo_log(GEO_LOG_DBG, "8-bit Memory Card Read: %06x\n", address);
         /* 8-bit Memory Card reads return 0xff for odd addresses, and memcard
            data for even addresses. This is effectively half of a 16-bit read.
         */
+        geo_log(GEO_LOG_DBG, "8-bit Memory Card Read: %06x\n", address);
         if (address & 0x01)
             return 0xff;
         return memcard[(address >> 1) & 0x7ff];
@@ -994,7 +994,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
-        memcard[(address >> 1) & 0x7ff] = value;
+        if (!reg_crdlock[0] && !reg_crdlock[1])
+            memcard[(address >> 1) & 0x7ff] = value;
     }
     else if (address < 0xd00000) { // BIOS ROM
         geo_log(GEO_LOG_WRN, "68K write to BIOS ROM: %06x %02x\n",
@@ -1086,7 +1087,8 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
         geo_lspc_palram_wr(address, value);
     }
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
-        memcard[(address >> 1) & 0x7ff] = value & 0xff;
+        if (!reg_crdlock[0] && !reg_crdlock[1])
+            memcard[(address >> 1) & 0x7ff] = value & 0xff;
     }
     else if (address < 0xd00000) { // BIOS ROM
         geo_log(GEO_LOG_WRN, "68K write to BIOS ROM: %06x %04x\n",
