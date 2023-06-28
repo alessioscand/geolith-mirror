@@ -129,7 +129,7 @@ static unsigned geo_input_poll_stat_a(void) {
 
 // P1/P2 Select/Start, Memcard status, AES/MVS setting
 static unsigned geo_input_poll_stat_b(void) {
-    unsigned s = 0x1f;
+    unsigned s = 0x0f;
     if (input_device[0]->button[4])
         s &= 0x0d;
     if (input_device[0]->button[5])
