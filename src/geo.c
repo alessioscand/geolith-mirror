@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "geo.h"
 #include "geo_lspc.h"
 #include "geo_m68k.h"
+#include "geo_memcard.h"
 #include "geo_mixer.h"
 #include "geo_rtc.h"
 #include "geo_z80.h"
@@ -330,7 +331,9 @@ void geo_init(void) {
 
     memset(nvram, 0x00, SIZE_64K);
     memset(cartram, 0x00, SIZE_8K);
-    memset(memcard, 0x00, SIZE_2K);
+
+    // Pre-format the memory card in case there is no existing memory card data
+    geo_memcard_format(memcard);
 }
 
 // Increment the watchdog counter
