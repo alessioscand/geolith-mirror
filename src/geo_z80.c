@@ -39,8 +39,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 static z80 z80ctx;
 
+static uint8_t *mrom = NULL;
 static uint8_t *mromdata = NULL;
 static size_t mromsize = 0;
+static uint8_t *smromdata = NULL;
+static size_t smromsize = 0;
+
 static uint8_t zram[SIZE_2K];
 static uint32_t zbank[4];
 static unsigned nmi_enabled = 0;
@@ -69,15 +73,15 @@ static uint8_t geo_z80_mem_rd(void *userdata, uint16_t addr) {
     if (userdata) { } // Unused
 
     if (addr < 0x8000) // Static main code bank
-        return mromdata[addr];
+        return mrom[addr];
     else if (addr < 0xc000) // Switchable Bank 0
-        return mromdata[zbank[0] + (addr & 0x3fff)];
+        return mrom[zbank[0] + (addr & 0x3fff)];
     else if (addr < 0xe000) // Switchable Bank 1
-        return mromdata[zbank[1] + (addr & 0x1fff)];
+        return mrom[zbank[1] + (addr & 0x1fff)];
     else if (addr < 0xf000) // Switchable Bank 2
-        return mromdata[zbank[2] + (addr & 0x0fff)];
+        return mrom[zbank[2] + (addr & 0x0fff)];
     else if (addr < 0xf800) // Switchable Bank 3
-        return mromdata[zbank[3] + (addr & 0x07ff)];
+        return mrom[zbank[3] + (addr & 0x07ff)];
 
     // Work RAM
     return zram[addr & 0x07ff];
@@ -264,7 +268,17 @@ void geo_z80_clear_irq(void) {
 }
 
 // Assign M ROM pointer and size
-void geo_z80_romdata(uint8_t *m, size_t msz) {
-    mromdata = m;
+void geo_z80_mdata(uint8_t *m, size_t msz) {
+    mromdata = mrom = m;
     mromsize = msz;
+}
+
+// Assign SM ROM pointer and size
+void geo_z80_smdata(uint8_t *sm, size_t smsz) {
+    smromdata = sm;
+    smromsize = smsz;
+}
+
+void geo_z80_set_mrom(unsigned m) {
+    mrom = m ? mromdata : smromdata;
 }

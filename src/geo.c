@@ -70,6 +70,7 @@ static uint32_t watchdog;
 static uint8_t *l0rom = NULL;
 static uint8_t *biosdata = NULL;
 static uint8_t *sfixdata = NULL;
+static uint8_t *smrom = NULL;
 
 // Timer Interrupt (IRQ2)
 uint8_t irq2_ctrl = 0;
@@ -133,7 +134,7 @@ int geo_get_system(void) {
 
 int geo_bios_load(const char *biospath) {
     const char *biosrom;
-    size_t biossize, sfixsize = 0;
+    size_t biossize = 0, sfixsize = 0, smsize = 0;
 
     mz_zip_archive zip_archive;
     memset(&zip_archive, 0, sizeof(zip_archive));
@@ -193,6 +194,7 @@ int geo_bios_load(const char *biospath) {
     geo_lspc_set_l0rom(l0rom);
 
     if (geo_get_system() != SYSTEM_AES) {
+        // SFIX
         sfixdata = mz_zip_reader_extract_file_to_heap(&zip_archive,
             "sfix.sfix", &sfixsize, 0);
         if (sfixdata == NULL) {
@@ -202,6 +204,17 @@ int geo_bios_load(const char *biospath) {
             return 0;
         }
         geo_lspc_sfixdata(sfixdata, sfixsize);
+
+        // SM1
+        smrom = mz_zip_reader_extract_file_to_heap(&zip_archive,
+            "sm1.sm1", &smsize, 0);
+        if (smrom == NULL) {
+            mz_zip_reader_end(&zip_archive);
+            geo_log(GEO_LOG_ERR,
+                "Failed to load sm1.sm1 from BIOS archive!\n");
+            return 0;
+        }
+        geo_z80_smdata(smrom, smsize);
     }
 
     geo_m68k_romdata_bios(biosdata, biossize, sfixdata, sfixsize);
@@ -213,10 +226,12 @@ int geo_bios_load(const char *biospath) {
 void geo_bios_unload(void) {
     if (biosdata)
         free(biosdata);
-    if (sfixdata)
-        free(sfixdata);
     if (l0rom)
         free(l0rom);
+    if (sfixdata)
+        free(sfixdata);
+    if (smrom)
+        free(smrom);
 }
 
 // Load NVRAM, Cartridge RAM, or Memory Card data

@@ -37,6 +37,8 @@ void geo_z80_assert_irq(unsigned);
 void geo_z80_clear_irq(void);
 void geo_z80_init(void);
 void geo_z80_reset(void);
-void geo_z80_romdata(uint8_t*, size_t);
+void geo_z80_mdata(uint8_t*, size_t);
+void geo_z80_smdata(uint8_t*, size_t);
+void geo_z80_set_mrom(unsigned);
 
 #endif

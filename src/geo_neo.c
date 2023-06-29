@@ -121,7 +121,7 @@ int geo_neo_load(void *data, size_t size) {
     geo_m68k_romdata_game(data_prom, size_prom, data_srom, size_srom);
 
     uint8_t *data_mrom = &romdata[rom_offset];
-    geo_z80_romdata(data_mrom, size_mrom);
+    geo_z80_mdata(data_mrom, size_mrom);
     rom_offset += size_mrom;
 
     if (!size_v2rom) { // Single V ROM

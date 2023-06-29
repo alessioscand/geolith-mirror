@@ -928,7 +928,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a000b: { // REG_BRDFIX
-                // FIXME - set SM1 ROM
+                geo_z80_set_mrom(0);
                 geo_lspc_set_fix(LSPC_FIX_BOARD);
                 return;
             }
@@ -965,7 +965,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a001b: { // REG_CRTFIX
-                // FIXME - set M1 ROM
+                geo_z80_set_mrom(1);
                 geo_lspc_set_fix(LSPC_FIX_CART);
                 return;
             }
