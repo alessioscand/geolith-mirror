@@ -42,6 +42,7 @@ static void (*geo_lspc_fixline)(void);
 
 static uint32_t *vbuf = NULL;
 static unsigned numtiles = 0;
+static unsigned fixbanksw = 0;
 
 static uint8_t *fixdata = NULL;
 static uint8_t *sfixdata = NULL;
@@ -79,11 +80,6 @@ static unsigned lut_hshrink[0x10][0x10] = {
 // Set the pointer to the video buffer
 void geo_lspc_set_buffer(uint32_t *ptr) {
     vbuf = ptr;
-}
-
-// Set the active Fix ROM
-void geo_lspc_set_fix(unsigned f) {
-    fixdata = f ? sromdata : sfixdata;
 }
 
 // Set the vertical shrink ROM
@@ -405,12 +401,26 @@ static void geo_lspc_fixline_tile(void) {
     }
 }
 
+// Set the active Fix ROM
+void geo_lspc_set_fix(unsigned f) {
+    if (f) {
+        fixdata = sromdata;
+        geo_lspc_set_fix_banksw(fixbanksw);
+    }
+    else {
+        fixdata = sfixdata;
+        geo_lspc_fixline = &geo_lspc_fixline_default;
+    }
+}
+
 // Set the Fix Layer bank switching type
 void geo_lspc_set_fix_banksw(unsigned f) {
     /* Type 0: None
        Type 1: Per-line banking
        Type 2: Per-tile banking
     */
+    fixbanksw = f;
+
     switch (f) {
         default: {
             geo_lspc_fixline = &geo_lspc_fixline_default; break;
