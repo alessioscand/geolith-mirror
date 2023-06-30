@@ -904,7 +904,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a0001: { // REG_NOSHADOW
-                geo_log(GEO_LOG_DBG, "REG_NOSHADOW write\n");
+                geo_log(GEO_LOG_DBG, "REG_NOSHADOW write: %02x\n", value);
+                geo_lspc_shadow_wr(0);
                 return;
             }
             case 0x3a0003: { // REG_SWPBIOS
@@ -942,6 +943,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             }
             case 0x3a0011: { // REG_SHADOW
                 geo_log(GEO_LOG_DBG, "REG_SHADOW write: %02x\n", value);
+                geo_lspc_shadow_wr(1);
                 return;
             }
             case 0x3a0013: { // REG_SWPROM

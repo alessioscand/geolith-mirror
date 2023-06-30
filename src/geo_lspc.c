@@ -55,7 +55,9 @@ static size_t cromsize = 0;
 static uint8_t *l0romdata = NULL;
 
 // Dynamic output palette with values converted from palette RAM
-static uint32_t palette[SIZE_8K];
+static uint32_t palette_normal[SIZE_8K];
+static uint32_t palette_shadow[SIZE_8K];
+static uint32_t *palette = palette_normal;
 
 // Horizontal Shrink LUT -- from neogeodev
 static unsigned lut_hshrink[0x10][0x10] = {
@@ -148,15 +150,22 @@ static inline void geo_lspc_palconv(uint16_t addr, uint16_t data) {
        Colour values are 6 bits, made up of 5 colour bits and a global "dark"
        bit which acts as the least significant bit for the R, G, and B values.
        These values can simply be shifted left twice to give 8-bit equivalent
-       values which can be ORed together for output.
+       values which can be ORed together for output. If the shadow register is
+       set, only shift left once, effectively cutting the colour value in half.
     */
     unsigned r = (((data >> 6) & 0x3c) | ((data >> 13) & 0x02) |
-        ((data >> 15) & 0x01)) << 2;
+        ((data >> 15) & 0x01)) << 1;
     unsigned g = (((data >> 2) & 0x3c) | ((data >> 12) & 0x02) |
-        ((data >> 15) & 0x01)) << 2;
+        ((data >> 15) & 0x01)) << 1;
     unsigned b = (((data << 2) & 0x3c) | ((data >> 11) & 0x02) |
-        ((data >> 15) & 0x01)) << 2;
-    palette[addr] = 0xff000000 | (r << 16) | (g << 8) | b;
+        ((data >> 15) & 0x01)) << 1;
+
+    // Populate shadow palette entry
+    palette_shadow[addr] = 0xff000000 | (r << 16) | (g << 8) | b;
+
+    // Shift left again and populate normal palette entry
+    r <<= 1; g <<= 1; b <<= 1;
+    palette_normal[addr] = 0xff000000 | (r << 16) | (g << 8) | b;
 }
 
 // Read a palette RAM entry from the active bank
@@ -231,6 +240,12 @@ void geo_lspc_mode_wr(uint16_t data) {
     lspc.aa_disable = data & 0x08;
 }
 
+// Write to REG_SHADOW
+void geo_lspc_shadow_wr(unsigned s) {
+    lspc.shadow = s;
+    palette = s ? palette_shadow : palette_normal;
+}
+
 void geo_lspc_init(void) {
     lspc.palbank = 0;
     lspc.vramaddr = 0;
@@ -240,6 +255,8 @@ void geo_lspc_init(void) {
     lspc.aa_reload = 0;
     lspc.aa_timer = 0;
     lspc.scanline = 0;
+
+    geo_lspc_shadow_wr(0);
 }
 
 // No Fix Layer Banking (Default)

@@ -79,6 +79,9 @@ typedef struct _lspc_t {
     uint8_t aa_reload;
     uint8_t aa_timer;
 
+    // Shadow mode
+    uint8_t shadow;
+
     uint32_t scanline;
 } lspc_t;
 
@@ -106,6 +109,8 @@ uint16_t geo_lspc_mode_rd(void);
 void geo_lspc_mode_wr(uint16_t);
 
 void geo_lspc_init(void);
+
+void geo_lspc_shadow_wr(unsigned);
 
 void geo_lspc_scanline(void);
 
