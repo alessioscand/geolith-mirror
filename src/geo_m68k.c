@@ -792,16 +792,16 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         switch (address) {
             case 0x300000: { // REG_P1CNT
                 uint8_t val = geo_input_cb[0](0);
-                return (val << 8) | val; // Is this the correct way? FIXME
+                return (val << 8) | val;
             }
             case 0x340000: { // REG_P2CNT
                 uint8_t val = geo_input_cb[1](1);
-                return (val << 8) | val; // Is this the correct way? FIXME
+                return (val << 8) | val;
             }
             case 0x380000: { // REG_STATUS_B
                 uint8_t val = geo_input_sys_cb[1]() |
                     (geo_get_system() == SYSTEM_AES ? 0x00 : 0x80);
-                return (val << 8) | val; // Is this the correct way? FIXME
+                return (val << 8) | val;
             }
             case 0x3c0000: case 0x3c0002: case 0x3c0008: case 0x3c000a: {
                 // REG_VRAMADDR, REG_VRAMRW, REG_TIMERHIGH, REG_TIMERLOW
@@ -1230,6 +1230,4 @@ void geo_m68k_postload(void) {
     // Byteswap the BIOS and P ROM
     swapb16_range(biosdata, biossize);
     swapb16_range(promdata, promsize);
-
-    // FIXME - set up Fix layer pointers etc
 }
