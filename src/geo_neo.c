@@ -193,20 +193,20 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 253: { // Garou - Mark of the Wolves
-            geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
-
             // Use heuristics to handle descrambling differences
             if (romdata[0xc1000 + 0x3e481] == 0x9f) { // NEO-SMA KE (AES)
                 geo_m68k_sma_init(sma_addr_garouh, sma_bank_garouh,
                     sma_scramble_garouh);
                 geo_m68k_board_set(BOARD_SMA);
+                geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
             }
             else if (romdata[0xc1000 + 0x3e481] == 0x41) { // NEO-SMA KF (MVS)
                 geo_m68k_sma_init(sma_addr_garou, sma_bank_garou,
                     sma_scramble_garou);
                 geo_m68k_board_set(BOARD_SMA);
+                geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
             }
-            // Bootleg and Prototype don't have protection
+            // No SMA protection or FIX bankswitching for Bootleg and Prototype
             break;
         }
         case 256: { // Metal Slug 3
