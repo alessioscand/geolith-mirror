@@ -168,8 +168,8 @@ int geo_neo_load(void *data, size_t size) {
             geo_m68k_board_set(BOARD_LINKABLE);
             break;
         }
-        case 8: { // Jockey Grand Prix
-            geo_m68k_board_set(BOARD_JOCKEYGP);
+        case 8: case 999: { // Jockey Grand Prix, V-Liner
+            geo_m68k_board_set(BOARD_BREZZASOFT);
             break;
         }
         case 47: case 52: { // Fatal Fury 2, Super Sidekicks

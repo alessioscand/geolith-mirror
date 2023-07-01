@@ -31,18 +31,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef GEO_M68K_H
 #define GEO_M68K_H
 
-#define BOARD_DEFAULT   0x00 // Default
-#define BOARD_LINKABLE  0x01 // Linkable Multiplayer Boards
-#define BOARD_CT0       0x02 // PRO-CT0
-#define BOARD_SMA       0x03 // NEO-SMA
-#define BOARD_PVC       0x04 // NEO-PVC
-#define BOARD_KOF98     0x05 // The King of Fighters '98
-#define BOARD_KF2K3BL   0x06 // The King of Fighters 2003 (bootleg set 1)
-#define BOARD_KF2K3BLA  0x07 // The King of Fighters 2003 (bootleg set 2)
-#define BOARD_MSLUGX    0x08 // Metal Slug X
-#define BOARD_MS5PLUS   0x09 // Metal Slug 5 Plus (bootleg)
-#define BOARD_CTHD2003  0x0a // Crouching Tiger Hidden Dragon 2003
-#define BOARD_JOCKEYGP  0x0b // Jockey Grand Prix
+#define BOARD_DEFAULT       0x00 // Default
+#define BOARD_LINKABLE      0x01 // Linkable Multiplayer Boards
+#define BOARD_CT0           0x02 // PRO-CT0
+#define BOARD_SMA           0x03 // NEO-SMA
+#define BOARD_PVC           0x04 // NEO-PVC
+#define BOARD_KOF98         0x05 // The King of Fighters '98
+#define BOARD_KF2K3BL       0x06 // The King of Fighters 2003 (bootleg set 1)
+#define BOARD_KF2K3BLA      0x07 // The King of Fighters 2003 (bootleg set 2)
+#define BOARD_MSLUGX        0x08 // Metal Slug X
+#define BOARD_MS5PLUS       0x09 // Metal Slug 5 Plus (bootleg)
+#define BOARD_CTHD2003      0x0a // Crouching Tiger Hidden Dragon 2003
+#define BOARD_BREZZASOFT    0x0b // BrezzaSoft Gambling Boards with Cart RAM
 
 #define VECTOR_TABLE_BIOS   0x00
 #define VECTOR_TABLE_CART   0x01

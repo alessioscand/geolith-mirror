@@ -599,32 +599,32 @@ static void geo_m68k_write_banksw_16_cthd2003(uint32_t addr, uint16_t data) {
     }
 }
 
-// Jockey Grand Prix
-/* Jockey Grand Prix contains 8K of battery backed RAM mapped to
+// BrezzaSoft Gambling Boards
+/* BrezzaSoft Gambling Boards contains 8K of battery backed RAM mapped to
    0x200000-0x201fff. Reads outside of this space but still within the
    Switchable Bank area should return all 1s, while writes to this space should
    be ignored. If this is not done correctly, the game will boot directly to
    the betting screen and not show the title screen or demo. The game will also
    boot directly to the betting screen if there are any unused credits.
 */
-static uint8_t geo_m68k_read_banksw_8_jockeygp(uint32_t addr) {
+static uint8_t geo_m68k_read_banksw_8_brezza(uint32_t addr) {
     if (addr <= 0x201fff)
         return read08(cartram, addr & 0x1fff);
     return 0xff;
 }
 
-static uint16_t geo_m68k_read_banksw_16_jockeygp(uint32_t addr) {
+static uint16_t geo_m68k_read_banksw_16_brezza(uint32_t addr) {
     if (addr <= 0x201fff)
         return read16(cartram, addr & 0x1fff);
     return 0xffff;
 }
 
-static void geo_m68k_write_banksw_8_jockeygp(uint32_t addr, uint8_t data) {
+static void geo_m68k_write_banksw_8_brezza(uint32_t addr, uint8_t data) {
     if (addr <= 0x201fff)
         write08(cartram, addr & 0x1fff, data);
 }
 
-static void geo_m68k_write_banksw_16_jockeygp(uint32_t addr, uint16_t data) {
+static void geo_m68k_write_banksw_16_brezza(uint32_t addr, uint16_t data) {
     if (addr <= 0x201fff)
         write16(cartram, addr & 0x1fff, data);
 }
@@ -1202,11 +1202,11 @@ void geo_m68k_board_set(unsigned btype) {
         case BOARD_CTHD2003: // Crouching Tiger Hidden Dragon 2003
             geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_cthd2003;
             break;
-        case BOARD_JOCKEYGP: // Jockey Grand Prix
-            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_jockeygp;
-            geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_jockeygp;
-            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_jockeygp;
-            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_jockeygp;
+        case BOARD_BREZZASOFT: // Jockey Grand Prix, V-Liner
+            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_brezza;
+            geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_brezza;
+            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_brezza;
+            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_brezza;
             cartram_present = 1;
             break;
     }
