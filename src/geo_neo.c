@@ -213,16 +213,16 @@ int geo_neo_load(void *data, size_t size) {
             geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
 
             if (size_prom > 0x500000) { // Encrypted
-                geo_m68k_sma_init(sma_addr_mslug3, sma_bank_mslug3,
-                    sma_scramble_mslug3);
+                if (romdata[0x1000 + 0x141] == 0x33) { // mslug3a
+                    geo_m68k_sma_init(sma_addr_mslug3a, sma_bank_mslug3a,
+                        sma_scramble_mslug3a);
+                }
+                else { // mslug3, mslug3h
+                    geo_m68k_sma_init(sma_addr_mslug3, sma_bank_mslug3,
+                        sma_scramble_mslug3);
+                }
                 geo_m68k_board_set(BOARD_SMA);
             }
-            // FIXME: Support mslug3a
-            /*else if (mslug3a) {
-                geo_m68k_sma_init(sma_addr_mslug3a, sma_bank_mslug3a,
-                    sma_scramble_mslug3a);
-                geo_m68k_board_set(BOARD_SMA);
-            }*/
             break;
         }
         case 257: { // KOF 2000
