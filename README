@@ -1,7 +1,3 @@
-ALPHA
----------
-This core's status is alpha. It is not fit for everyday use or packaging.
-
 Geolith
 -------
 Geolith is an emulator for the Neo Geo AES and MVS.
@@ -39,18 +35,45 @@ The build will be output to "geolith/". This directory may be used as is
 locally by copying it to your local "cores" directory, or may be installed
 system-wide using the "install" target specified in the Makefile.
 
+Input Devices
+-------------
+Geolith supports the following input devices:
+
+Neo Geo Joystick
+
+Settings
+--------
+system = 0
+0 = AES (Console), 1 = MVS (Arcade), 2 = Universe BIOS
+
+region = 0
+0 = US, 1 = JP, 2 = AS, 3 = EU
+
+freeplay = 0
+0 = Off, 1 = On
+
+settingmode = 0
+0 = Off, 1 = On
+
+Compatibility
+-------------
+Geolith is compatible with 100% of the commercially released Neo Geo AES and
+MVS libraries. Most games work in both modes, but some require MVS mode.
+
+Most bootlegs and hacks from the MAME set work, with the known exception of
+kof10th, which has a number of customizations beyond a typical cartridge.
+
+JAMMA PCB and Neo Geo CD systems are unsupported at this time.
+
 Notes
 -----
 This project began life as a fork of GnGeo 0.8.1. All original components
 were removed or replaced as the project progressed, with the resulting codebase
 being entirely new. All non-commercial and GPL code has been removed, and all
-new code has been written under the BSD 3-Clause license. This process has
-similarities to the creation of the BSD operating system itself, which was
-built over time by replacing all components of AT&T UNIX with new, permissively
-licensed ones. With this being stated, a special thanks goes out to Mathieu
-Peponas who both created the original GnGeo emulator, and also approved the
-distribution of this new work as a whole with new licensing. This resolves the
-"Grandfather's Axe" or "Ship of Theseus" question.
+new code has been written under the BSD 3-Clause license. A special thanks goes
+out to Mathieu Peponas who both created the original GnGeo emulator, and also
+approved the distribution of this new work as a whole with new licensing. This
+resolves the "Grandfather's Axe" or "Ship of Theseus" question.
 
 Copyright
 ---------
