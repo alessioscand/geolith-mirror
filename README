@@ -1,3 +1,8 @@
+BETA
+----
+This emulator is still in beta. It is in generally working order, but some
+things may be unimplemented or be subject to change.
+
 Geolith
 -------
 Geolith is an emulator for the Neo Geo AES and MVS.
