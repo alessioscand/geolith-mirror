@@ -248,10 +248,9 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 268: { // Metal Slug 5
-            // Use heuristics to detect Metal Slug 5 Plus (bootleg)
-            if (romdata[0x1000 + 0x26b] == 0xb9)
+            if (romdata[0x1000 + 0x26b] == 0xb9) // Metal Slug 5 Plus
                 geo_m68k_board_set(BOARD_MS5PLUS);
-            else
+            else if (romdata[0x1000 + 0x267] == 0x4f) // Official Releases
                 geo_m68k_board_set(BOARD_PVC);
             break;
         }
