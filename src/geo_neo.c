@@ -141,7 +141,7 @@ int geo_neo_load(void *data, size_t size) {
     // Pass S ROM and C ROM data to LSPC
     geo_lspc_romdata(data_srom, size_srom, data_crom, size_crom);
 
-    // Temporary FIXME
+    // Perform byte swapping on the BIOS and P ROM data
     geo_m68k_postload();
 
     // Set default bankswitching
