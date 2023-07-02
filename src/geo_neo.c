@@ -169,7 +169,9 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 8: case 999: { // Jockey Grand Prix, V-Liner
-            geo_m68k_board_set(BOARD_BREZZASOFT);
+            // The King of Fighters 10th EP erroneously uses NGH 008
+            if (size_prom < 0x800000)
+                geo_m68k_board_set(BOARD_BREZZASOFT);
             break;
         }
         case 47: case 52: { // Fatal Fury 2, Super Sidekicks
