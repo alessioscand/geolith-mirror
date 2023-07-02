@@ -236,8 +236,9 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 263: { // Metal Slug 4
-            // FIXME - ms4plus does not use bankswitching
-            geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
+            // mslug4 and mslug4h use FIX bankswitching, ms4plus does not
+            if (romdata[0x1000 + 0x809] != 0x0c)
+                geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
             break;
         }
         case 266: { // Matrimelee
