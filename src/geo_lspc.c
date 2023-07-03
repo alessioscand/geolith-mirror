@@ -98,13 +98,7 @@ void geo_lspc_romdata(uint8_t *s, uint32_t ssz, uint8_t *c, uint32_t csz) {
         fixdata = sromdata;
 
     // Calculate the tile mask
-    tilemask = (csz >> 7);
-    for (unsigned i = 0x80000000; i != 0; i >>= 1) {
-        if (i & tilemask) {
-            tilemask = (i << 1) - 1;
-            break;
-        }
-    }
+    tilemask = geo_calc_mask(32, csz >> 7);
 }
 
 void geo_lspc_sfixdata(uint8_t *s, uint32_t ssz) {

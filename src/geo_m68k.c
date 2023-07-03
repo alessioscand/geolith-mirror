@@ -1244,13 +1244,8 @@ void geo_m68k_romdata_game(uint8_t *p, size_t psz, uint8_t *s, size_t ssz) {
     sromsize = ssz;
 
     // Calculate the switchable PROM bank mask
-    banksw_mask = (psz > 0x100000) ? ((psz - 0x100000) >> 20) : 0;
-    for (unsigned i = 0x8000; i != 0; i >>= 1) {
-        if (i & banksw_mask) {
-            banksw_mask = i - 1;
-            break;
-        }
-    }
+    banksw_mask = (psz > 0x100000) ?
+        geo_calc_mask(16, (psz - 0x100000) >> 20) : 0;
 }
 
 void geo_m68k_postload(void) {

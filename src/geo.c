@@ -142,6 +142,28 @@ void geo_set_drawcyc(unsigned cyc) {
     slcyc = cyc;
 }
 
+// Calculate a mask for an arbitrarily sized memory block
+uint32_t geo_calc_mask(unsigned nbits, unsigned val) {
+    /* Masks over blocks of memory with a size which is not a power of two need
+       every bit below the most significant set bit to also be set. Loop
+       through the value from left to right to find the first bit set, then
+       subtract 1 from the next highest power of two to get a mask which covers
+       all possible values in the space being addressed.
+
+       Example: If there are 5 addressable banks, banks 0-4 must be
+                addressable. In this case, the mask must be 0b0111 or 0x7 for
+                all banks to be covered when a value is masked with AND.
+    */
+    if (val)
+        val -= 1;
+
+    for (unsigned i = 1 << (nbits - 1); i != 0; i >>= 1) {
+        if (i & val)
+            return (i << 1) - 1;
+    }
+    return 0;
+}
+
 int geo_bios_load(const char *biospath) {
     const char *biosrom;
     size_t biossize = 0, sfixsize = 0, smsize = 0;
