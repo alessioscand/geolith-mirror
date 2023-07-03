@@ -49,6 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define MCYC_PER_LINE 1536
 #define MCYC_PER_FRAME (MCYC_PER_LINE * 264) // 405504
+#define MCYC_HBLANK 1424
 
 // Log callback
 void (*geo_log)(int, const char *, ...);
@@ -97,6 +98,10 @@ static unsigned zcycs = 0;
 static unsigned icycs = 0;
 static unsigned lcycs = 0;
 
+// Scanline drawing
+static unsigned sldrawn = 0;
+static unsigned slcyc = MCYC_HBLANK;
+
 // Set the log callback
 void geo_log_set_callback(void (*cb)(int, const char *, ...)) {
     geo_log = cb;
@@ -130,6 +135,11 @@ void geo_set_system(int s) {
 // Get the system currently being emulated
 int geo_get_system(void) {
     return sys;
+}
+
+// Set the master cycle in the scanline after which the data is drawn
+void geo_set_drawcyc(unsigned cyc) {
+    slcyc = cyc;
 }
 
 int geo_bios_load(const char *biospath) {
@@ -423,10 +433,13 @@ void geo_exec(void) {
             }
         }
 
-        // Handle line related logic
-        if (lcycs >= MCYC_PER_LINE) {
-            lcycs -= MCYC_PER_LINE;
+        if (!sldrawn && (lcycs >= slcyc)) { // Handle drawing of scanline data
             geo_lspc_scanline();
+            sldrawn = 1;
+        }
+        else if (lcycs >= MCYC_PER_LINE) { // Handle end of line
+            lcycs -= MCYC_PER_LINE;
+            sldrawn = 0;
         }
     }
 

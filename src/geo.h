@@ -94,6 +94,8 @@ void geo_set_region(int);
 int geo_get_system(void);
 void geo_set_system(int);
 
+void geo_set_drawcyc(unsigned);
+
 extern void (*geo_log)(int, const char *, ...);
 
 extern unsigned (*geo_input_cb[NUMINPUTS_NG])(unsigned);

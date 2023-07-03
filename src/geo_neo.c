@@ -174,6 +174,14 @@ int geo_neo_load(void *data, size_t size) {
                 geo_m68k_board_set(BOARD_BREZZASOFT);
             break;
         }
+        case 40: { // Sengoku 2
+            /* Sengoku 2 is a special case requiring the scanline to be drawn
+               before the end of active pixel output. This will not be needed
+               if a cycle-accurate pixel-based renderer is implemented.
+            */
+            geo_set_drawcyc(856);
+            break;
+        }
         case 47: case 52: { // Fatal Fury 2, Super Sidekicks
             geo_m68k_board_set(BOARD_CT0);
             break;
