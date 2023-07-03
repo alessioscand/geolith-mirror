@@ -62,7 +62,7 @@ static uint32_t protreg = 0x00000000;
 
 // Switchable bank offset address
 static uint32_t banksw_addr = 0;
-static uint32_t banksw_num = 0;
+static uint32_t banksw_mask = 0;
 
 // Vector Table currently in use
 static uint8_t vectable = VECTOR_TABLE_BIOS;
@@ -166,14 +166,14 @@ static uint16_t geo_m68k_read_banksw_16_default(uint32_t addr) {
 
 static void geo_m68k_write_banksw_8_default(uint32_t addr, uint8_t data) {
     if (addr >= 0x2ffff0)
-        banksw_addr = (((data % banksw_num) * 0x100000) + 0x100000);
+        banksw_addr = (((data & banksw_mask) * 0x100000) + 0x100000);
     else
         geo_log(GEO_LOG_WRN, "8-bit write at %06x: %02x\n", addr, data);
 }
 
 static void geo_m68k_write_banksw_16_default(uint32_t addr, uint16_t data) {
     if (addr >= 0x2ffff0)
-        banksw_addr = (((data % banksw_num) * 0x100000) + 0x100000);
+        banksw_addr = (((data & banksw_mask) * 0x100000) + 0x100000);
     else
         geo_log(GEO_LOG_WRN, "16-bit write at %06x: %04x\n", addr, data);
 }
@@ -1243,8 +1243,14 @@ void geo_m68k_romdata_game(uint8_t *p, size_t psz, uint8_t *s, size_t ssz) {
     sromdata = s;
     sromsize = ssz;
 
-    // Calculate number of switchable PROM banks
-    banksw_num = (psz > 0x100000) ? ((psz - 0x100000) >> 20) : 1;
+    // Calculate the switchable PROM bank mask
+    banksw_mask = (psz > 0x100000) ? ((psz - 0x100000) >> 20) : 0;
+    for (unsigned i = 0x8000; i != 0; i >>= 1) {
+        if (i & banksw_mask) {
+            banksw_mask = i - 1;
+            break;
+        }
+    }
 }
 
 void geo_m68k_postload(void) {
