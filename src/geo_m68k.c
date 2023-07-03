@@ -676,7 +676,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         return read08(ram, address & 0xffff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        m68k_modify_timeslice(2);
+        m68k_modify_timeslice(1);
         return geo_m68k_read_banksw_8(address);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
@@ -754,6 +754,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         }
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
+        geo_log(GEO_LOG_DBG, "8-bit Palette Read: %06x\n", address);
     }
     else if (address < 0xc00000) { // Memory Card
         /* 8-bit Memory Card reads return 0xff for even addresses, and memcard
@@ -793,7 +794,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         return read16(ram, address & 0xffff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        m68k_modify_timeslice(2);
+        m68k_modify_timeslice(1);
         return geo_m68k_read_banksw_16(address);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
@@ -864,7 +865,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
         write08(ram, address & 0xffff, value & 0xff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        m68k_modify_timeslice(2);
+        m68k_modify_timeslice(1);
         geo_m68k_write_banksw_8(address, value);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
@@ -1007,8 +1008,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
+        m68k_modify_timeslice(2);
         if (!reg_crdlock[0] && !reg_crdlock[1]) {
-            m68k_modify_timeslice(2);
             memcard[(address >> 1) & 0x7ff] = value;
         }
     }
@@ -1037,7 +1038,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
         write16(ram, address & 0xffff, value & 0xffff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
-        m68k_modify_timeslice(2);
+        m68k_modify_timeslice(1);
         geo_m68k_write_banksw_16(address, value);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
@@ -1104,8 +1105,8 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
         geo_lspc_palram_wr(address, value);
     }
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
+        m68k_modify_timeslice(2);
         if (!reg_crdlock[0] && !reg_crdlock[1]) {
-            m68k_modify_timeslice(2);
             memcard[(address >> 1) & 0x7ff] = value & 0xff;
         }
     }
