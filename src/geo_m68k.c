@@ -664,16 +664,19 @@ static void geo_m68k_write_banksw_16_brezza(uint32_t addr, uint16_t data) {
 
 unsigned int m68k_read_memory_8(unsigned int address) {
     if (address < 0x000080) { // Vector Table
+        m68k_modify_timeslice(1);
         return vectable ?
             read08(promdata, address) : read08(biosdata, address);
     }
     else if (address < 0x100000) { // Fixed 1M Program ROM Bank
+        m68k_modify_timeslice(1);
         return geo_m68k_read_fixed_8(address);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
         return read08(ram, address & 0xffff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
+        m68k_modify_timeslice(2);
         return geo_m68k_read_banksw_8(address);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
@@ -756,6 +759,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         /* 8-bit Memory Card reads return 0xff for even addresses, and memcard
            data for odd addresses. This is effectively half of a 16-bit read.
         */
+        m68k_modify_timeslice(2);
         geo_log(GEO_LOG_DBG, "8-bit Memory Card Read: %06x\n", address);
         if (address & 0x01)
             return memcard[(address >> 1) & 0x7ff];
@@ -777,16 +781,19 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         geo_log(GEO_LOG_WRN, "Unaligned 16-bit rd: %06x\n", address);
 
     if (address < 0x000080) { // Vector Table
+        m68k_modify_timeslice(1);
         return vectable ?
             read16(promdata, address) : read16(biosdata, address);
     }
     else if (address < 0x100000) { // Fixed 1M Program ROM Bank
+        m68k_modify_timeslice(1);
         return read16(promdata, address);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
         return read16(ram, address & 0xffff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
+        m68k_modify_timeslice(2);
         return geo_m68k_read_banksw_16(address);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
@@ -826,6 +833,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
            the address must be divided by two to get the correct byte. The
            upper byte is always 0xff.
         */
+        m68k_modify_timeslice(2);
         return memcard[(address >> 1) & 0x7ff] | 0xff00;
     }
     else if (address < 0xd00000) { // BIOS ROM
@@ -852,9 +860,11 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
+        m68k_modify_timeslice(1);
         write08(ram, address & 0xffff, value & 0xff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
+        m68k_modify_timeslice(2);
         geo_m68k_write_banksw_8(address, value);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
@@ -997,8 +1007,10 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
-        if (!reg_crdlock[0] && !reg_crdlock[1])
+        if (!reg_crdlock[0] && !reg_crdlock[1]) {
+            m68k_modify_timeslice(2);
             memcard[(address >> 1) & 0x7ff] = value;
+        }
     }
     else if (address < 0xd00000) { // BIOS ROM
         geo_log(GEO_LOG_WRN, "68K write to BIOS ROM: %06x %02x\n",
@@ -1021,9 +1033,11 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
             address, value);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
+        m68k_modify_timeslice(1);
         write16(ram, address & 0xffff, value & 0xffff);
     }
     else if (address < 0x300000) { // Switchable 1M Program ROM Bank
+        m68k_modify_timeslice(2);
         geo_m68k_write_banksw_16(address, value);
     }
     else if (address < 0x400000) { // Memory Mapped Registers
@@ -1090,8 +1104,10 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
         geo_lspc_palram_wr(address, value);
     }
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
-        if (!reg_crdlock[0] && !reg_crdlock[1])
+        if (!reg_crdlock[0] && !reg_crdlock[1]) {
+            m68k_modify_timeslice(2);
             memcard[(address >> 1) & 0x7ff] = value & 0xff;
+        }
     }
     else if (address < 0xd00000) { // BIOS ROM
         geo_log(GEO_LOG_WRN, "68K write to BIOS ROM: %06x %04x\n",
