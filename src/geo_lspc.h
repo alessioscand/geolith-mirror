@@ -39,6 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // First active line is drawn after 8 VBlank lines
 #define LSPC_LINE_BORDER_TOP    8
+#define LSPC_LINE_BUFSTART      21
 #define LSPC_LINE_ACTIVE        24
 #define LSPC_LINE_BORDER_BOTTOM 248
 
