@@ -512,10 +512,6 @@ static inline void geo_lspc_sprline(void) {
             ypos = (lspc.vram[0x8200 + i] >> 7) & 0x1ff; // 512-Y
             sprsize = lspc.vram[0x8200 + i] & 0x3f; // Height in tiles
             vshrink = lspc.vram[0x8000 + i] & 0xff;
-
-            // Special value, loops border FIXME need test case/documentation
-            if (sprsize == 33)
-                sprsize = 32;
         }
 
         // Set horizontal shrinking value
@@ -545,9 +541,32 @@ static inline void geo_lspc_sprline(void) {
            the lower nybble being the line number in the tile with a XOR 0xf
            applied.
         */
-        srow = srow > 0xff ?
-            (l0romdata[(vshrink << 8) + ((~srow) & 0xff)] ^ 0x1ff) :
-            l0romdata[(vshrink << 8) + (srow & 0xff)];
+        unsigned invert = srow > 0xff;
+
+        // Zoom Row - used to calculate which line to draw with vshrink
+        unsigned zrow = srow & 0xff;
+
+        if (invert)
+            zrow ^= 0xff;
+
+        /* Handle the special case of sprite size 33 -- loop borders when
+           shrinking. This is rarely relevant in real world cases, but one case
+           is the field in Tecmo World Soccer '96. The "Sprite experimenter"
+           test may also be used.
+        */
+        if (sprsize == 33) {
+            zrow = zrow % ((vshrink + 1) << 1);
+
+            if (zrow > vshrink) {
+                zrow = ((vshrink + 1) << 1) - 1 - zrow;
+                invert ^= 1;
+            }
+        }
+
+        srow = l0romdata[(vshrink << 8) + (zrow & 0xff)];
+
+        if (invert)
+            srow ^= 0x1ff;
 
         /* Each sprite has a 64-word table, where each pair of values
            correspond to a tile in the sprite, top to bottom. Even 16-bit words
