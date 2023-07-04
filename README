@@ -5,7 +5,7 @@ things may be unimplemented or be subject to change.
 
 Geolith
 -------
-Geolith is an emulator for the Neo Geo AES and MVS.
+Geolith is a highly accurate emulator for the Neo Geo AES and MVS.
 
 This emulator supports TerraOnion's .NEO file format only.
 
@@ -65,8 +65,10 @@ Compatibility
 Geolith is compatible with 100% of the commercially released Neo Geo AES and
 MVS libraries. Most games work in both modes, but some require MVS mode.
 
-Most bootlegs and hacks from the MAME set work, with the known exception of
-kof10th, which has a number of customizations beyond a typical cartridge.
+All bootlegs and hacks from the MAME set work, with the known exception of
+kof10th, which has a number of customizations beyond a typical cartridge. Other
+bootlegs and hacks not in the MAME set may be compatible if correctly converted
+to the .NEO format.
 
 JAMMA PCB and Neo Geo CD systems are unsupported at this time.
 
@@ -109,3 +111,9 @@ YMFM-C (BSD-3-Clause)
   Copyright (c) 2021 Aaron Giles
   Copyright (c) 2022 Rupert Carmichael
   See source files in src/ymfm
+
+Extra Credits
+-------------
+This emulator could not have been written without the amazing documentation
+available at The NeoGeo Development Wiki (https://wiki.neogeodev.org) as well
+as copious research and effort from the FinalBurn Neo and MAME projects.
