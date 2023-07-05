@@ -28,7 +28,6 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,12 +46,14 @@ extern int neogeo_fix_bank_type;
 
 static inline uint32_t bcd_decimal(uint32_t hex) {
     // NGH is only 3 digits, so only convert 3 digits
-    assert(((hex & 0xf00) >> 8) < 10);
-    assert(((hex & 0xf0) >> 4) < 10);
-    assert((hex & 0x0f) < 10);
-    return (((hex & 0xf00) >> 8) * 100) +
-        (((hex & 0xf0) >> 4) * 10) +
-        (hex & 0x0f);
+    unsigned d[3] = { (hex & 0xf00) >> 8, (hex & 0xf0) >> 4, hex & 0x0f };
+
+    /* Some people (or tools) do bad things with the NGH field, so put a stop
+       to this sort of tomfoolery by setting digits that are not BCD to 0.
+    */
+    for (unsigned i = 0; i < 3; ++i)
+        if (d[i] > 9) d[i] = 0;
+    return (d[0] * 100) + (d[1] * 10) + d[2];
 }  
 
 static inline uint32_t read32le(uint8_t *ptr, uint32_t addr) {
