@@ -87,8 +87,11 @@ uint8_t result_code;
 
 // Function pointers for handling fixed and switchable bank areas
 static uint8_t (*geo_m68k_read_fixed_8)(uint32_t);
+static uint16_t (*geo_m68k_read_fixed_16)(uint32_t);
+
 static uint8_t (*geo_m68k_read_banksw_8)(uint32_t);
 static uint16_t (*geo_m68k_read_banksw_16)(uint32_t);
+
 static void (*geo_m68k_write_banksw_8)(uint32_t, uint8_t);
 static void (*geo_m68k_write_banksw_16)(uint32_t, uint16_t);
 
@@ -143,6 +146,10 @@ static inline void swapb16_range(void *ptr, size_t len) {
 // Default Fixed Bank Routines
 static uint8_t geo_m68k_read_fixed_8_default(uint32_t addr) {
     return read08(promdata, addr);
+}
+
+static uint16_t geo_m68k_read_fixed_16_default(uint32_t addr) {
+    return read16(promdata, addr);
 }
 
 // The King of Fighters 2003 (bootleg 1), The King of Fighters 2004 Ultra Plus
@@ -666,7 +673,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
     if (address < 0x000080) { // Vector Table
         m68k_modify_timeslice(1);
         return vectable ?
-            read08(promdata, address) : read08(biosdata, address);
+            geo_m68k_read_fixed_8(address) : read08(biosdata, address);
     }
     else if (address < 0x100000) { // Fixed 1M Program ROM Bank
         m68k_modify_timeslice(1);
@@ -784,11 +791,11 @@ unsigned int m68k_read_memory_16(unsigned int address) {
     if (address < 0x000080) { // Vector Table
         m68k_modify_timeslice(1);
         return vectable ?
-            read16(promdata, address) : read16(biosdata, address);
+            geo_m68k_read_fixed_16(address) : read16(biosdata, address);
     }
     else if (address < 0x100000) { // Fixed 1M Program ROM Bank
         m68k_modify_timeslice(1);
-        return read16(promdata, address);
+        return geo_m68k_read_fixed_16(address);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
         return read16(ram, address & 0xffff);
@@ -1166,6 +1173,7 @@ int geo_m68k_int_ack(int level) {
 void geo_m68k_board_set(unsigned btype) {
     // Set default handlers
     geo_m68k_read_fixed_8 = &geo_m68k_read_fixed_8_default;
+    geo_m68k_read_fixed_16 = &geo_m68k_read_fixed_16_default;
     geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_default;
     geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_default;
     geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_default;
