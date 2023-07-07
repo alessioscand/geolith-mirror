@@ -634,7 +634,7 @@ static inline void geo_lspc_sprline(void) {
            Multiply the tile number by 128 to get the offset of the tile in
            C ROM.
         */
-        unsigned toffset = tnum << 7;
+        unsigned toffset = (tnum << 7) % cromsize;
 
         // Y value in the sprite tile to be drawn, flipped if necessary
         unsigned y = vflip ? (0x0f - (srow & 0x0f)) : (srow & 0x0f);
