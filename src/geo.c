@@ -234,7 +234,7 @@ int geo_bios_load(const char *biospath) {
         geo_z80_smdata(smrom, smsize);
     }
 
-    geo_m68k_romdata_bios(biosdata, biossize, sfixdata, sfixsize);
+    geo_m68k_biosdata(biosdata, biossize);
 
     mz_zip_reader_end(&zip_archive);
     return 1;

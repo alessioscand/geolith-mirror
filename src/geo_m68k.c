@@ -44,14 +44,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // BIOS ROM data
 static uint8_t *biosdata = NULL;
 static size_t biossize = 0;
-static uint8_t *sfixdata = NULL;
-static size_t sfixsize = 0;
 
 // Game ROM data
 static uint8_t *promdata = NULL;
 static size_t promsize = 0;
-static uint8_t *sromdata = NULL;
-static size_t sromsize = 0;
 
 // Main RAM
 static uint8_t ram[SIZE_64K];
@@ -1245,18 +1241,14 @@ void geo_m68k_board_set(unsigned btype) {
     }
 }
 
-void geo_m68k_romdata_bios(uint8_t *p, size_t psz, uint8_t *s, size_t ssz) {
+void geo_m68k_biosdata(uint8_t *p, size_t psz) {
     biosdata = p;
     biossize = psz;
-    sfixdata = s;
-    sfixsize = ssz;
 }
 
-void geo_m68k_romdata_game(uint8_t *p, size_t psz, uint8_t *s, size_t ssz) {
+void geo_m68k_promdata(uint8_t *p, size_t psz) {
     promdata = p;
     promsize = psz;
-    sromdata = s;
-    sromsize = ssz;
 
     // Calculate the switchable PROM bank mask
     banksw_mask = (psz > 0x100000) ?

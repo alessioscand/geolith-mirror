@@ -117,7 +117,7 @@ int geo_neo_load(void *data, size_t size) {
     uint8_t *data_srom = &romdata[rom_offset];
     rom_offset += size_srom;
 
-    geo_m68k_romdata_game(data_prom, size_prom, data_srom, size_srom);
+    geo_m68k_promdata(data_prom, size_prom);
 
     uint8_t *data_mrom = &romdata[rom_offset];
     geo_z80_mdata(data_mrom, size_mrom);
