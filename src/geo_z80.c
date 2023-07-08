@@ -46,9 +46,9 @@ static size_t mromsize = 0;
 static uint8_t *smromdata = NULL;
 static size_t smromsize = 0;
 
+static uint8_t nmi_enabled = 0;
 static uint8_t zram[SIZE_2K];
 static uint32_t zbank[4];
-static unsigned nmi_enabled = 0;
 
 /* Z80 Memory Map
  * =====================================================================
@@ -317,6 +317,9 @@ void geo_z80_state_load(uint8_t *st) {
     z80ctx.halted = geo_serial_pop8(st);
     z80ctx.irq_pending = geo_serial_pop8(st);
     z80ctx.nmi_pending = geo_serial_pop8(st);
+    nmi_enabled = geo_serial_pop8(st);
+    geo_serial_popblk(st, zram, SIZE_2K);
+    for (int i = 0; i < 4; ++i) zbank[i] = geo_serial_pop32(st);
 }
 
 // Export the Z80's state
@@ -352,4 +355,7 @@ void geo_z80_state_save(uint8_t *st) {
     geo_serial_push8(st, z80ctx.halted);
     geo_serial_push8(st, z80ctx.irq_pending);
     geo_serial_push8(st, z80ctx.nmi_pending);
+    geo_serial_push8(st, nmi_enabled);
+    geo_serial_pushblk(st, zram, SIZE_2K);
+    for (int i = 0; i < 4; ++i) geo_serial_push32(st, zbank[i]);
 }
