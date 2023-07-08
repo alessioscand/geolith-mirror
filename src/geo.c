@@ -58,32 +58,17 @@ void (*geo_log)(int, const char *, ...);
 unsigned (*geo_input_cb[NUMINPUTS_NG])(unsigned);
 unsigned (*geo_input_sys_cb[NUMINPUTS_SYS])(void);
 
-// Cartridge RAM (Battery Backed SRAM) Presence
-int cartram_present = 0;
+// Neo Geo System
+ngsys_t ngsys;
 
 // System being emulated
 static int sys = 0;
 static int region = 0;
 
-// Watchdog (Anti-freezing system to reset games due to bugs/hardware faults)
-static uint32_t watchdog;
-
 static uint8_t *l0rom = NULL;
 static uint8_t *biosdata = NULL;
 static uint8_t *sfixdata = NULL;
 static uint8_t *smrom = NULL;
-
-// Timer Interrupt (IRQ2)
-uint8_t irq2_ctrl = 0;
-uint32_t irq2_reload = 0;
-uint32_t irq2_counter = 0;
-static uint32_t irq2_frags = 0;
-static uint32_t irq2_dec = 0;
-
-// NVRAM, Cartridge RAM, and Memory Card
-uint8_t nvram[SIZE_64K];
-uint8_t cartram[SIZE_8K];
-uint8_t memcard[SIZE_2K];
 
 // Extra cycles stored at the end of scanlines/frames
 static uint32_t mextcycs = 0;
@@ -275,17 +260,17 @@ int geo_savedata_load(unsigned datatype, const char *filename) {
         case GEO_SAVEDATA_NVRAM: {
             if (geo_get_system() == SYSTEM_AES)
                 return 2;
-            dataptr = nvram;
+            dataptr = ngsys.nvram;
             datasize = SIZE_64K;
             break;
         }
         case GEO_SAVEDATA_CARTRAM: {
-            dataptr = cartram;
+            dataptr = ngsys.cartram;
             datasize = SIZE_8K;
             break;
         }
         case GEO_SAVEDATA_MEMCARD: {
-            dataptr = memcard;
+            dataptr = ngsys.memcard;
             datasize = SIZE_2K;
             break;
         }
@@ -326,19 +311,19 @@ int geo_savedata_save(unsigned datatype, const char *filename) {
         case GEO_SAVEDATA_NVRAM: {
             if (geo_get_system() == SYSTEM_AES)
                 return 2;
-            dataptr = nvram;
+            dataptr = ngsys.nvram;
             datasize = SIZE_64K;
             break;
         }
         case GEO_SAVEDATA_CARTRAM: {
-            if (!cartram_present)
+            if (!ngsys.cartram_present)
                 return 2;
-            dataptr = cartram;
+            dataptr = ngsys.cartram;
             datasize = SIZE_8K;
             break;
         }
         case GEO_SAVEDATA_MEMCARD: {
-            dataptr = memcard;
+            dataptr = ngsys.memcard;
             datasize = SIZE_2K;
             break;
         }
@@ -358,9 +343,9 @@ int geo_savedata_save(unsigned datatype, const char *filename) {
 }
 
 void geo_reset(void) {
-    sound_code = 0;
-    result_code = 0;
-    watchdog = 0;
+    ngsys.sound_code = 0;
+    ngsys.sound_reply = 0;
+    ngsys.watchdog = 0;
 
     geo_m68k_reset();
     geo_z80_reset();
@@ -376,11 +361,17 @@ void geo_init(void) {
     geo_lspc_init();
     geo_reset();
 
-    memset(nvram, 0x00, SIZE_64K);
-    memset(cartram, 0x00, SIZE_8K);
+    ngsys.irq2_ctrl = 0;
+    ngsys.irq2_reload = 0;
+    ngsys.irq2_counter = 0;
+    ngsys.irq2_frags = 0;
+    ngsys.irq2_dec = 0;
+
+    memset(ngsys.nvram, 0x00, SIZE_64K);
+    memset(ngsys.cartram, 0x00, SIZE_8K);
 
     // Pre-format the memory card in case there is no existing memory card data
-    geo_memcard_format(memcard);
+    geo_memcard_format(ngsys.memcard);
 }
 
 // Increment the watchdog counter
@@ -388,7 +379,7 @@ static inline void geo_watchdog_increment(void) {
     /* If more than 8 frames have passed since the Watchdog was kicked, assume
        a bug or hardware fault and recover by resetting the system.
     */
-    if (++watchdog > 8) {
+    if (++ngsys.watchdog > 8) {
         geo_log(GEO_LOG_WRN, "Watchdog reset\n");
         geo_reset();
     }
@@ -396,7 +387,7 @@ static inline void geo_watchdog_increment(void) {
 
 // Reset the Watchdog counter
 void geo_watchdog_reset(void) {
-    watchdog = 0;
+    ngsys.watchdog = 0;
 }
 
 void geo_exec(void) {
@@ -409,8 +400,8 @@ void geo_exec(void) {
     geo_m68k_interrupt(IRQ_VBLANK);
 
     // Reload counter at the beginning of each frame
-    if (irq2_ctrl & IRQ_TIMER_RELOAD_VBLANK)
-        irq2_counter = irq2_reload;
+    if (ngsys.irq2_ctrl & IRQ_TIMER_RELOAD_VBLANK)
+        ngsys.irq2_counter = ngsys.irq2_reload;
 
     while (mcycs < MCYC_PER_FRAME) {
         icycs = geo_m68k_run(1);
@@ -422,24 +413,24 @@ void geo_exec(void) {
             geo_rtc_sync(icycs);
 
         // Handle IRQ2 counter
-        irq2_dec = icycs >> 1;
-        irq2_frags += icycs & 0x01;
-        if (irq2_frags == 2) {
-            irq2_frags = 0;
-            ++irq2_dec;
+        ngsys.irq2_dec = icycs >> 1;
+        ngsys.irq2_frags += icycs & 0x01;
+        if (ngsys.irq2_frags == 2) {
+            ngsys.irq2_frags = 0;
+            ++ngsys.irq2_dec;
         }
 
-        for (uint32_t i = 0; i < irq2_dec; ++i) {
-            if (--irq2_counter == 0) {
+        for (uint32_t i = 0; i < ngsys.irq2_dec; ++i) {
+            if (--ngsys.irq2_counter == 0) {
                 /* Reload counter when it reaches 0 - if this bit is not set,
                    rely on unsigned integer underflow to prevent repeated
                    assertion of the IRQ line.
                 */
-                if (irq2_ctrl & IRQ_TIMER_RELOAD_COUNT0)
-                    irq2_counter += irq2_reload;
+                if (ngsys.irq2_ctrl & IRQ_TIMER_RELOAD_COUNT0)
+                    ngsys.irq2_counter += ngsys.irq2_reload;
 
                 // Timer Interrupt Enabled
-                if (irq2_ctrl & IRQ_TIMER_ENABLED)
+                if (ngsys.irq2_ctrl & IRQ_TIMER_ENABLED)
                     geo_m68k_interrupt(IRQ_TIMER);
             }
         }

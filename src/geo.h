@@ -74,8 +74,39 @@ enum geo_loglevel {
     GEO_LOG_SCR
 };
 
+typedef struct _ngsys_t {
+    // Timer Interrupt (IRQ2)
+    uint8_t irq2_ctrl;
+    uint32_t irq2_reload;
+    uint32_t irq2_counter;
+    uint32_t irq2_frags;
+    uint32_t irq2_dec;
+
+    // Memory used for saving cabinet stats and/or game data
+    uint8_t nvram[SIZE_64K];
+    uint8_t memcard[SIZE_2K];
+
+    // Cartridge RAM - Sometimes used for saving, other times for game logic
+    uint8_t cartram[SIZE_8K];
+
+    // Extended RAM - Some games use extra on-cartridge RAM (not for saving)
+    uint8_t extram[SIZE_128K];
+
+    // Watchdog anti-freezing system to reset games due to bugs/hardware faults
+    uint32_t watchdog;
+
+    // 68K/Z80 Communication
+    uint8_t sound_code;
+    uint8_t sound_reply;
+
+    // Cartridge RAM (Battery Backed SRAM) Presence
+    uint8_t cartram_present;
+} ngsys_t;
+
 int geo_bios_load(const char*);
 void geo_bios_unload(void);
+
+void geo_watchdog_reset(void);
 
 int geo_savedata_load(unsigned, const char*);
 int geo_savedata_save(unsigned, const char*);
@@ -103,22 +134,6 @@ extern void (*geo_log)(int, const char *, ...);
 extern unsigned (*geo_input_cb[NUMINPUTS_NG])(unsigned);
 extern unsigned (*geo_input_sys_cb[NUMINPUTS_SYS])(void);
 
-void geo_watchdog_reset(void);
-
-// Cartridge RAM (Battery Backed SRAM) Presence
-extern int cartram_present;
-
-// Timer Interrupt (IRQ2)
-extern uint8_t irq2_ctrl;
-extern uint32_t irq2_reload;
-extern uint32_t irq2_counter;
-
-extern uint8_t nvram[SIZE_64K];
-extern uint8_t cartram[SIZE_8K];
-extern uint8_t memcard[SIZE_2K];
-
-// 68K/Z80 Communication
-extern uint8_t sound_code;
-extern uint8_t result_code;
+extern ngsys_t ngsys;
 
 #endif

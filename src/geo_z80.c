@@ -144,7 +144,7 @@ static uint8_t geo_z80_port_rd(z80 *userdata, uint16_t port) {
     switch (port & 0xff) {
         case 0x00: {
             // Acknowledge NMI - to implement
-            return sound_code;
+            return ngsys.sound_code;
         }
         case 0x04: case 0x05: case 0x06: case 0x07: {
             return ym2610_read(port);
@@ -190,7 +190,7 @@ static void geo_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
 
     switch (port & 0xff) {
         case 0x00: case 0xc0: { // FIXME: Port decoding can be improved
-            sound_code = 0;
+            ngsys.sound_code = 0;
             break;
         }
         case 0x04: case 0x05: case 0x06: case 0x07: {
@@ -202,7 +202,7 @@ static void geo_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
             break;
         }
         case 0x0c: {
-            result_code = value;
+            ngsys.sound_reply = value;
             break;
         }
         case 0x0d: {

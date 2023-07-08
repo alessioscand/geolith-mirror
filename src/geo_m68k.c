@@ -84,10 +84,6 @@ static uint32_t sma_addr = 0x00000000;
 static uint32_t *sma_offset;
 static uint8_t *sma_scramble;
 
-// Z80 command
-uint8_t sound_code;
-uint8_t result_code;
-
 // Function pointers for handling fixed and switchable bank areas
 static uint8_t (*geo_m68k_read_fixed_8)(uint32_t);
 static uint16_t (*geo_m68k_read_fixed_16)(uint32_t);
@@ -161,7 +157,7 @@ static uint16_t geo_m68k_read_fixed_16_default(uint32_t addr) {
 */
 static uint8_t geo_m68k_read_fixed_8_kf2k3bl(uint32_t addr) {
     if (addr == 0x058197)
-        return cartram[0x1ff2];
+        return ngsys.cartram[0x1ff2];
     return read08(promdata, addr);
 }
 
@@ -377,29 +373,32 @@ void geo_m68k_sma_init(uint32_t *a, uint32_t *b, uint8_t *s) {
 
 // Unpack a value from 0x2fffe0 to 0x2fffe2 and 0x2fffe4
 static inline void geo_m68k_pvc_unpack(void) {
-    uint8_t d = cartram[0x1fe1] >> 7; // 0000 000D
+    uint8_t d = ngsys.cartram[0x1fe1] >> 7; // 0000 000D
     uint8_t r = // 000R RRRr
-        ((cartram[0x1fe1] & 0x40) >> 6) | ((cartram[0x1fe1] & 0x0f) << 1);
+        ((ngsys.cartram[0x1fe1] & 0x40) >> 6) |
+        ((ngsys.cartram[0x1fe1] & 0x0f) << 1);
     uint8_t g = // 000G GGGg
-        ((cartram[0x1fe1] & 0x20) >> 5) | ((cartram[0x1fe0] & 0xf0) >> 3);
+        ((ngsys.cartram[0x1fe1] & 0x20) >> 5) |
+        ((ngsys.cartram[0x1fe0] & 0xf0) >> 3);
     uint8_t b = // 000B BBBb
-        ((cartram[0x1fe1] & 0x10) >> 4) | ((cartram[0x1fe0] & 0x0f) << 1);
+        ((ngsys.cartram[0x1fe1] & 0x10) >> 4) |
+        ((ngsys.cartram[0x1fe0] & 0x0f) << 1);
 
-    cartram[0x1fe5] = d;
-    cartram[0x1fe4] = r;
-    cartram[0x1fe3] = g;
-    cartram[0x1fe2] = b;
+    ngsys.cartram[0x1fe5] = d;
+    ngsys.cartram[0x1fe4] = r;
+    ngsys.cartram[0x1fe3] = g;
+    ngsys.cartram[0x1fe2] = b;
 }
 
 // Pack a value from 0x2fffe8 and 0x2fffea to 0x2fffec
 static inline void geo_m68k_pvc_pack(void) {
-    uint8_t d = cartram[0x1feb] & 0x01;
-    uint8_t r = cartram[0x1fea] & 0x1f;
-    uint8_t g = cartram[0x1fe9] & 0x1f;
-    uint8_t b = cartram[0x1fe8] & 0x1f;
+    uint8_t d = ngsys.cartram[0x1feb] & 0x01;
+    uint8_t r = ngsys.cartram[0x1fea] & 0x1f;
+    uint8_t g = ngsys.cartram[0x1fe9] & 0x1f;
+    uint8_t b = ngsys.cartram[0x1fe8] & 0x1f;
 
-    cartram[0x1fec] = (b >> 1) | ((g & 0x1e) << 3); // GGGG BBBB
-    cartram[0x1fed] = (r >> 1) | ((b & 0x01) << 4) | ((g & 0x01) << 5) |
+    ngsys.cartram[0x1fec] = (b >> 1) | ((g & 0x1e) << 3); // GGGG BBBB
+    ngsys.cartram[0x1fed] = (r >> 1) | ((b & 0x01) << 4) | ((g & 0x01) << 5) |
         ((r & 0x01) << 6) | (d << 7); // Drgb RRRR
 }
 
@@ -411,33 +410,33 @@ static inline void geo_m68k_pvc_bankswap(void) {
        The magic numbers applied after calculating the bank offset come from
        both FB Neo and MAME - further information is seemingly unavailable.
     */
-    uint32_t bankaddress =
-        (cartram[0x1ff3] << 16) | (cartram[0x1ff2] << 8) | cartram[0x1ff1];
+    uint32_t bankaddress = (ngsys.cartram[0x1ff3] << 16) |
+        (ngsys.cartram[0x1ff2] << 8) | ngsys.cartram[0x1ff1];
 
-    cartram[0x1ff0] = 0xa0;
-    cartram[0x1ff1] &= 0xfe;
-    cartram[0x1ff3] &= 0x7f;
+    ngsys.cartram[0x1ff0] = 0xa0;
+    ngsys.cartram[0x1ff1] &= 0xfe;
+    ngsys.cartram[0x1ff3] &= 0x7f;
 
     banksw_addr = (bankaddress + 0x100000) & 0xffffff;
 }
 
 static uint8_t geo_m68k_read_banksw_8_pvc(uint32_t addr) {
     if (addr >= 0x2fe000)
-        return cartram[(addr & 0x1fff) ^ 1];
+        return ngsys.cartram[(addr & 0x1fff) ^ 1];
 
     return read08(promdata, (addr & 0xfffff) + banksw_addr);
 }
 
 static uint16_t geo_m68k_read_banksw_16_pvc(uint32_t addr) {
     if (addr >= 0x2fe000)
-        return read16be(cartram, addr & 0x1fff);
+        return read16be(ngsys.cartram, addr & 0x1fff);
 
     return read16(promdata, (addr & 0xfffff) + banksw_addr);
 }
 
 static void geo_m68k_write_banksw_8_pvc(uint32_t addr, uint8_t data) {
     if (addr >= 0x2fe000)
-        write08(cartram, (addr & 0x1fff) ^ 1, data & 0xff);
+        write08(ngsys.cartram, (addr & 0x1fff) ^ 1, data & 0xff);
 
     if (addr >= 0x2fffe0 && addr <= 0x2fffe3) // Unpack
         geo_m68k_pvc_unpack();
@@ -449,7 +448,7 @@ static void geo_m68k_write_banksw_8_pvc(uint32_t addr, uint8_t data) {
 
 static void geo_m68k_write_banksw_16_pvc(uint32_t addr, uint16_t data) {
     if (addr >= 0x2fe000)
-        write16be(cartram, addr & 0x1fff, data & 0xffff);
+        write16be(ngsys.cartram, addr & 0x1fff, data & 0xffff);
 
     if (addr >= 0x2fffe0 && addr <= 0x2fffe3) // Unpack
         geo_m68k_pvc_unpack();
@@ -501,18 +500,18 @@ static void geo_m68k_write_banksw_16_kof98(uint32_t addr, uint16_t data) {
    beyond 16-bit writes which result in a bankswap are equivalent to NEO-PVC.
 */
 static inline void geo_m68k_kf2k3bla_bankswap(void) {
-    uint32_t bankaddress =
-        (cartram[0x1ff3] << 16) | (cartram[0x1ff2] << 8) | cartram[0x1ff0];
+    uint32_t bankaddress = (ngsys.cartram[0x1ff3] << 16) |
+        (ngsys.cartram[0x1ff2] << 8) | ngsys.cartram[0x1ff0];
 
-    cartram[0x1ff0] &= 0xfe;
-    cartram[0x1ff3] &= 0x7f;
+    ngsys.cartram[0x1ff0] &= 0xfe;
+    ngsys.cartram[0x1ff3] &= 0x7f;
 
     banksw_addr = (bankaddress + 0x100000) & 0xffffff;
 }
 
 static void geo_m68k_write_banksw_16_kf2k3bla(uint32_t addr, uint16_t data) {
     if (addr >= 0x2fe000)
-        write16be(cartram, addr & 0x1fff, data & 0xffff);
+        write16be(ngsys.cartram, addr & 0x1fff, data & 0xffff);
 
     if (addr >= 0x2fffe0 && addr <= 0x2fffe3) // Unpack
         geo_m68k_pvc_unpack();
@@ -620,24 +619,24 @@ static void geo_m68k_write_banksw_16_cthd2003(uint32_t addr, uint16_t data) {
 */
 static uint8_t geo_m68k_read_banksw_8_brezza(uint32_t addr) {
     if (addr <= 0x201fff)
-        return read08(cartram, addr & 0x1fff);
+        return read08(ngsys.cartram, addr & 0x1fff);
     return 0xff;
 }
 
 static uint16_t geo_m68k_read_banksw_16_brezza(uint32_t addr) {
     if (addr <= 0x201fff)
-        return read16(cartram, addr & 0x1fff);
+        return read16(ngsys.cartram, addr & 0x1fff);
     return 0xffff;
 }
 
 static void geo_m68k_write_banksw_8_brezza(uint32_t addr, uint8_t data) {
     if (addr <= 0x201fff)
-        write08(cartram, addr & 0x1fff, data);
+        write08(ngsys.cartram, addr & 0x1fff, data);
 }
 
 static void geo_m68k_write_banksw_16_brezza(uint32_t addr, uint16_t data) {
     if (addr <= 0x201fff)
-        write16(cartram, addr & 0x1fff, data);
+        write16(ngsys.cartram, addr & 0x1fff, data);
 }
 
 /* 68K Memory Map
@@ -714,7 +713,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
                 return geo_input_sys_cb[2](); // Active Low
             }
             case 0x320000: { // REG_SOUND
-                return result_code; // Z80 Reply Code
+                return ngsys.sound_reply; // Z80 Reply Code
             }
             case 0x320001: { // REG_STATUS_A
                 /* Bit 7:    RTC Data Bit
@@ -773,14 +772,14 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         m68k_modify_timeslice(2);
         geo_log(GEO_LOG_DBG, "8-bit Memory Card Read: %06x\n", address);
         if (address & 0x01)
-            return memcard[(address >> 1) & 0x7ff];
+            return ngsys.memcard[(address >> 1) & 0x7ff];
         return 0xff;
     }
     else if (address < 0xd00000) { // BIOS ROM
         return read08(biosdata, address & 0x1ffff);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        return read08(nvram, address & 0xffff);
+        return read08(ngsys.nvram, address & 0xffff);
     }
 
     geo_log(GEO_LOG_WRN, "Unknown 8-bit 68K Read at %06x\n", address);
@@ -845,13 +844,13 @@ unsigned int m68k_read_memory_16(unsigned int address) {
            upper byte is always 0xff.
         */
         m68k_modify_timeslice(2);
-        return memcard[(address >> 1) & 0x7ff] | 0xff00;
+        return ngsys.memcard[(address >> 1) & 0x7ff] | 0xff00;
     }
     else if (address < 0xd00000) { // BIOS ROM
         return read16(biosdata, address & 0x1ffff);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
-        return read16(nvram, address & 0xffff);
+        return read16(ngsys.nvram, address & 0xffff);
     }
 
     geo_log(GEO_LOG_WRN, "Unknown 16-bit 68K Read at %06x\n", address);
@@ -886,7 +885,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x320000: { // REG_SOUND
-                sound_code = value & 0xff;
+                ngsys.sound_code = value & 0xff;
                 geo_z80_nmi();
                 return;
             }
@@ -1020,7 +1019,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
         m68k_modify_timeslice(2);
         if (!reg_crdlock[0] && !reg_crdlock[1]) {
-            memcard[(address >> 1) & 0x7ff] = value;
+            ngsys.memcard[(address >> 1) & 0x7ff] = value;
         }
     }
     else if (address < 0xd00000) { // BIOS ROM
@@ -1029,7 +1028,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
         if (!reg_sramlock)
-            nvram[address & 0xffff] = value;
+            ngsys.nvram[address & 0xffff] = value;
     }
 }
 
@@ -1054,7 +1053,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
     else if (address < 0x400000) { // Memory Mapped Registers
         switch (address) {
             case 0x320000: { // REG_SOUND
-                sound_code = (value >> 8) & 0xff; // Use the upper byte
+                ngsys.sound_code = (value >> 8) & 0xff; // Use the upper byte
                 geo_z80_nmi();
                 return;
             }
@@ -1075,15 +1074,17 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3c0008: { // REG_TIMERHIGH
-                irq2_reload = (irq2_reload & 0xffff) | (value << 16);
+                ngsys.irq2_reload =
+                    (ngsys.irq2_reload & 0xffff) | (value << 16);
                 return;
             }
             case 0x3c000a: { // REG_TIMERLOW
-                irq2_reload = (irq2_reload & 0xffff0000) | (value & 0xffff);
+                ngsys.irq2_reload =
+                    (ngsys.irq2_reload & 0xffff0000) | (value & 0xffff);
 
                 // Reload counter when REG_TIMERLOW is written
-                if (irq2_ctrl & IRQ_TIMER_RELOAD_WRITE)
-                    irq2_counter = irq2_reload;
+                if (ngsys.irq2_ctrl & IRQ_TIMER_RELOAD_WRITE)
+                    ngsys.irq2_counter = ngsys.irq2_reload;
 
                 return;
             }
@@ -1117,7 +1118,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
         m68k_modify_timeslice(2);
         if (!reg_crdlock[0] && !reg_crdlock[1]) {
-            memcard[(address >> 1) & 0x7ff] = value & 0xff;
+            ngsys.memcard[(address >> 1) & 0x7ff] = value & 0xff;
         }
     }
     else if (address < 0xd00000) { // BIOS ROM
@@ -1126,7 +1127,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
         if (!reg_sramlock)
-            write16(nvram, address & 0xffff, value);
+            write16(ngsys.nvram, address & 0xffff, value);
     }
 }
 
@@ -1239,7 +1240,7 @@ void geo_m68k_board_set(unsigned btype) {
             geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_brezza;
             geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_brezza;
             geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_brezza;
-            cartram_present = 1;
+            ngsys.cartram_present = 1;
             break;
     }
 }

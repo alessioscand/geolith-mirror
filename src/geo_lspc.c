@@ -242,7 +242,7 @@ void geo_lspc_mode_wr(uint16_t data) {
        Bits 0-2:  Unused
     */
     lspc.aa_reload = (data >> 8);
-    irq2_ctrl = data & 0xf0;
+    ngsys.irq2_ctrl = data & 0xf0;
     lspc.aa_disable = data & 0x08;
 }
 
