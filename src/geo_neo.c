@@ -42,8 +42,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ymfm/ymfm_shim.h"
 
-extern int neogeo_fix_bank_type;
-
 static inline uint32_t bcd_decimal(uint32_t hex) {
     // NGH is only 3 digits, so only convert 3 digits
     unsigned d[3] = { (hex & 0xf00) >> 8, (hex & 0xf0) >> 4, hex & 0x0f };
