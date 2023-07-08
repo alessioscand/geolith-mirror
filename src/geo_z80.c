@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "geo.h"
 #include "geo_z80.h"
+#include "geo_serial.h"
 #include "ymfm/ymfm_opn.h"
 #include "z80/z80.h"
 
@@ -281,4 +282,74 @@ void geo_z80_smdata(uint8_t *sm, size_t smsz) {
 
 void geo_z80_set_mrom(unsigned m) {
     mrom = m ? mromdata : smromdata;
+}
+
+// Restore the Z80's state from external data
+void geo_z80_state_load(uint8_t *st) {
+    z80ctx.pc = geo_serial_pop16(st);
+    z80ctx.sp = geo_serial_pop16(st);
+    z80ctx.ix = geo_serial_pop16(st);
+    z80ctx.iy = geo_serial_pop16(st);
+    z80ctx.mem_ptr = geo_serial_pop16(st);
+    z80ctx.a = geo_serial_pop8(st);
+    z80ctx.f = geo_serial_pop8(st);
+    z80ctx.b = geo_serial_pop8(st);
+    z80ctx.c = geo_serial_pop8(st);
+    z80ctx.d = geo_serial_pop8(st);
+    z80ctx.e = geo_serial_pop8(st);
+    z80ctx.h = geo_serial_pop8(st);
+    z80ctx.l = geo_serial_pop8(st);
+    z80ctx.a_ = geo_serial_pop8(st);
+    z80ctx.f_ = geo_serial_pop8(st);
+    z80ctx.b_ = geo_serial_pop8(st);
+    z80ctx.c_ = geo_serial_pop8(st);
+    z80ctx.d_ = geo_serial_pop8(st);
+    z80ctx.e_ = geo_serial_pop8(st);
+    z80ctx.h_ = geo_serial_pop8(st);
+    z80ctx.l_ = geo_serial_pop8(st);
+    z80ctx.i  = geo_serial_pop8(st);
+    z80ctx.r  = geo_serial_pop8(st);
+    z80ctx.iff_delay = geo_serial_pop8(st);
+    z80ctx.interrupt_mode = geo_serial_pop8(st);
+    z80ctx.irq_data = geo_serial_pop8(st);
+    z80ctx.iff1 = geo_serial_pop8(st);
+    z80ctx.iff2 = geo_serial_pop8(st);
+    z80ctx.halted = geo_serial_pop8(st);
+    z80ctx.irq_pending = geo_serial_pop8(st);
+    z80ctx.nmi_pending = geo_serial_pop8(st);
+}
+
+// Export the Z80's state
+void geo_z80_state_save(uint8_t *st) {
+    geo_serial_push16(st, z80ctx.pc);
+    geo_serial_push16(st, z80ctx.sp);
+    geo_serial_push16(st, z80ctx.ix);
+    geo_serial_push16(st, z80ctx.iy);
+    geo_serial_push16(st, z80ctx.mem_ptr);
+    geo_serial_push8(st, z80ctx.a);
+    geo_serial_push8(st, z80ctx.f);
+    geo_serial_push8(st, z80ctx.b);
+    geo_serial_push8(st, z80ctx.c);
+    geo_serial_push8(st, z80ctx.d);
+    geo_serial_push8(st, z80ctx.e);
+    geo_serial_push8(st, z80ctx.h);
+    geo_serial_push8(st, z80ctx.l);
+    geo_serial_push8(st, z80ctx.a_);
+    geo_serial_push8(st, z80ctx.f_);
+    geo_serial_push8(st, z80ctx.b_);
+    geo_serial_push8(st, z80ctx.c_);
+    geo_serial_push8(st, z80ctx.d_);
+    geo_serial_push8(st, z80ctx.e_);
+    geo_serial_push8(st, z80ctx.h_);
+    geo_serial_push8(st, z80ctx.l_);
+    geo_serial_push8(st, z80ctx.i);
+    geo_serial_push8(st, z80ctx.r);
+    geo_serial_push8(st, z80ctx.iff_delay);
+    geo_serial_push8(st, z80ctx.interrupt_mode);
+    geo_serial_push8(st, z80ctx.irq_data);
+    geo_serial_push8(st, z80ctx.iff1);
+    geo_serial_push8(st, z80ctx.iff2);
+    geo_serial_push8(st, z80ctx.halted);
+    geo_serial_push8(st, z80ctx.irq_pending);
+    geo_serial_push8(st, z80ctx.nmi_pending);
 }

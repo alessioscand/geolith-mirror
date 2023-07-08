@@ -40,5 +40,7 @@ void geo_z80_reset(void);
 void geo_z80_mdata(uint8_t*, size_t);
 void geo_z80_smdata(uint8_t*, size_t);
 void geo_z80_set_mrom(unsigned);
+void geo_z80_state_load(uint8_t*);
+void geo_z80_state_save(uint8_t*);
 
 #endif
