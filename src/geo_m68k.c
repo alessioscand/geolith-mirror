@@ -56,6 +56,9 @@ static size_t sromsize = 0;
 // Main RAM
 static uint8_t ram[SIZE_64K];
 
+// Board type
+static unsigned boardtype = BOARD_DEFAULT;
+
 // Cartridge Registers (general purpose usage)
 static uint16_t cartreg[2] = { 0, 0 };
 static uint32_t protreg = 0x00000000;
@@ -1171,6 +1174,9 @@ int geo_m68k_int_ack(int level) {
 }
 
 void geo_m68k_board_set(unsigned btype) {
+    // Set board type
+    boardtype = btype;
+
     // Set default handlers
     geo_m68k_read_fixed_8 = &geo_m68k_read_fixed_8_default;
     geo_m68k_read_fixed_16 = &geo_m68k_read_fixed_16_default;
