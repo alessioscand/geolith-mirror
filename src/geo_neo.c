@@ -139,8 +139,9 @@ int geo_neo_load(void *data, size_t size) {
     uint8_t *data_crom = &romdata[rom_offset];
     rom_offset += size_crom;
 
-    // Pass S ROM and C ROM data to LSPC
-    geo_lspc_romdata(data_srom, size_srom, data_crom, size_crom);
+    // Pass C ROM and S ROM data to LSPC
+    geo_lspc_cromdata(data_crom, size_crom);
+    geo_lspc_sromdata(data_srom, size_srom);
 
     // Perform byte swapping on the BIOS and P ROM data
     geo_m68k_postload();

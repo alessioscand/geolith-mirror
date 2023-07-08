@@ -41,16 +41,19 @@ static lspc_t lspc;
 static void (*geo_lspc_fixline)(void);
 
 static uint32_t *vbuf = NULL;
-static uint32_t tilemask = 0;
 static unsigned fixbanksw = 0;
 
 static uint8_t *fixdata = NULL;
+
 static uint8_t *sfixdata = NULL;
 static size_t sfixsize = 0;
+
 static uint8_t *sromdata = NULL;
 static size_t sromsize = 0;
+
 static uint8_t *cromdata = NULL;
 static size_t cromsize = 0;
+static uint32_t crommask = 0;
 
 static uint8_t *l0romdata = NULL;
 
@@ -89,16 +92,17 @@ void geo_lspc_set_l0rom(uint8_t *l0) {
     l0romdata = l0; // Set L0 ROM
 }
 
-void geo_lspc_romdata(uint8_t *s, uint32_t ssz, uint8_t *c, uint32_t csz) {
-    sromdata = s;
-    sromsize = ssz;
+void geo_lspc_cromdata(uint8_t *c, uint32_t csz) {
     cromdata = c;
     cromsize = csz;
+    crommask = geo_calc_mask(32, csz >> 7);
+}
+
+void geo_lspc_sromdata(uint8_t *s, uint32_t ssz) {
+    sromdata = s;
+    sromsize = ssz;
     if (!fixdata)
         fixdata = sromdata;
-
-    // Calculate the tile mask
-    tilemask = geo_calc_mask(32, csz >> 7);
 }
 
 void geo_lspc_sfixdata(uint8_t *s, uint32_t ssz) {
@@ -585,7 +589,7 @@ static inline void geo_lspc_sprline(void) {
         unsigned tmapoffset = (i << 6) + ((srow >> 3) & 0x3e);
 
         unsigned tnum = (lspc.vram[tmapoffset] |
-            ((lspc.vram[tmapoffset + 1] & 0x00f0) << 12)) & tilemask;
+            ((lspc.vram[tmapoffset + 1] & 0x00f0) << 12)) & crommask;
 
         // Horizontal and Vertical flip
         unsigned hflip = lspc.vram[tmapoffset + 1] & 0x01;
