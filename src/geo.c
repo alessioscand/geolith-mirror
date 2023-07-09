@@ -369,6 +369,7 @@ void geo_init(void) {
 
     memset(ngsys.nvram, 0x00, SIZE_64K);
     memset(ngsys.cartram, 0x00, SIZE_8K);
+    memset(ngsys.extram, 0x00, SIZE_128K);
 
     // Pre-format the memory card in case there is no existing memory card data
     geo_memcard_format(ngsys.memcard);
