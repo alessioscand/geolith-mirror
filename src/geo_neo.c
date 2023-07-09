@@ -288,6 +288,12 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 275: { // The King of Fighters 10th Anniversary
+            if (geo_get_system() == SYSTEM_AES) {
+                geo_log(GEO_LOG_WRN, "The King of Fighters 10th Anniversary is"
+                    " compatible with the Neo Geo MVS and Universe BIOS only\n"
+                );
+                geo_lspc_sfixdata(data_srom, size_srom);
+            }
             geo_m68k_board_set(BOARD_KOF10TH);
             break;
         }
