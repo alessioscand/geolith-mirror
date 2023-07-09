@@ -342,7 +342,7 @@ int geo_savedata_save(unsigned datatype, const char *filename) {
     return 1; // Success!
 }
 
-void geo_reset(void) {
+void geo_reset(int hard) {
     ngsys.sound_code = 0;
     ngsys.sound_reply = 0;
     ngsys.watchdog = 0;
@@ -351,6 +351,9 @@ void geo_reset(void) {
     geo_z80_reset();
     ymfm_shim_reset(); // Reset the YM2610 to make sure everything is defaulted
     geo_lspc_init();
+
+    if (hard)
+        geo_m68k_interrupt(IRQ_RESET);
 }
 
 void geo_init(void) {
@@ -359,7 +362,7 @@ void geo_init(void) {
     ymfm_shim_init();
     geo_rtc_init();
     geo_lspc_init();
-    geo_reset();
+    geo_reset(1);
 
     ngsys.irq2_ctrl = 0;
     ngsys.irq2_reload = 0;
@@ -382,7 +385,7 @@ static inline void geo_watchdog_increment(void) {
     */
     if (++ngsys.watchdog > 8) {
         geo_log(GEO_LOG_WRN, "Watchdog reset\n");
-        geo_reset();
+        geo_reset(0);
     }
 }
 

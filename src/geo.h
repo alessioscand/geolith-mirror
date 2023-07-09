@@ -113,7 +113,7 @@ int geo_savedata_save(unsigned, const char*);
 
 void geo_exec(void);
 void geo_init(void);
-void geo_reset(void);
+void geo_reset(int);
 
 void geo_log_set_callback(void (*)(int, const char *, ...));
 void geo_input_set_callback(unsigned, unsigned (*)(unsigned));

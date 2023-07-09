@@ -213,8 +213,7 @@ void jg_deinit(void) {
 }
 
 void jg_reset(int hard) {
-    if (hard) { }
-    geo_reset();
+    geo_reset(hard);
 }
 
 void jg_exec_frame(void) {
