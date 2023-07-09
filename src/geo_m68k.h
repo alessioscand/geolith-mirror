@@ -43,6 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define BOARD_MS5PLUS       0x09 // Metal Slug 5 Plus (bootleg)
 #define BOARD_CTHD2003      0x0a // Crouching Tiger Hidden Dragon 2003
 #define BOARD_BREZZASOFT    0x0b // BrezzaSoft Gambling Boards with Cart RAM
+#define BOARD_KOF10TH       0x0c // King of Fighters 10th Anniversary Bootleg
 
 #define VECTOR_TABLE_BIOS   0x00
 #define VECTOR_TABLE_CART   0x01

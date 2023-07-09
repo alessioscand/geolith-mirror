@@ -52,6 +52,9 @@ static size_t promsize = 0;
 // Main RAM
 static uint8_t ram[SIZE_64K];
 
+// Dynamic FIX data
+static uint8_t dynfix[SIZE_128K];
+
 // Board type
 static unsigned boardtype = BOARD_DEFAULT;
 
@@ -155,6 +158,26 @@ static uint8_t geo_m68k_read_fixed_8_kf2k3bl(uint32_t addr) {
     if (addr == 0x058197)
         return ngsys.cartram[0x1ff2];
     return read08(promdata, addr);
+}
+
+// The King of Fighters 10th Anniversary Bootleg
+/* Handling of the fixed P ROM bank is typical other than Extended RAM being
+   addressed in the top 128K of the bank, and the ability to flip between
+   reading from the 0th and 7th bank, which is controlled by special writes to
+   the switchable bank region. There are only 121 bytes different between these
+   banks, so it is likely there is some sort of protection mechanism relying on
+   these differences, but the rest of the P ROM is the same.
+*/
+static uint8_t geo_m68k_read_fixed_8_kof10th(uint32_t addr) {
+    if (addr >= 0x0e0000)
+        return read08(ngsys.extram, addr & 0x1ffff);
+    return read08(promdata, addr + protreg);
+}
+
+static uint16_t geo_m68k_read_fixed_16_kof10th(uint32_t addr) {
+    if (addr >= 0x0e0000)
+        return read16be(ngsys.extram, addr & 0x1fffe);
+    return read16(promdata, addr + protreg);
 }
 
 // Default Switchable Bank Routines
@@ -633,6 +656,84 @@ static void geo_m68k_write_banksw_8_brezza(uint32_t addr, uint8_t data) {
 static void geo_m68k_write_banksw_16_brezza(uint32_t addr, uint16_t data) {
     if (addr <= 0x201fff)
         write16(ngsys.cartram, addr & 0x1fff, data);
+}
+
+// The King of Fighters 10th Anniversary Bootleg
+/* This board is tricky in a number of ways. There are two blocks of Cartridge
+   RAM, one 8K and the other 128K, in addition to using a dynamic FIX layer.
+
+   The 8K RAM is addressed at the top of the Switchable bank region.
+
+   The 128K RAM is addressed at the top of the Fixed bank region for reads. For
+   writes, it is addressed at the bottom 256K of the Switchable bank region,
+   with the writes being mirrored above 128K.
+
+   The dynamic FIX layer data is also addressed in the bottom 256K, but only
+   when the 8K RAM at 0x1ffc has a non-zero value. In this case, the write
+   address is halved and masked, then the top byte is ignored and the bottom
+   byte is written with the 0th and 5th bits swapped.
+
+   There are two special write addresses in the Switchable bank region:
+     0x2ffff8: Fixed P ROM bank switch - 0th or 7th bank
+     0x2ffff0: Switchable P ROM bank switch - 1st to 6th bank (wrap the 7th and
+               8th banks to the 1st bank)
+*/
+static uint8_t geo_m68k_read_banksw_8_kof10th(uint32_t addr) {
+    if (addr >= 0x2fe000)
+        return read08(ngsys.cartram, addr & 0x1fff);
+    return read08(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static uint16_t geo_m68k_read_banksw_16_kof10th(uint32_t addr) {
+    if (addr >= 0x2fe000)
+        return read16be(ngsys.cartram, addr & 0x1fff);
+    return read16(promdata, (addr & 0xfffff) + banksw_addr);
+}
+
+static void geo_m68k_write_banksw_8_kof10th(uint32_t addr, uint8_t data) {
+    if (addr >= 0x2fe000) {
+        if (addr == 0x2ffff0) {
+            banksw_addr = (((data & banksw_mask) * 0x100000) + 0x100000);
+            if (banksw_addr >= 0x700000)
+                banksw_addr = 0x100000;
+        }
+
+        write08(ngsys.cartram, addr & 0x1fff, data);
+    }
+}
+
+static void geo_m68k_write_banksw_16_kof10th(uint32_t addr, uint16_t data) {
+    if (addr < 0x240000) {
+        if (ngsys.cartram[0x1ffc]) {
+            // Ignore the top byte and swap the 0th and 5th bits
+            dynfix[(addr >> 1) & 0x1ffff] =
+                (data & 0xde) | ((data & 0x01) << 5) | ((data & 0x20) >> 5);
+        }
+        else {
+            write16be(ngsys.extram, addr & 0x1ffff, data);
+        }
+    }
+    else if (addr >= 0x2fe000) {
+        switch (addr) {
+            case 0x2ffff0: {
+                banksw_addr = (((data & banksw_mask) * 0x100000) + 0x100000);
+                /* If the 7th or 8th bank is selected, wrap back to the 1st
+                   bank. The 7th is used only for the fixed region, and there
+                   is no 8th bank.
+                */
+                if (banksw_addr >= 0x700000)
+                    banksw_addr = 0x100000;
+                break;
+            }
+            case 0x2ffff8: {
+                if (read16be(ngsys.cartram, 0x1ff8) != data)
+                    protreg = (data & 0x01) ? 0x000000 : 0x700000;
+                break;
+            }
+        }
+
+        write16be(ngsys.cartram, addr & 0x1ffe, data);
+    }
 }
 
 /* 68K Memory Map
@@ -1237,6 +1338,32 @@ void geo_m68k_board_set(unsigned btype) {
             geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_brezza;
             geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_brezza;
             ngsys.cartram_present = 1;
+            break;
+        case BOARD_KOF10TH: // The King of Fighters 10th Anniversary Bootleg
+            geo_m68k_read_fixed_8 = &geo_m68k_read_fixed_8_kof10th;
+            geo_m68k_read_fixed_16 = &geo_m68k_read_fixed_16_kof10th;
+            geo_m68k_read_banksw_8 = &geo_m68k_read_banksw_8_kof10th;
+            geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_kof10th;
+            geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_kof10th;
+            geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_kof10th;
+            geo_lspc_sromdata(dynfix, SIZE_128K);
+
+            /* According to MAME, there is an Altera protection chip which
+               patches over the P ROM to allow the game to work correctly.
+            */
+            // Enables XOR for RAM moves, forces SoftDIPs, and USA region
+            promdata[0x0124] = 0x00;
+            promdata[0x0125] = 0x0d;
+            promdata[0x0126] = 0xf7;
+            promdata[0x0127] = 0xa8;
+
+            // Run code to change "S" data
+            promdata[0x8bf4] = 0x4e;
+            promdata[0x8bf5] = 0xf9;
+            promdata[0x8bf6] = 0x00;
+            promdata[0x8bf7] = 0x0d;
+            promdata[0x8bf8] = 0xf9;
+            promdata[0x8bf9] = 0x80;
             break;
     }
 }
