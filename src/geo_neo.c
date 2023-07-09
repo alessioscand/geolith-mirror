@@ -287,6 +287,10 @@ int geo_neo_load(void *data, size_t size) {
             }
             break;
         }
+        case 275: { // The King of Fighters 10th Anniversary
+            geo_m68k_board_set(BOARD_KOF10TH);
+            break;
+        }
         default: {
             break;
         }
