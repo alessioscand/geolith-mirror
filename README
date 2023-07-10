@@ -65,15 +65,19 @@ Compatibility
 Geolith is compatible with 100% of the commercially released Neo Geo AES and
 MVS libraries. Most games work in both modes, but some require MVS mode.
 
-All bootlegs and hacks from the MAME set work. Other bootlegs and hacks not in
-the MAME set may be compatible if correctly converted to the .NEO format.
+All bootlegs and hacks from the MAME set are compatible, the majority of which
+require being run in MVS mode. Other bootlegs and hacks not in the MAME set may
+be compatible if correctly converted to the .NEO format.
 
 Some early prototypes are not currently possible to emulate, pending new dumps
 or new information:
   Stakes Winner (early development board) - Missing data from SRAM chip
-  Super Bubble Pop - Incomplete or protection mechanism not understood
+  Super Bubble Pop - Incomplete and/or protection mechanism not understood
 
 Dedicated JAMMA PCB and Neo Geo CD systems are not currently supported.
+
+The Mahjong Controller and special inputs for Irritating Maze and V-Liner are
+not yet supported.
 
 Notes
 -----
