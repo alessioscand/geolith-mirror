@@ -72,7 +72,6 @@ be compatible if correctly converted to the .NEO format.
 Some early prototypes are not currently possible to emulate, pending new dumps
 or new information:
   Stakes Winner (early development board) - Missing data from SRAM chip
-  Super Bubble Pop - Incomplete and/or protection mechanism not understood
 
 Dedicated JAMMA PCB and Neo Geo CD systems are not currently supported.
 
