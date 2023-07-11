@@ -94,7 +94,7 @@ static void geo_z80_mem_wr(void *userdata, uint16_t addr, uint8_t data) {
     if (addr > 0xf7ff)
         zram[addr & 0x07ff] = data;
     else
-        geo_log(GEO_LOG_WRN, "Z80 write outside RAM: %04x %02x\n", addr, data);
+        geo_log(GEO_LOG_DBG, "Z80 write outside RAM: %04x %02x\n", addr, data);
 }
 
 /* Z80 Port Map
