@@ -42,18 +42,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ymfm/ymfm_shim.h"
 
-static inline uint32_t bcd_decimal(uint32_t hex) {
-    // NGH is only 3 digits, so only convert 3 digits
-    unsigned d[3] = { (hex & 0xf00) >> 8, (hex & 0xf0) >> 4, hex & 0x0f };
-
-    /* Some people (or tools) do bad things with the NGH field, so put a stop
-       to this sort of tomfoolery by setting digits that are not BCD to 0.
-    */
-    for (unsigned i = 0; i < 3; ++i)
-        if (d[i] > 9) d[i] = 0;
-    return (d[0] * 100) + (d[1] * 10) + d[2];
-}  
-
 static inline uint32_t read32le(uint8_t *ptr, uint32_t addr) {
     return ptr[addr] | (ptr[addr + 1] << 8) |
         (ptr[addr + 2] << 16) | (ptr[addr + 3] << 24);
@@ -90,7 +78,7 @@ int geo_neo_load(void *data, size_t size) {
     uint32_t year = read32le(romdata, 28);
     uint32_t genre = read32le(romdata, 32);
     uint32_t screenshot = read32le(romdata, 36);
-    uint32_t ngh = bcd_decimal(read32le(romdata, 40));
+    uint32_t ngh = read32le(romdata, 40);
 
     // Parse Name
     char name[34];
@@ -105,7 +93,7 @@ int geo_neo_load(void *data, size_t size) {
     geo_log(GEO_LOG_INF, "Year: %d\n", year);
     geo_log(GEO_LOG_INF, "Genre: %d\n", genre);
     geo_log(GEO_LOG_INF, "Screenshot: %d\n", screenshot);
-    geo_log(GEO_LOG_INF, "NGH: %03d\n", ngh);
+    geo_log(GEO_LOG_INF, "NGH: %03X\n", ngh);
     geo_log(GEO_LOG_INF, "Name: %s\n", name);
     geo_log(GEO_LOG_INF, "Manufacturer: %s\n", manu);
 
@@ -152,29 +140,16 @@ int geo_neo_load(void *data, size_t size) {
 
     // Handle special cases if necessary
     switch (ngh) {
-        case 3: { // Top Player's Golf, Crouching Tiger Hidden Dragon bootlegs
-            /* NGH 003 is assigned to Top Player's Golf, but the Crouching
-               Tiger Hidden Dragon bootlegs also use it. Simple heuristics are
-               used to determine which one it is. Top Player's Golf requires no
-               special handling. Crouching Tiger Hidden Dragon 2003 Super Plus
-               Alternative also requires no special handling.
-            */
-            if (size_prom > 0x100000 && romdata[0x1000 + 0x30d9] != 0x03)
-                geo_m68k_board_set(BOARD_CTHD2003);
-            break;
-        }
-        case 6: case 19: case 38: {
+        case 0x006: case 0x019: case 0x038: {
             // Riding Hero, League Bowling, Thrash Rally
             geo_m68k_board_set(BOARD_LINKABLE);
             break;
         }
-        case 8: case 999: { // Jockey Grand Prix, V-Liner
-            // The King of Fighters 10th EP erroneously uses NGH 008
-            if (size_prom < 0x800000)
-                geo_m68k_board_set(BOARD_BREZZASOFT);
+        case 0x008: case 0x999: case 0x3e7: { // Jockey Grand Prix, V-Liner
+            geo_m68k_board_set(BOARD_BREZZASOFT);
             break;
         }
-        case 40: { // Sengoku 2
+        case 0x040: { // Sengoku 2
             /* Sengoku 2 is a special case requiring the scanline to be drawn
                before the end of active pixel output. This will not be needed
                if a cycle-accurate pixel-based renderer is implemented.
@@ -182,19 +157,19 @@ int geo_neo_load(void *data, size_t size) {
             geo_set_drawcyc(856);
             break;
         }
-        case 47: case 52: { // Fatal Fury 2, Super Sidekicks
+        case 0x047: case 0x052: { // Fatal Fury 2, Super Sidekicks
             geo_m68k_board_set(BOARD_CT0);
             break;
         }
-        case 242: { // KOF 98
+        case 0x242: { // KOF 98
             geo_m68k_board_set(BOARD_KOF98);
             break;
         }
-        case 250: { // Metal Slug X
+        case 0x250: { // Metal Slug X
             geo_m68k_board_set(BOARD_MSLUGX);
             break;
         }
-        case 151: case 251: { // KOF 99
+        case 0x151: case 0x251: { // KOF 99
             if (size_prom > 0x500000) { // Encrypted
                 geo_m68k_sma_init(sma_addr_kof99, sma_bank_kof99,
                     sma_scramble_kof99);
@@ -202,7 +177,7 @@ int geo_neo_load(void *data, size_t size) {
             }
             break;
         }
-        case 253: { // Garou - Mark of the Wolves
+        case 0x253: { // Garou - Mark of the Wolves
             // Use heuristics to handle descrambling differences
             if (romdata[0xc1000 + 0x3e481] == 0x9f) { // NEO-SMA KE (AES)
                 geo_m68k_sma_init(sma_addr_garouh, sma_bank_garouh,
@@ -219,7 +194,7 @@ int geo_neo_load(void *data, size_t size) {
             // No SMA protection or FIX bankswitching for Bootleg and Prototype
             break;
         }
-        case 256: { // Metal Slug 3
+        case 0x256: { // Metal Slug 3
             geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
 
             if (size_prom > 0x500000) { // Encrypted
@@ -235,7 +210,7 @@ int geo_neo_load(void *data, size_t size) {
             }
             break;
         }
-        case 257: { // KOF 2000
+        case 0x257: { // KOF 2000
             geo_lspc_set_fix_banksw(FIX_BANKSW_TILE);
 
             if (size_prom > 0x500000) { // Encrypted
@@ -245,24 +220,24 @@ int geo_neo_load(void *data, size_t size) {
             }
             break;
         }
-        case 263: { // Metal Slug 4
+        case 0x263: { // Metal Slug 4
             // mslug4 and mslug4h use FIX bankswitching, ms4plus does not
             if (romdata[0x1000 + 0x809] != 0x0c)
                 geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
             break;
         }
-        case 266: { // Matrimelee
+        case 0x266: { // Matrimelee
             geo_lspc_set_fix_banksw(FIX_BANKSW_TILE);
             break;
         }
-        case 268: { // Metal Slug 5
+        case 0x268: { // Metal Slug 5
             if (romdata[0x1000 + 0x26b] == 0xb9) // Metal Slug 5 Plus
                 geo_m68k_board_set(BOARD_MS5PLUS);
             else if (romdata[0x1000 + 0x267] == 0x4f) // Official Releases
                 geo_m68k_board_set(BOARD_PVC);
             break;
         }
-        case 269: { // SNK vs. Capcom - SVC Chaos
+        case 0x269: { // SNK vs. Capcom - SVC Chaos
             /* The official release, SNK vs. Capcom (bootleg), and
                SNK vs. Capcom Super Plus use the NEO-PVC. The official release
                also uses Fix Bankswitching Type 2 (per-tile banking). The other
@@ -274,7 +249,7 @@ int geo_neo_load(void *data, size_t size) {
                 geo_m68k_board_set(BOARD_PVC);
             break;
         }
-        case 271: { // KOF 2003
+        case 0x271: { // KOF 2003
             if (romdata[0x1000 + 0xc1] == 0x38) { // Official Release
                 geo_lspc_set_fix_banksw(FIX_BANKSW_TILE);
                 geo_m68k_board_set(BOARD_PVC);
@@ -287,7 +262,7 @@ int geo_neo_load(void *data, size_t size) {
             }
             break;
         }
-        case 275: { // The King of Fighters 10th Anniversary
+        case 0x275: { // The King of Fighters 10th Anniversary
             if (geo_get_system() == SYSTEM_AES) {
                 geo_log(GEO_LOG_WRN, "The King of Fighters 10th Anniversary is"
                     " compatible with the Neo Geo MVS and Universe BIOS only\n"
@@ -295,6 +270,10 @@ int geo_neo_load(void *data, size_t size) {
                 geo_lspc_sfixdata(data_srom, size_srom);
             }
             geo_m68k_board_set(BOARD_KOF10TH);
+            break;
+        }
+        case 0x5003: { // Crouching Tiger Hidden Dragon bootlegs
+            geo_m68k_board_set(BOARD_CTHD2003);
             break;
         }
         default: {
