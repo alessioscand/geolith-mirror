@@ -60,19 +60,19 @@ int geo_neo_load(void *data, size_t size) {
     }
 
     // Parse ROM info
-    uint32_t size_prom = read32le(romdata, 4);
-    uint32_t size_srom = read32le(romdata, 8);
-    uint32_t size_mrom = read32le(romdata, 12);
-    uint32_t size_v1rom = read32le(romdata, 16);
-    uint32_t size_v2rom = read32le(romdata, 20);
-    uint32_t size_crom = read32le(romdata, 24);
+    uint32_t promsize = read32le(romdata, 4);
+    uint32_t sromsize = read32le(romdata, 8);
+    uint32_t mromsize = read32le(romdata, 12);
+    uint32_t v1romsize = read32le(romdata, 16);
+    uint32_t v2romsize = read32le(romdata, 20);
+    uint32_t cromsize = read32le(romdata, 24);
 
-    geo_log(GEO_LOG_INF, "P  ROM Size: %d\n", size_prom);
-    geo_log(GEO_LOG_INF, "S  ROM Size: %d\n", size_srom);
-    geo_log(GEO_LOG_INF, "M1 ROM Size: %d\n", size_mrom);
-    geo_log(GEO_LOG_INF, "V1 ROM Size: %d\n", size_v1rom);
-    geo_log(GEO_LOG_INF, "V2 ROM Size: %d\n", size_v2rom);
-    geo_log(GEO_LOG_INF, "C  ROM Size: %d\n", size_crom);
+    geo_log(GEO_LOG_INF, "P  ROM Size: %d\n", promsize);
+    geo_log(GEO_LOG_INF, "S  ROM Size: %d\n", sromsize);
+    geo_log(GEO_LOG_INF, "M1 ROM Size: %d\n", mromsize);
+    geo_log(GEO_LOG_INF, "V1 ROM Size: %d\n", v1romsize);
+    geo_log(GEO_LOG_INF, "V2 ROM Size: %d\n", v2romsize);
+    geo_log(GEO_LOG_INF, "C  ROM Size: %d\n", cromsize);
 
     // Parse Year, Genre, Screenshot, and NGH info
     uint32_t year = read32le(romdata, 28);
@@ -99,35 +99,35 @@ int geo_neo_load(void *data, size_t size) {
 
     // Assign pointers and sizes
     uint32_t rom_offset = 4096; // ROM data starts at byte 4096
-    uint8_t *data_prom = &romdata[rom_offset];
-    rom_offset += size_prom;
+    uint8_t *promdata = &romdata[rom_offset];
+    rom_offset += promsize;
 
-    uint8_t *data_srom = &romdata[rom_offset];
-    rom_offset += size_srom;
+    uint8_t *sromdata = &romdata[rom_offset];
+    rom_offset += sromsize;
 
-    geo_m68k_promdata(data_prom, size_prom);
+    geo_m68k_promdata(promdata, promsize);
 
-    uint8_t *data_mrom = &romdata[rom_offset];
-    geo_z80_mdata(data_mrom, size_mrom);
-    rom_offset += size_mrom;
+    uint8_t *mromdata = &romdata[rom_offset];
+    geo_z80_mdata(mromdata, mromsize);
+    rom_offset += mromsize;
 
-    if (!size_v2rom) { // Single V ROM
-        ymfm_shim_romdata(&romdata[rom_offset], size_v1rom,
-            &romdata[rom_offset], size_v1rom);
-        rom_offset += size_v1rom;
+    if (!v2romsize) { // Single V ROM
+        ymfm_shim_romdata(&romdata[rom_offset], v1romsize,
+            &romdata[rom_offset], v1romsize);
+        rom_offset += v1romsize;
     }
     else { // V1 and V2 ROMs
-        ymfm_shim_romdata(&romdata[rom_offset], size_v1rom,
-            &romdata[rom_offset + size_v1rom], size_v2rom);
-        rom_offset += size_v1rom + size_v2rom;
+        ymfm_shim_romdata(&romdata[rom_offset], v1romsize,
+            &romdata[rom_offset + v1romsize], v2romsize);
+        rom_offset += v1romsize + v2romsize;
     }
 
-    uint8_t *data_crom = &romdata[rom_offset];
-    rom_offset += size_crom;
+    uint8_t *cromdata = &romdata[rom_offset];
+    rom_offset += cromsize;
 
     // Pass C ROM and S ROM data to LSPC
-    geo_lspc_cromdata(data_crom, size_crom);
-    geo_lspc_sromdata(data_srom, size_srom);
+    geo_lspc_cromdata(cromdata, cromsize);
+    geo_lspc_sromdata(sromdata, sromsize);
 
     // Perform byte swapping on the BIOS and P ROM data
     geo_m68k_postload();
@@ -170,7 +170,7 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 0x151: case 0x251: { // KOF 99
-            if (size_prom > 0x500000) { // Encrypted
+            if (promsize > 0x500000) { // Encrypted
                 geo_m68k_sma_init(sma_addr_kof99, sma_bank_kof99,
                     sma_scramble_kof99);
                 geo_m68k_board_set(BOARD_SMA);
@@ -197,7 +197,7 @@ int geo_neo_load(void *data, size_t size) {
         case 0x256: { // Metal Slug 3
             geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
 
-            if (size_prom > 0x500000) { // Encrypted
+            if (promsize > 0x500000) { // Encrypted
                 if (romdata[0x1000 + 0x141] == 0x33) { // mslug3a
                     geo_m68k_sma_init(sma_addr_mslug3a, sma_bank_mslug3a,
                         sma_scramble_mslug3a);
@@ -213,7 +213,7 @@ int geo_neo_load(void *data, size_t size) {
         case 0x257: { // KOF 2000
             geo_lspc_set_fix_banksw(FIX_BANKSW_TILE);
 
-            if (size_prom > 0x500000) { // Encrypted
+            if (promsize > 0x500000) { // Encrypted
                 geo_m68k_sma_init(sma_addr_kof2000, sma_bank_kof2000,
                     sma_scramble_kof2000);
                 geo_m68k_board_set(BOARD_SMA);
@@ -267,7 +267,7 @@ int geo_neo_load(void *data, size_t size) {
                 geo_log(GEO_LOG_WRN, "The King of Fighters 10th Anniversary is"
                     " compatible with the Neo Geo MVS and Universe BIOS only\n"
                 );
-                geo_lspc_sfixdata(data_srom, size_srom);
+                geo_lspc_sfixdata(sromdata, sromsize);
             }
             geo_m68k_board_set(BOARD_KOF10TH);
             break;
