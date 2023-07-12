@@ -273,7 +273,11 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 0x5003: { // Crouching Tiger Hidden Dragon bootlegs
-            geo_m68k_board_set(BOARD_CTHD2003);
+            /* Crouching Tiger Hidden Dragon 2003 Super Plus Alternative
+               requires no special handling.
+            */
+            if (romdata[0x1000 + 0x30d9] != 0x03)
+                geo_m68k_board_set(BOARD_CTHD2003);
             break;
         }
         default: {
