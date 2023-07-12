@@ -36,26 +36,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "geo.h"
 #include "geo_lspc.h"
 
-static lspc_t lspc;
-
 static void (*geo_lspc_fixline)(void);
 
+static lspc_t lspc;
+static romdata_t *romdata = NULL;
+
 static uint32_t *vbuf = NULL;
-static unsigned fixbanksw = 0;
 
 static uint8_t *fixdata = NULL;
 
-static uint8_t *sfixdata = NULL;
-static size_t sfixsize = 0;
-
-static uint8_t *sromdata = NULL;
-static size_t sromsize = 0;
-
-static uint8_t *cromdata = NULL;
-static size_t cromsize = 0;
+static unsigned fixbanksw = 0;
 static uint32_t crommask = 0;
-
-static uint8_t *l0romdata = NULL;
 
 // Dynamic output palette with values converted from palette RAM
 static uint32_t palette_normal[SIZE_8K];
@@ -87,27 +78,9 @@ void geo_lspc_set_buffer(uint32_t *ptr) {
     vbuf = ptr;
 }
 
-// Set the vertical shrink ROM
-void geo_lspc_set_l0rom(uint8_t *l0) {
-    l0romdata = l0; // Set L0 ROM
-}
-
-void geo_lspc_cromdata(uint8_t *c, uint32_t csz) {
-    cromdata = c;
-    cromsize = csz;
-    crommask = geo_calc_mask(32, csz >> 7);
-}
-
-void geo_lspc_sromdata(uint8_t *s, uint32_t ssz) {
-    sromdata = s;
-    sromsize = ssz;
-    if (!fixdata)
-        fixdata = sromdata;
-}
-
-void geo_lspc_sfixdata(uint8_t *s, uint32_t ssz) {
-    sfixdata = s;
-    sfixsize = ssz;
+// Perform post-load operations for C ROM
+void geo_lspc_postload(void) {
+    crommask = geo_calc_mask(32, romdata->csz >> 7);
 }
 
 /* VRAM Memory Map
@@ -263,6 +236,8 @@ void geo_lspc_init(void) {
     lspc.scanline = 0;
 
     geo_lspc_shadow_wr(0);
+
+    romdata = geo_romdata_ptr();
 }
 
 // No Fix Layer Banking (Default)
@@ -426,11 +401,11 @@ static void geo_lspc_fixline_tile(void) {
 // Set the active Fix ROM
 void geo_lspc_set_fix(unsigned f) {
     if (f) {
-        fixdata = sromdata;
+        fixdata = romdata->s;
         geo_lspc_set_fix_banksw(fixbanksw);
     }
     else {
-        fixdata = sfixdata;
+        fixdata = romdata->sfix;
         geo_lspc_fixline = &geo_lspc_fixline_default;
     }
 }
@@ -481,10 +456,10 @@ static inline unsigned geo_lspc_tpix(unsigned tbase, unsigned x, unsigned y) {
               reverse order from how it is displayed unless horizontal flip
               is enabled for the tile.
     */
-    unsigned v0 = (cromdata[(tbase + 0) + (y << 2)]) >> (x);
-    unsigned v1 = (cromdata[(tbase + 2) + (y << 2)]) >> (x);
-    unsigned v2 = (cromdata[(tbase + 1) + (y << 2)]) >> (x);
-    unsigned v3 = (cromdata[(tbase + 3) + (y << 2)]) >> (x);
+    unsigned v0 = (romdata->c[(tbase + 0) + (y << 2)]) >> (x);
+    unsigned v1 = (romdata->c[(tbase + 2) + (y << 2)]) >> (x);
+    unsigned v2 = (romdata->c[(tbase + 1) + (y << 2)]) >> (x);
+    unsigned v3 = (romdata->c[(tbase + 3) + (y << 2)]) >> (x);
     return (v0 & 0x01) | (v1 & 0x01) << 1 | (v2 & 0x01) << 2 | (v3 & 0x01) << 3;
 }
 
@@ -567,7 +542,7 @@ static inline void geo_lspc_sprline(void) {
             }
         }
 
-        srow = l0romdata[(vshrink << 8) + (zrow & 0xff)];
+        srow = romdata->l0[(vshrink << 8) + (zrow & 0xff)];
 
         if (invert)
             srow ^= 0x1ff;
@@ -638,7 +613,7 @@ static inline void geo_lspc_sprline(void) {
            Multiply the tile number by 128 to get the offset of the tile in
            C ROM.
         */
-        unsigned toffset = (tnum << 7) % cromsize;
+        unsigned toffset = (tnum << 7) % romdata->csz;
 
         // Y value in the sprite tile to be drawn, flipped if necessary
         unsigned y = vflip ? (0x0f - (srow & 0x0f)) : (srow & 0x0f);

@@ -89,11 +89,8 @@ typedef struct _lspc_t {
 void geo_lspc_set_buffer(uint32_t*);
 void geo_lspc_set_fix_banksw(unsigned);
 void geo_lspc_set_fix(unsigned);
-void geo_lspc_set_l0rom(uint8_t*);
 
-void geo_lspc_cromdata(uint8_t*, uint32_t);
-void geo_lspc_sromdata(uint8_t*, uint32_t);
-void geo_lspc_sfixdata(uint8_t*, uint32_t);
+void geo_lspc_postload(void);
 
 uint16_t geo_lspc_palram_rd(uint32_t);
 void geo_lspc_palram_wr(uint32_t, uint16_t);

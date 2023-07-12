@@ -61,14 +61,12 @@ unsigned (*geo_input_sys_cb[NUMINPUTS_SYS])(void);
 // Neo Geo System
 ngsys_t ngsys;
 
+// ROM data
+static romdata_t romdata;
+
 // System being emulated
 static int sys = 0;
 static int region = 0;
-
-static uint8_t *l0rom = NULL;
-static uint8_t *biosdata = NULL;
-static uint8_t *sfixdata = NULL;
-static uint8_t *smrom = NULL;
 
 // Extra cycles stored at the end of scanlines/frames
 static uint32_t mextcycs = 0;
@@ -127,6 +125,10 @@ void geo_set_drawcyc(unsigned cyc) {
     slcyc = cyc;
 }
 
+romdata_t* geo_romdata_ptr(void) {
+    return &romdata;
+}
+
 // Calculate a mask for an arbitrarily sized memory block
 uint32_t geo_calc_mask(unsigned nbits, unsigned val) {
     /* Masks over blocks of memory with a size which is not a power of two need
@@ -151,7 +153,6 @@ uint32_t geo_calc_mask(unsigned nbits, unsigned val) {
 
 int geo_bios_load(const char *biospath) {
     const char *biosrom;
-    size_t biossize = 0, sfixsize = 0, smsize = 0;
 
     mz_zip_archive zip_archive;
     memset(&zip_archive, 0, sizeof(zip_archive));
@@ -190,10 +191,10 @@ int geo_bios_load(const char *biospath) {
     }
 
     geo_log(GEO_LOG_DBG, "Loading %s\n", biosrom);
-    biosdata = mz_zip_reader_extract_file_to_heap(&zip_archive,
-        biosrom, &biossize, 0);
+    romdata.b = mz_zip_reader_extract_file_to_heap(&zip_archive, biosrom,
+        &(romdata.bsz), 0);
 
-    if (biosdata == NULL) {
+    if (romdata.b == NULL) {
         mz_zip_reader_end(&zip_archive);
         geo_log(GEO_LOG_ERR,
             "Failed to load %s from BIOS archive!\n", biosrom);
@@ -201,54 +202,49 @@ int geo_bios_load(const char *biospath) {
     }
 
     // Load L0 ROM
-    l0rom = mz_zip_reader_extract_file_to_heap(&zip_archive,
-        "000-lo.lo", NULL, 0);
-    if (l0rom == NULL) {
+    romdata.l0 = mz_zip_reader_extract_file_to_heap(&zip_archive,
+        "000-lo.lo", &(romdata.l0sz), 0);
+    if (romdata.l0 == NULL) {
         mz_zip_reader_end(&zip_archive);
         geo_log(GEO_LOG_ERR, "Failed to load 000-lo.lo from BIOS archive!\n");
         return 0;
     }
-    geo_lspc_set_l0rom(l0rom);
 
     if (geo_get_system() != SYSTEM_AES) {
         // SFIX
-        sfixdata = mz_zip_reader_extract_file_to_heap(&zip_archive,
-            "sfix.sfix", &sfixsize, 0);
-        if (sfixdata == NULL) {
+        romdata.sfix = mz_zip_reader_extract_file_to_heap(&zip_archive,
+            "sfix.sfix", &(romdata.sfixsz), 0);
+        if (romdata.sfix == NULL) {
             mz_zip_reader_end(&zip_archive);
             geo_log(GEO_LOG_ERR,
                 "Failed to load sfix.sfix from BIOS archive!\n");
             return 0;
         }
-        geo_lspc_sfixdata(sfixdata, sfixsize);
 
         // SM1
-        smrom = mz_zip_reader_extract_file_to_heap(&zip_archive,
-            "sm1.sm1", &smsize, 0);
-        if (smrom == NULL) {
+        romdata.sm = mz_zip_reader_extract_file_to_heap(&zip_archive,
+            "sm1.sm1", &(romdata.smsz), 0);
+        if (romdata.sm == NULL) {
             mz_zip_reader_end(&zip_archive);
             geo_log(GEO_LOG_ERR,
                 "Failed to load sm1.sm1 from BIOS archive!\n");
             return 0;
         }
-        geo_z80_smdata(smrom, smsize);
     }
-
-    geo_m68k_biosdata(biosdata, biossize);
 
     mz_zip_reader_end(&zip_archive);
     return 1;
 }
 
 void geo_bios_unload(void) {
-    if (biosdata)
-        free(biosdata);
-    if (l0rom)
-        free(l0rom);
-    if (sfixdata)
-        free(sfixdata);
-    if (smrom)
-        free(smrom);
+    if (romdata.b)
+        free(romdata.b);
+    if (romdata.l0)
+        free(romdata.l0);
+    if (romdata.sfix)
+        free(romdata.sfix);
+    if (romdata.sm)
+        free(romdata.sm);
 }
 
 // Load NVRAM, Cartridge RAM, or Memory Card data
@@ -362,7 +358,6 @@ void geo_init(void) {
     ymfm_shim_init();
     geo_rtc_init();
     geo_lspc_init();
-    geo_reset(1);
 
     ngsys.irq2_ctrl = 0;
     ngsys.irq2_reload = 0;

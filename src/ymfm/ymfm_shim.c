@@ -36,9 +36,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ymfm_opn.h"
 #include "ymfm_shim.h"
 
+#include "geo.h"
 #include "geo_z80.h"
 
 #define SIZE_YMBUF 2048
+
+static romdata_t *romdata = NULL;
 
 static int16_t ymbuf[SIZE_YMBUF];
 static size_t bufpos;
@@ -48,15 +51,12 @@ static int timer[2];
 static int divisor;
 static int32_t output[3];
 
-static uint8_t *vromdata[2];
-static size_t vromsize[2];
-
 uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
     switch (type) {
         case ACCESS_ADPCM_A:
-            return address > vromsize[0] ? 0 : vromdata[0][address];
+            return address > romdata->v1sz ? 0 : romdata->v1[address];
         case ACCESS_ADPCM_B:
-            return address > vromsize[1] ? 0 : vromdata[1][address];
+            return address > romdata->v2sz ? 0 : romdata->v2[address];
         default:
             return 0;
     }
@@ -116,19 +116,13 @@ int16_t* ymfm_shim_get_buffer(void) {
     return &ymbuf[0];
 }
 
-void ymfm_shim_romdata(uint8_t *v1, size_t v1sz, uint8_t *v2, size_t v2sz) {
-    vromdata[0] = v1;
-    vromdata[1] = v2;
-    vromsize[0] = v1sz;
-    vromsize[1] = v2sz;
-}
-
 // Initialize the YM2610
 void ymfm_shim_init(void) {
     divisor = 144; // 144 for medium fidelity, 16 for high
     ym2610_init();
     ym2610_set_fidelity(OPN_FIDELITY_MED);
     fm_engine_init();
+    romdata = geo_romdata_ptr();
 }
 
 // Perform a reset - required at least once before clocking

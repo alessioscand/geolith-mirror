@@ -41,13 +41,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define SMATAP 0x98ec // NEO-SMA Tapped bits - 2, 3, 5, 6, 7, 11, 12, and 15
 
-// BIOS ROM data
-static uint8_t *biosdata = NULL;
-static size_t biossize = 0;
-
 // Game ROM data
-static uint8_t *promdata = NULL;
-static size_t promsize = 0;
+static romdata_t *romdata = NULL;
 
 // Main RAM
 static uint8_t ram[SIZE_64K];
@@ -143,11 +138,11 @@ static inline void swapb16_range(void *ptr, size_t len) {
 
 // Default Fixed Bank Routines
 static uint8_t geo_m68k_read_fixed_8_default(uint32_t addr) {
-    return read08(promdata, addr);
+    return read08(romdata->p, addr);
 }
 
 static uint16_t geo_m68k_read_fixed_16_default(uint32_t addr) {
-    return read16(promdata, addr);
+    return read16(romdata->p, addr);
 }
 
 // The King of Fighters 2003 (bootleg 1), The King of Fighters 2004 Ultra Plus
@@ -157,7 +152,7 @@ static uint16_t geo_m68k_read_fixed_16_default(uint32_t addr) {
 static uint8_t geo_m68k_read_fixed_8_kf2k3bl(uint32_t addr) {
     if (addr == 0x058197)
         return ngsys.cartram[0x1ff2];
-    return read08(promdata, addr);
+    return read08(romdata->p, addr);
 }
 
 // The King of Fighters 10th Anniversary Bootleg
@@ -171,22 +166,22 @@ static uint8_t geo_m68k_read_fixed_8_kf2k3bl(uint32_t addr) {
 static uint8_t geo_m68k_read_fixed_8_kof10th(uint32_t addr) {
     if (addr >= 0x0e0000)
         return read08(ngsys.extram, addr & 0x1ffff);
-    return read08(promdata, addr + protreg);
+    return read08(romdata->p, addr + protreg);
 }
 
 static uint16_t geo_m68k_read_fixed_16_kof10th(uint32_t addr) {
     if (addr >= 0x0e0000)
         return read16be(ngsys.extram, addr & 0x1fffe);
-    return read16(promdata, addr + protreg);
+    return read16(romdata->p, addr + protreg);
 }
 
 // Default Switchable Bank Routines
 static uint8_t geo_m68k_read_banksw_8_default(uint32_t addr) {
-    return read08(promdata, (addr & 0xfffff) + banksw_addr);
+    return read08(romdata->p, (addr & 0xfffff) + banksw_addr);
 }
 
 static uint16_t geo_m68k_read_banksw_16_default(uint32_t addr) {
-    return read16(promdata, (addr & 0xfffff) + banksw_addr);
+    return read16(romdata->p, (addr & 0xfffff) + banksw_addr);
 }
 
 static void geo_m68k_write_banksw_8_default(uint32_t addr, uint8_t data) {
@@ -220,7 +215,7 @@ static uint8_t geo_m68k_read_banksw_8_linkable(uint32_t addr) {
         return 0;
     }
 
-    return read08(promdata, (addr & 0xfffff) + banksw_addr);
+    return read08(romdata->p, (addr & 0xfffff) + banksw_addr);
 }
 
 static void geo_m68k_write_banksw_8_linkable(uint32_t addr, uint8_t data) {
@@ -256,7 +251,7 @@ static uint8_t geo_m68k_read_banksw_8_ct0(uint32_t addr) {
             return ((ret & 0x0f) << 4) | ((ret & 0xf0) >> 4);
     }
 
-    return read08(promdata, (addr & 0xfffff) + banksw_addr);
+    return read08(romdata->p, (addr & 0xfffff) + banksw_addr);
 }
 
 static uint16_t geo_m68k_read_banksw_16_ct0(uint32_t addr) {
@@ -275,7 +270,7 @@ static uint16_t geo_m68k_read_banksw_16_ct0(uint32_t addr) {
             return ((ret & 0x0f) << 4) | ((ret & 0xf0) >> 4);
     }
 
-    return read16(promdata, (addr & 0xfffff) + banksw_addr);
+    return read16(romdata->p, (addr & 0xfffff) + banksw_addr);
 }
 
 static void geo_m68k_write_banksw_8_ct0(uint32_t addr, uint8_t data) {
@@ -331,7 +326,7 @@ static uint8_t geo_m68k_read_banksw_8_sma(uint32_t addr) {
     else if (addr == sma_prn_addr[0] || addr == sma_prn_addr[1])
         return geo_m68k_prn_read() & 0xff;
 
-    return read08(promdata, (addr & 0xfffff) + banksw_addr);
+    return read08(romdata->p, (addr & 0xfffff) + banksw_addr);
 }
 
 static uint16_t geo_m68k_read_banksw_16_sma(uint32_t addr) {
@@ -341,7 +336,7 @@ static uint16_t geo_m68k_read_banksw_16_sma(uint32_t addr) {
     else if (addr == sma_prn_addr[0] || addr == sma_prn_addr[1])
         return geo_m68k_prn_read();
 
-    return read16(promdata, (addr & 0xfffff) + banksw_addr);
+    return read16(romdata->p, (addr & 0xfffff) + banksw_addr);
 }
 
 static void geo_m68k_write_banksw_16_sma(uint32_t addr, uint16_t data) {
@@ -443,14 +438,14 @@ static uint8_t geo_m68k_read_banksw_8_pvc(uint32_t addr) {
     if (addr >= 0x2fe000)
         return ngsys.cartram[(addr & 0x1fff) ^ 1];
 
-    return read08(promdata, (addr & 0xfffff) + banksw_addr);
+    return read08(romdata->p, (addr & 0xfffff) + banksw_addr);
 }
 
 static uint16_t geo_m68k_read_banksw_16_pvc(uint32_t addr) {
     if (addr >= 0x2fe000)
         return read16be(ngsys.cartram, addr & 0x1fff);
 
-    return read16(promdata, (addr & 0xfffff) + banksw_addr);
+    return read16(romdata->p, (addr & 0xfffff) + banksw_addr);
 }
 
 static void geo_m68k_write_banksw_8_pvc(uint32_t addr, uint8_t data) {
@@ -491,16 +486,16 @@ static void geo_m68k_write_banksw_16_kof98(uint32_t addr, uint16_t data) {
         cartreg[0] = data;
 
         if (cartreg[0] == 0x0090) { // Apply the protection overlay
-            promdata[0x100] = 0x00;
-            promdata[0x101] = 0xc2;
-            promdata[0x102] = 0x00;
-            promdata[0x103] = 0xfd;
+            romdata->p[0x100] = 0x00;
+            romdata->p[0x101] = 0xc2;
+            romdata->p[0x102] = 0x00;
+            romdata->p[0x103] = 0xfd;
         }
         else if (cartreg[0] == 0x00f0) { // Use the original ROM data (NEO-)
-            promdata[0x100] = 0x4e;
-            promdata[0x101] = 0x45;
-            promdata[0x102] = 0x4f;
-            promdata[0x103] = 0x2d;
+            romdata->p[0x100] = 0x4e;
+            romdata->p[0x101] = 0x45;
+            romdata->p[0x102] = 0x4f;
+            romdata->p[0x103] = 0x2d;
         }
     }
     else if (addr == 0x205554) { // Unknown protection or debug related write?
@@ -551,14 +546,14 @@ static uint16_t geo_m68k_read_banksw_16_mslugx(uint32_t addr) {
         switch (cartreg[0]) {
             case 0x0001: {
                 uint16_t ret =
-                    (read08(promdata, 0xdedd2 + ((cartreg[1] >> 3) & 0xfff))
+                    (read08(romdata->p, 0xdedd2 + ((cartreg[1] >> 3) & 0xfff))
                     >> (~cartreg[1] & 0x07)) & 0x0001;
                 ++cartreg[1];
                 return ret;
             }
             case 0x0fff: {
                 int32_t select = read16(ram, 0xf00a) - 1;
-                return (read08(promdata, 0xdedd2 + ((select >> 3) & 0x0fff))
+                return (read08(romdata->p, 0xdedd2 + ((select >> 3) & 0x0fff))
                     >> (~select & 0x07)) & 0x0001;
             }
             default: {
@@ -568,7 +563,7 @@ static uint16_t geo_m68k_read_banksw_16_mslugx(uint32_t addr) {
         }
     }
 
-    return read16(promdata, (addr & 0xfffff) + banksw_addr);
+    return read16(romdata->p, (addr & 0xfffff) + banksw_addr);
 }
 
 static void geo_m68k_write_banksw_16_mslugx(uint32_t addr, uint16_t data) {
@@ -681,13 +676,13 @@ static void geo_m68k_write_banksw_16_brezza(uint32_t addr, uint16_t data) {
 static uint8_t geo_m68k_read_banksw_8_kof10th(uint32_t addr) {
     if (addr >= 0x2fe000)
         return read08(ngsys.cartram, addr & 0x1fff);
-    return read08(promdata, (addr & 0xfffff) + banksw_addr);
+    return read08(romdata->p, (addr & 0xfffff) + banksw_addr);
 }
 
 static uint16_t geo_m68k_read_banksw_16_kof10th(uint32_t addr) {
     if (addr >= 0x2fe000)
         return read16be(ngsys.cartram, addr & 0x1fff);
-    return read16(promdata, (addr & 0xfffff) + banksw_addr);
+    return read16(romdata->p, (addr & 0xfffff) + banksw_addr);
 }
 
 static void geo_m68k_write_banksw_8_kof10th(uint32_t addr, uint8_t data) {
@@ -772,7 +767,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
     if (address < 0x000080) { // Vector Table
         m68k_modify_timeslice(1);
         return vectable ?
-            geo_m68k_read_fixed_8(address) : read08(biosdata, address);
+            geo_m68k_read_fixed_8(address) : read08(romdata->b, address);
     }
     else if (address < 0x100000) { // Fixed 1M Program ROM Bank
         m68k_modify_timeslice(1);
@@ -873,7 +868,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         return 0xff;
     }
     else if (address < 0xd00000) { // BIOS ROM
-        return read08(biosdata, address & 0x1ffff);
+        return read08(romdata->b, address & 0x1ffff);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
         return read08(ngsys.nvram, address & 0xffff);
@@ -890,7 +885,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
     if (address < 0x000080) { // Vector Table
         m68k_modify_timeslice(1);
         return vectable ?
-            geo_m68k_read_fixed_16(address) : read16(biosdata, address);
+            geo_m68k_read_fixed_16(address) : read16(romdata->b, address);
     }
     else if (address < 0x100000) { // Fixed 1M Program ROM Bank
         m68k_modify_timeslice(1);
@@ -944,7 +939,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         return ngsys.memcard[(address >> 1) & 0x7ff] | 0xff00;
     }
     else if (address < 0xd00000) { // BIOS ROM
-        return read16(biosdata, address & 0x1ffff);
+        return read16(romdata->b, address & 0x1ffff);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
         return read16(ngsys.nvram, address & 0xffff);
@@ -1240,7 +1235,7 @@ void geo_m68k_reset(void) {
     reg_crdlock[0] = reg_crdlock[1] = 0;
     reg_crdregsel = 0;
 
-    if (promsize > 0x100000)
+    if (romdata->psz > 0x100000)
         banksw_addr = 0x100000;
     else
         banksw_addr = 0;
@@ -1253,6 +1248,8 @@ void geo_m68k_init(void) {
 
     // Zero the cartridge registers (most games do not use these)
     cartreg[0] = cartreg[1] = 0;
+
+    romdata = geo_romdata_ptr();
 }
 
 int geo_m68k_run(unsigned cycs) {
@@ -1346,44 +1343,35 @@ void geo_m68k_board_set(unsigned btype) {
             geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_kof10th;
             geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_kof10th;
             geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_kof10th;
-            geo_lspc_sromdata(dynfix, SIZE_128K);
+            romdata->s = dynfix;
+            romdata->ssz = SIZE_128K;
 
             /* According to MAME, there is an Altera protection chip which
                patches over the P ROM to allow the game to work correctly.
             */
             // Enables XOR for RAM moves, forces SoftDIPs, and USA region
-            promdata[0x0124] = 0x00;
-            promdata[0x0125] = 0x0d;
-            promdata[0x0126] = 0xf7;
-            promdata[0x0127] = 0xa8;
+            romdata->p[0x0124] = 0x00;
+            romdata->p[0x0125] = 0x0d;
+            romdata->p[0x0126] = 0xf7;
+            romdata->p[0x0127] = 0xa8;
 
             // Run code to change "S" data
-            promdata[0x8bf4] = 0x4e;
-            promdata[0x8bf5] = 0xf9;
-            promdata[0x8bf6] = 0x00;
-            promdata[0x8bf7] = 0x0d;
-            promdata[0x8bf8] = 0xf9;
-            promdata[0x8bf9] = 0x80;
+            romdata->p[0x8bf4] = 0x4e;
+            romdata->p[0x8bf5] = 0xf9;
+            romdata->p[0x8bf6] = 0x00;
+            romdata->p[0x8bf7] = 0x0d;
+            romdata->p[0x8bf8] = 0xf9;
+            romdata->p[0x8bf9] = 0x80;
             break;
     }
 }
 
-void geo_m68k_biosdata(uint8_t *p, size_t psz) {
-    biosdata = p;
-    biossize = psz;
-}
-
-void geo_m68k_promdata(uint8_t *p, size_t psz) {
-    promdata = p;
-    promsize = psz;
-
-    // Calculate the switchable PROM bank mask
-    banksw_mask = (psz > 0x100000) ?
-        geo_calc_mask(16, (psz - 0x100000) >> 20) : 0;
-}
-
 void geo_m68k_postload(void) {
     // Byteswap the BIOS and P ROM
-    swapb16_range(biosdata, biossize);
-    swapb16_range(promdata, promsize);
+    swapb16_range(romdata->b, romdata->bsz);
+    swapb16_range(romdata->p, romdata->psz);
+
+    // Calculate the switchable PROM bank mask
+    banksw_mask = (romdata->psz > 0x100000) ?
+        geo_calc_mask(8, (romdata->psz - 0x100000) >> 20) : 0;
 }

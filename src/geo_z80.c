@@ -40,11 +40,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 static z80 z80ctx;
 
+static romdata_t *romdata = NULL;
 static uint8_t *mrom = NULL;
-static uint8_t *mromdata = NULL;
-static size_t mromsize = 0;
-static uint8_t *smromdata = NULL;
-static size_t smromsize = 0;
 
 static uint8_t nmi_enabled = 0;
 static uint8_t zram[SIZE_2K];
@@ -245,6 +242,9 @@ void geo_z80_init(void) {
     z80ctx.write_byte = &geo_z80_mem_wr;
     z80ctx.port_in = &geo_z80_port_rd;
     z80ctx.port_out = &geo_z80_port_wr;
+
+    // Get ROM data pointer
+    romdata = geo_romdata_ptr();
 }
 
 // Run at least N Z80 cycles
@@ -268,20 +268,8 @@ void geo_z80_clear_irq(void) {
     z80_clr_irq(&z80ctx);
 }
 
-// Assign M ROM pointer and size
-void geo_z80_mdata(uint8_t *m, size_t msz) {
-    mromdata = mrom = m;
-    mromsize = msz;
-}
-
-// Assign SM ROM pointer and size
-void geo_z80_smdata(uint8_t *sm, size_t smsz) {
-    smromdata = sm;
-    smromsize = smsz;
-}
-
 void geo_z80_set_mrom(unsigned m) {
-    mrom = m ? mromdata : smromdata;
+    mrom = m ? romdata->m : romdata->sm;
 }
 
 // Restore the Z80's state from external data

@@ -32,7 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define YMFM_SHIM_H
 
 int16_t* ymfm_shim_get_buffer(void);
-void ymfm_shim_romdata(uint8_t*, size_t, uint8_t*, size_t);
 void ymfm_shim_init(void);
 void ymfm_shim_reset(void);
 size_t ymfm_shim_exec(void);

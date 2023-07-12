@@ -103,6 +103,50 @@ typedef struct _ngsys_t {
     uint8_t cartram_present;
 } ngsys_t;
 
+typedef struct _romdata_t {
+    // BIOS ROM (System ROM)
+    uint8_t *b;
+    size_t bsz;
+
+    // SFIX ROM (System Graphics ROM for FIX layer)
+    uint8_t *sfix;
+    size_t sfixsz;
+
+    // SM1 ROM (System Music ROM)
+    uint8_t *sm;
+    size_t smsz;
+
+    // L0 ROM (Vertical Shrink ROM)
+    uint8_t *l0;
+    size_t l0sz;
+
+    // P ROM (Program ROM)
+    uint8_t *p;
+    size_t psz;
+
+    // S ROM (Graphics ROM for FIX layer)
+    uint8_t *s;
+    size_t ssz;
+
+    // M1 ROM (Music ROM)
+    uint8_t *m;
+    size_t msz;
+
+    // V1 ROM (Voice ROM - ADPCM sample data A - ~18KHz)
+    uint8_t *v1;
+    size_t v1sz;
+
+    // V2 ROM (Voice ROM - ADPCM sample data B - ~1.85KHz to ~55KHz)
+    uint8_t *v2;
+    size_t v2sz;
+
+    // C ROM (Graphics ROM for sprites)
+    uint8_t *c;
+    size_t csz;
+} romdata_t;
+
+romdata_t* geo_romdata_ptr(void);
+
 int geo_bios_load(const char*);
 void geo_bios_unload(void);
 

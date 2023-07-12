@@ -67,9 +67,6 @@ void geo_m68k_interrupt(unsigned);
 void geo_m68k_board_set(unsigned);
 void geo_m68k_sma_init(uint32_t*, uint32_t*, uint8_t*);
 
-void geo_m68k_biosdata(uint8_t*, size_t);
-void geo_m68k_promdata(uint8_t*, size_t);
-
 void geo_m68k_postload(void);
 
 #endif

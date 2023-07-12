@@ -48,46 +48,49 @@ static inline uint32_t read32le(uint8_t *ptr, uint32_t addr) {
 }
 
 int geo_neo_load(void *data, size_t size) {
-    uint8_t *romdata = (uint8_t*)data; // Assign internal ROM pointer
+    uint8_t *neodata = (uint8_t*)data; // Assign internal pointer to NEO data
     if (size) { }
 
     // Bytes 0-3 should be 'N' 'E' 'O' 1
-    if (romdata[0] != 'N' || romdata[1] != 'E' ||
-        romdata[2] != 'O' || romdata[3] != 0x01) {
+    if (neodata[0] != 'N' || neodata[1] != 'E' ||
+        neodata[2] != 'O' || neodata[3] != 0x01) {
         geo_log(GEO_LOG_ERR, "Not a valid NEO ROM: %c %c %c %c\n",
-            romdata[0], romdata[1], romdata[2], romdata[3]);
+            neodata[0], neodata[1], neodata[2], neodata[3]);
         return 0;
     }
 
-    // Parse ROM info
-    uint32_t promsize = read32le(romdata, 4);
-    uint32_t sromsize = read32le(romdata, 8);
-    uint32_t mromsize = read32le(romdata, 12);
-    uint32_t v1romsize = read32le(romdata, 16);
-    uint32_t v2romsize = read32le(romdata, 20);
-    uint32_t cromsize = read32le(romdata, 24);
+    // Get pointer to ROM data struct
+    romdata_t *romdata = geo_romdata_ptr();
 
-    geo_log(GEO_LOG_INF, "P  ROM Size: %d\n", promsize);
-    geo_log(GEO_LOG_INF, "S  ROM Size: %d\n", sromsize);
-    geo_log(GEO_LOG_INF, "M1 ROM Size: %d\n", mromsize);
-    geo_log(GEO_LOG_INF, "V1 ROM Size: %d\n", v1romsize);
-    geo_log(GEO_LOG_INF, "V2 ROM Size: %d\n", v2romsize);
-    geo_log(GEO_LOG_INF, "C  ROM Size: %d\n", cromsize);
+    // Parse ROM info
+    romdata->psz = read32le(neodata, 4);
+    romdata->ssz = read32le(neodata, 8);
+    romdata->msz = read32le(neodata, 12);
+    romdata->v1sz = read32le(neodata, 16);
+    romdata->v2sz = read32le(neodata, 20);
+    romdata->csz = read32le(neodata, 24);
+
+    geo_log(GEO_LOG_INF, "P  ROM Size: %d\n", romdata->psz);
+    geo_log(GEO_LOG_INF, "S  ROM Size: %d\n", romdata->ssz);
+    geo_log(GEO_LOG_INF, "M1 ROM Size: %d\n", romdata->msz);
+    geo_log(GEO_LOG_INF, "V1 ROM Size: %d\n", romdata->v1sz);
+    geo_log(GEO_LOG_INF, "V2 ROM Size: %d\n", romdata->v2sz);
+    geo_log(GEO_LOG_INF, "C  ROM Size: %d\n", romdata->csz);
 
     // Parse Year, Genre, Screenshot, and NGH info
-    uint32_t year = read32le(romdata, 28);
-    uint32_t genre = read32le(romdata, 32);
-    uint32_t screenshot = read32le(romdata, 36);
-    uint32_t ngh = read32le(romdata, 40);
+    uint32_t year = read32le(neodata, 28);
+    uint32_t genre = read32le(neodata, 32);
+    uint32_t screenshot = read32le(neodata, 36);
+    uint32_t ngh = read32le(neodata, 40);
 
     // Parse Name
     char name[34];
-    memcpy((char*)name, (uint8_t*)romdata + 44, 33);
+    memcpy((char*)name, (uint8_t*)neodata + 44, 33);
     name[33] = '\0';
 
     // Parse Manufacturer
     char manu[18];
-    memcpy((char*)manu, (uint8_t*)romdata + 77, 17);
+    memcpy((char*)manu, (uint8_t*)neodata + 77, 17);
     manu[17] = '\0';
 
     geo_log(GEO_LOG_INF, "Year: %d\n", year);
@@ -99,37 +102,36 @@ int geo_neo_load(void *data, size_t size) {
 
     // Assign pointers and sizes
     uint32_t rom_offset = 4096; // ROM data starts at byte 4096
-    uint8_t *promdata = &romdata[rom_offset];
-    rom_offset += promsize;
+    romdata->p = &neodata[rom_offset];
+    rom_offset += romdata->psz;
 
-    uint8_t *sromdata = &romdata[rom_offset];
-    rom_offset += sromsize;
+    romdata->s = &neodata[rom_offset];
+    rom_offset += romdata->ssz;
 
-    geo_m68k_promdata(promdata, promsize);
+    romdata->m = &neodata[rom_offset];
+    rom_offset += romdata->msz;
+    geo_z80_set_mrom(1);
 
-    uint8_t *mromdata = &romdata[rom_offset];
-    geo_z80_mdata(mromdata, mromsize);
-    rom_offset += mromsize;
-
-    if (!v2romsize) { // Single V ROM
-        ymfm_shim_romdata(&romdata[rom_offset], v1romsize,
-            &romdata[rom_offset], v1romsize);
-        rom_offset += v1romsize;
+    if (!romdata->v2sz) { // Single V ROM
+        romdata->v1 = romdata->v2 = &neodata[rom_offset];
+        romdata->v2sz = romdata->v1sz;
+        rom_offset += romdata->v1sz;
     }
     else { // V1 and V2 ROMs
-        ymfm_shim_romdata(&romdata[rom_offset], v1romsize,
-            &romdata[rom_offset + v1romsize], v2romsize);
-        rom_offset += v1romsize + v2romsize;
+        romdata->v1 = &neodata[rom_offset];
+        romdata->v2 = &neodata[rom_offset + romdata->v1sz];
+        rom_offset += romdata->v1sz + romdata->v2sz;
     }
 
-    uint8_t *cromdata = &romdata[rom_offset];
-    rom_offset += cromsize;
+    romdata->c = &neodata[rom_offset];
 
-    // Pass C ROM and S ROM data to LSPC
-    geo_lspc_cromdata(cromdata, cromsize);
-    geo_lspc_sromdata(sromdata, sromsize);
+    // Perform C ROM mask calculation
+    geo_lspc_postload();
 
-    // Perform byte swapping on the BIOS and P ROM data
+    // Set FIX data to S ROM by default - handles AES and MVS use cases
+    geo_lspc_set_fix(1);
+
+    // Perform byte swapping on the BIOS and P ROM, calculate P bankswitch mask
     geo_m68k_postload();
 
     // Set default bankswitching
@@ -170,7 +172,7 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 0x151: case 0x251: { // KOF 99
-            if (promsize > 0x500000) { // Encrypted
+            if (romdata->psz > 0x500000) { // Encrypted
                 geo_m68k_sma_init(sma_addr_kof99, sma_bank_kof99,
                     sma_scramble_kof99);
                 geo_m68k_board_set(BOARD_SMA);
@@ -179,13 +181,13 @@ int geo_neo_load(void *data, size_t size) {
         }
         case 0x253: { // Garou - Mark of the Wolves
             // Use heuristics to handle descrambling differences
-            if (romdata[0xc1000 + 0x3e481] == 0x9f) { // NEO-SMA KE (AES)
+            if (neodata[0xc1000 + 0x3e481] == 0x9f) { // NEO-SMA KE (AES)
                 geo_m68k_sma_init(sma_addr_garouh, sma_bank_garouh,
                     sma_scramble_garouh);
                 geo_m68k_board_set(BOARD_SMA);
                 geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
             }
-            else if (romdata[0xc1000 + 0x3e481] == 0x41) { // NEO-SMA KF (MVS)
+            else if (neodata[0xc1000 + 0x3e481] == 0x41) { // NEO-SMA KF (MVS)
                 geo_m68k_sma_init(sma_addr_garou, sma_bank_garou,
                     sma_scramble_garou);
                 geo_m68k_board_set(BOARD_SMA);
@@ -197,8 +199,8 @@ int geo_neo_load(void *data, size_t size) {
         case 0x256: { // Metal Slug 3
             geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
 
-            if (promsize > 0x500000) { // Encrypted
-                if (romdata[0x1000 + 0x141] == 0x33) { // mslug3a
+            if (romdata->psz > 0x500000) { // Encrypted
+                if (neodata[0x1000 + 0x141] == 0x33) { // mslug3a
                     geo_m68k_sma_init(sma_addr_mslug3a, sma_bank_mslug3a,
                         sma_scramble_mslug3a);
                 }
@@ -213,7 +215,7 @@ int geo_neo_load(void *data, size_t size) {
         case 0x257: { // KOF 2000
             geo_lspc_set_fix_banksw(FIX_BANKSW_TILE);
 
-            if (promsize > 0x500000) { // Encrypted
+            if (romdata->psz > 0x500000) { // Encrypted
                 geo_m68k_sma_init(sma_addr_kof2000, sma_bank_kof2000,
                     sma_scramble_kof2000);
                 geo_m68k_board_set(BOARD_SMA);
@@ -222,7 +224,7 @@ int geo_neo_load(void *data, size_t size) {
         }
         case 0x263: { // Metal Slug 4
             // mslug4 and mslug4h use FIX bankswitching, ms4plus does not
-            if (romdata[0x1000 + 0x809] != 0x0c)
+            if (neodata[0x1000 + 0x809] != 0x0c)
                 geo_lspc_set_fix_banksw(FIX_BANKSW_LINE);
             break;
         }
@@ -231,9 +233,9 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 0x268: { // Metal Slug 5
-            if (romdata[0x1000 + 0x26b] == 0xb9) // Metal Slug 5 Plus
+            if (neodata[0x1000 + 0x26b] == 0xb9) // Metal Slug 5 Plus
                 geo_m68k_board_set(BOARD_MS5PLUS);
-            else if (romdata[0x1000 + 0x267] == 0x4f) // Official Releases
+            else if (neodata[0x1000 + 0x267] == 0x4f) // Official Releases
                 geo_m68k_board_set(BOARD_PVC);
             break;
         }
@@ -243,18 +245,18 @@ int geo_neo_load(void *data, size_t size) {
                also uses Fix Bankswitching Type 2 (per-tile banking). The other
                known bootlegs use neither.
             */
-            if (romdata[0x1000 + 0x3d25] == 0xc4) // Official Release Only
+            if (neodata[0x1000 + 0x3d25] == 0xc4) // Official Release Only
                 geo_lspc_set_fix_banksw(FIX_BANKSW_TILE);
-            if (romdata[0x1000 + 0x2f8f] == 0xc0)
+            if (neodata[0x1000 + 0x2f8f] == 0xc0)
                 geo_m68k_board_set(BOARD_PVC);
             break;
         }
         case 0x271: { // KOF 2003
-            if (romdata[0x1000 + 0xc1] == 0x38) { // Official Release
+            if (neodata[0x1000 + 0xc1] == 0x38) { // Official Release
                 geo_lspc_set_fix_banksw(FIX_BANKSW_TILE);
                 geo_m68k_board_set(BOARD_PVC);
             }
-            else if (romdata[0x1000 + 0x689] == 0x10) { // kf2k3bla/kf2k3pl
+            else if (neodata[0x1000 + 0x689] == 0x10) { // kf2k3bla/kf2k3pl
                 geo_m68k_board_set(BOARD_KF2K3BLA);
             }
             else { // kf2k3bl and kf2k3upl
@@ -267,7 +269,8 @@ int geo_neo_load(void *data, size_t size) {
                 geo_log(GEO_LOG_WRN, "The King of Fighters 10th Anniversary is"
                     " compatible with the Neo Geo MVS and Universe BIOS only\n"
                 );
-                geo_lspc_sfixdata(sromdata, sromsize);
+                romdata->sfix = romdata->s;
+                romdata->sfixsz = romdata->ssz;
             }
             geo_m68k_board_set(BOARD_KOF10TH);
             break;
@@ -276,7 +279,7 @@ int geo_neo_load(void *data, size_t size) {
             /* Crouching Tiger Hidden Dragon 2003 Super Plus Alternative
                requires no special handling.
             */
-            if (romdata[0x1000 + 0x30d9] != 0x03)
+            if (neodata[0x1000 + 0x30d9] != 0x03)
                 geo_m68k_board_set(BOARD_CTHD2003);
             break;
         }

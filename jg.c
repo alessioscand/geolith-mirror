@@ -205,6 +205,10 @@ int jg_init(void) {
     geo_mixer_init();
     geo_set_region(settings_gn[REGION].val);
     geo_set_system(settings_gn[SYS].val);
+
+    // Initialize the rest of the emulator
+    geo_init();
+
     return 1;
 }
 
@@ -232,9 +236,6 @@ int jg_game_load(void) {
 
     // Load the NEO file
     geo_neo_load(gameinfo.data, gameinfo.size);
-
-    // Initialize the rest of the emulator
-    geo_init();
 
     // Load saved data
     char savename[292];
