@@ -113,4 +113,7 @@ void geo_lspc_shadow_wr(unsigned);
 
 void geo_lspc_scanline(void);
 
+void geo_lspc_state_load(uint8_t*);
+void geo_lspc_state_save(uint8_t*);
+
 #endif

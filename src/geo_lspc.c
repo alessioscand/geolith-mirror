@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "geo.h"
 #include "geo_lspc.h"
+#include "geo_serial.h"
 
 static void (*geo_lspc_fixline)(void);
 
@@ -669,4 +670,38 @@ void geo_lspc_scanline(void) {
         lspc.scanline = 0;
     else if (lspc.scanline == LSPC_LINE_BORDER_TOP)
         geo_lspc_aa();
+}
+
+void geo_lspc_state_load(uint8_t *st) {
+    geo_serial_popblk(st, (uint8_t*)lspc.vram, SIZE_64K + SIZE_4K);
+    geo_serial_popblk(st, (uint8_t*)lspc.palram, SIZE_16K);
+    lspc.palbank = geo_serial_pop8(st);
+    lspc.vramaddr = geo_serial_pop16(st);
+    lspc.vrambank = geo_serial_pop16(st);
+    lspc.vrammod = geo_serial_pop16(st);
+    lspc.aa_counter = geo_serial_pop8(st);
+    lspc.aa_disable = geo_serial_pop8(st);
+    lspc.aa_reload = geo_serial_pop8(st);
+    lspc.aa_timer = geo_serial_pop8(st);
+    lspc.shadow = geo_serial_pop8(st);
+    lspc.scanline = geo_serial_pop32(st);
+
+    // Restore the output palette
+    for (unsigned i = 0; i < (SIZE_16K >> 1); ++i)
+        geo_lspc_palconv(i, lspc.palram[i]);
+}
+
+void geo_lspc_state_save(uint8_t *st) {
+    geo_serial_pushblk(st, (uint8_t*)lspc.vram, SIZE_64K + SIZE_4K);
+    geo_serial_pushblk(st, (uint8_t*)lspc.palram, SIZE_16K);
+    geo_serial_push8(st, lspc.palbank);
+    geo_serial_push16(st, lspc.vramaddr);
+    geo_serial_push16(st, lspc.vrambank);
+    geo_serial_push16(st, lspc.vrammod);
+    geo_serial_push8(st, lspc.aa_counter);
+    geo_serial_push8(st, lspc.aa_disable);
+    geo_serial_push8(st, lspc.aa_reload);
+    geo_serial_push8(st, lspc.aa_timer);
+    geo_serial_push8(st, lspc.shadow);
+    geo_serial_push32(st, lspc.scanline);
 }
