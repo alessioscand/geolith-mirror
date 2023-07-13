@@ -32,11 +32,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stddef.h>
 #include <stdint.h>
 
-#include "ymfm.h"
-#include "ymfm_opn.h"
-#include "ymfm_shim.h"
+#include "ymfm/ymfm.h"
+#include "ymfm/ymfm_opn.h"
 
 #include "geo.h"
+#include "geo_ymfm.h"
 #include "geo_z80.h"
 
 #define SIZE_YMBUF 2048
@@ -98,7 +98,7 @@ void ymfm_update_irq(bool asserted) {
     asserted ? geo_z80_assert_irq(0) : geo_z80_clear_irq();
 }
 
-static inline void ymfm_shim_timer_tick(void) {
+static inline void geo_ymfm_timer_tick(void) {
     if (busytimer)
         --busytimer;
 
@@ -111,13 +111,13 @@ static inline void ymfm_shim_timer_tick(void) {
 }
 
 // Grab the pointer to the buffer
-int16_t* ymfm_shim_get_buffer(void) {
+int16_t* geo_ymfm_get_buffer(void) {
     bufpos = 0;
     return &ymbuf[0];
 }
 
 // Initialize the YM2610
-void ymfm_shim_init(void) {
+void geo_ymfm_init(void) {
     divisor = 144; // 144 for medium fidelity, 16 for high
     ym2610_init();
     ym2610_set_fidelity(OPN_FIDELITY_MED);
@@ -126,13 +126,13 @@ void ymfm_shim_init(void) {
 }
 
 // Perform a reset - required at least once before clocking
-void ymfm_shim_reset(void) {
+void geo_ymfm_reset(void) {
     ym2610_reset();
 }
 
 // Clock the YM2610
-size_t ymfm_shim_exec(void) {
-    ymfm_shim_timer_tick();
+size_t geo_ymfm_exec(void) {
+    geo_ymfm_timer_tick();
     ym2610_generate(output);
 
     // Mix stereo FM/ADPCM output (0,1) with mono SSG output (2)

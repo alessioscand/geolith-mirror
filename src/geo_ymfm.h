@@ -28,12 +28,12 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef YMFM_SHIM_H
-#define YMFM_SHIM_H
+#ifndef GEO_YMFM_H
+#define GEO_YMFM_H
 
-int16_t* ymfm_shim_get_buffer(void);
-void ymfm_shim_init(void);
-void ymfm_shim_reset(void);
-size_t ymfm_shim_exec(void);
+int16_t* geo_ymfm_get_buffer(void);
+void geo_ymfm_init(void);
+void geo_ymfm_reset(void);
+size_t geo_ymfm_exec(void);
 
 #endif

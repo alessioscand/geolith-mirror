@@ -46,7 +46,6 @@ CSRCS := m68k/m68kcpu.c \
 	m68k/m68kops.c \
 	ymfm/ymfm_adpcm.c \
 	ymfm/ymfm_opn.c \
-	ymfm/ymfm_shim.c \
 	ymfm/ymfm_ssg.c \
 	z80/z80.c \
 	geo.c \
@@ -57,6 +56,7 @@ CSRCS := m68k/m68kcpu.c \
 	geo_neo.c \
 	geo_rtc.c \
 	geo_serial.c \
+	geo_ymfm.c \
 	geo_z80.c \
 	jg.c
 

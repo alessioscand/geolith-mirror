@@ -39,9 +39,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "geo_memcard.h"
 #include "geo_mixer.h"
 #include "geo_rtc.h"
+#include "geo_ymfm.h"
 #include "geo_z80.h"
-
-#include "ymfm/ymfm_shim.h"
 
 #define DIV_M68K 2
 #define DIV_Z80 6
@@ -345,7 +344,7 @@ void geo_reset(int hard) {
 
     geo_m68k_reset();
     geo_z80_reset();
-    ymfm_shim_reset(); // Reset the YM2610 to make sure everything is defaulted
+    geo_ymfm_reset(); // Reset the YM2610 to make sure everything is defaulted
     geo_lspc_init();
 
     if (hard)
@@ -355,7 +354,7 @@ void geo_reset(int hard) {
 void geo_init(void) {
     geo_m68k_init();
     geo_z80_init();
-    ymfm_shim_init();
+    geo_ymfm_init();
     geo_rtc_init();
     geo_lspc_init();
 
@@ -441,7 +440,7 @@ void geo_exec(void) {
             ymcycs += scycs;
             if (ymcycs >= DIV_YM2610) {
                 ymcycs -= DIV_YM2610;
-                ymsamps += ymfm_shim_exec();
+                ymsamps += geo_ymfm_exec();
             }
         }
 

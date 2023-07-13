@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <speex/speex_resampler.h>
 
 #include "geo_mixer.h"
-#include "ymfm/ymfm_shim.h"
+#include "geo_ymfm.h"
 
 // 55555 becomes 56340 to compensate for 60.0Hz vs ~59.18Hz
 #define SAMPLERATE_YM2610 56340 // Medium Fidelity
@@ -79,7 +79,7 @@ void geo_mixer_init(void) {
 }
 
 void geo_mixer_resamp(size_t in_ym) {
-    int16_t *ybuf = ymfm_shim_get_buffer();
+    int16_t *ybuf = geo_ymfm_get_buffer();
     spx_uint32_t insamps = in_ym;
     spx_uint32_t outsamps = samplerate / framerate;
 

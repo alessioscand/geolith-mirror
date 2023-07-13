@@ -36,11 +36,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "geo.h"
 #include "geo_lspc.h"
 #include "geo_m68k.h"
-#include "geo_z80.h"
 #include "geo_neo.h"
 #include "geo_sma.h"
+#include "geo_ymfm.h"
+#include "geo_z80.h"
 
-#include "ymfm/ymfm_shim.h"
 
 static inline uint32_t read32le(uint8_t *ptr, uint32_t addr) {
     return ptr[addr] | (ptr[addr + 1] << 8) |
