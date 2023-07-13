@@ -1378,13 +1378,39 @@ void geo_m68k_postload(void) {
 }
 
 void geo_m68k_state_load(uint8_t *st) {
-    uint8_t m68kst[520];; // m68k_context_size();
+    uint8_t m68kst[520]; // m68k_context_size();
     geo_serial_popblk(st, m68kst, m68k_context_size());
     m68k_set_context(m68kst);
+    geo_serial_popblk(st, ram, SIZE_64K);
+    cartreg[0] = geo_serial_pop16(st);
+    cartreg[1] = geo_serial_pop16(st);
+    protreg = geo_serial_pop32(st);
+    banksw_addr = geo_serial_pop32(st);
+    vectable = geo_serial_pop8(st);
+    reg_sramlock = geo_serial_pop8(st);
+    reg_crdlock[0] = geo_serial_pop8(st);
+    reg_crdlock[1] = geo_serial_pop8(st);
+    reg_crdregsel = geo_serial_pop8(st);
+
+    if (boardtype == BOARD_KOF10TH)
+        geo_serial_popblk(st, dynfix, SIZE_128K);
 }
 
 void geo_m68k_state_save(uint8_t *st) {
     uint8_t m68kst[520]; // m68k_context_size();
     m68k_get_context(m68kst);
     geo_serial_pushblk(st, m68kst, m68k_context_size());
+    geo_serial_pushblk(st, ram, SIZE_64K);
+    geo_serial_push16(st, cartreg[0]);
+    geo_serial_push16(st, cartreg[1]);
+    geo_serial_push32(st, protreg);
+    geo_serial_push32(st, banksw_addr);
+    geo_serial_push8(st, vectable);
+    geo_serial_push8(st, reg_sramlock);
+    geo_serial_push8(st, reg_crdlock[0]);
+    geo_serial_push8(st, reg_crdlock[1]);
+    geo_serial_push8(st, reg_crdregsel);
+
+    if (boardtype == BOARD_KOF10TH)
+        geo_serial_pushblk(st, dynfix, SIZE_128K);
 }
