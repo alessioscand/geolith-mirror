@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <time.h>
 
 #include "geo_rtc.h"
+#include "geo_serial.h"
 
 // 68K @ 12MHz == 12,000,000Hz
 #define CYCS_68K_PER_SECOND 12000000
@@ -359,4 +360,46 @@ void geo_rtc_sync(unsigned scycs) {
         */
         tp = tpcounter >= (tpinterval >> 1);
     }
+}
+
+void geo_rtc_state_load(uint8_t *st) {
+    cmdreg = geo_serial_pop8(st);
+    datareg = geo_serial_pop64(st);
+    cycs = geo_serial_pop32(st);
+    tpinterval = geo_serial_pop32(st);
+    tpcounter = geo_serial_pop32(st);
+    tpmode = geo_serial_pop8(st);
+    fmode = geo_serial_pop8(st);
+    year = geo_serial_pop32(st);
+    month = geo_serial_pop32(st);
+    weekday = geo_serial_pop32(st);
+    day = geo_serial_pop32(st);
+    hour = geo_serial_pop32(st);
+    minute = geo_serial_pop32(st);
+    second = geo_serial_pop32(st);
+    clk = geo_serial_pop8(st);
+    stb = geo_serial_pop8(st);
+    timer_1hz = geo_serial_pop8(st);
+    tp = geo_serial_pop8(st);
+}
+
+void geo_rtc_state_save(uint8_t *st) {
+    geo_serial_push8(st, cmdreg);
+    geo_serial_push64(st, datareg);
+    geo_serial_push32(st, cycs);
+    geo_serial_push32(st, tpinterval);
+    geo_serial_push32(st, tpcounter);
+    geo_serial_push8(st, tpmode);
+    geo_serial_push8(st, fmode);
+    geo_serial_push32(st, year);
+    geo_serial_push32(st, month);
+    geo_serial_push32(st, weekday);
+    geo_serial_push32(st, day);
+    geo_serial_push32(st, hour);
+    geo_serial_push32(st, minute);
+    geo_serial_push32(st, second);
+    geo_serial_push8(st, clk);
+    geo_serial_push8(st, stb);
+    geo_serial_push8(st, timer_1hz);
+    geo_serial_push8(st, tp);
 }

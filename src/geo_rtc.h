@@ -38,4 +38,7 @@ void geo_rtc_wr(uint8_t);
 
 void geo_rtc_sync(unsigned);
 
+void geo_rtc_state_load(uint8_t*);
+void geo_rtc_state_save(uint8_t*);
+
 #endif
