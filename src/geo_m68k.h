@@ -69,4 +69,7 @@ void geo_m68k_sma_init(uint32_t*, uint32_t*, uint8_t*);
 
 void geo_m68k_postload(void);
 
+void geo_m68k_state_load(uint8_t*);
+void geo_m68k_state_save(uint8_t*);
+
 #endif

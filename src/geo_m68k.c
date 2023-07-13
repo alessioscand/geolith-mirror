@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "geo_lspc.h"
 #include "geo_m68k.h"
 #include "geo_rtc.h"
+#include "geo_serial.h"
 #include "geo_z80.h"
 
 #define SMATAP 0x98ec // NEO-SMA Tapped bits - 2, 3, 5, 6, 7, 11, 12, and 15
@@ -1374,4 +1375,16 @@ void geo_m68k_postload(void) {
     // Calculate the switchable PROM bank mask
     banksw_mask = (romdata->psz > 0x100000) ?
         geo_calc_mask(8, (romdata->psz - 0x100000) >> 20) : 0;
+}
+
+void geo_m68k_state_load(uint8_t *st) {
+    uint8_t m68kst[520];; // m68k_context_size();
+    geo_serial_popblk(st, m68kst, m68k_context_size());
+    m68k_set_context(m68kst);
+}
+
+void geo_m68k_state_save(uint8_t *st) {
+    uint8_t m68kst[520]; // m68k_context_size();
+    m68k_get_context(m68kst);
+    geo_serial_pushblk(st, m68kst, m68k_context_size());
 }
