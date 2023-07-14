@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdint.h>
 
 #include "m68k/m68k.h"
+#include "m68k/m68kcpu.h"
 
 #include "geo.h"
 #include "geo_lspc.h"
@@ -1378,9 +1379,37 @@ void geo_m68k_postload(void) {
 }
 
 void geo_m68k_state_load(uint8_t *st) {
-    uint8_t m68kst[520]; // m68k_context_size();
-    geo_serial_popblk(m68kst, st, m68k_context_size());
-    m68k_set_context(m68kst);
+    m68k_set_reg(M68K_REG_D0, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_D1, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_D2, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_D3, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_D4, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_D5, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_D6, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_D7, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_A0, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_A1, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_A2, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_A3, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_A4, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_A5, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_A6, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_A7, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_PC, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_SR, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_SP, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_USP, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_ISP, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_MSP, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_PPC, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_IR, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_PREF_ADDR, geo_serial_pop32(st));
+    m68k_set_reg(M68K_REG_PREF_DATA, geo_serial_pop32(st));
+
+    m68ki_cpu.int_level = geo_serial_pop32(st);
+    m68ki_cpu.virq_state = geo_serial_pop32(st);
+    m68ki_cpu.nmi_pending = geo_serial_pop32(st);
+
     geo_serial_popblk(ram, st, SIZE_64K);
     cartreg[0] = geo_serial_pop16(st);
     cartreg[1] = geo_serial_pop16(st);
@@ -1392,16 +1421,47 @@ void geo_m68k_state_load(uint8_t *st) {
     reg_crdlock[1] = geo_serial_pop8(st);
     reg_crdregsel = geo_serial_pop8(st);
 
-    if (boardtype == BOARD_KOF10TH) {
+    if (boardtype == BOARD_KOF98) {
+        geo_m68k_write_banksw_16_kof98(0x20aaaa, cartreg[0]);
+    }
+    else if (boardtype == BOARD_KOF10TH) {
         geo_serial_popblk(dynfix, st, SIZE_128K);
         geo_serial_popblk(ngsys.extram, st, SIZE_128K);
     }
 }
 
 void geo_m68k_state_save(uint8_t *st) {
-    uint8_t m68kst[520]; // m68k_context_size();
-    m68k_get_context(m68kst);
-    geo_serial_pushblk(st, m68kst, m68k_context_size());
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_D0));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_D1));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_D2));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_D3));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_D4));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_D5));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_D6));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_D7));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_A0));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_A1));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_A2));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_A3));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_A4));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_A5));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_A6));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_A7));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_PC));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_SR));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_SP));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_USP));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_ISP));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_MSP));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_PPC));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_IR));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_PREF_ADDR));
+    geo_serial_push32(st, m68k_get_reg(NULL, M68K_REG_PREF_DATA));
+
+    geo_serial_push32(st, m68ki_cpu.int_level);
+    geo_serial_push32(st, m68ki_cpu.virq_state);
+    geo_serial_push32(st, m68ki_cpu.nmi_pending);
+
     geo_serial_pushblk(st, ram, SIZE_64K);
     geo_serial_push16(st, cartreg[0]);
     geo_serial_push16(st, cartreg[1]);
