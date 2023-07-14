@@ -41,6 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "geo_z80.h"
 
 #define SIZE_YMBUF 2048
+#define DIVISOR 144 // 144 for medium fidelity, 16 for high
 
 static romdata_t *romdata = NULL;
 
@@ -49,7 +50,6 @@ static size_t bufpos;
 static int32_t busytimer;
 static int32_t busyfrac;
 static int32_t timer[2];
-static int divisor;
 static int32_t output[3];
 
 uint8_t ymfm_external_read(uint32_t type, uint32_t address) {
@@ -77,17 +77,17 @@ void ymfm_sync_check_interrupts(void) {
 
 void ymfm_set_timer(uint32_t tnum, int32_t duration) {
     if (duration >= 0)
-        timer[tnum] += (duration / divisor);
+        timer[tnum] += (duration / DIVISOR);
     else // -1 means disabled
         timer[tnum] = duration;
 }
 
 void ymfm_set_busy_end(uint32_t clocks) {
-    busytimer += clocks / divisor;
-    busyfrac += clocks % divisor;
-    if (busyfrac >= divisor) {
+    busytimer += clocks / DIVISOR;
+    busyfrac += clocks % DIVISOR;
+    if (busyfrac >= DIVISOR) {
         ++busytimer;
-        busyfrac -= divisor;
+        busyfrac -= DIVISOR;
     }
 }
 
@@ -119,7 +119,6 @@ int16_t* geo_ymfm_get_buffer(void) {
 
 // Initialize the YM2610
 void geo_ymfm_init(void) {
-    divisor = 144; // 144 for medium fidelity, 16 for high
     ym2610_init();
     ym2610_set_fidelity(OPN_FIDELITY_MED);
     fm_engine_init();
