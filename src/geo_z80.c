@@ -306,7 +306,7 @@ void geo_z80_state_load(uint8_t *st) {
     z80ctx.irq_pending = geo_serial_pop8(st);
     z80ctx.nmi_pending = geo_serial_pop8(st);
     nmi_enabled = geo_serial_pop8(st);
-    geo_serial_popblk(st, zram, SIZE_2K);
+    geo_serial_popblk(zram, st, SIZE_2K);
     for (int i = 0; i < 4; ++i) zbank[i] = geo_serial_pop32(st);
 }
 
