@@ -55,6 +55,7 @@ static int32_t m_last_fm[3];               // last FM output
 static uint16_t m_dac_data;             // 9-bit DAC data
 static uint8_t m_dac_enable;            // DAC enabled?
 
+
 // ======================> ssg_resampler
 static void (*ssg_resampler_resample)(int32_t*);
 static uint32_t m_ssg_resampler_sampindex;
@@ -486,6 +487,100 @@ uint32_t opn_registers_compute_phase_step(uint32_t choffs, const opdata_cache *c
 	return (phase_step * cache->multiple) >> 1;
 }
 
+
+//-------------------------------------------------
+//  states - Read/write OPN state data
+//-------------------------------------------------
+
+void opn_state_load(uint8_t *st) {
+	m_lfo_counter = geo_serial_pop32(st);
+	m_lfo_am = geo_serial_pop8(st);
+
+	for (int i = 0; i < REGISTERS; ++i)
+		m_regdata[i] = geo_serial_pop8(st);
+
+	m_address = geo_serial_pop16(st);
+	m_eos_status = geo_serial_pop8(st);
+	m_flag_mask = geo_serial_pop8(st);
+
+	for (int i = 0; i < 3; ++i)
+		m_last_fm[i] = geo_serial_pop32(st);
+
+	m_dac_data = geo_serial_pop16(st);
+	m_dac_enable = geo_serial_pop8(st);
+
+	m_env_counter = geo_serial_pop32(st);
+	m_status = geo_serial_pop8(st);
+	m_clock_prescale = geo_serial_pop8(st);
+	m_irq_mask = geo_serial_pop8(st);
+	m_irq_state = geo_serial_pop8(st);
+	m_timer_running[0] = geo_serial_pop8(st);
+	m_timer_running[1] = geo_serial_pop8(st);
+	m_total_clocks = geo_serial_pop8(st);
+
+	for (int i = 0; i < CHANNELS; ++i)
+	{
+		m_channel[i].m_feedback[0] = geo_serial_pop16(st);
+		m_channel[i].m_feedback[1] = geo_serial_pop16(st);
+		m_channel[i].m_feedback_in = geo_serial_pop16(st);
+	}
+
+	for (int i = 0; i < OPERATORS; ++i)
+	{
+		m_operator[i].m_phase = geo_serial_pop32(st);
+		m_operator[i].m_env_attenuation = geo_serial_pop16(st);
+		m_operator[i].m_env_state = geo_serial_pop32(st);
+		m_operator[i].m_ssg_inverted = geo_serial_pop8(st);
+		m_operator[i].m_key_state = geo_serial_pop8(st);
+		m_operator[i].m_keyon_live = geo_serial_pop8(st);
+	}
+
+	fm_engine_invalidate_caches();
+}
+
+void opn_state_save(uint8_t *st) {
+	geo_serial_push32(st, m_lfo_counter);
+	geo_serial_push8(st, m_lfo_am);
+
+	for (int i = 0; i < REGISTERS; ++i)
+		geo_serial_push8(st, m_regdata[i]);
+
+	geo_serial_push16(st, m_address);
+	geo_serial_push8(st, m_eos_status);
+	geo_serial_push8(st, m_flag_mask);
+
+	for (int i = 0; i < 3; ++i)
+		geo_serial_push32(st, m_last_fm[i]);
+
+	geo_serial_push16(st, m_dac_data);
+	geo_serial_push8(st, m_dac_enable);
+
+	geo_serial_push32(st, m_env_counter);
+	geo_serial_push8(st, m_status);
+	geo_serial_push8(st, m_clock_prescale);
+	geo_serial_push8(st, m_irq_mask);
+	geo_serial_push8(st, m_irq_state);
+	geo_serial_push8(st, m_timer_running[0]);
+	geo_serial_push8(st, m_timer_running[1]);
+	geo_serial_push8(st, m_total_clocks);
+
+	for (int i = 0; i < CHANNELS; ++i)
+	{
+		geo_serial_push16(st, m_channel[i].m_feedback[0]);
+		geo_serial_push16(st, m_channel[i].m_feedback[1]);
+		geo_serial_push16(st, m_channel[i].m_feedback_in);
+	}
+
+	for (int i = 0; i < OPERATORS; ++i)
+	{
+		geo_serial_push32(st, m_operator[i].m_phase);
+		geo_serial_push16(st, m_operator[i].m_env_attenuation);
+		geo_serial_push32(st, m_operator[i].m_env_state);
+		geo_serial_push8(st, m_operator[i].m_ssg_inverted);
+		geo_serial_push8(st, m_operator[i].m_key_state);
+		geo_serial_push8(st, m_operator[i].m_keyon_live);
+	}
+}
 
 //*********************************************************
 //  SSG RESAMPLER
