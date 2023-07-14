@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ymfm/ymfm_opn.h"
 
 #include "geo.h"
+#include "geo_serial.h"
 #include "geo_ymfm.h"
 #include "geo_z80.h"
 
@@ -45,9 +46,9 @@ static romdata_t *romdata = NULL;
 
 static int16_t ymbuf[SIZE_YMBUF];
 static size_t bufpos;
-static int busytimer;
-static int busyfrac;
-static int timer[2];
+static int32_t busytimer;
+static int32_t busyfrac;
+static int32_t timer[2];
 static int divisor;
 static int32_t output[3];
 
@@ -140,4 +141,25 @@ size_t geo_ymfm_exec(void) {
     ymbuf[bufpos++] = output[1] + output[2];
 
     return 1;
+}
+
+// States
+void geo_ymfm_state_load(uint8_t *st) {
+    busytimer = geo_serial_pop32(st);
+    busyfrac = geo_serial_pop32(st);
+    timer[0] = geo_serial_pop32(st);
+    timer[1] = geo_serial_pop32(st);
+    opn_state_load(st);
+    adpcm_state_load(st);
+    ssg_state_load(st);
+}
+
+void geo_ymfm_state_save(uint8_t *st) {
+    geo_serial_push32(st, busytimer);
+    geo_serial_push32(st, busyfrac);
+    geo_serial_push32(st, timer[0]);
+    geo_serial_push32(st, timer[1]);
+    opn_state_save(st);
+    adpcm_state_save(st);
+    ssg_state_save(st);
 }
