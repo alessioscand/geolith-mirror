@@ -673,8 +673,8 @@ void geo_lspc_scanline(void) {
 }
 
 void geo_lspc_state_load(uint8_t *st) {
-    geo_serial_popblk(st, (uint8_t*)lspc.vram, SIZE_64K + SIZE_4K);
-    geo_serial_popblk(st, (uint8_t*)lspc.palram, SIZE_16K);
+    geo_serial_popblk((uint8_t*)lspc.vram, st, SIZE_64K + SIZE_4K);
+    geo_serial_popblk((uint8_t*)lspc.palram, st, SIZE_16K);
     lspc.palbank = geo_serial_pop8(st);
     lspc.vramaddr = geo_serial_pop16(st);
     lspc.vrambank = geo_serial_pop16(st);
