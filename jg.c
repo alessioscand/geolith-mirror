@@ -307,20 +307,19 @@ int jg_game_unload(void) {
 }
 
 int jg_state_load(const char *filename) {
-    if (filename) { }
-    return 0;
+    return geo_state_load(filename);
 }
 
 void jg_state_load_raw(const void *data) {
-    if (data) { }
+    geo_state_load_raw(data);
 }
 
 int jg_state_save(const char *filename) {
-    if (filename) { }
-    return 0;
+    return geo_state_save(filename);
 }
+
 const void* jg_state_save_raw(void) {
-    return NULL;
+    return geo_state_save_raw();
 }
 
 size_t jg_state_size(void) {
