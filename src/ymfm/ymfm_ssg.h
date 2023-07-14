@@ -48,4 +48,7 @@ void ssg_engine_clock(void);
 // compute sum of channel outputs
 void ssg_engine_output(int32_t *output);
 
+void ssg_state_load(uint8_t *st);
+void ssg_state_save(uint8_t *st);
+
 #endif // YMFM_SSG_H

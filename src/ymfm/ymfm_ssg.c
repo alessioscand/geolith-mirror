@@ -45,7 +45,7 @@ static uint32_t m_envelope_count;            // envelope counter
 static uint32_t m_envelope_state;            // envelope state
 static uint32_t m_noise_count;               // current noise counter
 static uint32_t m_noise_state;               // current noise state
-static uint8_t m_regdata[REGISTERS_SSG];         // register data
+static uint8_t m_regdata[REGISTERS_SSG];     // register data
 
 //*********************************************************
 // SSG REGISTERS
@@ -333,4 +333,40 @@ void ssg_engine_write(uint32_t regnum, uint8_t data)
 		ymfm_external_write(ACCESS_IO, 0, data);
 	else if (regnum == 0x0f && ssg_registers_io_b_out())
 		ymfm_external_write(ACCESS_IO, 1, data);
+}
+
+//-------------------------------------------------
+//  states - Read/write SSG state data
+//-------------------------------------------------
+
+void ssg_state_load(uint8_t *st) {
+	for (int i = 0; i < 3; ++i)
+	{
+		m_tone_count[i] = geo_serial_pop32(st);
+		m_tone_state[i] = geo_serial_pop32(st);
+	}
+
+	m_envelope_count = geo_serial_pop32(st);
+	m_envelope_state = geo_serial_pop32(st);
+	m_noise_count = geo_serial_pop32(st);
+	m_noise_state = geo_serial_pop32(st);
+
+	for (int i = 0; i < REGISTERS_SSG; ++i)
+		m_regdata[i] = geo_serial_pop8(st);
+}
+
+void ssg_state_save(uint8_t *st) {
+	for (int i = 0; i < 3; ++i)
+	{
+		geo_serial_push32(st, m_tone_count[i]);
+		geo_serial_push32(st, m_tone_state[i]);
+	}
+
+	geo_serial_push32(st, m_envelope_count);
+	geo_serial_push32(st, m_envelope_state);
+	geo_serial_push32(st, m_noise_count);
+	geo_serial_push32(st, m_noise_state);
+
+	for (int i = 0; i < REGISTERS_SSG; ++i)
+		geo_serial_push8(st, m_regdata[i]);
 }
