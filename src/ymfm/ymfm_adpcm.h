@@ -74,6 +74,9 @@ void adpcm_b_engine_write(uint32_t regnum, uint8_t data);
 // status
 uint8_t adpcm_b_engine_status(void);
 
+void adpcm_state_load(uint8_t *st);
+void adpcm_state_save(uint8_t *st);
+
 // ======================> adpcm_a_channel
 typedef struct _adpcm_a_channel
 {

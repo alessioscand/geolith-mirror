@@ -137,4 +137,6 @@ static inline int32_t clamp(int32_t value, int32_t minval, int32_t maxval)
 	return value;
 }
 
+#include "geo_serial.h"
+
 #endif // YMFM_H

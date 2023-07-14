@@ -900,3 +900,74 @@ uint32_t adpcm_b_engine_read(uint32_t regnum) {
 uint8_t adpcm_b_engine_status(void) {
 	return adpcm_b_channel_status();
 }
+
+
+//-------------------------------------------------
+//  states - Read/write ADPCMA/B state data
+//-------------------------------------------------
+
+void adpcm_state_load(uint8_t *st) {
+	for (int i = 0; i < REGISTERS_A; ++i)
+		m_regdata_a[i] = geo_serial_pop8(st);
+
+	for (int i = 0; i < REGISTERS_B; ++i)
+		m_regdata_b[i] = geo_serial_pop8(st);
+
+	for (int i = 0; i < CHANNELS_A; ++i)
+	{
+		m_channel_a[i].m_choffs = geo_serial_pop32(st);
+		m_channel_a[i].m_address_shift = geo_serial_pop32(st);
+		m_channel_a[i].m_playing = geo_serial_pop32(st);
+		m_channel_a[i].m_curnibble = geo_serial_pop32(st);
+		m_channel_a[i].m_curbyte = geo_serial_pop32(st);
+		m_channel_a[i].m_curaddress = geo_serial_pop32(st);
+		m_channel_a[i].m_accumulator = geo_serial_pop32(st);
+		m_channel_a[i].m_step_index = geo_serial_pop32(st);
+	}
+
+	m_channel_b.m_address_shift = geo_serial_pop32(st);
+	m_channel_b.m_status = geo_serial_pop32(st);
+	m_channel_b.m_address_shift = geo_serial_pop32(st);
+	m_channel_b.m_status = geo_serial_pop32(st);
+	m_channel_b.m_curnibble = geo_serial_pop32(st);
+	m_channel_b.m_curbyte = geo_serial_pop32(st);
+	m_channel_b.m_dummy_read = geo_serial_pop32(st);
+	m_channel_b.m_position = geo_serial_pop32(st);
+	m_channel_b.m_curaddress = geo_serial_pop32(st);
+	m_channel_b.m_accumulator = geo_serial_pop32(st);
+	m_channel_b.m_prev_accum = geo_serial_pop32(st);
+	m_channel_b.m_adpcm_step = geo_serial_pop32(st);
+}
+
+void adpcm_state_save(uint8_t *st) {
+	for (int i = 0; i < REGISTERS_A; ++i)
+		geo_serial_push8(st, m_regdata_a[i]);
+
+	for (int i = 0; i < REGISTERS_B; ++i)
+		geo_serial_push8(st, m_regdata_b[i]);
+
+	for (int i = 0; i < CHANNELS_A; ++i)
+	{
+		geo_serial_push32(st, m_channel_a[i].m_choffs);
+		geo_serial_push32(st, m_channel_a[i].m_address_shift);
+		geo_serial_push32(st, m_channel_a[i].m_playing);
+		geo_serial_push32(st, m_channel_a[i].m_curnibble);
+		geo_serial_push32(st, m_channel_a[i].m_curbyte);
+		geo_serial_push32(st, m_channel_a[i].m_curaddress);
+		geo_serial_push32(st, m_channel_a[i].m_accumulator);
+		geo_serial_push32(st, m_channel_a[i].m_step_index);
+	}
+
+	geo_serial_push32(st, m_channel_b.m_address_shift);
+	geo_serial_push32(st, m_channel_b.m_status);
+	geo_serial_push32(st, m_channel_b.m_address_shift);
+	geo_serial_push32(st, m_channel_b.m_status);
+	geo_serial_push32(st, m_channel_b.m_curnibble);
+	geo_serial_push32(st, m_channel_b.m_curbyte);
+	geo_serial_push32(st, m_channel_b.m_dummy_read);
+	geo_serial_push32(st, m_channel_b.m_position);
+	geo_serial_push32(st, m_channel_b.m_curaddress);
+	geo_serial_push32(st, m_channel_b.m_accumulator);
+	geo_serial_push32(st, m_channel_b.m_prev_accum);
+	geo_serial_push32(st, m_channel_b.m_adpcm_step);
+}
