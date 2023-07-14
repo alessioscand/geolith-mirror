@@ -173,6 +173,12 @@ void geo_set_drawcyc(unsigned);
 
 uint32_t geo_calc_mask(unsigned, unsigned);
 
+int geo_state_load(const char*);
+void geo_state_load_raw(const void*);
+
+int geo_state_save(const char*);
+const void* geo_state_save_raw(void);
+
 extern void (*geo_log)(int, const char *, ...);
 
 extern unsigned (*geo_input_cb[NUMINPUTS_NG])(unsigned);

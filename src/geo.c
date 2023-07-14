@@ -39,6 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "geo_memcard.h"
 #include "geo_mixer.h"
 #include "geo_rtc.h"
+#include "geo_serial.h"
 #include "geo_ymfm.h"
 #include "geo_z80.h"
 
@@ -62,6 +63,8 @@ ngsys_t ngsys;
 
 // ROM data
 static romdata_t romdata;
+
+static uint8_t state[485301]; // Maximum size
 
 // System being emulated
 static int sys = 0;
@@ -371,6 +374,120 @@ void geo_init(void) {
     // Pre-format the memory card in case there is no existing memory card data
     geo_memcard_format(ngsys.memcard);
 }
+
+void geo_state_load_raw(const void *sstate) {
+    uint8_t *st = (uint8_t*)sstate;
+    geo_serial_begin();
+    mextcycs = geo_serial_pop32(st);
+    lextcycs = geo_serial_pop32(st);
+    zextcycs = geo_serial_pop32(st);
+    ymcycs = geo_serial_pop32(st);
+    ngsys.irq2_ctrl = geo_serial_pop8(st);
+    ngsys.irq2_reload = geo_serial_pop32(st);
+    ngsys.irq2_counter = geo_serial_pop32(st);
+    ngsys.irq2_frags = geo_serial_pop32(st);
+    ngsys.irq2_dec = geo_serial_pop32(st);
+    geo_serial_popblk(ngsys.nvram, st, SIZE_64K);
+    geo_serial_popblk(ngsys.memcard, st, SIZE_2K);
+
+    if (ngsys.cartram_present)
+        geo_serial_popblk(ngsys.cartram, st, SIZE_8K);
+
+    ngsys.watchdog = geo_serial_pop32(st);
+    ngsys.sound_code = geo_serial_pop8(st);
+    ngsys.sound_reply = geo_serial_pop8(st);
+
+    geo_lspc_state_load(st);
+    geo_m68k_state_load(st);
+    geo_rtc_state_load(st);
+    geo_ymfm_state_load(st);
+    geo_z80_state_load(st);
+}
+
+// Load a state from a file
+int geo_state_load(const char *filename) {
+    FILE *file;
+    size_t filesize, result;
+    void *sstatefile;
+
+    // Open the file for reading
+    file = fopen(filename, "rb");
+    if (!file)
+        return 0;
+
+    // Find out the file's size
+    fseek(file, 0, SEEK_END);
+    filesize = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    // Allocate memory to read the file into
+    sstatefile = (void*)calloc(filesize, sizeof(uint8_t));
+    if (sstatefile == NULL)
+        return 0;
+
+    // Read the file into memory and then close it
+    result = fread(sstatefile, sizeof(uint8_t), filesize, file);
+    if (result != filesize)
+        return 0;
+    fclose(file);
+
+    // File has been read, now copy it into the emulator
+    geo_state_load_raw((const void*)sstatefile);
+
+    // Free the allocated memory
+    free(sstatefile);
+
+    return 1; // Success!
+}
+
+const void* geo_state_save_raw(void) {
+    geo_serial_begin();
+    geo_serial_push32(state, mextcycs);
+    geo_serial_push32(state, lextcycs);
+    geo_serial_push32(state, zextcycs);
+    geo_serial_push32(state, ymcycs);
+    geo_serial_push8(state, ngsys.irq2_ctrl);
+    geo_serial_push32(state, ngsys.irq2_reload);
+    geo_serial_push32(state, ngsys.irq2_counter);
+    geo_serial_push32(state, ngsys.irq2_frags);
+    geo_serial_push32(state, ngsys.irq2_dec);
+    geo_serial_pushblk(state, ngsys.nvram, SIZE_64K);
+    geo_serial_pushblk(state, ngsys.memcard, SIZE_2K);
+
+    if (ngsys.cartram_present)
+        geo_serial_pushblk(state, ngsys.cartram, SIZE_8K);
+
+    geo_serial_push32(state, ngsys.watchdog);
+    geo_serial_push8(state, ngsys.sound_code);
+    geo_serial_push8(state, ngsys.sound_reply);
+
+    geo_lspc_state_save(state);
+    geo_m68k_state_save(state);
+    geo_rtc_state_save(state);
+    geo_ymfm_state_save(state);
+    geo_z80_state_save(state);
+
+    return (const void*)state;
+}
+
+// Save a state to a file
+int geo_state_save(const char *filename) {
+    // Open the file for writing
+    FILE *file;
+    file = fopen(filename, "wb");
+    if (!file)
+        return 0;
+
+    // Snapshot the running state and get the memory address
+    uint8_t *sstate = (uint8_t*)geo_state_save_raw();
+
+    // Write and close the file
+    fwrite(sstate, geo_serial_size(), sizeof(uint8_t), file);
+    fclose(file);
+
+    return 1; // Success!
+}
+
 
 // Increment the watchdog counter
 static inline void geo_watchdog_increment(void) {
