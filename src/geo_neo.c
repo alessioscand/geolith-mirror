@@ -108,7 +108,6 @@ int geo_neo_load(void *data, size_t size) {
 
     romdata->m = &neodata[rom_offset];
     rom_offset += romdata->msz;
-    geo_z80_set_mrom(1);
 
     if (!romdata->v2sz) { // Single V ROM
         romdata->v1 = romdata->v2 = &neodata[rom_offset];
@@ -129,14 +128,14 @@ int geo_neo_load(void *data, size_t size) {
     // Set FIX data to S ROM by default - handles AES and MVS use cases
     geo_lspc_set_fix(1);
 
+    // Set default Fix Layer bank switching type
+    geo_lspc_set_fix_banksw(FIX_BANKSW_NONE);
+
     // Perform byte swapping on the BIOS and P ROM, calculate P bankswitch mask
     geo_m68k_postload();
 
     // Set default bankswitching
     geo_m68k_board_set(BOARD_DEFAULT);
-
-    // Set default Fix Layer bank switching type
-    geo_lspc_set_fix_banksw(FIX_BANKSW_NONE);
 
     // Handle special cases if necessary
     switch (ngh) {
