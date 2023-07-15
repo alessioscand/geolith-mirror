@@ -254,15 +254,15 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 0x271: { // KOF 2003
-            if (neodata[0x1000 + 0xc1] == 0x38) { // Official Release
-                geo_lspc_set_fix_banksw(FIX_BANKSW_TILE);
-                geo_m68k_board_set(BOARD_PVC);
-            }
-            else if (neodata[0x1000 + 0x689] == 0x10) { // kf2k3bla/kf2k3pl
+            if (neodata[0x1000 + 0x689] == 0x10) { // kf2k3bla/kf2k3pl
                 geo_m68k_board_set(BOARD_KF2K3BLA);
             }
-            else { // kf2k3bl and kf2k3upl
+            else if (neodata[0x1000 + 0xc1] == 0x02) { // kf2k3bl and kf2k3upl
                 geo_m68k_board_set(BOARD_KF2K3BL);
+            }
+            else { // Official Releases
+                geo_lspc_set_fix_banksw(FIX_BANKSW_TILE);
+                geo_m68k_board_set(BOARD_PVC);
             }
             break;
         }
