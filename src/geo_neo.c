@@ -165,6 +165,14 @@ int geo_neo_load(void *data, size_t size) {
             geo_m68k_board_set(BOARD_CT0);
             break;
         }
+        case 0x080: { // Quiz King of Fighters
+            if (geo_get_region() == REGION_US &&
+                geo_get_system() == SYSTEM_MVS) {
+                geo_log(GEO_LOG_ERR, "This title is incompatible with US MVS"
+                    " systems\n");
+            }
+            break;
+        }
         case 0x242: { // KOF 98
             geo_m68k_board_set(BOARD_KOF98);
             break;
