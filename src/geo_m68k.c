@@ -70,6 +70,7 @@ static uint8_t vectable = VECTOR_TABLE_BIOS;
 static uint8_t reg_sramlock = 0; // SRAM Lock
 static uint8_t reg_crdlock[2] = { 0, 0 }; // Memory Card Lock
 static uint8_t reg_crdregsel = 0; // Register Select for Memory Card
+static uint8_t reg_crtfix = 0; // Sets S ROM/M1 ROM or SFIX/SM1 ROM
 
 // NEO-SMA Pseudo-Random Number addresses
 static uint32_t sma_prn_addr[2] = { 0, 0 };
@@ -1044,6 +1045,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a000b: { // REG_BRDFIX
+                reg_crtfix = 0;
                 geo_z80_set_mrom(0);
                 geo_lspc_set_fix(LSPC_FIX_BOARD);
                 return;
@@ -1082,6 +1084,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x3a001b: { // REG_CRTFIX
+                reg_crtfix = 1;
                 geo_z80_set_mrom(1);
                 geo_lspc_set_fix(LSPC_FIX_CART);
                 return;
@@ -1420,6 +1423,9 @@ void geo_m68k_state_load(uint8_t *st) {
     reg_crdlock[0] = geo_serial_pop8(st);
     reg_crdlock[1] = geo_serial_pop8(st);
     reg_crdregsel = geo_serial_pop8(st);
+    reg_crtfix = geo_serial_pop8(st);
+
+    m68k_write_memory_8(reg_crtfix ? 0x3a001b : 0x3a000b, reg_crtfix);
 
     if (boardtype == BOARD_KOF98) {
         geo_m68k_write_banksw_16_kof98(0x20aaaa, cartreg[0]);
@@ -1472,6 +1478,7 @@ void geo_m68k_state_save(uint8_t *st) {
     geo_serial_push8(st, reg_crdlock[0]);
     geo_serial_push8(st, reg_crdlock[1]);
     geo_serial_push8(st, reg_crdregsel);
+    geo_serial_push8(st, reg_crtfix);
 
     if (boardtype == BOARD_KOF10TH) {
         geo_serial_pushblk(st, dynfix, SIZE_128K);
