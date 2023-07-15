@@ -126,7 +126,7 @@ int geo_neo_load(void *data, size_t size) {
     geo_lspc_postload();
 
     // Set FIX data to S ROM by default - handles AES and MVS use cases
-    geo_lspc_set_fix(1);
+    geo_lspc_set_fix(LSPC_FIX_CART);
 
     // Set default Fix Layer bank switching type
     geo_lspc_set_fix_banksw(FIX_BANKSW_NONE);
@@ -263,13 +263,13 @@ int geo_neo_load(void *data, size_t size) {
         }
         case 0x275: { // The King of Fighters 10th Anniversary
             if (geo_get_system() == SYSTEM_AES) {
-                geo_log(GEO_LOG_WRN, "The King of Fighters 10th Anniversary is"
-                    " compatible with the Neo Geo MVS and Universe BIOS only\n"
-                );
-                romdata->sfix = romdata->s;
-                romdata->sfixsz = romdata->ssz;
+                geo_log(GEO_LOG_ERR, "This title is compatible with the Neo"
+                    " Geo MVS and Universe BIOS only\n");
             }
-            geo_m68k_board_set(BOARD_KOF10TH);
+
+            // Special handling for original bootleg, not KoF 10th 2005 Unique
+            if (neodata[0x1000 + 0x125] == 0x00)
+                geo_m68k_board_set(BOARD_KOF10TH);
             break;
         }
         case 0x5003: { // Crouching Tiger Hidden Dragon bootlegs
