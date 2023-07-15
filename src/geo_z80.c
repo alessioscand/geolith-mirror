@@ -222,6 +222,9 @@ static void geo_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
 void geo_z80_reset(void) {
     z80_reset(&z80ctx);
     nmi_enabled = 0;
+
+    // Set the M ROM based on system type - AES does not have SM1 ROM
+    geo_z80_set_mrom(geo_get_system() == SYSTEM_AES);
 }
 
 // Initialize the Z80
