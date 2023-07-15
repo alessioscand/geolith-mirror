@@ -1254,6 +1254,9 @@ void geo_m68k_init(void) {
     // Zero the cartridge registers (most games do not use these)
     cartreg[0] = cartreg[1] = 0;
 
+    if (geo_get_system() == SYSTEM_AES)
+        reg_crtfix = 1;
+
     romdata = geo_romdata_ptr();
 }
 
