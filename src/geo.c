@@ -67,8 +67,8 @@ static romdata_t romdata;
 static uint8_t state[485301]; // Maximum size
 
 // System being emulated
-static int sys = 0;
-static int region = 0;
+static uint8_t sys = 0;
+static uint8_t region = 0;
 
 // Extra cycles stored at the end of scanlines/frames
 static uint32_t mextcycs = 0;
@@ -378,6 +378,15 @@ void geo_init(void) {
 void geo_state_load_raw(const void *sstate) {
     uint8_t *st = (uint8_t*)sstate;
     geo_serial_begin();
+    uint8_t stregion = mextcycs = geo_serial_pop8(st);
+    uint8_t stsys = mextcycs = geo_serial_pop8(st);
+
+    if ((region != stregion) || (sys != stsys)) {
+        geo_log(GEO_LOG_WRN, "State load operation ignored: state is "
+        "for a different system type or region\n");
+        return;
+    }
+
     mextcycs = geo_serial_pop32(st);
     lextcycs = geo_serial_pop32(st);
     zextcycs = geo_serial_pop32(st);
@@ -442,6 +451,8 @@ int geo_state_load(const char *filename) {
 
 const void* geo_state_save_raw(void) {
     geo_serial_begin();
+    geo_serial_push8(state, region);
+    geo_serial_push8(state, sys);
     geo_serial_push32(state, mextcycs);
     geo_serial_push32(state, lextcycs);
     geo_serial_push32(state, zextcycs);
