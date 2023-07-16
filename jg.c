@@ -83,7 +83,7 @@ static jg_inputinfo_t inputinfo[NUMINPUTS];
 static jg_inputstate_t *input_device[NUMINPUTS];
 
 // Emulator settings
-static jg_setting_t settings_gn[] = {
+static jg_setting_t settings_geo[] = {
     { "system", "Emulated System",
       "0 = AES (Console), 1 = MVS (Arcade), 2 = Universe BIOS",
       "Select which type of system/BIOS to emulate",
@@ -103,6 +103,11 @@ static jg_setting_t settings_gn[] = {
       "0 = Off, 1 = On",
       "Activate Hardware Settings Menu at Boot",
       0, 0, 1, 0
+    },
+    { "showoverscan", "Show Overscan",
+      "0 = Off, 1 = On",
+      "Show entire video frame including normally cropped overscan area",
+      0, 0, 1, 0
     }
 };
 
@@ -110,7 +115,8 @@ enum {
     SYS,
     REGION,
     FREEPLAY,
-    SETTINGMODE
+    SETTINGMODE,
+    SHOWOVERSCAN
 };
 
 static const char *defs_ngsys[4] = { "Coin1", "Coin2", "Service", "Test" };
@@ -152,9 +158,9 @@ static unsigned geo_input_poll_systype(void) {
 // Poll DIP Switches
 static unsigned geo_input_poll_dipsw(void) {
     unsigned d = 0xff;
-    if (settings_gn[FREEPLAY].val)
+    if (settings_geo[FREEPLAY].val)
         d &= ~0x40;
-    if (settings_gn[SETTINGMODE].val)
+    if (settings_geo[SETTINGMODE].val)
         d &= ~0x01;
     return d;
 }
@@ -183,6 +189,22 @@ static unsigned geo_input_poll_js(unsigned port) {
     return b;
 }
 
+static void geo_params_video(void) {
+    if (settings_geo[SHOWOVERSCAN].val) {
+        vidinfo.w = LSPC_WIDTH;
+        vidinfo.h = LSPC_HEIGHT;
+        vidinfo.x = vidinfo.y = 0;
+        vidinfo.aspect = 320.0/256.0;
+    }
+    else {
+        vidinfo.w = LSPC_WIDTH_VISIBLE;
+        vidinfo.h = LSPC_HEIGHT_VISIBLE;
+        vidinfo.x = 8;
+        vidinfo.y = 24;
+        vidinfo.aspect = 304.0/224.0;
+    }
+}
+
 void jg_set_cb_audio(jg_cb_audio_t func) {
     jg_cb_audio = func;
 }
@@ -203,8 +225,9 @@ int jg_init(void) {
     geo_log_set_callback(jg_cb_log);
     geo_mixer_set_rate(SAMPLERATE);
     geo_mixer_init();
-    geo_set_region(settings_gn[REGION].val);
-    geo_set_system(settings_gn[SYS].val);
+    geo_set_region(settings_geo[REGION].val);
+    geo_set_system(settings_geo[SYS].val);
+    geo_params_video();
 
     // Initialize the rest of the emulator
     geo_init();
@@ -228,7 +251,7 @@ int jg_game_load(void) {
     // Load the BIOS
     char biospath[512];
     snprintf(biospath, sizeof(biospath), "%s/%s", pathinfo.bios,
-        settings_gn[SYS].val == SYSTEM_AES ? "aes.zip" : "neogeo.zip");
+        settings_geo[SYS].val == SYSTEM_AES ? "aes.zip" : "neogeo.zip");
     if (!geo_bios_load(biospath)) {
         geo_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
         return 0;
@@ -340,6 +363,7 @@ void jg_cheat_set(const char *code) {
 }
 
 void jg_rehash(void) {
+    geo_params_video();
 }
 
 void jg_data_push(uint32_t type, int port, const void *ptr, size_t size) {
@@ -364,8 +388,8 @@ jg_inputinfo_t* jg_get_inputinfo(int port) {
 }
 
 jg_setting_t* jg_get_settings(size_t *numsettings) {
-    *numsettings = sizeof(settings_gn) / sizeof(jg_setting_t);
-    return settings_gn;
+    *numsettings = sizeof(settings_geo) / sizeof(jg_setting_t);
+    return settings_geo;
 }
 
 void jg_setup_video(void) {
