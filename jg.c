@@ -63,7 +63,7 @@ static jg_videoinfo_t vidinfo = {
     LSPC_WIDTH_VISIBLE,     // w
     LSPC_HEIGHT_VISIBLE,    // h
     8,                      // x
-    32,                     // y
+    24,                     // y
     LSPC_WIDTH,             // p
     304.0/224.0,            // aspect
     NULL                    // buf

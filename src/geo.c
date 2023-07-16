@@ -522,13 +522,6 @@ void geo_exec(void) {
     zcycs = zextcycs;
     ymsamps = 0;
 
-    // Each frame starts with the VBLANK interrupt
-    geo_m68k_interrupt(IRQ_VBLANK);
-
-    // Reload counter at the beginning of each frame
-    if (ngsys.irq2_ctrl & IRQ_TIMER_RELOAD_VBLANK)
-        ngsys.irq2_counter = ngsys.irq2_reload;
-
     while (mcycs < MCYC_PER_FRAME) {
         icycs = geo_m68k_run(1);
         mcycs += icycs * DIV_M68K;

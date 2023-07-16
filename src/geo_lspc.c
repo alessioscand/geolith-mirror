@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 
 #include "geo.h"
+#include "geo_m68k.h"
 #include "geo_lspc.h"
 #include "geo_serial.h"
 
@@ -293,7 +294,8 @@ static void geo_lspc_fixline_default(void) {
         uint8_t *tdata = &fixdata[tnum << 5];
 
         // Offset into video buffer to draw the tile row into
-        uint32_t *voffset = vbuf + (LSPC_WIDTH * (line + 16)) + (x << 3);
+        uint32_t *voffset =
+            vbuf + (LSPC_WIDTH * (line + LSPC_LINE_BUFSTART)) + (x << 3);
 
         // Row in the 8 pixel high tile
         unsigned row = line & 0x07;
@@ -348,7 +350,8 @@ static void geo_lspc_fixline_line(void) {
         unsigned poffset = ((entry >> 8) & 0xf0) + (lspc.palbank * SIZE_4K);
         unsigned tnum = (entry & 0x0fff) + offsets[(trow - 2) & 0x1f];
         uint8_t *tdata = &fixdata[tnum << 5];
-        uint32_t *voffset = vbuf + (LSPC_WIDTH * (line + 16)) + (x << 3);
+        uint32_t *voffset =
+            vbuf + (LSPC_WIDTH * (line + LSPC_LINE_BUFSTART)) + (x << 3);
         unsigned row = line & 0x07;
         uint32_t pentry = 0;
         for (unsigned p = 0, f = 0x10; p < 4; ++p, f = (f + 0x08) & 0x18) {
@@ -382,7 +385,8 @@ static void geo_lspc_fixline_tile(void) {
         uint8_t *tdata = &fixdata[tnum << 5];
 
         // Offset into video buffer to draw the tile row into
-        uint32_t *voffset = vbuf + (LSPC_WIDTH * (line + 16)) + (x << 3);
+        uint32_t *voffset =
+            vbuf + (LSPC_WIDTH * (line + LSPC_LINE_BUFSTART)) + (x << 3);
 
         // Row in the 8 pixel high tile
         unsigned row = line & 0x07;
@@ -638,7 +642,8 @@ static inline void geo_lspc_sprline(void) {
                 pentry = geo_lspc_tpix(toffset + (((0x08 & p) ^ ftile) << 3),
                     (p & 0x07) ^ fpix, y);
                 if (pentry) {
-                    geo_lspc_pixel((xpos + drawpos) & 0x1ff, (line + 16),
+                    geo_lspc_pixel((xpos + drawpos) & 0x1ff,
+                        (line + LSPC_LINE_BUFSTART),
                         palette[poffset + pentry]);
                 }
                 ++drawpos; // Increment for coloured and transparent pixels
@@ -660,7 +665,8 @@ static inline void geo_lspc_aa(void) {
 }
 
 void geo_lspc_scanline(void) {
-    if (lspc.scanline >= LSPC_LINE_BUFSTART) {
+    if (lspc.scanline >= LSPC_LINE_BUFSTART &&
+        lspc.scanline < LSPC_LINE_BORDER_BOTTOM) {
         geo_lspc_bdline();
         geo_lspc_sprline();
         geo_lspc_fixline();
@@ -670,6 +676,11 @@ void geo_lspc_scanline(void) {
         lspc.scanline = 0;
     else if (lspc.scanline == LSPC_LINE_BORDER_TOP)
         geo_lspc_aa();
+    else if (lspc.scanline == LSPC_LINE_BORDER_BOTTOM) {
+        if (ngsys.irq2_ctrl & IRQ_TIMER_RELOAD_VBLANK)
+            ngsys.irq2_counter = ngsys.irq2_reload;
+        geo_m68k_interrupt(IRQ_VBLANK);
+    }
 }
 
 void geo_lspc_state_load(uint8_t *st) {
