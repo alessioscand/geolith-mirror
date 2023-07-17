@@ -480,7 +480,7 @@ static inline unsigned geo_lspc_tpix(unsigned tbase, unsigned x, unsigned y) {
 
 // Calculate a line of sprite data 2 lines in advance
 static inline void geo_lspc_sprcalc(void) {
-    unsigned line = lspc.scanline - 6;
+    unsigned line = lspc.scanline - LSPC_LINE_BUFSTART;
     unsigned sprcount = 0; // Counter for sprite limit
 
     unsigned xpos = 0;
