@@ -687,16 +687,16 @@ void geo_lspc_scanline(void) {
         lspc.scanline == LSPC_LINE_BUFSTART + 1) {
         geo_lspc_sprcalc();
     }
-
-    if (++lspc.scanline == LSPC_SCANLINES) // Handle final scanline
-        lspc.scanline = 0;
-    else if (lspc.scanline == LSPC_LINE_BORDER_TOP)
-        geo_lspc_aa();
     else if (lspc.scanline == LSPC_LINE_BORDER_BOTTOM) {
         if (ngsys.irq2_ctrl & IRQ_TIMER_RELOAD_VBLANK)
             ngsys.irq2_counter = ngsys.irq2_reload;
         geo_m68k_interrupt(IRQ_VBLANK);
     }
+
+    if (++lspc.scanline == LSPC_SCANLINES) // Handle final scanline
+        lspc.scanline = 0;
+    else if (lspc.scanline == LSPC_LINE_BORDER_TOP)
+        geo_lspc_aa();
 }
 
 void geo_lspc_state_load(uint8_t *st) {
