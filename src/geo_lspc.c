@@ -45,6 +45,9 @@ static romdata_t *romdata = NULL;
 
 static uint32_t *vbuf = NULL;
 
+static unsigned linebuf[2][LSPC_WIDTH]; // Line buffers for sprite pixels
+static unsigned lbactive = 0; // Active line buffer
+
 static uint8_t *fixdata = NULL;
 
 static unsigned fixbanksw = 0;
@@ -114,12 +117,19 @@ static inline uint32_t geo_lspc_backdrop(void) {
     return palette[(lspc.palbank * SIZE_4K) + 4095];
 }
 
-// Draw a line of backdrop pixels
-static inline void geo_lspc_bdline(void) {
+// Draw a line of backdrop and pre-calculated sprite pixels
+static inline void geo_lspc_bdsprline(void) {
     uint32_t bdcol = geo_lspc_backdrop();
     uint32_t *ptr = vbuf + (lspc.scanline * LSPC_WIDTH);
-    for (unsigned i = 0; i < LSPC_WIDTH; ++i)
-        ptr[i] = bdcol;
+
+    for (unsigned p = 0; p < LSPC_WIDTH; ++p) {
+        if (linebuf[lbactive][p])
+            ptr[p] = palette[linebuf[lbactive][p]];
+        else
+            ptr[p] = bdcol;
+
+        linebuf[lbactive][p] = 0;
+    }
 }
 
 // Convert a palette RAM entry to a host-friendly output value
@@ -265,7 +275,7 @@ static void geo_lspc_fixline_default(void) {
        | 0x701f | 0x703f | 0x705f |   ........    | 0x74bf | 0x74df | 0x74ff |
        -----------------------------------------------------------------------
     */
-    unsigned line = lspc.scanline - LSPC_LINE_BUFSTART;
+    unsigned line = lspc.scanline - LSPC_LINE_BORDER_TOP;
 
     for (unsigned x = 0; x < LSPC_FIXTILES_H; ++x) {
         // Addresses increment vertically downwards
@@ -295,7 +305,7 @@ static void geo_lspc_fixline_default(void) {
 
         // Offset into video buffer to draw the tile row into
         uint32_t *voffset =
-            vbuf + (LSPC_WIDTH * (line + LSPC_LINE_BUFSTART)) + (x << 3);
+            vbuf + (LSPC_WIDTH * lspc.scanline) + (x << 3);
 
         // Row in the 8 pixel high tile
         unsigned row = line & 0x07;
@@ -322,7 +332,7 @@ static void geo_lspc_fixline_line(void) {
        be beneficial, but it works well enough for the three games using it to
        run without issue.
     */
-    unsigned line = lspc.scanline - LSPC_LINE_BUFSTART;
+    unsigned line = lspc.scanline - LSPC_LINE_BORDER_TOP;
     unsigned trow = line >> 3; // Tile row
 
     unsigned offsets[34];
@@ -351,7 +361,7 @@ static void geo_lspc_fixline_line(void) {
         unsigned tnum = (entry & 0x0fff) + offsets[(trow - 2) & 0x1f];
         uint8_t *tdata = &fixdata[tnum << 5];
         uint32_t *voffset =
-            vbuf + (LSPC_WIDTH * (line + LSPC_LINE_BUFSTART)) + (x << 3);
+            vbuf + (LSPC_WIDTH * lspc.scanline) + (x << 3);
         unsigned row = line & 0x07;
         uint32_t pentry = 0;
         for (unsigned p = 0, f = 0x10; p < 4; ++p, f = (f + 0x08) & 0x18) {
@@ -366,7 +376,7 @@ static void geo_lspc_fixline_line(void) {
 
 // Per-Tile Banking (Type 2)
 static void geo_lspc_fixline_tile(void) {
-    unsigned line = lspc.scanline - LSPC_LINE_BUFSTART;
+    unsigned line = lspc.scanline - LSPC_LINE_BORDER_TOP;
     unsigned trow = line >> 3; // Tile row
 
     for (unsigned x = 0; x < LSPC_FIXTILES_H; ++x) {
@@ -386,7 +396,7 @@ static void geo_lspc_fixline_tile(void) {
 
         // Offset into video buffer to draw the tile row into
         uint32_t *voffset =
-            vbuf + (LSPC_WIDTH * (line + LSPC_LINE_BUFSTART)) + (x << 3);
+            vbuf + (LSPC_WIDTH * lspc.scanline) + (x << 3);
 
         // Row in the 8 pixel high tile
         unsigned row = line & 0x07;
@@ -468,13 +478,9 @@ static inline unsigned geo_lspc_tpix(unsigned tbase, unsigned x, unsigned y) {
     return (v0 & 0x01) | (v1 & 0x01) << 1 | (v2 & 0x01) << 2 | (v3 & 0x01) << 3;
 }
 
-static inline void geo_lspc_pixel(unsigned x, unsigned y, uint32_t c) {
-    if (x < LSPC_WIDTH && y < LSPC_HEIGHT)
-        vbuf[x + (y * LSPC_WIDTH)] = c;
-}
-
-static inline void geo_lspc_sprline(void) {
-    unsigned line = lspc.scanline - LSPC_LINE_BUFSTART;
+// Calculate a line of sprite data 2 lines in advance
+static inline void geo_lspc_sprcalc(void) {
+    unsigned line = lspc.scanline - 6;
     unsigned sprcount = 0; // Counter for sprite limit
 
     unsigned xpos = 0;
@@ -637,19 +643,25 @@ static inline void geo_lspc_sprline(void) {
         // Draw position must be separate from loop iterator due to hshrink
         unsigned drawpos = 0;
 
+        // X coordinates in the line buffer
+        unsigned xcoord = 0;
+
         for (unsigned p = 0; p < 16; ++p) {
             if (lut_hshrink[hshrink][p]) {
                 pentry = geo_lspc_tpix(toffset + (((0x08 & p) ^ ftile) << 3),
                     (p & 0x07) ^ fpix, y);
-                if (pentry) {
-                    geo_lspc_pixel((xpos + drawpos) & 0x1ff,
-                        (line + LSPC_LINE_BUFSTART),
-                        palette[poffset + pentry]);
-                }
+
+                xcoord = (xpos + drawpos) & 0x1ff;
+                if (pentry && (xcoord < LSPC_WIDTH))
+                    linebuf[lbactive][xcoord] = poffset + pentry;
+
                 ++drawpos; // Increment for coloured and transparent pixels
             }
         }
     }
+
+    // Flip the active line buffer once this one has been filled with new data
+    lbactive ^= 1;
 }
 
 static inline void geo_lspc_aa(void) {
@@ -665,11 +677,15 @@ static inline void geo_lspc_aa(void) {
 }
 
 void geo_lspc_scanline(void) {
-    if (lspc.scanline >= LSPC_LINE_BUFSTART &&
+    if (lspc.scanline >= LSPC_LINE_BORDER_TOP &&
         lspc.scanline < LSPC_LINE_BORDER_BOTTOM) {
-        geo_lspc_bdline();
-        geo_lspc_sprline();
+        geo_lspc_bdsprline();
+        geo_lspc_sprcalc();
         geo_lspc_fixline();
+    }
+    else if (lspc.scanline == LSPC_LINE_BUFSTART ||
+        lspc.scanline == LSPC_LINE_BUFSTART + 1) {
+        geo_lspc_sprcalc();
     }
 
     if (++lspc.scanline == LSPC_SCANLINES) // Handle final scanline

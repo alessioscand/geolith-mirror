@@ -37,8 +37,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // VBlank, Top Border, Active, Bottom Border: 8 + 16 + 224 + 16
 #define LSPC_SCANLINES  264
 
-// First active line is drawn after 8 VBlank lines
-#define LSPC_LINE_BUFSTART      8
+// First active line is drawn after 8 VBlank lines, buffering starts after 6
+#define LSPC_LINE_BUFSTART      6
 #define LSPC_LINE_BORDER_TOP    8
 #define LSPC_LINE_BORDER_BOTTOM 248
 
