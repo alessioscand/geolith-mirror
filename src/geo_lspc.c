@@ -489,7 +489,7 @@ static inline void geo_lspc_sprcalc(void) {
     unsigned hshrink = 0x0f; // Start at full width (no shrinking)
     unsigned vshrink = 0xff; // Start at full height (no shrinking)
 
-    for (unsigned i = 0; i < 381; ++i) {
+    for (unsigned i = 1; i < 382; ++i) {
         if (lspc.vram[0x8200 + i] & 0x40) { // Sticky/Chain bit set
             /* Attach this sprite to the edge of the previous one, and do not
                set a new Y position or size/height. Account for any horizontal
