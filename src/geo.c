@@ -502,10 +502,12 @@ int geo_state_save(const char *filename) {
 
 // Increment the watchdog counter
 static inline void geo_watchdog_increment(void) {
-    /* If more than 8 frames have passed since the Watchdog was kicked, assume
-       a bug or hardware fault and recover by resetting the system.
+    /* If 8 frames have passed since the Watchdog was kicked, assume a bug or
+       or hardware fault and recover by resetting the system. The true number
+       of cycles needed for this to happen in hardware is 3244030, or slightly
+       under 8 frames of video.
     */
-    if (++ngsys.watchdog > 8) {
+    if (++ngsys.watchdog >= 8) {
         geo_log(GEO_LOG_WRN, "Watchdog reset\n");
         geo_reset(0);
     }
