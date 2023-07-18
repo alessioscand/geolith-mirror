@@ -231,6 +231,19 @@ int geo_neo_load(void *data, size_t size) {
             break;
         }
         case 0x266: { // Matrimelee
+            /* Fix the FIX layer! TerraOnion's NeoBuilder tool decrypts this
+               incorrectly for matrimbl. Other free tools seem to do it the
+               same way, so the pragmatic solution is to do it properly here.
+               The last 512K block of C ROM contains the encrypted FIX layer
+               data.
+            */
+            if (neodata[0x1000 + 0x500088] == 0x22) { // matrimbl
+                uint8_t *ptr = romdata->c + (romdata->csz - romdata->ssz);
+                for (size_t i = 0; i < romdata->ssz; ++i) {
+                    romdata->s[i] = ptr[(i & ~0x1f) + ((i & 0x07) << 2) +
+                            ((~i & 0x08) >> 2) + ((i & 0x10) >> 4)];
+                }
+            }
             geo_lspc_set_fix_banksw(FIX_BANKSW_TILE);
             break;
         }
