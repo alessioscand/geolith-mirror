@@ -873,7 +873,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
     else if (address < 0xd00000) { // BIOS ROM
         return read08(romdata->b, address & 0x1ffff);
     }
-    else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
+    else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K
         return read08(ngsys.nvram, address & 0xffff);
     }
 
@@ -944,7 +944,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
     else if (address < 0xd00000) { // BIOS ROM
         return read16(romdata->b, address & 0x1ffff);
     }
-    else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
+    else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K
         return read16(ngsys.nvram, address & 0xffff);
     }
 
@@ -1112,7 +1112,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K
         geo_lspc_palram_wr08(address, value);
     }
-    else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
+    else if (address < 0xc00000) { // Memory Card - Mirrored every 2K
         m68k_modify_timeslice(2);
         if (!reg_crdlock[0] && !reg_crdlock[1]) {
             ngsys.memcard[(address >> 1) & 0x7ff] = value;
@@ -1122,7 +1122,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
         geo_log(GEO_LOG_WRN, "68K write to BIOS ROM: %06x %02x\n",
             address, value);
     }
-    else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
+    else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K
         if (!reg_sramlock)
             ngsys.nvram[address & 0xffff] = value;
     }
@@ -1211,7 +1211,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K
         geo_lspc_palram_wr16(address, value);
     }
-    else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
+    else if (address < 0xc00000) { // Memory Card - Mirrored every 2K
         m68k_modify_timeslice(2);
         if (!reg_crdlock[0] && !reg_crdlock[1]) {
             ngsys.memcard[(address >> 1) & 0x7ff] = value & 0xff;
@@ -1221,7 +1221,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
         geo_log(GEO_LOG_WRN, "68K write to BIOS ROM: %06x %04x\n",
             address, value);
     }
-    else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K (?)
+    else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K
         if (!reg_sramlock)
             write16(ngsys.nvram, address & 0xffff, value);
     }
