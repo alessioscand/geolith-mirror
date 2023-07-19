@@ -164,8 +164,24 @@ uint16_t geo_lspc_palram_rd(uint32_t addr) {
     return lspc.palram[((addr >> 1) & 0x0fff) + (lspc.palbank * SIZE_4K)];
 }
 
+// Write half of a value to the active bank of palette RAM
+void geo_lspc_palram_wr08(uint32_t addr, uint8_t data) {
+    addr >>= 1; // The address should access 16-bit values rather than bytes
+
+    if (addr & 0x01) {
+        lspc.palram[(addr & 0x0fff) + (lspc.palbank * SIZE_4K)] &= 0xff00;
+        lspc.palram[(addr & 0x0fff) + (lspc.palbank * SIZE_4K)] |= data;
+    }
+    else {
+        lspc.palram[(addr & 0x0fff) + (lspc.palbank * SIZE_4K)] &= 0x00ff;
+        lspc.palram[(addr & 0x0fff) + (lspc.palbank * SIZE_4K)] |= (data << 8);
+    }
+
+    geo_lspc_palconv(((addr >> 1) & 0x0fff) + (lspc.palbank * SIZE_4K), data);
+}
+
 // Write a value to the active bank of palette RAM
-void geo_lspc_palram_wr(uint32_t addr, uint16_t data) {
+void geo_lspc_palram_wr16(uint32_t addr, uint16_t data) {
     addr >>= 1; // The address should access 16-bit values rather than bytes
     lspc.palram[(addr & 0x0fff) + (lspc.palbank * SIZE_4K)] = data;
     geo_lspc_palconv((addr & 0x0fff) + (lspc.palbank * SIZE_4K), data);

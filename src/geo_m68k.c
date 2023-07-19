@@ -1109,9 +1109,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
         geo_log(GEO_LOG_WRN, "Unknown 8-bit write: %06x, %02x\n",
             address, value);
     }
-    else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        geo_log(GEO_LOG_WRN, "Palette RAM 8-bit write: %06x, %02x\n",
-            address, value);
+    else if (address < 0x800000) { // Palette RAM - Mirrored every 8K
+        geo_lspc_palram_wr08(address, value);
     }
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
         m68k_modify_timeslice(2);
@@ -1209,8 +1208,8 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
         geo_log(GEO_LOG_WRN, "Unknown 16-bit 68K Write: %06x %04x\n",
             address, value);
     }
-    else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        geo_lspc_palram_wr(address, value);
+    else if (address < 0x800000) { // Palette RAM - Mirrored every 8K
+        geo_lspc_palram_wr16(address, value);
     }
     else if (address < 0xc00000) { // Memory Card - Mirrored every 8K (?)
         m68k_modify_timeslice(2);

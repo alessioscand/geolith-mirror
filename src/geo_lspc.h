@@ -92,7 +92,8 @@ void geo_lspc_set_fix(unsigned);
 void geo_lspc_postload(void);
 
 uint16_t geo_lspc_palram_rd(uint32_t);
-void geo_lspc_palram_wr(uint32_t, uint16_t);
+void geo_lspc_palram_wr08(uint32_t, uint8_t);
+void geo_lspc_palram_wr16(uint32_t, uint16_t);
 void geo_lspc_palram_bank(unsigned);
 
 void geo_lspc_vramaddr_wr(uint16_t);
