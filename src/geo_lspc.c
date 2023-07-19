@@ -159,8 +159,15 @@ static inline void geo_lspc_palconv(uint16_t addr, uint16_t data) {
     palette_normal[addr] = 0xff000000 | (r << 16) | (g << 8) | b;
 }
 
+// Read half of a a palette RAM entry from the active bank
+uint8_t geo_lspc_palram_rd08(uint32_t addr) {
+    uint16_t pval =
+        lspc.palram[((addr >> 1) & 0x0fff) + (lspc.palbank * SIZE_4K)];
+    return 0xff & (addr & 0x01 ? pval : pval >> 8);
+}
+
 // Read a palette RAM entry from the active bank
-uint16_t geo_lspc_palram_rd(uint32_t addr) {
+uint16_t geo_lspc_palram_rd16(uint32_t addr) {
     return lspc.palram[((addr >> 1) & 0x0fff) + (lspc.palbank * SIZE_4K)];
 }
 

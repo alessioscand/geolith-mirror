@@ -857,8 +857,8 @@ unsigned int m68k_read_memory_8(unsigned int address) {
             }
         }
     }
-    else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        geo_log(GEO_LOG_DBG, "8-bit Palette Read: %06x\n", address);
+    else if (address < 0x800000) { // Palette RAM - Mirrored every 8K
+        return geo_lspc_palram_rd08(address);
     }
     else if (address < 0xc00000) { // Memory Card
         /* 8-bit Memory Card reads return 0xff for even addresses, and memcard
@@ -930,8 +930,8 @@ unsigned int m68k_read_memory_16(unsigned int address) {
             }
         }
     }
-    else if (address < 0x800000) { // Palette RAM - Mirrored every 8K (?)
-        return geo_lspc_palram_rd(address);
+    else if (address < 0x800000) { // Palette RAM - Mirrored every 8K
+        return geo_lspc_palram_rd16(address);
     }
     else if (address < 0xc00000) { // Memory Card
         /* Emulate an 8-bit, 2K memory card - since only the low byte is used,
