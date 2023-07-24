@@ -164,7 +164,7 @@ static uint8_t geo_z80_port_rd(z80 *userdata, uint16_t port) {
             break;
         }
         case 0x0c: {
-            geo_log(GEO_LOG_WRN, "Z80 port read 0x0c\n");
+            geo_log(GEO_LOG_DBG, "Z80 port read 0x0c\n");
             break;
         }
         case 0x0e: {
@@ -172,11 +172,11 @@ static uint8_t geo_z80_port_rd(z80 *userdata, uint16_t port) {
             break;
         }
         case 0x18: {
-            geo_log(GEO_LOG_WRN, "Z80 port read 0x18\n");
+            geo_log(GEO_LOG_DBG, "Z80 port read 0x18\n");
             break;
         }
         default: {
-            geo_log(GEO_LOG_WRN, "Z80 port read 0x%04x\n", port);
+            geo_log(GEO_LOG_DBG, "Z80 port read 0x%04x\n", port);
             break;
         }
     }
@@ -212,7 +212,7 @@ static void geo_z80_port_wr(z80 *userdata, uint16_t port, uint8_t value) {
             break;
         }
         default: {
-            geo_log(GEO_LOG_WRN, "Z80 port write: %04x, %02x\n", port, value);
+            geo_log(GEO_LOG_DBG, "Z80 port write: %04x, %02x\n", port, value);
             break;
         }
     }
