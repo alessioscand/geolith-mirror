@@ -1233,6 +1233,11 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 }
 
 void geo_m68k_reset(void) {
+    /* Vector table MUST be set to BIOS before pulsing reset to ensure the
+       initial stack pointer is correct.
+    */
+    vectable = VECTOR_TABLE_BIOS;
+
     m68k_pulse_reset();
     sma_prn = 0x2345;
     reg_sramlock = 0;
