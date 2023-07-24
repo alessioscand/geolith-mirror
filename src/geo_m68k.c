@@ -191,14 +191,14 @@ static void geo_m68k_write_banksw_8_default(uint32_t addr, uint8_t data) {
     if (addr >= 0x2ffff0)
         banksw_addr = (((data & banksw_mask) * 0x100000) + 0x100000);
     else
-        geo_log(GEO_LOG_WRN, "8-bit write at %06x: %02x\n", addr, data);
+        geo_log(GEO_LOG_DBG, "8-bit write at %06x: %02x\n", addr, data);
 }
 
 static void geo_m68k_write_banksw_16_default(uint32_t addr, uint16_t data) {
     if (addr >= 0x2ffff0)
         banksw_addr = (((data & banksw_mask) * 0x100000) + 0x100000);
     else
-        geo_log(GEO_LOG_WRN, "16-bit write at %06x: %04x\n", addr, data);
+        geo_log(GEO_LOG_DBG, "16-bit write at %06x: %04x\n", addr, data);
 }
 
 // Linkable Multiplayer Boards
@@ -227,7 +227,7 @@ static void geo_m68k_write_banksw_8_linkable(uint32_t addr, uint8_t data) {
     else if (addr == 0x200001)
         return; // More research is required
     else
-        geo_log(GEO_LOG_WRN, "8-bit write at %06x\n", addr);
+        geo_log(GEO_LOG_DBG, "8-bit write at %06x\n", addr);
 }
 
 // PRO-CT0
@@ -508,7 +508,7 @@ static void geo_m68k_write_banksw_16_kof98(uint32_t addr, uint16_t data) {
         banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
     }
     else {
-        geo_log(GEO_LOG_WRN, "16-bit write at %06x: %04x\n", addr, data);
+        geo_log(GEO_LOG_DBG, "16-bit write at %06x: %04x\n", addr, data);
     }
 }
 
@@ -560,7 +560,7 @@ static uint16_t geo_m68k_read_banksw_16_mslugx(uint32_t addr) {
                     >> (~select & 0x07)) & 0x0001;
             }
             default: {
-                geo_log(GEO_LOG_WRN, "mslugx read: %06x\n", addr);
+                geo_log(GEO_LOG_DBG, "mslugx read: %06x\n", addr);
                 break;
             }
         }
@@ -589,7 +589,7 @@ static void geo_m68k_write_banksw_16_mslugx(uint32_t addr, uint16_t data) {
                 break;
             }
             default: {
-                geo_log(GEO_LOG_WRN, "mslugx write: %06x, %04x\n", addr, data);
+                geo_log(GEO_LOG_DBG, "mslugx write: %06x, %04x\n", addr, data);
                 break;
             }
         }
@@ -598,7 +598,7 @@ static void geo_m68k_write_banksw_16_mslugx(uint32_t addr, uint16_t data) {
         banksw_addr = ((data * 0x100000) + 0x100000) & 0xffffff;
     }
     else {
-        geo_log(GEO_LOG_WRN, "16-bit write at %06x\n", addr);
+        geo_log(GEO_LOG_DBG, "16-bit write at %06x\n", addr);
     }
 }
 
@@ -877,13 +877,13 @@ unsigned int m68k_read_memory_8(unsigned int address) {
         return read08(ngsys.nvram, address & 0xffff);
     }
 
-    geo_log(GEO_LOG_WRN, "Unknown 8-bit 68K Read at %06x\n", address);
+    geo_log(GEO_LOG_DBG, "Unknown 8-bit 68K Read at %06x\n", address);
     return 0xff;
 }
 
 unsigned int m68k_read_memory_16(unsigned int address) {
     if (address & 0x01)
-        geo_log(GEO_LOG_WRN, "Unaligned 16-bit rd: %06x\n", address);
+        geo_log(GEO_LOG_WRN, "Unaligned 16-bit Read: %06x\n", address);
 
     if (address < 0x000080) { // Vector Table
         m68k_modify_timeslice(1);
@@ -948,7 +948,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
         return read16(ngsys.nvram, address & 0xffff);
     }
 
-    geo_log(GEO_LOG_WRN, "Unknown 16-bit 68K Read at %06x\n", address);
+    geo_log(GEO_LOG_DBG, "Unknown 16-bit 68K Read at %06x\n", address);
     return 0xffff;
 }
 
@@ -1106,7 +1106,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
         }
-        geo_log(GEO_LOG_WRN, "Unknown 8-bit write: %06x, %02x\n",
+        geo_log(GEO_LOG_DBG, "Unknown 8-bit Write: %06x, %02x\n",
             address, value);
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K
@@ -1119,7 +1119,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
         }
     }
     else if (address < 0xd00000) { // BIOS ROM
-        geo_log(GEO_LOG_WRN, "68K write to BIOS ROM: %06x %02x\n",
+        geo_log(GEO_LOG_DBG, "68K Write to BIOS ROM: %06x %02x\n",
             address, value);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K
@@ -1130,12 +1130,13 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
 
 void m68k_write_memory_16(unsigned int address, unsigned int value) {
     if (address & 0x01)
-        geo_log(GEO_LOG_WRN, "Unaligned wr16: %06x %04x\n", address, value);
+        geo_log(GEO_LOG_WRN, "Unaligned 16-bit Write: %06x %04x\n",
+            address, value);
 
     address &= 0xffffff;
 
     if (address < 0x100000) { // Fixed 1M Program ROM Bank
-        geo_log(GEO_LOG_DBG, "68K write to Program ROM: %06x %04x\n",
+        geo_log(GEO_LOG_DBG, "68K Write to Program ROM: %06x %04x\n",
             address, value);
     }
     else if (address < 0x200000) { // RAM - Mirrored every 64K
@@ -1205,7 +1206,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
                 return;
             }
         }
-        geo_log(GEO_LOG_WRN, "Unknown 16-bit 68K Write: %06x %04x\n",
+        geo_log(GEO_LOG_DBG, "Unknown 16-bit 68K Write: %06x %04x\n",
             address, value);
     }
     else if (address < 0x800000) { // Palette RAM - Mirrored every 8K
@@ -1218,7 +1219,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
         }
     }
     else if (address < 0xd00000) { // BIOS ROM
-        geo_log(GEO_LOG_WRN, "68K write to BIOS ROM: %06x %04x\n",
+        geo_log(GEO_LOG_DBG, "68K Write to BIOS ROM: %06x %04x\n",
             address, value);
     }
     else if (address < 0xe00000) { // Backup RAM - Mirrored every 64K
