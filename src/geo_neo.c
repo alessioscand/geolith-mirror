@@ -39,6 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "geo_sma.h"
 #include "geo_z80.h"
 
+static uint32_t flags = 0;
 
 static inline uint32_t read32le(uint8_t *ptr, uint32_t addr) {
     return ptr[addr] | (ptr[addr + 1] << 8) |
@@ -151,6 +152,18 @@ int geo_neo_load(void *data, size_t size) {
                field is supposed to be BCD, not hex.
             */
             geo_m68k_board_set(BOARD_BREZZASOFT);
+            break;
+        }
+        case 0x004: case 0x027: case 0x036: case 0x048: {
+            /* Mahjong Controller Games:
+                 Mahjong Kyo Retsuden
+                 Minasan no Okagesamadesu!
+                 Bakatonosama Mahjong Manyuuki
+                 Janshin Densetsu
+               Idol Mahjong Final Romance 2 is a CD to cartridge bootleg and
+               does not support the Mahjong Controller.
+            */
+            flags |= GEO_DB_MAHJONG;
             break;
         }
         case 0x047: case 0x052: { // Fatal Fury 2, Super Sidekicks
@@ -304,4 +317,8 @@ int geo_neo_load(void *data, size_t size) {
     }
 
     return 1;
+}
+
+uint32_t geo_neo_flags(void) {
+    return flags;
 }

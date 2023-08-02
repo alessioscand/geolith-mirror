@@ -133,6 +133,8 @@ static const char *defs_mahjong[21] = {
     "Pon", "Chi", "Kan", "Reach", "Ron", "Select", "Start"
 };
 
+static uint32_t dbflags = 0;
+
 // Coin Slots, Service Button, # of Slots
 static unsigned geo_input_poll_stat_a(void) {
     unsigned c = 0x07;
@@ -326,6 +328,7 @@ int jg_game_load(void) {
 
     // Load the NEO file
     geo_neo_load(gameinfo.data, gameinfo.size);
+    dbflags = geo_neo_flags();
 
     // Load saved data
     char savename[292];
@@ -363,7 +366,10 @@ int jg_game_load(void) {
     geo_input_sys_set_callback(2, &geo_input_poll_systype);
     geo_input_sys_set_callback(3, &geo_input_poll_dipsw);
 
-    if (settings_geo[INPUT].val == 2) { // Mahjong
+    // Mahjong
+    if ((settings_geo[INPUT].val == 2) ||
+        ((dbflags & GEO_DB_MAHJONG) && (settings_geo[INPUT].val == 0))) {
+
         inputinfo[0] = (jg_inputinfo_t){
             JG_INPUT_CONTROLLER, 0, "neogeomahjong",
             "Neo Geo Mahjong Controller", defs_mahjong, 0, 21

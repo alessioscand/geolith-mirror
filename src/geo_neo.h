@@ -31,6 +31,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef GEO_NEO_H
 #define GEO_NEO_H
 
+#define GEO_DB_MAHJONG   0x01
+#define GEO_DB_IRRMAZE   0x02
+#define GEO_DB_VLINER    0x04
+
 int geo_neo_load(void*, size_t);
+
+uint32_t geo_neo_flags(void);
 
 #endif
