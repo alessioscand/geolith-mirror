@@ -39,6 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "geo.h"
 #include "geo_lspc.h"
+#include "geo_m68k.h"
 #include "geo_mixer.h"
 #include "geo_neo.h"
 
@@ -84,6 +85,11 @@ static jg_inputstate_t *input_device[NUMINPUTS];
 
 // Emulator settings
 static jg_setting_t settings_geo[] = {
+    { "input", "Input Devices",
+      "0 = Auto, 1 = Neo Geo Joysticks, 2 = Mahjong",
+      "Select the desired input device(s)",
+      0, 0, 2, JG_SETTING_RESTART
+    },
     { "system", "Emulated System",
       "0 = AES (Console), 1 = MVS (Arcade), 2 = Universe BIOS",
       "Select which type of system/BIOS to emulate",
@@ -112,6 +118,7 @@ static jg_setting_t settings_geo[] = {
 };
 
 enum {
+    INPUT,
     SYS,
     REGION,
     FREEPLAY,
@@ -120,6 +127,11 @@ enum {
 };
 
 static const char *defs_ngsys[4] = { "Coin1", "Coin2", "Service", "Test" };
+
+static const char *defs_mahjong[21] = {
+    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
+    "Pon", "Chi", "Kan", "Reach", "Ron", "Select", "Start"
+};
 
 // Coin Slots, Service Button, # of Slots
 static unsigned geo_input_poll_stat_a(void) {
@@ -147,6 +159,22 @@ static unsigned geo_input_poll_stat_b(void) {
     return s;
 }
 
+static unsigned geo_input_poll_stat_b_mahjong(void) {
+    unsigned s = 0x0f;
+
+    if (settings_geo[SYS].val == SYSTEM_AES) {
+        if ((geo_m68k_reg_poutput() & 0x04))
+            s &= 0x0d;
+    }
+
+    if (input_device[0]->button[19])
+        s &= 0x0d;
+    if (input_device[0]->button[20])
+        s &= 0x0e;
+
+    return s;
+}
+
 // Test button, slot type
 static unsigned geo_input_poll_systype(void) {
     unsigned t = 0xc0;
@@ -160,9 +188,17 @@ static unsigned geo_input_poll_dipsw(void) {
     unsigned d = 0xff;
     if (settings_geo[FREEPLAY].val)
         d &= ~0x40;
+    if (settings_geo[INPUT].val == 2) // Mahjong
+        d &= ~0x04;
     if (settings_geo[SETTINGMODE].val)
         d &= ~0x01;
     return d;
+}
+
+// Port Unconnected
+static unsigned geo_input_poll_none(unsigned port) {
+    if (port) { }
+    return 0xff;
 }
 
 // Neo Geo Joystick
@@ -185,6 +221,37 @@ static unsigned geo_input_poll_js(unsigned port) {
         b &= ~(1 << 6);
     if (input_device[port]->button[9])
         b &= ~(1 << 7);
+
+    return b;
+}
+
+// Neo Geo Mahjong Controller
+static unsigned geo_input_poll_mahjong(unsigned port) {
+    unsigned b = 0xff;
+
+    if (port)
+        return b;
+
+    uint8_t output = geo_m68k_reg_poutput();
+
+    if (output & 0x01) {
+        for (unsigned i = 0; i < 7; ++i) {
+            if (input_device[0]->button[i])
+                b &= ~(1 << i);
+        }
+    }
+    if (output & 0x02) {
+        for (unsigned i = 0; i < 7; ++i) {
+            if (input_device[0]->button[i + 7])
+                b &= ~(1 << i);
+        }
+    }
+    if (output & 0x04) {
+        for (unsigned i = 0; i < 5; ++i) {
+            if (input_device[0]->button[i + 14])
+                b &= ~(1 << i);
+        }
+    }
 
     return b;
 }
@@ -295,6 +362,17 @@ int jg_game_load(void) {
     geo_input_sys_set_callback(1, &geo_input_poll_stat_b);
     geo_input_sys_set_callback(2, &geo_input_poll_systype);
     geo_input_sys_set_callback(3, &geo_input_poll_dipsw);
+
+    if (settings_geo[INPUT].val == 2) { // Mahjong
+        inputinfo[0] = (jg_inputinfo_t){
+            JG_INPUT_CONTROLLER, 0, "neogeomahjong",
+            "Neo Geo Mahjong Controller", defs_mahjong, 0, 21
+        };
+        inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_UNCONNECTED);
+        geo_input_set_callback(0, &geo_input_poll_mahjong);
+        geo_input_set_callback(1, &geo_input_poll_none);
+        geo_input_sys_set_callback(1, &geo_input_poll_stat_b_mahjong);
+    }
 
     jg_cb_frametime(FRAMERATE);
 
