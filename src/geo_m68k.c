@@ -71,6 +71,7 @@ static uint8_t reg_sramlock = 0; // SRAM Lock
 static uint8_t reg_crdlock[2] = { 0, 0 }; // Memory Card Lock
 static uint8_t reg_crdregsel = 0; // Register Select for Memory Card
 static uint8_t reg_crtfix = 0; // Sets S ROM/M1 ROM or SFIX/SM1 ROM
+static uint8_t reg_poutput = 0; // Joypad Port Outputs
 
 // NEO-SMA Pseudo-Random Number addresses
 static uint32_t sma_prn_addr[2] = { 0, 0 };
@@ -985,7 +986,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x380001: { // REG_POUTPUT
-                // Do joypad outputs need to be emulated?
+                reg_poutput = value;
                 return;
             }
             case 0x380011: { // REG_CRDBANK
@@ -993,7 +994,9 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
                 return;
             }
             case 0x380021: { // REG_SLOT
-                // TODO?
+                // Switch slot for MVS, mirror of REG_POUTPUT for AES
+                if (geo_get_system() == SYSTEM_AES)
+                    reg_poutput = value;
                 return;
             }
             case 0x380031: { // REG_LEDLATCHES
@@ -1389,6 +1392,10 @@ void geo_m68k_postload(void) {
         geo_calc_mask(8, (romdata->psz - 0x100000) >> 20) : 0;
 }
 
+uint8_t geo_m68k_reg_poutput(void) {
+    return reg_poutput;
+}
+
 void geo_m68k_state_load(uint8_t *st) {
     m68k_set_reg(M68K_REG_D0, geo_serial_pop32(st));
     m68k_set_reg(M68K_REG_D1, geo_serial_pop32(st));
@@ -1432,6 +1439,7 @@ void geo_m68k_state_load(uint8_t *st) {
     reg_crdlock[1] = geo_serial_pop8(st);
     reg_crdregsel = geo_serial_pop8(st);
     reg_crtfix = geo_serial_pop8(st);
+    reg_poutput = geo_serial_pop8(st);
 
     m68k_write_memory_8(reg_crtfix ? 0x3a001b : 0x3a000b, reg_crtfix);
 
@@ -1487,6 +1495,7 @@ void geo_m68k_state_save(uint8_t *st) {
     geo_serial_push8(st, reg_crdlock[1]);
     geo_serial_push8(st, reg_crdregsel);
     geo_serial_push8(st, reg_crtfix);
+    geo_serial_push8(st, reg_poutput);
 
     if (boardtype == BOARD_KOF10TH) {
         geo_serial_pushblk(st, dynfix, SIZE_128K);
