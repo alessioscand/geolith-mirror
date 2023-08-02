@@ -45,9 +45,13 @@ Input Devices
 Geolith supports the following input devices:
 
 Neo Geo Joystick
+Neo Geo Mahjong Controller
 
 Settings
 --------
+input = 0
+0 = Auto, 1 = Neo Geo Joysticks, 2 = Mahjong
+
 system = 0
 0 = AES (Console), 1 = MVS (Arcade), 2 = Universe BIOS
 
@@ -75,8 +79,7 @@ or new information:
 
 Dedicated JAMMA PCB and Neo Geo CD systems are not currently supported.
 
-The Mahjong Controller and special inputs for Irritating Maze and V-Liner are
-not yet supported.
+The special inputs for Irritating Maze and V-Liner are not yet supported.
 
 Notes
 -----
