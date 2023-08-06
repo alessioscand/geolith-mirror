@@ -46,6 +46,7 @@ Geolith supports the following input devices:
 
 Neo Geo Joystick
 Neo Geo Mahjong Controller
+V-Liner
 
 Settings
 --------
@@ -79,7 +80,9 @@ or new information:
 
 Dedicated JAMMA PCB and Neo Geo CD systems are not currently supported.
 
-The special inputs for Irritating Maze and V-Liner are not yet supported.
+The special inputs for Irritating Maze are not yet supported. It is possible to
+play Irritating Maze using the Universe BIOS with a cheat enabled for joystick
+controls.
 
 Notes
 -----
