@@ -133,6 +133,11 @@ static const char *defs_mahjong[21] = {
     "Pon", "Chi", "Kan", "Reach", "Ron", "Select", "Start"
 };
 
+static const char *defs_vliner[11] = {
+    "Up", "Down", "Left", "Right", "Big", "Small", "D-Up", "Start",
+    "Operator", "ClearCredit", "HopperOut"
+};
+
 static uint32_t dbflags = 0;
 
 // Coin Slots, Service Button, # of Slots
@@ -145,6 +150,10 @@ static unsigned geo_input_poll_stat_a(void) {
     if (input_device[2]->button[2]) // Service
         c &= 0x03;
     return c;
+}
+
+static unsigned geo_input_poll_stat_a_vliner(void) {
+    return 0x07;
 }
 
 // P1/P2 Select/Start, Memcard status, AES/MVS setting
@@ -177,6 +186,10 @@ static unsigned geo_input_poll_stat_b_mahjong(void) {
     return s;
 }
 
+static unsigned geo_input_poll_stat_b_vliner(void) {
+    return 0x0f;
+}
+
 // Test button, slot type
 static unsigned geo_input_poll_systype(void) {
     unsigned t = 0xc0;
@@ -195,6 +208,25 @@ static unsigned geo_input_poll_dipsw(void) {
     if (settings_geo[SETTINGMODE].val)
         d &= ~0x01;
     return d;
+}
+
+// V-Liner System Buttons
+static unsigned geo_input_poll_sys_vliner(void) {
+    unsigned b = 0xff;
+
+    if (input_device[2]->button[0])
+        b &= ~(1 << 0);
+    if (input_device[2]->button[1])
+        b &= ~(1 << 1);
+
+    if (input_device[0]->button[8])
+        b &= ~(1 << 4);
+    if (input_device[0]->button[9])
+        b &= ~(1 << 5);
+    if (input_device[0]->button[10])
+        b &= ~(1 << 7);
+
+    return b;
 }
 
 // Port Unconnected
@@ -255,6 +287,16 @@ static unsigned geo_input_poll_mahjong(unsigned port) {
         }
     }
 
+    return b;
+}
+
+// V-Liner Play Buttons
+static unsigned geo_input_poll_vliner(unsigned port) {
+    unsigned b = 0xff;
+    for (unsigned i = 0; i < 8; ++i) {
+        if (input_device[port]->button[i])
+            b &= ~(1 << i);
+    }
     return b;
 }
 
@@ -378,6 +420,18 @@ int jg_game_load(void) {
         geo_input_set_callback(0, &geo_input_poll_mahjong);
         geo_input_set_callback(1, &geo_input_poll_none);
         geo_input_sys_set_callback(1, &geo_input_poll_stat_b_mahjong);
+    }
+    else if (dbflags & GEO_DB_VLINER) {
+        inputinfo[0] = (jg_inputinfo_t){
+            JG_INPUT_CONTROLLER, 0, "neogeovliner",
+            "V-Liner", defs_vliner, 0, 11
+        };
+        inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_UNCONNECTED);
+        geo_input_set_callback(0, &geo_input_poll_vliner);
+        geo_input_set_callback(1, &geo_input_poll_none);
+        geo_input_sys_set_callback(0, &geo_input_poll_stat_a_vliner);
+        geo_input_sys_set_callback(1, &geo_input_poll_stat_b_vliner);
+        geo_input_sys_set_callback(4, &geo_input_poll_sys_vliner);
     }
 
     jg_cb_frametime(FRAMERATE);

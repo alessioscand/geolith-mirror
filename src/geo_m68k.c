@@ -644,6 +644,13 @@ static uint8_t geo_m68k_read_banksw_8_brezza(uint32_t addr) {
 static uint16_t geo_m68k_read_banksw_16_brezza(uint32_t addr) {
     if (addr <= 0x201fff)
         return read16(ngsys.cartram, addr & 0x1fff);
+
+    // These are for V-Liner but do not seem to break Jockey Grand Prix
+    if (addr == 0x280000)
+        return geo_input_sys_cb[4]();
+    else if (addr == 0x2c0000)
+        return 0xffc0;
+
     return 0xffff;
 }
 

@@ -145,12 +145,7 @@ int geo_neo_load(void *data, size_t size) {
             geo_m68k_board_set(BOARD_LINKABLE);
             break;
         }
-        case 0x008: case 0x999: case 0x3e7: { // Jockey Grand Prix, V-Liner
-            /* Some tools set V-Liner's NGH to 999 and others to 3E7. 3E7 is
-               correct, but 0x3e7 is 999 in decimal, so it is possible the
-               developer intended for it to be 999 but did not realize the NGH
-               field is supposed to be BCD, not hex.
-            */
+        case 0x008: { // Jockey Grand Prix
             geo_m68k_board_set(BOARD_BREZZASOFT);
             break;
         }
@@ -301,6 +296,16 @@ int geo_neo_load(void *data, size_t size) {
             // Special handling for original bootleg, not KoF 10th 2005 Unique
             if (neodata[0x1000 + 0x125] == 0x00)
                 geo_m68k_board_set(BOARD_KOF10TH);
+            break;
+        }
+        case 0x3e7: case 0x999: { // Jockey Grand Prix, V-Liner
+            /* Some tools set V-Liner's NGH to 999 and others to 3E7. 3E7 is
+               correct, but 0x3e7 is 999 in decimal, so it is possible the
+               developer intended for it to be 999 but did not realize the NGH
+               field is supposed to be BCD, not hex.
+            */
+            flags |= GEO_DB_VLINER;
+            geo_m68k_board_set(BOARD_BREZZASOFT);
             break;
         }
         case 0x5003: { // Crouching Tiger Hidden Dragon bootlegs

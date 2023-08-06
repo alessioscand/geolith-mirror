@@ -57,7 +57,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define REGION_EU   0x03 // Europe
 
 #define NUMINPUTS_NG    2
-#define NUMINPUTS_SYS   4
+#define NUMINPUTS_SYS   5
 
 enum geo_savedata {
     GEO_SAVEDATA_NVRAM,
