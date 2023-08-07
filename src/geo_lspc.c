@@ -713,22 +713,43 @@ static void geo_lspc_scanline(void) {
         lspc.scanline == LSPC_LINE_BUFSTART + 1) {
         geo_lspc_sprcalc();
     }
-    else if (lspc.scanline == LSPC_LINE_BORDER_BOTTOM) {
-        if (ngsys.irq2_ctrl & IRQ_TIMER_RELOAD_VBLANK)
-            ngsys.irq2_counter = ngsys.irq2_reload;
-        geo_m68k_interrupt(IRQ_VBLANK);
-    }
-
-    if (++lspc.scanline == LSPC_SCANLINES) // Handle final scanline
-        lspc.scanline = 0;
-    else if (lspc.scanline == LSPC_LINE_BORDER_TOP)
-        geo_lspc_aa();
 }
 
 void geo_lspc_run(unsigned cycs) {
-    lspc.cyc += cycs; // 68K cycles, or pixel clock half cycles
-    if (lspc.cyc >= M68K_CYC_PER_LINE) {
-        geo_lspc_scanline();
+    /* Timing of events which occur during a scanline is not perfect.
+       Documentation on the fine details is rather old, and more modern
+       materials do not go into full depth about the exact timing of each
+       event -- for instance, when the scanline counter increments. There may
+       also be missing details about how interrupts are timed, including
+       unknown caveats. More research will be required to make everything
+       perfect, but the framework for true cycle accuracy in the future is in
+       place.
+    */
+    for (unsigned i = 0; i < cycs; ++i) {
+        switch (lspc.cyc++) {
+            case 29: {
+                if (lspc.scanline == LSPC_LINE_BORDER_TOP)
+                    geo_lspc_aa();
+                else if (lspc.scanline == LSPC_LINE_BORDER_BOTTOM + 1)
+                    geo_m68k_interrupt(IRQ_VBLANK);
+                break;
+            }
+            case 573: {
+                // Arbitrary placement until cycle accuracy is achieved
+                geo_lspc_scanline();
+
+                if (lspc.scanline == LSPC_LINE_BORDER_BOTTOM) {
+                    if (ngsys.irq2_ctrl & IRQ_TIMER_RELOAD_VBLANK)
+                        ngsys.irq2_counter = ngsys.irq2_reload;
+                }
+                break;
+            }
+            case 712: { // This is an educated guess
+                lspc.scanline = (lspc.scanline + 1) % LSPC_SCANLINES;
+                break;
+            }
+        }
+
         lspc.cyc %= M68K_CYC_PER_LINE;
     }
 }
