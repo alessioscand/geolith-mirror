@@ -173,6 +173,10 @@ int geo_neo_load(void *data, size_t size) {
             }
             break;
         }
+        case 0x236: { // The Irritating Maze
+            flags |= GEO_DB_IRRMAZE;
+            break;
+        }
         case 0x242: { // KOF 98
             geo_m68k_board_set(BOARD_KOF98);
             break;
