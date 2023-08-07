@@ -421,6 +421,13 @@ int jg_game_load(void) {
         geo_input_set_callback(1, &geo_input_poll_none);
         geo_input_sys_set_callback(1, &geo_input_poll_stat_b_mahjong);
     }
+    else if (dbflags & GEO_DB_IRRMAZE) {
+        if (settings_geo[SYS].val != SYSTEM_UNI) {
+            jg_cb_log(JG_LOG_WRN, "The Irritating Maze must be played using "
+                "the Universe BIOS with the \"Enable Joystick Play\" option "
+                "set.\n");
+        }
+    }
     else if (dbflags & GEO_DB_VLINER) {
         inputinfo[0] = (jg_inputinfo_t){
             JG_INPUT_CONTROLLER, 0, "neogeovliner",
