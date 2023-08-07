@@ -38,6 +38,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "geo_lspc.h"
 #include "geo_serial.h"
 
+#define M68K_CYC_PER_LINE 768
+
 static void (*geo_lspc_fixline)(void);
 
 static lspc_t lspc;
@@ -269,6 +271,7 @@ void geo_lspc_init(void) {
     lspc.aa_reload = 0;
     lspc.aa_timer = 0;
     lspc.scanline = 0;
+    lspc.cyc = 0;
 
     geo_lspc_shadow_wr(0);
 
@@ -699,7 +702,7 @@ static inline void geo_lspc_aa(void) {
     }
 }
 
-void geo_lspc_scanline(void) {
+static void geo_lspc_scanline(void) {
     if (lspc.scanline >= LSPC_LINE_BORDER_TOP &&
         lspc.scanline < LSPC_LINE_BORDER_BOTTOM) {
         geo_lspc_bdsprline();
@@ -722,6 +725,14 @@ void geo_lspc_scanline(void) {
         geo_lspc_aa();
 }
 
+void geo_lspc_run(unsigned cycs) {
+    lspc.cyc += cycs; // 68K cycles, or pixel clock half cycles
+    if (lspc.cyc >= M68K_CYC_PER_LINE) {
+        geo_lspc_scanline();
+        lspc.cyc %= M68K_CYC_PER_LINE;
+    }
+}
+
 void geo_lspc_state_load(uint8_t *st) {
     geo_serial_popblk((uint8_t*)lspc.vram, st, SIZE_64K + SIZE_4K);
     geo_serial_popblk((uint8_t*)lspc.palram, st, SIZE_16K);
@@ -735,6 +746,7 @@ void geo_lspc_state_load(uint8_t *st) {
     lspc.aa_timer = geo_serial_pop8(st);
     lspc.shadow = geo_serial_pop8(st);
     lspc.scanline = geo_serial_pop32(st);
+    lspc.cyc = geo_serial_pop32(st);
 
     // Restore the output palette
     for (unsigned i = 0; i < (SIZE_16K >> 1); ++i)
@@ -754,4 +766,5 @@ void geo_lspc_state_save(uint8_t *st) {
     geo_serial_push8(st, lspc.aa_timer);
     geo_serial_push8(st, lspc.shadow);
     geo_serial_push32(st, lspc.scanline);
+    geo_serial_push32(st, lspc.cyc);
 }

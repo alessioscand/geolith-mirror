@@ -83,6 +83,7 @@ typedef struct _lspc_t {
     uint8_t shadow;
 
     uint32_t scanline;
+    uint32_t cyc;
 } lspc_t;
 
 void geo_lspc_set_buffer(uint32_t*);
@@ -112,7 +113,7 @@ void geo_lspc_init(void);
 
 void geo_lspc_shadow_wr(unsigned);
 
-void geo_lspc_scanline(void);
+void geo_lspc_run(unsigned);
 
 void geo_lspc_state_load(uint8_t*);
 void geo_lspc_state_save(uint8_t*);

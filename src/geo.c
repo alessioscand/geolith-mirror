@@ -49,7 +49,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define MCYC_PER_LINE 1536
 #define MCYC_PER_FRAME (MCYC_PER_LINE * 264) // 405504
-#define MCYC_HBLANK 1424
 
 // Log callback
 void (*geo_log)(int, const char *, ...);
@@ -70,22 +69,12 @@ static uint8_t state[485301]; // Maximum size
 static uint8_t sys = 0;
 static uint8_t region = 0;
 
-// Extra cycles stored at the end of scanlines/frames
-static uint32_t mextcycs = 0;
-static uint32_t lextcycs = 0;
-static uint32_t zextcycs = 0;
-
+static uint32_t mcycs = 0;
+static uint32_t zcycs = 0;
 static uint32_t ymcycs = 0;
 static uint32_t ymsamps = 0;
 
-static unsigned mcycs = 0;
-static unsigned zcycs = 0;
 static unsigned icycs = 0;
-static unsigned lcycs = 0;
-
-// Scanline drawing
-static unsigned sldrawn = 0;
-static unsigned slcyc = MCYC_HBLANK;
 
 // Set the log callback
 void geo_log_set_callback(void (*cb)(int, const char *, ...)) {
@@ -120,11 +109,6 @@ void geo_set_system(int s) {
 // Get the system currently being emulated
 int geo_get_system(void) {
     return sys;
-}
-
-// Set the master cycle in the scanline after which the data is drawn
-void geo_set_drawcyc(unsigned cyc) {
-    slcyc = cyc;
 }
 
 romdata_t* geo_romdata_ptr(void) {
@@ -378,8 +362,8 @@ void geo_init(void) {
 void geo_state_load_raw(const void *sstate) {
     uint8_t *st = (uint8_t*)sstate;
     geo_serial_begin();
-    uint8_t stregion = mextcycs = geo_serial_pop8(st);
-    uint8_t stsys = mextcycs = geo_serial_pop8(st);
+    uint8_t stregion = geo_serial_pop8(st);
+    uint8_t stsys = geo_serial_pop8(st);
 
     if ((region != stregion) || (sys != stsys)) {
         geo_log(GEO_LOG_WRN, "State load operation ignored: state is "
@@ -387,9 +371,8 @@ void geo_state_load_raw(const void *sstate) {
         return;
     }
 
-    mextcycs = geo_serial_pop32(st);
-    lextcycs = geo_serial_pop32(st);
-    zextcycs = geo_serial_pop32(st);
+    mcycs = geo_serial_pop32(st);
+    zcycs = geo_serial_pop32(st);
     ymcycs = geo_serial_pop32(st);
     ngsys.irq2_ctrl = geo_serial_pop8(st);
     ngsys.irq2_reload = geo_serial_pop32(st);
@@ -453,9 +436,8 @@ const void* geo_state_save_raw(void) {
     geo_serial_begin();
     geo_serial_push8(state, region);
     geo_serial_push8(state, sys);
-    geo_serial_push32(state, mextcycs);
-    geo_serial_push32(state, lextcycs);
-    geo_serial_push32(state, zextcycs);
+    geo_serial_push32(state, mcycs);
+    geo_serial_push32(state, zcycs);
     geo_serial_push32(state, ymcycs);
     geo_serial_push8(state, ngsys.irq2_ctrl);
     geo_serial_push32(state, ngsys.irq2_reload);
@@ -519,22 +501,16 @@ void geo_watchdog_reset(void) {
 }
 
 void geo_exec(void) {
-    mcycs = mextcycs;
-    lcycs = lextcycs;
-    zcycs = zextcycs;
-    ymsamps = 0;
-
     while (mcycs < MCYC_PER_FRAME) {
         icycs = geo_m68k_run(1);
         mcycs += icycs * DIV_M68K;
-        lcycs += icycs * DIV_M68K;
 
         // If this is an arcade system, update the RTC
         if (sys)
             geo_rtc_sync(icycs);
 
         // Handle IRQ2 counter
-        ngsys.irq2_dec = icycs >> 1;
+        ngsys.irq2_dec = icycs >> 1; // This is measured in pixel clocks
         ngsys.irq2_frags += icycs & 0x01;
         if (ngsys.irq2_frags == 2) {
             ngsys.irq2_frags = 0;
@@ -556,6 +532,8 @@ void geo_exec(void) {
             }
         }
 
+        geo_lspc_run(icycs);
+
         // Catch the Z80 and YM2610 up to the 68K
         while (zcycs < mcycs) {
             size_t scycs = geo_z80_run(1);
@@ -566,23 +544,14 @@ void geo_exec(void) {
                 ymsamps += geo_ymfm_exec();
             }
         }
-
-        if (!sldrawn && (lcycs >= slcyc)) { // Handle drawing of scanline data
-            geo_lspc_scanline();
-            sldrawn = 1;
-        }
-        else if (lcycs >= MCYC_PER_LINE) { // Handle end of line
-            lcycs -= MCYC_PER_LINE;
-            sldrawn = 0;
-        }
     }
 
-    mextcycs = mcycs - MCYC_PER_FRAME;
-    zextcycs = zcycs - MCYC_PER_FRAME;
-    lextcycs = lcycs;
+    mcycs %= MCYC_PER_FRAME;
+    zcycs %= MCYC_PER_FRAME;
 
     // Resample audio generated this frame for output to the frontend
     geo_mixer_resamp(ymsamps);
+    ymsamps = 0;
 
     // Increment the Watchdog counter at the end of each frame
     geo_watchdog_increment();
