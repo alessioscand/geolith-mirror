@@ -61,23 +61,19 @@ CSRCS := m68k/m68kcpu.c \
 	jg.c
 
 ifeq ($(USE_EXTERNAL_MINIZ), 0)
-	Q_MINIZ :=
 	CFLAGS_MINIZ := -I$(DEPDIR)/miniz
 	LIBS_MINIZ :=
 	CSRCS += deps/miniz/miniz.c
 else
-	Q_MINIZ := @
 	CFLAGS_MINIZ := $(shell $(PKG_CONFIG) --cflags miniz)
 	LIBS_MINIZ := $(shell $(PKG_CONFIG) --libs miniz)
 endif
 
 ifneq ($(USE_VENDORED_SPEEXDSP), 0)
-	Q_SPEEXDSP :=
 	CFLAGS_SPEEXDSP := -I$(DEPDIR)
 	LIBS_SPEEXDSP :=
 	CSRCS += deps/speex/resample.c
 else
-	Q_SPEEXDSP := @
 	CFLAGS_SPEEXDSP := $(shell $(PKG_CONFIG) --cflags speexdsp)
 	LIBS_SPEEXDSP := $(shell $(PKG_CONFIG) --libs speexdsp)
 endif
@@ -139,14 +135,12 @@ install: all
 	cp $(NAME)/$(TARGET) $(DESTDIR)$(LIBDIR)/jollygood/
 	cp $(SOURCEDIR)/LICENSE $(DESTDIR)$(DOCDIR)
 	cp $(SOURCEDIR)/README $(DESTDIR)$(DOCDIR)
-	$(Q_MINIZ)if test $(USE_EXTERNAL_MINIZ) = 0; then \
-		cp $(DEPDIR)/miniz/LICENSE \
-			$(DESTDIR)$(DOCDIR)/LICENSE-miniz; \
-	fi
-	$(Q_SPEEXDSP)if test $(USE_VENDORED_SPEEXDSP) != 0; then \
-		cp $(DEPDIR)/speex/COPYING \
-			$(DESTDIR)$(DOCDIR)/COPYING-speexdsp; \
-	fi
+ifeq ($(USE_EXTERNAL_MINIZ), 0)
+	cp $(DEPDIR)/miniz/LICENSE $(DESTDIR)$(DOCDIR)/LICENSE-miniz
+endif
+ifneq ($(USE_VENDORED_SPEEXDSP), 0)
+	cp $(DEPDIR)/speex/COPYING $(DESTDIR)$(DOCDIR)/COPYING-speexdsp
+endif
 
 install-strip: install
 	strip $(DESTDIR)$(LIBDIR)/jollygood/$(TARGET)
