@@ -12,6 +12,7 @@ PKG_CONFIG ?= pkg-config
 CFLAGS_JG := $(shell $(PKG_CONFIG) --cflags jg)
 
 INCLUDES := -I$(SRCDIR)
+LIBS := -lm
 PIC := -fPIC
 SHARED := $(PIC)
 
@@ -27,19 +28,17 @@ USE_VENDORED_SPEEXDSP ?= 0
 
 UNAME := $(shell uname -s)
 ifeq ($(UNAME), Darwin)
-	SHARED += -dynamiclib
 	TARGET := $(NAME).dylib
 else ifeq ($(OS), Windows_NT)
-	SHARED += -shared
 	TARGET := $(NAME).dll
 else
-	LIBS += -lm
-	SHARED += -shared
 	TARGET := $(NAME).so
 endif
 
-ifeq ($(UNAME), Linux)
-	LIBS += -Wl,--no-undefined
+ifeq ($(UNAME), Darwin)
+	SHARED += -dynamiclib -Wl,-undefined,error
+else
+	SHARED += -shared -Wl,--no-undefined
 endif
 
 CSRCS := m68k/m68kcpu.c \
