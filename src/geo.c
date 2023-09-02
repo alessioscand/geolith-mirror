@@ -414,19 +414,24 @@ int geo_state_load(const char *filename) {
 
     // Allocate memory to read the file into
     sstatefile = (void*)calloc(filesize, sizeof(uint8_t));
-    if (sstatefile == NULL)
+    if (sstatefile == NULL) {
+        fclose(file);
         return 0;
+    }
 
     // Read the file into memory and then close it
     result = fread(sstatefile, sizeof(uint8_t), filesize, file);
-    if (result != filesize)
+    if (result != filesize) {
+        fclose(file);
+        free(sstatefile);
         return 0;
-    fclose(file);
+    }
 
     // File has been read, now copy it into the emulator
     geo_state_load_raw((const void*)sstatefile);
 
-    // Free the allocated memory
+    // Free the allocated memory and close file handle
+    fclose(file);
     free(sstatefile);
 
     return 1; // Success!
