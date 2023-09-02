@@ -173,10 +173,6 @@ int geo_neo_load(void *data, size_t size) {
             }
             break;
         }
-        case 0x203: { // Master of Shougi
-            geo_lspc_set_scanline_offset(1);
-            break;
-        }
         case 0x236: { // The Irritating Maze
             flags |= GEO_DB_IRRMAZE;
             break;
