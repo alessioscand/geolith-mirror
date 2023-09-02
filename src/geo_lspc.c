@@ -50,11 +50,6 @@ static uint32_t *vbuf = NULL;
 static unsigned linebuf[2][LSPC_WIDTH]; // Line buffers for sprite pixels
 static unsigned lbactive = 0; // Active line buffer
 
-/* Scanline counter offset for per-game hacks -- this will be removed when
-   cycle accuracy can be achieved.
-*/
-static unsigned sloffset = 0;
-
 static uint8_t *fixdata = NULL;
 
 static unsigned fixbanksw = 0;
@@ -88,11 +83,6 @@ static unsigned lut_hshrink[0x10][0x10] = {
 // Set the pointer to the video buffer
 void geo_lspc_set_buffer(uint32_t *ptr) {
     vbuf = ptr;
-}
-
-// Set the scanline counter offset
-void geo_lspc_set_scanline_offset(unsigned offset) {
-    sloffset = offset;
 }
 
 // Perform post-load operations for C ROM
@@ -250,7 +240,7 @@ uint16_t geo_lspc_mode_rd(void) {
        Bits 0-2:  Auto animation counter
     */
     // FIXME - support 50Hz
-    return ((lspc.scanline + 0xf8 + sloffset) << 7) | lspc.aa_counter;
+    return ((lspc.scanline + 0xf8) << 7) | lspc.aa_counter;
 }
 
 // Write to REG_LSPCMODE
