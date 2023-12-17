@@ -16,6 +16,8 @@ Make sure you have The Jolly Good API's header files installed. If you did
 not install them, you will be required to include their path in CFLAGS.
 
 Options:
+  DISABLE_MODULE - Set to a non-zero value to disable building the module.
+  ENABLE_STATIC_JG - Set to a non-zero value to build a static JG archive.
   USE_EXTERNAL_MINIZ -  Set non-zero to use an external miniz
   USE_VENDORED_SPEEXDSP - Set to a non-zero value to use vendored SpeexDSP
 

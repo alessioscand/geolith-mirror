@@ -1,0 +1,18 @@
+# https://www.freedesktop.org/wiki/Specifications/desktop-entry-spec/
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=geolith
+GenericName=Neo Geo AES/MVS Emulator
+NoDisplay=true
+Comment=Emulate the Neo Geo AES and MVS
+Icon=geolith
+TryExec=geolith
+Exec=geolith %f
+Terminal=false
+# no mimetype for Neo Geo (.neo) roms
+#MimeType=
+Categories=Game;Emulator;
+Keywords=emulator;
+StartupNotify=false
+StartupWMClass=geolith
