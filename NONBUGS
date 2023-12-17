@@ -33,7 +33,7 @@ Ninja Commando
 
 Samurai Shodown 4
 -----------------
- - A block on the right side of the top blue horizontal border area disappars
+ - A block on the right side of the top blue horizontal border area disappears
    during the intro scene due to the sprite limit being reached
  - Top right corner of FIX layer is not updated quickly enough to turn the
    entire screen white during "flash" events in the intro scene
