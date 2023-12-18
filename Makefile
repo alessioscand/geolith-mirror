@@ -1,51 +1,22 @@
 SOURCEDIR := $(abspath $(patsubst %/,%,$(dir $(abspath $(lastword \
 	$(MAKEFILE_LIST))))))
 
-AR ?= ar
-CC ?= cc
+NAME := geolith
+JGNAME := $(NAME)
+
 CFLAGS ?= -O2
 FLAGS := -std=c11 -Wall -Wextra -Wshadow -Wmissing-declarations -pedantic
 
 DEPDIR := $(SOURCEDIR)/deps
 SRCDIR := $(SOURCEDIR)/src
 
-PKG_CONFIG ?= pkg-config
-CFLAGS_JG := $(shell $(PKG_CONFIG) --cflags jg)
-
 INCLUDES := -I$(SRCDIR)
 LIBS := -lm
-PIC := -fPIC
-SHARED := $(PIC)
 
-NAME := geolith
-PREFIX ?= /usr/local
-EXEC_PREFIX ?= $(PREFIX)
-LIBDIR ?= $(EXEC_PREFIX)/lib
-DATAROOTDIR ?= $(PREFIX)/share
-DATADIR ?= $(DATAROOTDIR)
-DOCDIR ?= $(DATAROOTDIR)/doc/$(NAME)
-
-LIBPATH := $(LIBDIR)/jollygood
-
-DISABLE_MODULE ?= 0
-ENABLE_STATIC_JG ?= 0
 USE_EXTERNAL_MINIZ ?= 0
 USE_VENDORED_SPEEXDSP ?= 0
 
-UNAME := $(shell uname -s)
-ifeq ($(UNAME), Darwin)
-	LIBRARY := $(NAME).dylib
-else ifeq ($(OS), Windows_NT)
-	LIBRARY := $(NAME).dll
-else
-	LIBRARY := $(NAME).so
-endif
-
-ifeq ($(UNAME), Darwin)
-	SHARED += -dynamiclib -Wl,-undefined,error
-else
-	SHARED += -shared -Wl,--no-undefined
-endif
+include $(SOURCEDIR)/jg.mk
 
 CSRCS := m68k/m68kcpu.c \
 	m68k/m68kops.c \
@@ -86,50 +57,17 @@ endif
 INCLUDES += $(CFLAGS_SPEEXDSP) $(CFLAGS_MINIZ)
 LIBS += $(LIBS_SPEEXDSP) $(LIBS_MINIZ)
 
-# Desktop File
-DESKTOP := $(NAME).desktop
-
-DESKTOP_TARGET := $(NAME)/$(DESKTOP)
-
-# Icons
-ICONS := $(wildcard $(SOURCEDIR)/icons/*.png) $(SOURCEDIR)/icons/$(NAME).svg
-
-ICONS_BASE := $(notdir $(ICONS))
-ICONS_TARGET := $(ICONS_BASE:%=$(NAME)/icons/%)
-
 # Object dirs
 MKDIRS := deps/miniz deps/speex m68k ymfm z80
 
-OBJDIR := objs
-
 # List of object files
 OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o))
-
-# Library targets
-TARGET :=
-TARGET_MODULE := $(NAME)/$(LIBRARY)
-TARGET_STATIC_JG := $(NAME)/lib$(NAME)-jg.a
-
-ifeq ($(DISABLE_MODULE), 0)
-	TARGET += $(TARGET_MODULE)
-endif
-
-ifneq ($(ENABLE_STATIC_JG), 0)
-	TARGET += $(DESKTOP_TARGET) $(ICONS_TARGET) $(NAME)/jg-static.mk
-endif
-
-# Compiler command
-COMPILE = $(strip $(1) $(CPPFLAGS) $(PIC) $(2) -c $< -o $@)
-COMPILE_C = $(call COMPILE, $(CC) $(CFLAGS), $(1))
-
-# Info command
-COMPILE_INFO = $(info $(subst $(SOURCEDIR)/,,$(1)))
 
 # Core commands
 BUILD_JG = $(call COMPILE_C, $(FLAGS) $(INCLUDES) $(CFLAGS_JG))
 BUILD_MAIN = $(call COMPILE_C, $(FLAGS) $(INCLUDES))
 
--include config.mak
+-include config.mk
 
 .PHONY: all clean install install-strip uninstall
 
@@ -170,7 +108,7 @@ $(ICONS_TARGET): $(ICONS)
 	@cp $(subst $(NAME)/icons,$(SOURCEDIR)/icons,$@) $(NAME)/icons/
 
 $(NAME)/jg-static.mk: $(TARGET_STATIC_JG)
-	@printf '%s\n%s\n%s\n%s\n' 'NAME := $(NAME)' 'ASSETS :=' \
+	@printf '%s\n%s\n%s\n%s\n' 'NAME := $(JGNAME)' 'ASSETS :=' \
 		'ICONS := $(ICONS_BASE)' 'LIBS_STATIC := $(strip $(LIBS))' > $@
 
 clean:
