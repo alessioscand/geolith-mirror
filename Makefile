@@ -16,6 +16,9 @@ LIBS := -lm
 USE_EXTERNAL_MINIZ ?= 0
 USE_VENDORED_SPEEXDSP ?= 0
 
+override ENABLE_SHARED := 0
+override ENABLE_STATIC := 0
+
 include $(SOURCEDIR)/jg.mk
 
 CSRCS := m68k/m68kcpu.c \
@@ -114,7 +117,7 @@ $(NAME)/jg-static.mk: $(TARGET_STATIC_JG)
 clean:
 	rm -rf $(OBJDIR) $(NAME)
 
-ifeq ($(DISABLE_MODULE), 0)
+ifneq ($(ENABLE_LIB), 0)
 install: all
 	@mkdir -p $(DESTDIR)$(DOCDIR)
 	@mkdir -p $(DESTDIR)$(LIBPATH)
