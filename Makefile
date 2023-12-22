@@ -18,6 +18,8 @@ USE_VENDORED_SPEEXDSP ?= 0
 
 override ENABLE_SHARED := 0
 override ENABLE_STATIC := 0
+override INSTALL_DATA := 0
+override INSTALL_SHARED := 0
 
 include $(SOURCEDIR)/jg.mk
 
@@ -72,7 +74,7 @@ BUILD_MAIN = $(call COMPILE_C, $(FLAGS) $(INCLUDES))
 
 -include config.mk
 
-.PHONY: all clean install install-strip uninstall
+.PHONY: $(PHONY)
 
 all: $(TARGET)
 
@@ -90,10 +92,6 @@ $(OBJDIR)/%.o: $(SOURCEDIR)/%.c $(OBJDIR)/.tag
 	$(call COMPILE_INFO,$(BUILD_JG))
 	@$(BUILD_JG)
 
-$(OBJDIR)/.tag:
-	@mkdir -p -- $(patsubst %,$(OBJDIR)/%,$(MKDIRS))
-	@touch $@
-
 $(TARGET_MODULE): $(OBJS)
 	@mkdir -p $(NAME)
 	$(strip $(CC) -o $@ $^ $(LDFLAGS) $(LIBS) $(SHARED))
@@ -110,18 +108,12 @@ $(ICONS_TARGET): $(ICONS)
 	@mkdir -p $(NAME)/icons
 	@cp $(subst $(NAME)/icons,$(SOURCEDIR)/icons,$@) $(NAME)/icons/
 
-$(NAME)/jg-static.mk: $(TARGET_STATIC_JG)
+$(TARGET_STATIC_MK): $(TARGET_STATIC_JG)
 	@printf '%s\n%s\n%s\n%s\n' 'NAME := $(JGNAME)' 'ASSETS :=' \
 		'ICONS := $(ICONS_BASE)' 'LIBS_STATIC := $(strip $(LIBS))' > $@
 
-clean:
-	rm -rf $(OBJDIR) $(NAME)
-
-ifneq ($(ENABLE_INSTALL), 0)
-install: all
+install-docs: all
 	@mkdir -p $(DESTDIR)$(DOCDIR)
-	@mkdir -p $(DESTDIR)$(LIBPATH)
-	cp $(TARGET_MODULE) $(DESTDIR)$(LIBPATH)/
 	cp $(SOURCEDIR)/LICENSE $(DESTDIR)$(DOCDIR)
 	cp $(SOURCEDIR)/README $(DESTDIR)$(DOCDIR)
 ifeq ($(USE_EXTERNAL_MINIZ), 0)
@@ -130,16 +122,3 @@ endif
 ifneq ($(USE_VENDORED_SPEEXDSP), 0)
 	cp $(DEPDIR)/speex/COPYING $(DESTDIR)$(DOCDIR)/COPYING-speexdsp
 endif
-
-install-strip: install
-	strip $(DESTDIR)$(LIBPATH)/$(LIBRARY)
-else
-install: all
-	@echo 'Nothing to install'
-
-install-strip: install
-endif
-
-uninstall:
-	rm -rf $(DESTDIR)$(DOCDIR)
-	rm -f $(DESTDIR)$(LIBPATH)/$(LIBRARY)
