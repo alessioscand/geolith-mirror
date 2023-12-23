@@ -15,15 +15,15 @@ INCLUDES_JG := $(INCLUDES)
 
 LIBS := -lm
 
-USE_EXTERNAL_MINIZ ?= 0
-USE_VENDORED_SPEEXDSP ?= 0
-
 override ENABLE_SHARED := 0
 override ENABLE_STATIC := 0
 override INSTALL_DATA := 0
 override INSTALL_SHARED := 0
 
-include $(SOURCEDIR)/jg.mk
+include $(SOURCEDIR)/mk/jg.mk
+
+# Object dirs
+MKDIRS := m68k ymfm z80
 
 CSRCS := m68k/m68kcpu.c \
 	m68k/m68kops.c \
@@ -43,29 +43,11 @@ CSRCS := m68k/m68kcpu.c \
 	geo_z80.c \
 	jg.c
 
-ifeq ($(USE_EXTERNAL_MINIZ), 0)
-	CFLAGS_MINIZ := -I$(DEPDIR)/miniz
-	LIBS_MINIZ :=
-	CSRCS += deps/miniz/miniz.c
-else
-	CFLAGS_MINIZ := $(shell $(PKG_CONFIG) --cflags miniz)
-	LIBS_MINIZ := $(shell $(PKG_CONFIG) --libs miniz)
-endif
-
-ifneq ($(USE_VENDORED_SPEEXDSP), 0)
-	CFLAGS_SPEEXDSP := -I$(DEPDIR)
-	LIBS_SPEEXDSP :=
-	CSRCS += deps/speex/resample.c
-else
-	CFLAGS_SPEEXDSP := $(shell $(PKG_CONFIG) --cflags speexdsp)
-	LIBS_SPEEXDSP := $(shell $(PKG_CONFIG) --libs speexdsp)
-endif
+include $(SOURCEDIR)/mk/miniz.mk
+include $(SOURCEDIR)/mk/speexdsp.mk
 
 INCLUDES += $(CFLAGS_SPEEXDSP) $(CFLAGS_MINIZ)
 LIBS += $(LIBS_SPEEXDSP) $(LIBS_MINIZ)
-
-# Object dirs
-MKDIRS := deps/miniz deps/speex m68k ymfm z80
 
 # List of object files
 OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o))
