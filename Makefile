@@ -11,6 +11,8 @@ DEPDIR := $(SOURCEDIR)/deps
 SRCDIR := $(SOURCEDIR)/src
 
 INCLUDES := -I$(SRCDIR)
+INCLUDES_JG := $(INCLUDES)
+
 LIBS := -lm
 
 USE_EXTERNAL_MINIZ ?= 0
@@ -69,7 +71,7 @@ MKDIRS := deps/miniz deps/speex m68k ymfm z80
 OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o))
 
 # Core commands
-BUILD_JG = $(call COMPILE_C, $(FLAGS) $(INCLUDES) $(CFLAGS_JG))
+BUILD_JG = $(call COMPILE_C, $(FLAGS) $(INCLUDES_JG) $(CFLAGS_JG))
 BUILD_MAIN = $(call COMPILE_C, $(FLAGS) $(INCLUDES))
 
 -include config.mk
