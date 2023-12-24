@@ -15,6 +15,8 @@ INCLUDES_JG := $(INCLUDES)
 
 LIBS := -lm
 
+DOCS := LICENSE README
+
 override ENABLE_SHARED := 0
 override ENABLE_STATIC := 0
 override INSTALL_DATA := 0
@@ -87,14 +89,3 @@ $(TARGET_STATIC_JG): $(OBJS)
 $(TARGET_STATIC_MK): $(TARGET_STATIC_JG)
 	@printf '%s\n%s\n%s\n%s\n' 'NAME := $(JGNAME)' 'ASSETS :=' \
 		'ICONS := $(ICONS_BASE)' 'LIBS_STATIC := $(strip $(LIBS))' > $@
-
-install-docs: all
-	@mkdir -p $(DESTDIR)$(DOCDIR)
-	cp $(SOURCEDIR)/LICENSE $(DESTDIR)$(DOCDIR)
-	cp $(SOURCEDIR)/README $(DESTDIR)$(DOCDIR)
-ifeq ($(USE_EXTERNAL_MINIZ), 0)
-	cp $(DEPDIR)/miniz/LICENSE $(DESTDIR)$(DOCDIR)/LICENSE-miniz
-endif
-ifneq ($(USE_VENDORED_SPEEXDSP), 0)
-	cp $(DEPDIR)/speex/COPYING $(DESTDIR)$(DOCDIR)/COPYING-speexdsp
-endif
