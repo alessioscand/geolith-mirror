@@ -17,8 +17,6 @@ LIBS := -lm
 
 DOCS := LICENSE README
 
-override ENABLE_SHARED := 0
-override ENABLE_STATIC := 0
 override INSTALL_DATA := 0
 override INSTALL_SHARED := 0
 
