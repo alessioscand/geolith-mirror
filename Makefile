@@ -5,6 +5,7 @@ NAME := geolith
 JGNAME := $(NAME)
 
 CFLAGS ?= -O2
+
 FLAGS := -std=c11 -Wall -Wextra -Wshadow -Wmissing-declarations -pedantic
 
 DEPDIR := $(SOURCEDIR)/deps
@@ -17,13 +18,20 @@ LIBS := -lm
 
 DOCS := LICENSE README
 
+# Object dirs
+MKDIRS := m68k ymfm z80
+
 override INSTALL_DATA := 0
 override INSTALL_SHARED := 0
 
 include $(SOURCEDIR)/mk/jg.mk
+include $(SOURCEDIR)/mk/miniz.mk
+include $(SOURCEDIR)/mk/speexdsp.mk
 
-# Object dirs
-MKDIRS := m68k ymfm z80
+INCLUDES += $(CFLAGS_SPEEXDSP) $(CFLAGS_MINIZ)
+LIBS += $(LIBS_SPEEXDSP) $(LIBS_MINIZ)
+
+LINKER := $(CC)
 
 CSRCS := m68k/m68kcpu.c \
 	m68k/m68kops.c \
@@ -40,17 +48,13 @@ CSRCS := m68k/m68kcpu.c \
 	geo_rtc.c \
 	geo_serial.c \
 	geo_ymfm.c \
-	geo_z80.c \
-	jg.c
+	geo_z80.c
 
-include $(SOURCEDIR)/mk/miniz.mk
-include $(SOURCEDIR)/mk/speexdsp.mk
-
-INCLUDES += $(CFLAGS_SPEEXDSP) $(CFLAGS_MINIZ)
-LIBS += $(LIBS_SPEEXDSP) $(LIBS_MINIZ)
+JGSRCS := jg.c
 
 # List of object files
-OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o))
+OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o) $(OBJS_MINIZ) $(OBJS_SPEEXDSP))
+OBJS_JG := $(patsubst %,$(OBJDIR)/%,$(JGSRCS:.c=.o))
 
 # Core commands
 BUILD_JG = $(call COMPILE_C, $(FLAGS) $(INCLUDES_JG) $(CFLAGS_JG))
@@ -76,11 +80,11 @@ $(OBJDIR)/%.o: $(SOURCEDIR)/%.c $(OBJDIR)/.tag
 	$(call COMPILE_INFO,$(BUILD_JG))
 	@$(BUILD_JG)
 
-$(TARGET_MODULE): $(OBJS)
+$(TARGET_MODULE): $(OBJS_JG) $(OBJS_MODULE)
 	@mkdir -p $(NAME)
-	$(strip $(CC) -o $@ $^ $(LDFLAGS) $(LIBS) $(SHARED))
+	$(LINK_MODULE)
 
-$(TARGET_STATIC_JG): $(OBJS)
+$(TARGET_STATIC_JG): $(OBJS_JG) $(OBJS_SHARED)
 	@mkdir -p $(NAME)
 	$(AR) rcs $@ $^
 
