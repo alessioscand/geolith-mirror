@@ -42,6 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "geo_m68k.h"
 #include "geo_mixer.h"
 #include "geo_neo.h"
+#include "version.h"
 
 #define SAMPLERATE 48000
 #define FRAMERATE 60
@@ -54,7 +55,7 @@ static jg_cb_log_t jg_cb_log;
 static jg_cb_rumble_t jg_cb_rumble;
 
 static jg_coreinfo_t coreinfo = {
-    "geolith", "Geolith", VERSION, "neogeo", NUMINPUTS, 0
+    "geolith", "Geolith", JG_VERSION, "neogeo", NUMINPUTS, 0
 };
 
 static jg_videoinfo_t vidinfo = {

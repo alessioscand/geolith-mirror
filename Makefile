@@ -24,6 +24,7 @@ MKDIRS := m68k ymfm z80
 override INSTALL_DATA := 0
 override INSTALL_SHARED := 0
 
+include $(SOURCEDIR)/version.h
 include $(SOURCEDIR)/mk/jg.mk
 include $(SOURCEDIR)/mk/miniz.mk
 include $(SOURCEDIR)/mk/speexdsp.mk
