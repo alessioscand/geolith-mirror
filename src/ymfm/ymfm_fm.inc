@@ -1250,7 +1250,7 @@ void fm_engine_timer_expired(uint32_t tnum)
 	if (tnum == 0 && opn_registers_csm())
 		for (uint32_t chnum = 0; chnum < CHANNELS; chnum++)
 			if (bitfield(CSM_TRIGGER_MASK, chnum, 1)) {
-				fm_channel_keyonoff(&m_channel[chnum], 1, KEYON_CSM);
+				fm_channel_keyonoff(&m_channel[chnum], 0xf, KEYON_CSM);
 				m_modified_channels |= 1 << chnum;
 			}
 
