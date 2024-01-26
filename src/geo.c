@@ -236,25 +236,22 @@ void geo_bios_unload(void) {
 
 // Load NVRAM, Cartridge RAM, or Memory Card data
 int geo_savedata_load(unsigned datatype, const char *filename) {
-    uint8_t *dataptr = NULL;
+    const uint8_t *dataptr = NULL;
     size_t datasize = 0;
 
     switch (datatype) {
         case GEO_SAVEDATA_NVRAM: {
             if (geo_get_system() == SYSTEM_AES)
                 return 2;
-            dataptr = ngsys.nvram;
-            datasize = SIZE_64K;
+            dataptr = geo_mem_ptr(GEO_MEMTYPE_NVRAM, &datasize);
             break;
         }
         case GEO_SAVEDATA_CARTRAM: {
-            dataptr = ngsys.cartram;
-            datasize = SIZE_8K;
+            dataptr = geo_mem_ptr(GEO_MEMTYPE_CARTRAM, &datasize);
             break;
         }
         case GEO_SAVEDATA_MEMCARD: {
-            dataptr = ngsys.memcard;
-            datasize = SIZE_2K;
+            dataptr = geo_mem_ptr(GEO_MEMTYPE_MEMCARD, &datasize);
             break;
         }
         default: return 2;
@@ -277,7 +274,7 @@ int geo_savedata_load(unsigned datatype, const char *filename) {
         return 0;
 
     // Read the file into the memory card and then close it
-    result = fread(dataptr, sizeof(uint8_t), filesize, file);
+    result = fread((void*)dataptr, sizeof(uint8_t), filesize, file);
     if (result != filesize)
         return 0;
     fclose(file);
@@ -287,27 +284,24 @@ int geo_savedata_load(unsigned datatype, const char *filename) {
 
 // Save NVRAM, Cartridge RAM, or Memory Card data
 int geo_savedata_save(unsigned datatype, const char *filename) {
-    uint8_t *dataptr = NULL;
+    const uint8_t *dataptr = NULL;
     size_t datasize = 0;
 
     switch (datatype) {
         case GEO_SAVEDATA_NVRAM: {
             if (geo_get_system() == SYSTEM_AES)
                 return 2;
-            dataptr = ngsys.nvram;
-            datasize = SIZE_64K;
+            dataptr = geo_mem_ptr(GEO_MEMTYPE_NVRAM, &datasize);
             break;
         }
         case GEO_SAVEDATA_CARTRAM: {
             if (!ngsys.cartram_present)
                 return 2;
-            dataptr = ngsys.cartram;
-            datasize = SIZE_8K;
+            dataptr = geo_mem_ptr(GEO_MEMTYPE_CARTRAM, &datasize);
             break;
         }
         case GEO_SAVEDATA_MEMCARD: {
-            dataptr = ngsys.memcard;
-            datasize = SIZE_2K;
+            dataptr = geo_mem_ptr(GEO_MEMTYPE_MEMCARD, &datasize);
             break;
         }
         default: return 2;
