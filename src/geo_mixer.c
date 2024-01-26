@@ -36,12 +36,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "geo_mixer.h"
 #include "geo_ymfm.h"
 
-// 55555 becomes 56340 to compensate for 60.0Hz vs ~59.18Hz
+/* MVS samplerate is 55555Hz, AES samplerate is 55943.489Hz, both of which
+   result in ~938.65 samples per channel, so adjust to 56340 to ensure clean
+   division from 60. Slight adjustments for accuracy may be done by a frontend
+   with its own resampler, using the precise video framerate.
+*/
 #define SAMPLERATE_YM2610 56340 // Medium Fidelity
 //#define SAMPLERATE_YM2610 530880 // High Fidelity
 
 static int16_t *abuf = NULL; // Buffer to output resampled data into
-static size_t samplerate = 44100; // Default sample rate is 44100Hz
+static size_t samplerate = 48000; // Default sample rate is 48000Hz
 static size_t framerate = 60; // Default to 60 for NTSC
 
 static SpeexResamplerState *resampler = NULL;
