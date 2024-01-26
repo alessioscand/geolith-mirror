@@ -789,3 +789,13 @@ void geo_lspc_state_save(uint8_t *st) {
     geo_serial_push32(st, lspc.scanline);
     geo_serial_push32(st, lspc.cyc);
 }
+
+// Return a pointer to Video RAM
+const void* geo_lspc_vram_ptr(void) {
+    return lspc.vram;
+}
+
+// Return a pointer to Palette RAM
+const void* geo_lspc_palram_ptr(void) {
+    return lspc.palram;
+}

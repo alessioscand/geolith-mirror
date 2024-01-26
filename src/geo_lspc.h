@@ -118,4 +118,7 @@ void geo_lspc_run(unsigned);
 void geo_lspc_state_load(uint8_t*);
 void geo_lspc_state_save(uint8_t*);
 
+const void* geo_lspc_vram_ptr(void);
+const void* geo_lspc_palram_ptr(void);
+
 #endif

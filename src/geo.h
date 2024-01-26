@@ -57,6 +57,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define NUMINPUTS_NG    2
 #define NUMINPUTS_SYS   5
 
+enum geo_memtype {
+    GEO_MEMTYPE_MAINRAM,
+    GEO_MEMTYPE_Z80RAM,
+    GEO_MEMTYPE_VRAM,
+    GEO_MEMTYPE_PALRAM,
+    GEO_MEMTYPE_NVRAM,
+    GEO_MEMTYPE_CARTRAM,
+    GEO_MEMTYPE_EXTRAM,
+    GEO_MEMTYPE_MEMCARD,
+    GEO_MEMTYPE_DYNFIX,
+    GEO_MEMTYPE_MAX
+};
+
 enum geo_savedata {
     GEO_SAVEDATA_NVRAM,
     GEO_SAVEDATA_CARTRAM,
@@ -176,6 +189,8 @@ int geo_state_save(const char*);
 const void* geo_state_save_raw(void);
 
 size_t geo_state_size(void);
+
+const void* geo_mem_ptr(unsigned, size_t*);
 
 extern void (*geo_log)(int, const char *, ...);
 

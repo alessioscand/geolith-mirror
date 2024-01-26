@@ -1509,3 +1509,13 @@ void geo_m68k_state_save(uint8_t *st) {
         geo_serial_pushblk(st, ngsys.extram, SIZE_128K);
     }
 }
+
+// Return a pointer to Main RAM
+const void* geo_m68k_ram_ptr(void) {
+    return ram;
+}
+
+// Return a pointer to Dynamic FIX data
+const void* geo_m68k_dynfix_ptr(void) {
+    return dynfix;
+}

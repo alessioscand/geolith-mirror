@@ -498,6 +498,50 @@ size_t geo_state_size(void) {
     return state_sz;
 }
 
+// Return a pointer to a raw memory block
+const void* geo_mem_ptr(unsigned type, size_t *sz) {
+    switch (type) {
+        case GEO_MEMTYPE_MAINRAM: {
+            if (sz) *sz = SIZE_64K;
+            return geo_m68k_ram_ptr();
+        }
+        case GEO_MEMTYPE_Z80RAM: {
+            if (sz) *sz = SIZE_2K;
+            return geo_z80_ram_ptr();
+        }
+        case GEO_MEMTYPE_VRAM: {
+            if (sz) *sz = SIZE_64K + SIZE_4K;
+            return geo_lspc_vram_ptr();
+        }
+        case GEO_MEMTYPE_PALRAM: {
+            if (sz) *sz = SIZE_16K;
+            return geo_lspc_palram_ptr();
+        }
+        case GEO_MEMTYPE_NVRAM: {
+            if (sz) *sz = SIZE_64K;
+            return ngsys.nvram;
+        }
+        case GEO_MEMTYPE_CARTRAM: {
+            if (sz) *sz = SIZE_8K;
+            return ngsys.cartram;
+        }
+        case GEO_MEMTYPE_EXTRAM: {
+            if (sz) *sz = SIZE_128K;
+            return ngsys.extram;
+        }
+        case GEO_MEMTYPE_MEMCARD: {
+            if (sz) *sz = SIZE_2K;
+            return ngsys.memcard;
+        }
+        case GEO_MEMTYPE_DYNFIX: {
+            if (sz) *sz = SIZE_128K;
+            return geo_m68k_dynfix_ptr();
+        }
+    }
+
+    return NULL;
+}
+
 // Increment the watchdog counter
 static inline void geo_watchdog_increment(void) {
     /* If 8 frames have passed since the Watchdog was kicked, assume a bug or

@@ -74,4 +74,7 @@ uint8_t geo_m68k_reg_poutput(void);
 void geo_m68k_state_load(uint8_t*);
 void geo_m68k_state_save(uint8_t*);
 
+const void* geo_m68k_ram_ptr(void);
+const void* geo_m68k_dynfix_ptr(void);
+
 #endif

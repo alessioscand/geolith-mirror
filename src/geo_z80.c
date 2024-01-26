@@ -350,3 +350,8 @@ void geo_z80_state_save(uint8_t *st) {
     geo_serial_pushblk(st, zram, SIZE_2K);
     for (int i = 0; i < 4; ++i) geo_serial_push32(st, zbank[i]);
 }
+
+// Return a pointer to Z80 RAM
+const void* geo_z80_ram_ptr(void) {
+    return zram;
+}
