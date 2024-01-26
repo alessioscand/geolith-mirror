@@ -42,6 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "geo_m68k.h"
 #include "geo_mixer.h"
 #include "geo_neo.h"
+
 #include "version.h"
 
 #define SAMPLERATE 48000
@@ -492,7 +493,7 @@ const void* jg_state_save_raw(void) {
 }
 
 size_t jg_state_size(void) {
-    return 0;
+    return geo_state_size();
 }
 
 void jg_media_select(void) {

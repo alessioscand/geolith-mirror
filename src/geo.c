@@ -64,6 +64,7 @@ ngsys_t ngsys;
 static romdata_t romdata;
 
 static uint8_t state[485301]; // Maximum size
+static size_t state_sz = 0;
 
 // System being emulated
 static uint8_t sys = 0;
@@ -486,6 +487,16 @@ int geo_state_save(const char *filename) {
     return 1; // Success!
 }
 
+// Return the size of the state
+size_t geo_state_size(void) {
+    // Perform a false state save to determine the size if it is unknown
+    if (!state_sz) {
+        const void *st = geo_state_save_raw();
+        (void)st;
+        state_sz = geo_serial_size();
+    }
+    return state_sz;
+}
 
 // Increment the watchdog counter
 static inline void geo_watchdog_increment(void) {
