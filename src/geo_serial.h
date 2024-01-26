@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022-2023 Rupert Carmichael
+Copyright (c) 2022-2024 Rupert Carmichael
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
