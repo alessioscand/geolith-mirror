@@ -62,6 +62,11 @@ freeplay = 0
 settingmode = 0
 0 = Off, 1 = On
 
+Auxiliary Files
+---------------
+System ROM collections (BIOS et al) in the form of a .zip file may be loaded as
+auxiliary files.
+
 Compatibility
 -------------
 Geolith is compatible with 100% of the commercially released Neo Geo AES and
