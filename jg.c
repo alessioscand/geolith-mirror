@@ -82,6 +82,7 @@ static jg_audioinfo_t audinfo = {
 
 static jg_pathinfo_t pathinfo;
 static jg_fileinfo_t gameinfo;
+static jg_fileinfo_t biosinfo;
 static jg_inputinfo_t inputinfo[NUMINPUTS];
 static jg_inputstate_t *input_device[NUMINPUTS];
 
@@ -361,13 +362,18 @@ void jg_exec_frame(void) {
 }
 
 int jg_game_load(void) {
-    // Load the BIOS
-    char biospath[512];
-    snprintf(biospath, sizeof(biospath), "%s/%s", pathinfo.bios,
-        settings_geo[SYS].val == SYSTEM_AES ? "aes.zip" : "neogeo.zip");
-    if (!geo_bios_load_file(biospath)) {
-        geo_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
-        return 0;
+    // Load the BIOS if necessary
+    if (biosinfo.size) {
+        if (!geo_bios_load_mem(biosinfo.data, biosinfo.size))
+            geo_log(JG_LOG_ERR, "Failed to load %s\n", biosinfo.path);
+    }
+    else {
+        char biospath[512];
+        snprintf(biospath, sizeof(biospath), "%s/%s", pathinfo.bios,
+            settings_geo[SYS].val == SYSTEM_AES ? "aes.zip" : "neogeo.zip");
+
+        if (!geo_bios_load_file(biospath))
+            geo_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
     }
 
     // Load the NEO file
@@ -557,7 +563,9 @@ void jg_set_gameinfo(jg_fileinfo_t info) {
 }
 
 void jg_set_auxinfo(jg_fileinfo_t info, int index) {
-    if (info.data || index) { }
+    if (index) // Only one auxiliary file supported in this emulator
+        return;
+    biosinfo = info;
 }
 
 void jg_set_paths(jg_pathinfo_t paths) {
