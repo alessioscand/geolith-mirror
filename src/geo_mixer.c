@@ -33,22 +33,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <speex/speex_resampler.h>
 
+#include "geo.h"
 #include "geo_mixer.h"
 #include "geo_ymfm.h"
 
-/* MVS samplerate is 55555Hz, AES samplerate is 55943.489Hz, both of which
-   result in ~938.65 samples per channel, so adjust to 56340 to ensure clean
-   division from 60. Slight adjustments for accuracy may be done by a frontend
-   with its own resampler, using the precise video framerate.
+/* MVS samplerate is 55555Hz, AES samplerate is 55943.489Hz, but adjustments
+   are needed to ensure clean resampling. Slight adjustments for accuracy may
+   be done by a frontend with its own resampler, using the precise video
+   framerate.
+     samplerate * (60 / framerate) = ~56319.437
 */
-#define SAMPLERATE_YM2610 56340 // Medium Fidelity
-//#define SAMPLERATE_YM2610 530880 // High Fidelity
+#define SAMPLERATE_YM2610 56319
 
 void (*geo_mixer_output)(size_t);
 
 static int16_t *abuf = NULL; // Buffer to output resampled data into
 static size_t samplerate = 48000; // Default sample rate is 48000Hz
-static size_t framerate = 60; // Default to 60 for NTSC
+static double framerate = FRAMERATE_AES; // Default to AES
 
 static SpeexResamplerState *resampler = NULL;
 static int err;
@@ -109,6 +110,8 @@ void geo_mixer_deinit(void) {
 
 // Bring up the Speex resampler
 void geo_mixer_init(void) {
+    if (geo_get_system() != SYSTEM_AES)
+        framerate = FRAMERATE_MVS;
     resampler = speex_resampler_init(2, SAMPLERATE_YM2610, samplerate, 3, &err);
     geo_mixer_output = &geo_mixer_resamp;
 }

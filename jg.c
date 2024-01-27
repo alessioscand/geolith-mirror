@@ -337,10 +337,10 @@ void jg_set_cb_rumble(jg_cb_rumble_t func) {
 
 int jg_init(void) {
     geo_log_set_callback(jg_cb_log);
-    geo_mixer_set_rate(SAMPLERATE);
-    geo_mixer_init();
     geo_set_region(settings_geo[REGION].val);
     geo_set_system(settings_geo[SYS].val);
+    geo_mixer_set_rate(SAMPLERATE);
+    geo_mixer_init();
     geo_params_video();
 
     // Initialize the rest of the emulator
