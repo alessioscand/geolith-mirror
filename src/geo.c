@@ -138,15 +138,8 @@ uint32_t geo_calc_mask(unsigned nbits, unsigned val) {
     return 0;
 }
 
-int geo_bios_load(const char *biospath) {
+static int geo_bios_load(mz_zip_archive *zip_archive) {
     const char *biosrom;
-
-    mz_zip_archive zip_archive;
-    memset(&zip_archive, 0, sizeof(zip_archive));
-
-    // Make sure it's actually a zip file
-    if (!mz_zip_reader_init_file(&zip_archive, biospath, 0))
-        return 0;
 
     switch (geo_get_system()) {
         default: case SYSTEM_AES: {
@@ -178,49 +171,75 @@ int geo_bios_load(const char *biospath) {
     }
 
     geo_log(GEO_LOG_DBG, "Loading %s\n", biosrom);
-    romdata.b = mz_zip_reader_extract_file_to_heap(&zip_archive, biosrom,
+    romdata.b = mz_zip_reader_extract_file_to_heap(zip_archive, biosrom,
         &(romdata.bsz), 0);
 
     if (romdata.b == NULL) {
-        mz_zip_reader_end(&zip_archive);
+        mz_zip_reader_end(zip_archive);
+        geo_bios_unload();
         geo_log(GEO_LOG_ERR,
             "Failed to load %s from BIOS archive!\n", biosrom);
         return 0;
     }
 
     // Load L0 ROM
-    romdata.l0 = mz_zip_reader_extract_file_to_heap(&zip_archive,
+    romdata.l0 = mz_zip_reader_extract_file_to_heap(zip_archive,
         "000-lo.lo", &(romdata.l0sz), 0);
     if (romdata.l0 == NULL) {
-        mz_zip_reader_end(&zip_archive);
+        mz_zip_reader_end(zip_archive);
+        geo_bios_unload();
         geo_log(GEO_LOG_ERR, "Failed to load 000-lo.lo from BIOS archive!\n");
         return 0;
     }
 
     if (geo_get_system() != SYSTEM_AES) {
         // SFIX
-        romdata.sfix = mz_zip_reader_extract_file_to_heap(&zip_archive,
+        romdata.sfix = mz_zip_reader_extract_file_to_heap(zip_archive,
             "sfix.sfix", &(romdata.sfixsz), 0);
         if (romdata.sfix == NULL) {
-            mz_zip_reader_end(&zip_archive);
+            mz_zip_reader_end(zip_archive);
+            geo_bios_unload();
             geo_log(GEO_LOG_ERR,
                 "Failed to load sfix.sfix from BIOS archive!\n");
             return 0;
         }
 
         // SM1
-        romdata.sm = mz_zip_reader_extract_file_to_heap(&zip_archive,
+        romdata.sm = mz_zip_reader_extract_file_to_heap(zip_archive,
             "sm1.sm1", &(romdata.smsz), 0);
         if (romdata.sm == NULL) {
-            mz_zip_reader_end(&zip_archive);
+            mz_zip_reader_end(zip_archive);
+            geo_bios_unload();
             geo_log(GEO_LOG_ERR,
                 "Failed to load sm1.sm1 from BIOS archive!\n");
             return 0;
         }
     }
 
-    mz_zip_reader_end(&zip_archive);
+    mz_zip_reader_end(zip_archive);
     return 1;
+}
+
+// Load a zipped collection of System ROM data from a memory buffer
+int geo_bios_load_mem(void *data, size_t size) {
+    mz_zip_archive zip_archive;
+    memset(&zip_archive, 0, sizeof(zip_archive));
+
+    // Make sure it's actually a zip file
+    if (!mz_zip_reader_init_mem(&zip_archive, data, size, 0))
+        return 0;
+    return geo_bios_load(&zip_archive);
+}
+
+// Load a zipped collection of System ROM data from a file
+int geo_bios_load_file(const char *biospath) {
+    mz_zip_archive zip_archive;
+    memset(&zip_archive, 0, sizeof(zip_archive));
+
+    // Make sure it's actually a zip file
+    if (!mz_zip_reader_init_file(&zip_archive, biospath, 0))
+        return 0;
+    return geo_bios_load(&zip_archive);
 }
 
 void geo_bios_unload(void) {

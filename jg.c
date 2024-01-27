@@ -365,7 +365,7 @@ int jg_game_load(void) {
     char biospath[512];
     snprintf(biospath, sizeof(biospath), "%s/%s", pathinfo.bios,
         settings_geo[SYS].val == SYSTEM_AES ? "aes.zip" : "neogeo.zip");
-    if (!geo_bios_load(biospath)) {
+    if (!geo_bios_load_file(biospath)) {
         geo_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
         return 0;
     }
