@@ -10,10 +10,10 @@ FLAGS := -std=c11 -Wall -Wextra -Wshadow -Wmissing-declarations -pedantic
 
 SRCDIR := $(SOURCEDIR)/src
 
-INCLUDES := -I$(SRCDIR)
-INCLUDES_JG := $(INCLUDES)
+INCLUDES = -I$(SRCDIR)
+INCLUDES_JG = $(INCLUDES)
 
-LIBS := -lm
+LIBS = -lm
 
 DOCS := LICENSE README
 
