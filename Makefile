@@ -8,7 +8,6 @@ CFLAGS ?= -O2
 
 FLAGS := -std=c11 -Wall -Wextra -Wshadow -Wmissing-declarations -pedantic
 
-DEPDIR := $(SOURCEDIR)/deps
 SRCDIR := $(SOURCEDIR)/src
 
 INCLUDES := -I$(SRCDIR)
