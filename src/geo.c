@@ -373,7 +373,7 @@ void geo_init(void) {
     geo_memcard_format(ngsys.memcard);
 }
 
-void geo_state_load_raw(const void *sstate) {
+int geo_state_load_raw(const void *sstate) {
     uint8_t *st = (uint8_t*)sstate;
     geo_serial_begin();
     uint8_t stregion = geo_serial_pop8(st);
@@ -382,7 +382,7 @@ void geo_state_load_raw(const void *sstate) {
     if ((region != stregion) || (sys != stsys)) {
         geo_log(GEO_LOG_WRN, "State load operation ignored: state is "
         "for a different system type or region\n");
-        return;
+        return 0;
     }
 
     mcycs = geo_serial_pop32(st);
@@ -408,6 +408,7 @@ void geo_state_load_raw(const void *sstate) {
     geo_rtc_state_load(st);
     geo_ymfm_state_load(st);
     geo_z80_state_load(st);
+    return 1;
 }
 
 // Load a state from a file
@@ -442,13 +443,13 @@ int geo_state_load(const char *filename) {
     }
 
     // File has been read, now copy it into the emulator
-    geo_state_load_raw((const void*)sstatefile);
+    int ret = geo_state_load_raw((const void*)sstatefile);
 
     // Free the allocated memory and close file handle
     fclose(file);
     free(sstatefile);
 
-    return 1; // Success!
+    return ret; // Success!
 }
 
 const void* geo_state_save_raw(void) {
@@ -622,8 +623,8 @@ void geo_exec(void) {
     mcycs %= MCYC_PER_FRAME;
     zcycs %= MCYC_PER_FRAME;
 
-    // Resample audio generated this frame for output to the frontend
-    geo_mixer_resamp(ymsamps);
+    // Pass audio generated this frame to the frontend for output
+    geo_mixer_output(ymsamps);
     ymsamps = 0;
 
     // Increment the Watchdog counter at the end of each frame

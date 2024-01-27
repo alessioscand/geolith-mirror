@@ -44,6 +44,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SAMPLERATE_YM2610 56340 // Medium Fidelity
 //#define SAMPLERATE_YM2610 530880 // High Fidelity
 
+void (*geo_mixer_output)(size_t);
+
 static int16_t *abuf = NULL; // Buffer to output resampled data into
 static size_t samplerate = 48000; // Default sample rate is 48000Hz
 static size_t framerate = 60; // Default to 60 for NTSC
@@ -53,6 +55,29 @@ static int err;
 
 // Callback to notify the fronted that N samples are ready
 static void (*geo_mixer_cb)(size_t);
+
+// Resample audio and pass the samples back to the frontend
+static void geo_mixer_resamp(size_t in_ym) {
+    int16_t *ybuf = geo_ymfm_get_buffer();
+    spx_uint32_t insamps = in_ym;
+    spx_uint32_t outsamps = samplerate / framerate;
+
+    err = speex_resampler_process_interleaved_int(resampler,
+        (spx_int16_t*)ybuf, &insamps, (spx_int16_t*)abuf, &outsamps);
+
+    geo_mixer_cb(outsamps << 1);
+}
+
+// Pass raw samples (no resampling) back to the frontend
+static void geo_mixer_raw(size_t in_ym) {
+    int16_t *ybuf = geo_ymfm_get_buffer();
+    in_ym <<= 1; // Stereo
+
+    for (size_t i = 0; i < in_ym; ++i)
+        abuf[i] = ybuf[i];
+
+    geo_mixer_cb(in_ym);
+}
 
 // Set the pointer to the output audio buffer
 void geo_mixer_set_buffer(int16_t *ptr) {
@@ -69,6 +94,11 @@ void geo_mixer_set_rate(size_t rate) {
     samplerate = rate;
 }
 
+// Set output to raw samples
+void geo_mixer_set_raw(void) {
+    geo_mixer_output = &geo_mixer_raw;
+}
+
 // Deinitialize the resampler
 void geo_mixer_deinit(void) {
     if (resampler) {
@@ -80,15 +110,5 @@ void geo_mixer_deinit(void) {
 // Bring up the Speex resampler
 void geo_mixer_init(void) {
     resampler = speex_resampler_init(2, SAMPLERATE_YM2610, samplerate, 3, &err);
-}
-
-void geo_mixer_resamp(size_t in_ym) {
-    int16_t *ybuf = geo_ymfm_get_buffer();
-    spx_uint32_t insamps = in_ym;
-    spx_uint32_t outsamps = samplerate / framerate;
-
-    err = speex_resampler_process_interleaved_int(resampler,
-        (spx_int16_t*)ybuf, &insamps, (spx_int16_t*)abuf, &outsamps);
-
-    geo_mixer_cb(outsamps << 1);
+    geo_mixer_output = &geo_mixer_resamp;
 }
