@@ -25,8 +25,6 @@ override INSTALL_SHARED := 0
 
 include $(SOURCEDIR)/version.h
 include $(SOURCEDIR)/mk/jg.mk
-include $(SOURCEDIR)/mk/miniz.mk
-include $(SOURCEDIR)/mk/speexdsp.mk
 
 INCLUDES += $(CFLAGS_SPEEXDSP) $(CFLAGS_MINIZ)
 LIBS += $(LIBS_SPEEXDSP) $(LIBS_MINIZ)
