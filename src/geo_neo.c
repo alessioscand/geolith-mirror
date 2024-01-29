@@ -170,6 +170,7 @@ int geo_neo_load(void *data, size_t size) {
                 geo_get_system() == SYSTEM_MVS) {
                 geo_log(GEO_LOG_ERR, "This title is incompatible with US MVS"
                     " systems\n");
+                return 0;
             }
             break;
         }
@@ -295,6 +296,7 @@ int geo_neo_load(void *data, size_t size) {
             if (geo_get_system() == SYSTEM_AES) {
                 geo_log(GEO_LOG_ERR, "This title is compatible with the Neo"
                     " Geo MVS and Universe BIOS only\n");
+                return 0;
             }
 
             // Special handling for original bootleg, not KoF 10th 2005 Unique
