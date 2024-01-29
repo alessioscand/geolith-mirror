@@ -1357,7 +1357,7 @@ void geo_m68k_board_set(unsigned btype) {
             geo_m68k_read_banksw_16 = &geo_m68k_read_banksw_16_brezza;
             geo_m68k_write_banksw_8 = &geo_m68k_write_banksw_8_brezza;
             geo_m68k_write_banksw_16 = &geo_m68k_write_banksw_16_brezza;
-            ngsys.cartram_present = 1;
+            ngsys.sram_present = 1;
             break;
         case BOARD_KOF10TH: // The King of Fighters 10th Anniversary Bootleg
             geo_m68k_read_fixed_8 = &geo_m68k_read_fixed_8_kof10th;

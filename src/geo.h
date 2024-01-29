@@ -114,7 +114,7 @@ typedef struct _ngsys_t {
     uint8_t sound_reply;
 
     // Cartridge RAM (Battery Backed SRAM) Presence
-    uint8_t cartram_present;
+    uint8_t sram_present;
 } ngsys_t;
 
 typedef struct _romdata_t {
@@ -169,6 +169,7 @@ void geo_watchdog_reset(void);
 
 int geo_savedata_load(unsigned, const char*);
 int geo_savedata_save(unsigned, const char*);
+unsigned geo_cartram_present(void);
 
 void geo_exec(void);
 void geo_init(void);

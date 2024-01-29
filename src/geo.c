@@ -314,7 +314,7 @@ int geo_savedata_save(unsigned datatype, const char *filename) {
             break;
         }
         case GEO_SAVEDATA_CARTRAM: {
-            if (!ngsys.cartram_present)
+            if (!ngsys.sram_present)
                 return 2;
             dataptr = geo_mem_ptr(GEO_MEMTYPE_CARTRAM, &datasize);
             break;
@@ -336,6 +336,11 @@ int geo_savedata_save(unsigned datatype, const char *filename) {
     fclose(file);
 
     return 1; // Success!
+}
+
+// Return presence of on-cartridge battery-backed save RAM
+unsigned geo_cartram_present(void) {
+    return ngsys.sram_present;
 }
 
 void geo_reset(int hard) {
@@ -396,7 +401,7 @@ int geo_state_load_raw(const void *sstate) {
     geo_serial_popblk(ngsys.nvram, st, SIZE_64K);
     geo_serial_popblk(ngsys.memcard, st, SIZE_2K);
 
-    if (ngsys.cartram_present)
+    if (ngsys.sram_present)
         geo_serial_popblk(ngsys.cartram, st, SIZE_8K);
 
     ngsys.watchdog = geo_serial_pop32(st);
@@ -467,7 +472,7 @@ const void* geo_state_save_raw(void) {
     geo_serial_pushblk(state, ngsys.nvram, SIZE_64K);
     geo_serial_pushblk(state, ngsys.memcard, SIZE_2K);
 
-    if (ngsys.cartram_present)
+    if (ngsys.sram_present)
         geo_serial_pushblk(state, ngsys.cartram, SIZE_8K);
 
     geo_serial_push32(state, ngsys.watchdog);
