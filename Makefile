@@ -9,7 +9,7 @@ CFLAGS ?= -O2
 SRCDIR := $(SOURCEDIR)/src
 
 INCLUDES = -I$(SRCDIR)
-INCLUDES_JG = $(INCLUDES)
+INCLUDES_JG = -I$(SRCDIR)
 
 LIBS = -lm
 
@@ -30,6 +30,7 @@ include $(SOURCEDIR)/mk/jg.mk
 INCLUDES += $(CFLAGS_SPEEXDSP) $(CFLAGS_MINIZ)
 LIBS += $(LIBS_SPEEXDSP) $(LIBS_MINIZ)
 
+EXT := c
 FLAGS := -std=c11 $(WARNINGS_DEF_C)
 LINKER := $(CC)
 
@@ -69,11 +70,6 @@ all: $(TARGET)
 include $(SOURCEDIR)/mk/rules.mk
 
 # Rules
-$(OBJDIR)/%.o: $(SRCDIR)/%.c $(OBJDIR)/.tag
+$(OBJDIR)/%.o: $(SRCDIR)/%.$(EXT) $(PREREQ)
 	$(call COMPILE_INFO,$(BUILD_MAIN))
 	@$(BUILD_MAIN)
-
-# Shim rules
-$(OBJDIR)/%.o: $(SOURCEDIR)/%.c $(OBJDIR)/.tag
-	$(call COMPILE_INFO,$(BUILD_JG))
-	@$(BUILD_JG)
