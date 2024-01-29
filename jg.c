@@ -113,11 +113,31 @@ static jg_setting_t settings_geo[] = {
       "Activate Hardware Settings Menu at Boot",
       0, 0, 1, 0
     },
-    { "showoverscan", "Show Overscan",
-      "0 = Off, 1 = On",
-      "Show entire video frame including normally cropped overscan area",
-      0, 0, 1, 0
-    }
+    { "aspect", "Aspect Ratio",
+      "0 = 1:1, 1 = 10:7, 2 = 4:3",
+      "Set the aspect ratio",
+      0, 0, 2, 0
+    },
+    { "overscan_t", "Overscan (Top)",
+      "0 = 0, 1 = 4, 2 = 8, 3 = 12, 4 = 16, 5 = 20, 6 = 24",
+      "Hide N pixels of Overscan (Top)",
+      4, 0, 4, 0
+    },
+    { "overscan_b", "Overscan (Bottom)",
+      "0 = 0, 1 = 4, 2 = 8, 3 = 12, 4 = 16",
+      "Hide N pixels of Overscan (Bottom)",
+      2, 0, 4, 0
+    },
+    { "overscan_l", "Overscan (Left)",
+      "0 = 0, 1 = 4, 2 = 8, 3 = 12, 4 = 16",
+      "Hide N pixels of Overscan (Left)",
+      2, 0, 4, 0
+    },
+    { "overscan_r", "Overscan (Right)",
+      "0 = 0, 1 = 4, 2 = 8, 3 = 12, 4 = 16",
+      "Hide N pixels of Overscan (Right)",
+      2, 0, 4, 0
+    },
 };
 
 enum {
@@ -126,7 +146,11 @@ enum {
     REGION,
     FREEPLAY,
     SETTINGMODE,
-    SHOWOVERSCAN
+    ASPECT,
+    OVERSCAN_T,
+    OVERSCAN_B,
+    OVERSCAN_L,
+    OVERSCAN_R,
 };
 
 static const char *defs_ngsys[4] = { "Coin1", "Coin2", "Service", "Test" };
@@ -304,18 +328,20 @@ static unsigned geo_input_poll_vliner(unsigned port) {
 }
 
 static void geo_params_video(void) {
-    if (settings_geo[SHOWOVERSCAN].val) {
-        vidinfo.w = LSPC_WIDTH;
-        vidinfo.h = LSPC_HEIGHT;
-        vidinfo.x = vidinfo.y = 0;
-        vidinfo.aspect = 320.0/256.0;
-    }
-    else {
-        vidinfo.w = LSPC_WIDTH_VISIBLE;
-        vidinfo.h = LSPC_HEIGHT_VISIBLE;
-        vidinfo.x = 8;
-        vidinfo.y = 24;
-        vidinfo.aspect = 304.0/224.0;
+    unsigned w = LSPC_WIDTH - ((settings_geo[OVERSCAN_L].val << 2) +
+        (settings_geo[OVERSCAN_R].val << 2));
+    unsigned h = LSPC_HEIGHT - ((settings_geo[OVERSCAN_T].val << 2) +
+        (settings_geo[OVERSCAN_B].val << 2));
+
+    vidinfo.w = w;
+    vidinfo.h = h;
+    vidinfo.x = settings_geo[OVERSCAN_L].val << 2;
+    vidinfo.y = settings_geo[OVERSCAN_T].val << 2;
+
+    switch (settings_geo[ASPECT].val) {
+        case 0: vidinfo.aspect = w / (double)h; break; // 1:1
+        case 1: vidinfo.aspect = 10.0 / 7.0; break;
+        case 2: vidinfo.aspect = 4.0 / 3.0; break;
     }
 }
 
