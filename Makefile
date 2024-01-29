@@ -6,14 +6,14 @@ JGNAME := $(NAME)
 
 CFLAGS ?= -O2
 
-FLAGS := -std=c11 -Wall -Wextra -Wshadow -Wmissing-declarations -pedantic
-
 SRCDIR := $(SOURCEDIR)/src
 
 INCLUDES = -I$(SRCDIR)
 INCLUDES_JG = $(INCLUDES)
 
 LIBS = -lm
+
+LIBS_REQUIRES := miniz speexdsp
 
 DOCS := LICENSE README
 
@@ -30,6 +30,7 @@ include $(SOURCEDIR)/mk/jg.mk
 INCLUDES += $(CFLAGS_SPEEXDSP) $(CFLAGS_MINIZ)
 LIBS += $(LIBS_SPEEXDSP) $(LIBS_MINIZ)
 
+FLAGS := -std=c11 $(WARNINGS_DEF_C)
 LINKER := $(CC)
 
 CSRCS := m68k/m68kcpu.c \
@@ -68,10 +69,6 @@ all: $(TARGET)
 include $(SOURCEDIR)/mk/rules.mk
 
 # Rules
-$(OBJDIR)/%.o: $(DEPDIR)/%.c $(OBJDIR)/.tag
-	$(call COMPILE_INFO,$(BUILD_MAIN))
-	@$(BUILD_MAIN)
-
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(OBJDIR)/.tag
 	$(call COMPILE_INFO,$(BUILD_MAIN))
 	@$(BUILD_MAIN)
