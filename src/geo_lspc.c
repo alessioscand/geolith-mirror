@@ -60,6 +60,9 @@ static uint32_t palette_normal[SIZE_8K];
 static uint32_t palette_shadow[SIZE_8K];
 static uint32_t *palette = palette_normal;
 
+// Sprites-per-line limit
+static unsigned sprlimit = 96;
+
 // Horizontal Shrink LUT -- from neogeodev
 static unsigned lut_hshrink[0x10][0x10] = {
     { 0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0 }, // (15 pixel skipped, 1 remaining)
@@ -83,6 +86,11 @@ static unsigned lut_hshrink[0x10][0x10] = {
 // Set the pointer to the video buffer
 void geo_lspc_set_buffer(uint32_t *ptr) {
     vbuf = ptr;
+}
+
+// Set the sprites-per-line limit
+void geo_lspc_set_sprlimit(unsigned limit) {
+    sprlimit = limit;
 }
 
 // Perform post-load operations for C ROM
@@ -540,8 +548,8 @@ static inline void geo_lspc_sprcalc(void) {
         if ((srow >= (sprsize << 4)) || (sprsize == 0))
             continue;
 
-        // 96 sprites may be drawn per line
-        if (sprcount++ == 96)
+        // The LSPC hardware has a 96 sprite hard limit
+        if (sprcount++ == sprlimit)
             break;
 
         /* L0 ROM is a 64K ROM chip containing vertical shrinking values. The
