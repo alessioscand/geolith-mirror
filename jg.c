@@ -114,26 +114,26 @@ static jg_setting_t settings_geo[] = {
       0, 0, 1, 0
     },
     { "aspect", "Aspect Ratio",
-      "0 = 1:1, 1 = 10:7, 2 = 4:3",
+      "0 = 1:1 PAR, 1 = 45:44 PAR, 2 = 4:3 DAR",
       "Set the aspect ratio",
       0, 0, 2, 0
     },
-    { "overscan_t", "Overscan (Top)",
-      "0 = 0, 1 = 4, 2 = 8, 3 = 12, 4 = 16, 5 = 20, 6 = 24",
+    { "overscan_t", "Overscan Mask (Top)",
+      "0 = 0, 1 = 4, 2 = 8, 3 = 12, 4 = 16",
       "Hide N pixels of Overscan (Top)",
-      4, 0, 4, 0
+      2, 0, 4, 0
     },
-    { "overscan_b", "Overscan (Bottom)",
+    { "overscan_b", "Overscan Mask (Bottom)",
       "0 = 0, 1 = 4, 2 = 8, 3 = 12, 4 = 16",
       "Hide N pixels of Overscan (Bottom)",
       2, 0, 4, 0
     },
-    { "overscan_l", "Overscan (Left)",
+    { "overscan_l", "Overscan Mask (Left)",
       "0 = 0, 1 = 4, 2 = 8, 3 = 12, 4 = 16",
       "Hide N pixels of Overscan (Left)",
       2, 0, 4, 0
     },
-    { "overscan_r", "Overscan (Right)",
+    { "overscan_r", "Overscan Mask (Right)",
       "0 = 0, 1 = 4, 2 = 8, 3 = 12, 4 = 16",
       "Hide N pixels of Overscan (Right)",
       2, 0, 4, 0
@@ -331,16 +331,16 @@ static void geo_params_video(void) {
     unsigned w = LSPC_WIDTH - ((settings_geo[OVERSCAN_L].val << 2) +
         (settings_geo[OVERSCAN_R].val << 2));
     unsigned h = LSPC_HEIGHT - ((settings_geo[OVERSCAN_T].val << 2) +
-        (settings_geo[OVERSCAN_B].val << 2));
+        (settings_geo[OVERSCAN_B].val << 2) + 16);
 
     vidinfo.w = w;
     vidinfo.h = h;
     vidinfo.x = settings_geo[OVERSCAN_L].val << 2;
-    vidinfo.y = settings_geo[OVERSCAN_T].val << 2;
+    vidinfo.y = (settings_geo[OVERSCAN_T].val << 2) + 16;
 
     switch (settings_geo[ASPECT].val) {
         case 0: vidinfo.aspect = w / (double)h; break; // 1:1
-        case 1: vidinfo.aspect = 10.0 / 7.0; break;
+        case 1: vidinfo.aspect = (w * (45.0 / 44.0)) / (double)h; break;
         case 2: vidinfo.aspect = 4.0 / 3.0; break;
     }
 }
