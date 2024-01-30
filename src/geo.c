@@ -77,6 +77,10 @@ static uint32_t ymsamps = 0;
 
 static unsigned icycs = 0;
 
+// Remove the 68K Clock Divider
+unsigned oc = 1;
+unsigned irq2_fragmask = 0x01;
+
 // Set the log callback
 void geo_log_set_callback(void (*cb)(int, const char *, ...)) {
     geo_log = cb;
@@ -110,6 +114,12 @@ void geo_set_system(int s) {
 // Get the system currently being emulated
 int geo_get_system(void) {
     return sys;
+}
+
+// Set the 68K Clock Divider on or off
+void geo_set_div68k(int d) {
+    oc = !d;
+    irq2_fragmask = oc ? 0x03 : 0x01;
 }
 
 romdata_t* geo_romdata_ptr(void) {
@@ -582,17 +592,17 @@ void geo_watchdog_reset(void) {
 void geo_exec(void) {
     while (mcycs < MCYC_PER_FRAME) {
         icycs = geo_m68k_run(1);
-        mcycs += icycs * DIV_M68K;
+        mcycs += (icycs * DIV_M68K) >> oc;
 
         // If this is an arcade system, update the RTC
         if (sys)
-            geo_rtc_sync(icycs);
+            geo_rtc_sync(icycs >> oc);
 
         // Handle IRQ2 counter
-        ngsys.irq2_dec = icycs >> 1; // This is measured in pixel clocks
-        ngsys.irq2_frags += icycs & 0x01;
-        if (ngsys.irq2_frags == 2) {
-            ngsys.irq2_frags = 0;
+        ngsys.irq2_dec = (icycs >> 1) >> oc; // Measured in pixel clocks
+        ngsys.irq2_frags += icycs & irq2_fragmask;
+        if (ngsys.irq2_frags >= (2 << oc)) {
+            ngsys.irq2_frags -= (2 << oc);
             ++ngsys.irq2_dec;
         }
 
@@ -611,7 +621,7 @@ void geo_exec(void) {
             }
         }
 
-        geo_lspc_run(icycs);
+        geo_lspc_run(icycs >> oc);
 
         // Catch the Z80 and YM2610 up to the 68K
         while (zcycs < mcycs) {
