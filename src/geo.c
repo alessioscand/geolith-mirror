@@ -601,8 +601,8 @@ void geo_exec(void) {
         // Handle IRQ2 counter
         ngsys.irq2_dec = (icycs >> 1) >> oc; // Measured in pixel clocks
         ngsys.irq2_frags += icycs & irq2_fragmask;
-        if (ngsys.irq2_frags >= (2 << oc)) {
-            ngsys.irq2_frags -= (2 << oc);
+        if (ngsys.irq2_frags >= (2U << oc)) {
+            ngsys.irq2_frags -= (2U << oc);
             ++ngsys.irq2_dec;
         }
 
