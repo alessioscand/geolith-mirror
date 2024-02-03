@@ -48,7 +48,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SAMPLERATE 48000
 #define FRAMERATE 60
 #define CHANNELS 2
-#define NUMINPUTS 3
+#define NUMINPUTS 5
 
 static jg_cb_audio_t jg_cb_audio;
 static jg_cb_frametime_t jg_cb_frametime;
@@ -89,9 +89,10 @@ static jg_inputstate_t *input_device[NUMINPUTS];
 // Emulator settings
 static jg_setting_t settings_geo[] = {
     { "input", "Input Devices",
-      "0 = Auto, 1 = Neo Geo Joysticks, 2 = Mahjong",
+      "0 = Auto, 1 = Neo Geo Joysticks, 2 = Mahjong, "
+      "3 = 4-Player (Asia/Japan MVS)",
       "Select the desired input device(s)",
-      0, 0, 2, JG_SETTING_RESTART
+      0, 0, 3, JG_SETTING_RESTART
     },
     { "system", "Emulated System",
       "0 = AES (Console), 1 = MVS (Arcade), 2 = Universe BIOS",
@@ -166,15 +167,16 @@ static const char *defs_vliner[11] = {
 };
 
 static uint32_t dbflags = 0;
+static unsigned fourplayer = 0;
 
 // Coin Slots, Service Button, # of Slots
 static unsigned geo_input_poll_stat_a(void) {
     unsigned c = 0x07;
-    if (input_device[2]->button[0]) // Coin 1
+    if (input_device[4]->button[0]) // Coin 1
         c &= 0x06;
-    if (input_device[2]->button[1]) // Coin 2
+    if (input_device[4]->button[1]) // Coin 2
         c &= 0x05;
-    if (input_device[2]->button[2]) // Service
+    if (input_device[4]->button[2]) // Service
         c &= 0x03;
     return c;
 }
@@ -194,6 +196,25 @@ static unsigned geo_input_poll_stat_b(void) {
         s &= 0x07;
     if (input_device[1]->button[5])
         s &= 0x0b;
+    return s;
+}
+
+// P1/P2 Start, P3/P4 Start, Memcard status, AES/MVS setting
+static unsigned geo_input_poll_stat_b_ftc1b(void) {
+    unsigned s = 0x0f;
+
+    if (geo_m68k_reg_poutput() & 0x01) { // Players 2/4 (P1-B, P2-B)
+        if (input_device[1]->button[5])
+            s &= 0x0e;
+        if (input_device[3]->button[5])
+            s &= 0x0b;
+    }
+    else { // Players 1/3 (P1-A, P2-A)
+        if (input_device[0]->button[5])
+            s &= 0x0e;
+        if (input_device[2]->button[5])
+            s &= 0x0b;
+    }
     return s;
 }
 
@@ -220,7 +241,7 @@ static unsigned geo_input_poll_stat_b_vliner(void) {
 // Test button, slot type
 static unsigned geo_input_poll_systype(void) {
     unsigned t = 0xc0;
-    if (input_device[2]->button[3]) // Test
+    if (input_device[4]->button[3]) // Test
         t &= 0x40;
     return t;
 }
@@ -232,6 +253,8 @@ static unsigned geo_input_poll_dipsw(void) {
         d &= ~0x40;
     if (settings_geo[INPUT].val == 2) // Mahjong
         d &= ~0x04;
+    if (fourplayer)
+        d &= ~0x02;
     if (settings_geo[SETTINGMODE].val)
         d &= ~0x01;
     return d;
@@ -241,9 +264,9 @@ static unsigned geo_input_poll_dipsw(void) {
 static unsigned geo_input_poll_sys_vliner(void) {
     unsigned b = 0xff;
 
-    if (input_device[2]->button[0])
+    if (input_device[4]->button[0])
         b &= ~(1 << 0);
-    if (input_device[2]->button[1])
+    if (input_device[4]->button[1])
         b &= ~(1 << 1);
 
     if (input_device[0]->button[8])
@@ -265,6 +288,45 @@ static unsigned geo_input_poll_none(unsigned port) {
 // Neo Geo Joystick
 static unsigned geo_input_poll_js(unsigned port) {
     unsigned b = 0xff;
+
+    if (input_device[port]->button[0])
+        b &= ~(1 << 0);
+    if (input_device[port]->button[1])
+        b &= ~(1 << 1);
+    if (input_device[port]->button[2])
+        b &= ~(1 << 2);
+    if (input_device[port]->button[3])
+        b &= ~(1 << 3);
+    if (input_device[port]->button[6])
+        b &= ~(1 << 4);
+    if (input_device[port]->button[7])
+        b &= ~(1 << 5);
+    if (input_device[port]->button[8])
+        b &= ~(1 << 6);
+    if (input_device[port]->button[9])
+        b &= ~(1 << 7);
+
+    return b;
+}
+
+// Neo Geo Joystick (NEO-FTC1B 4-Player Extension Board for 2 MVS cabinets)
+static unsigned geo_input_poll_js_ftc1b(unsigned port) {
+    unsigned b = 0xff;
+
+    /* Output pin 1 high means use the second player controls on the cabinet.
+       The port number passed into the callback in this case specifies the
+       cabinet, not the player number, so adjust it to align with the actual
+       port to be read from the emulator's perspective.
+    */
+    uint8_t output = geo_m68k_reg_poutput();
+    port = (port << 1) + (output & 0x01);
+
+    /* When output pin 3 is high, it simulates the A button for the first
+       player controls on the cabinet, and the B button for the second player
+       controls on the cabinet.
+    */
+    if (output & 0x04)
+        b &= ~(1 << (4 | (output & 0x01)));
 
     if (input_device[port]->button[0])
         b &= ~(1 << 0);
@@ -429,9 +491,11 @@ int jg_game_load(void) {
 
     inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_JS);
     inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_JS);
-    //inputinfo[2] = jg_neogeo_inputinfo(2, JG_NEOGEO_SYS);
-    inputinfo[2] = (jg_inputinfo_t){
-        JG_INPUT_EXTERNAL, 2, "neogeosystem", "Neo Geo System",
+    inputinfo[2] = jg_neogeo_inputinfo(2, JG_NEOGEO_UNCONNECTED);
+    inputinfo[3] = jg_neogeo_inputinfo(3, JG_NEOGEO_UNCONNECTED);
+    //inputinfo[4] = jg_neogeo_inputinfo(2, JG_NEOGEO_SYS);
+    inputinfo[4] = (jg_inputinfo_t){
+        JG_INPUT_EXTERNAL, 4, "neogeosystem", "Neo Geo System",
         defs_ngsys, 0, 4
     };
 
@@ -473,6 +537,25 @@ int jg_game_load(void) {
         geo_input_sys_set_callback(0, &geo_input_poll_stat_a_vliner);
         geo_input_sys_set_callback(1, &geo_input_poll_stat_b_vliner);
         geo_input_sys_set_callback(4, &geo_input_poll_sys_vliner);
+    }
+    else if (settings_geo[INPUT].val == 3 &&
+        settings_geo[SYS].val == SYSTEM_MVS && (settings_geo[REGION].val ==
+        REGION_AS || settings_geo[REGION].val == REGION_JP)) {
+        // Set Four Player mode
+        fourplayer = 1;
+
+        geo_input_set_callback(0, &geo_input_poll_js_ftc1b);
+        geo_input_set_callback(1, &geo_input_poll_js_ftc1b);
+        geo_input_sys_set_callback(1, &geo_input_poll_stat_b_ftc1b);
+
+        inputinfo[2] = (jg_inputinfo_t){
+            JG_INPUT_CONTROLLER, 2, "neogeojs3", "Neo Geo Joystick",
+            defs_neogeojs, 0, NDEFS_NEOGEOJS
+        };
+        inputinfo[3] = (jg_inputinfo_t){
+            JG_INPUT_CONTROLLER, 3, "neogeojs4", "Neo Geo Joystick",
+            defs_neogeojs, 0, NDEFS_NEOGEOJS
+        };
     }
 
     jg_cb_frametime(FRAMERATE);
