@@ -163,10 +163,10 @@ static int geo_bios_load(mz_zip_archive *zip_archive) {
                     biosrom = "sp-u2.sp1";
                     break;
                 case REGION_JP:
-                    biosrom = "vs-bios.rom";
+                    biosrom = "japan-j3.bin";
                     break;
                 case REGION_AS:
-                    biosrom = "sp-s3.sp1";
+                    biosrom = "sp-45.sp1";
                     break;
                 case REGION_EU:
                     biosrom = "sp-s2.sp1";
