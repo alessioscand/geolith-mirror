@@ -78,7 +78,7 @@ static uint32_t ymsamps = 0;
 static unsigned icycs = 0;
 
 // Remove the 68K Clock Divider
-unsigned oc = 1;
+unsigned oc = 0;
 unsigned irq2_fragmask = 0x01;
 
 // Set the log callback

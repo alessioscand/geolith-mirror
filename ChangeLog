@@ -1,3 +1,15 @@
+Version 0.2.0
+-------------
+ - Remove kludge for Master of Shougi which was not truly required
+ - Apply latest upstream patches for YMFM
+ - Finer grained overscan masking and aspect ratio settings in JG shim
+ - Reusability improvements in core emulation code
+ - Improve input sample rate calculation in mixer
+ - Use newer and more compatible BIOSes for Asia and Japan MVS systems
+ - Add support for 4-Player Mode (Kizuna Encounter, Asia/Japan MVS)
+ - Fix Mahjong in MVS mode when input is set to "Auto"
+ - Build improvements
+
 Version 0.1.0
 -------------
  - First public release

@@ -49,7 +49,7 @@ V-Liner
 Settings
 --------
 input = 0
-0 = Auto, 1 = Neo Geo Joysticks, 2 = Mahjong, 3 = 4-Player (Asia/Japan MVS)
+0 = Auto, 1 = Neo Geo Joysticks, 2 = Mahjong, 3 = 4-Player (AS/JP MVS)
 
 system = 0
 0 = AES (Console), 1 = MVS (Arcade), 2 = Universe BIOS
