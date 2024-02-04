@@ -90,7 +90,7 @@ static jg_inputstate_t *input_device[NUMINPUTS];
 static jg_setting_t settings_geo[] = {
     { "input", "Input Devices",
       "0 = Auto, 1 = Neo Geo Joysticks, 2 = Mahjong, "
-      "3 = 4-Player (Asia/Japan MVS)",
+      "3 = 4-Player (AS/JP MVS)",
       "Select the desired input device(s)",
       0, 0, 3, JG_SETTING_RESTART
     },
@@ -166,8 +166,11 @@ static const char *defs_vliner[11] = {
     "Operator", "ClearCredit", "HopperOut"
 };
 
+// Database flags for automatically setting inputs
 static uint32_t dbflags = 0;
-static unsigned fourplayer = 0;
+
+// DIP Switches (Unconfigurable)
+static unsigned dipswitches = 0;
 
 // Coin Slots, Service Button, # of Slots
 static unsigned geo_input_poll_stat_a(void) {
@@ -249,15 +252,14 @@ static unsigned geo_input_poll_systype(void) {
 // Poll DIP Switches
 static unsigned geo_input_poll_dipsw(void) {
     unsigned d = 0xff;
+
+    // Set runtime-configurable DIP Switches
     if (settings_geo[FREEPLAY].val)
         d &= ~0x40;
-    if (settings_geo[INPUT].val == 2) // Mahjong
-        d &= ~0x04;
-    if (fourplayer)
-        d &= ~0x02;
     if (settings_geo[SETTINGMODE].val)
         d &= ~0x01;
-    return d;
+
+    return d & ~dipswitches;
 }
 
 // V-Liner System Buttons
@@ -509,6 +511,8 @@ int jg_game_load(void) {
     // Mahjong
     if ((settings_geo[INPUT].val == 2) ||
         ((dbflags & GEO_DB_MAHJONG) && (settings_geo[INPUT].val == 0))) {
+        // Set Mahjong mode
+        dipswitches |= 0x04;
 
         inputinfo[0] = (jg_inputinfo_t){
             JG_INPUT_CONTROLLER, 0, "neogeomahjong",
@@ -542,7 +546,7 @@ int jg_game_load(void) {
         settings_geo[SYS].val == SYSTEM_MVS && (settings_geo[REGION].val ==
         REGION_AS || settings_geo[REGION].val == REGION_JP)) {
         // Set Four Player mode
-        fourplayer = 1;
+        dipswitches |= 0x02;
 
         geo_input_set_callback(0, &geo_input_poll_js_ftc1b);
         geo_input_set_callback(1, &geo_input_poll_js_ftc1b);
