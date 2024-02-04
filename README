@@ -77,11 +77,15 @@ All bootlegs and hacks from the MAME set are compatible, the majority of which
 require being run in MVS mode. Other bootlegs and hacks not in the MAME set may
 be compatible if correctly converted to the .NEO format.
 
+Some MVS releases will exhibit glitches when run on an AES BIOS. Home Console
+releases are preferred when running in AES mode.
+
 Some early prototypes are not currently possible to emulate, pending new dumps
 or new information:
   Stakes Winner (early development board) - Missing data from SRAM chip
 
 Dedicated JAMMA PCB and Neo Geo CD systems are not currently supported.
+PAL mode is not currently supported.
 
 The special inputs for Irritating Maze are not yet supported. It is possible to
 play Irritating Maze using the Universe BIOS with a cheat enabled for joystick
@@ -106,6 +110,15 @@ standalone binaries for many potential platforms. If a new fork is created
 with significant modifications, a clear indication that it is not officially
 supported would be courteous. Please be an honest person and respect the
 licenses that apply to the software.
+
+Contributing
+------------
+Any contributions should respect the coding style and the direction and goals
+of this emulator. All code should be placed under a permissive license (BSD,
+MIT, etc). Changes made for portability or speed should be as generic as
+possible, and any preprocessor directives for platform-specific code should be
+avoided at all costs in the interest of keeping the emulator core clean,
+maintainable, and free of regressions.
 
 Copyright
 ---------
