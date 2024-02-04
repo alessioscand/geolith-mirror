@@ -320,7 +320,7 @@ handleargs () {
     -n|--dryrun ) DRYRUN=1 ;;
     --* ) die 1 "$PRGNAM: Unrecognized option '$1'" "$help" ;;
     -* ) shortargs "${1#-}" ;;
-    * ) die 1 "Unrecognized option '$option', use -h for help."
+    * ) die 1 "$PRGNAM: Unrecognized option '$1'" "$help" ;;
   esac
 }
 
@@ -385,9 +385,9 @@ for neo in *.neo; do
   fi
 
   if [ "$neo" = "$new" ]; then
-    printf 'Skipping %s\n' "$neo"
+    printf 'Skipping %s\n' "'$neo'"
   elif [ -n "${DRYRUN}" ]; then
-    printf '%s\n' "-> $new"
+    printf '\055> %s\n' "$new"
   else
     mv -- "$neo" "$new"
   fi
