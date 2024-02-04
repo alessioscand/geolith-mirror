@@ -366,6 +366,8 @@ else
 fi
 
 for neo in *.neo; do
+  [ -f "${neo}" ] || continue
+
   crc32="$(rhash -C --simple -- "$neo" | cut -d' ' -f1)"
   new="$(printf %s "$neo_list" | grep "$crc32" |
     sed -e "s/.*${name}=\"\(.*\)\" ${next}=.*/\1/")"
