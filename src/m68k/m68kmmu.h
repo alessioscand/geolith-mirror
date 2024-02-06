@@ -42,7 +42,7 @@
 */
 unsigned pmmu_translate_addr(unsigned addr_in)
 {
-	uint32 addr_out, tbl_entry = 0, tbl_entry2, tamode = 0, tbmode = 0, tcmode = 0;
+	uint32_t addr_out, tbl_entry = 0, tbl_entry2, tamode = 0, tbmode = 0, tcmode = 0;
 	unsigned root_aptr, root_limit, tofs, is, abits, bbits, cbits;
 	unsigned resolved, tptr, shift;
 
@@ -209,9 +209,9 @@ unsigned pmmu_translate_addr(unsigned addr_in)
 
 void m68881_mmu_ops(void)
 {
-	uint16 modes;
-	uint32 ea = m68ki_cpu.ir & 0x3f;
-	uint64 temp64;
+	uint16_t modes;
+	uint32_t ea = m68ki_cpu.ir & 0x3f;
+	uint64_t temp64;
 
 	// catch the 2 "weird" encodings up front (PBcc)
 	if ((m68ki_cpu.ir & 0xffc0) == 0xf0c0)
@@ -276,11 +276,11 @@ void m68881_mmu_ops(void)
 										break;
 
 									case 2: // supervisor root pointer
-										WRITE_EA_64(ea, (uint64)m68ki_cpu.mmu_srp_limit<<32 | (uint64)m68ki_cpu.mmu_srp_aptr);
+										WRITE_EA_64(ea, (uint64_t)m68ki_cpu.mmu_srp_limit<<32 | (uint64_t)m68ki_cpu.mmu_srp_aptr);
 										break;
 
 									case 3: // CPU root pointer
-										WRITE_EA_64(ea, (uint64)m68ki_cpu.mmu_crp_limit<<32 | (uint64)m68ki_cpu.mmu_crp_aptr);
+										WRITE_EA_64(ea, (uint64_t)m68ki_cpu.mmu_crp_limit<<32 | (uint64_t)m68ki_cpu.mmu_crp_aptr);
 										break;
 
 									default:

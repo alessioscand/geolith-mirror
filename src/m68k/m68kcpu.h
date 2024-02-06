@@ -38,12 +38,13 @@ extern "C" {
 #endif
 
 #include "m68k.h"
+#include <stdint.h>
 #include <limits.h>
 
 #include <setjmp.h>
 
 /* ======================================================================== */
-/* ==================== ARCHITECTURE-DEPENDANT DEFINES ==================== */
+/* ==================== ARCHITECTURE-DEPENDENT DEFINES ==================== */
 /* ======================================================================== */
 
 /* Check for > 32bit sizes */
@@ -53,47 +54,11 @@ extern "C" {
 	#define M68K_INT_GT_32_BIT  0
 #endif
 
-/* Data types used in this emulation core */
-#undef sint8
-#undef sint16
-#undef sint32
-#undef sint64
-#undef uint8
-#undef uint16
-#undef uint32
-#undef uint64
-#undef sint
-
-#define sint8  signed   char			/* ASG: changed from char to signed char */
-#define sint16 signed   short
-#define sint32 signed   int			/* AWJ: changed from long to int */
-#define uint8  unsigned char
-#define uint16 unsigned short
-#define uint32 unsigned int			/* AWJ: changed from long to int */
-
-/* signed and unsigned int must be at least 32 bits wide */
-#define sint   signed   int
-
-#if M68K_USE_64_BIT
-#define sint64 signed   long long
-#define uint64 unsigned long long
-#else
-#define sint64 sint32
-#define uint64 uint32
-#endif /* M68K_USE_64_BIT */
-
-
-
 /* Allow for architectures that don't have 8-bit sizes */
 #if UCHAR_MAX == 0xff
-	#define MAKE_INT_8(A) (sint8)(A)
+	#define MAKE_INT_8(A) (int8_t)(A)
 #else
-	#undef  sint8
-	#define sint8  signed   int
-	#undef  uint8
-	#define uint8  unsigned int
-	static inline sint MAKE_INT_8(unsigned value)
-	{
+	static inline int MAKE_INT_8(unsigned value) {
 		return (value & 0x80) ? value | ~0xff : value & 0xff;
 	}
 #endif /* UCHAR_MAX == 0xff */
@@ -101,14 +66,9 @@ extern "C" {
 
 /* Allow for architectures that don't have 16-bit sizes */
 #if USHRT_MAX == 0xffff
-	#define MAKE_INT_16(A) (sint16)(A)
+	#define MAKE_INT_16(A) (int16_t)(A)
 #else
-	#undef  sint16
-	#define sint16 signed   int
-	#undef  uint16
-	#define uint16 unsigned int
-	static inline sint MAKE_INT_16(unsigned value)
-	{
+	static inline int MAKE_INT_16(unsigned value) {
 		return (value & 0x8000) ? value | ~0xffff : value & 0xffff;
 	}
 #endif /* USHRT_MAX == 0xffff */
@@ -116,18 +76,12 @@ extern "C" {
 
 /* Allow for architectures that don't have 32-bit sizes */
 #if UINT_MAX == 0xffffffff
-	#define MAKE_INT_32(A) (sint32)(A)
+	#define MAKE_INT_32(A) (int32_t)(A)
 #else
-	#undef  sint32
-	#define sint32  signed   int
-	#undef  uint32
-	#define uint32  unsigned int
-	static inline sint MAKE_INT_32(unsigned value)
-	{
+	static inline int MAKE_INT_32(unsigned value) {
 		return (value & 0x80000000) ? value | ~0xffffffff : value & 0xffffffff;
 	}
 #endif /* UINT_MAX == 0xffffffff */
-
 
 
 
@@ -903,7 +857,7 @@ extern jmp_buf m68ki_aerr_trap;
 
 typedef union
 {
-	uint64 i;
+	uint64_t i;
 	double f;
 } fp_reg;
 
@@ -967,10 +921,10 @@ typedef struct
 	unsigned mmu_crp_aptr, mmu_crp_limit;
 	unsigned mmu_srp_aptr, mmu_srp_limit;
 	unsigned mmu_tc;
-	uint16 mmu_sr;
+	uint16_t mmu_sr;
 
-	const uint8* cyc_instruction;
-	const uint8* cyc_exception;
+	const uint8_t* cyc_instruction;
+	const uint8_t* cyc_exception;
 
 	/* Callbacks to host */
 	int  (*int_ack_callback)(int int_line);           /* Interrupt Acknowledge */
@@ -988,14 +942,14 @@ typedef struct
 
 
 extern m68ki_cpu_core m68ki_cpu;
-extern sint           m68ki_remaining_cycles;
+extern int           m68ki_remaining_cycles;
 extern unsigned           m68ki_tracing;
-extern const uint8    m68ki_shift_8_table[];
-extern const uint16   m68ki_shift_16_table[];
+extern const uint8_t    m68ki_shift_8_table[];
+extern const uint16_t   m68ki_shift_16_table[];
 extern const unsigned     m68ki_shift_32_table[];
-extern const uint8    m68ki_exception_cycle_table[][256];
+extern const uint8_t    m68ki_exception_cycle_table[][256];
 extern unsigned           m68ki_address_space;
-extern const uint8    m68ki_ea_idx_cycle_table[];
+extern const uint8_t    m68ki_ea_idx_cycle_table[];
 
 extern unsigned           m68ki_aerr_address;
 extern unsigned           m68ki_aerr_write_mode;
@@ -1316,7 +1270,7 @@ static inline unsigned m68ki_get_ea_ix(unsigned An)
 
 	/* Check if base displacement is present */
 	if(BIT_5(extension))                /* BD SIZE */
-		bd = BIT_4(extension) ? m68ki_read_imm_32() : (uint32)MAKE_INT_16(m68ki_read_imm_16());
+		bd = BIT_4(extension) ? m68ki_read_imm_32() : (uint32_t)MAKE_INT_16(m68ki_read_imm_16());
 
 	/* If no indirect action, we are done */
 	if(!(extension&7))                  /* No Memory Indirect */
@@ -1324,7 +1278,7 @@ static inline unsigned m68ki_get_ea_ix(unsigned An)
 
 	/* Check if outer displacement is present */
 	if(BIT_1(extension))                /* I/IS:  od */
-		od = BIT_0(extension) ? m68ki_read_imm_32() : (uint32)MAKE_INT_16(m68ki_read_imm_16());
+		od = BIT_0(extension) ? m68ki_read_imm_32() : (uint32_t)MAKE_INT_16(m68ki_read_imm_16());
 
 	/* Postindex */
 	if(BIT_2(extension))                /* I/IS:  0 = preindex, 1 = postindex */

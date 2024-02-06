@@ -39,14 +39,6 @@
 #include <string.h>
 #include "m68k.h"
 
-#ifndef uint32
-#define uint32 uint32_t
-#endif
-
-#ifndef uint16
-#define uint16 uint16_t
-#endif
-
 #ifndef DECL_SPEC
 #define DECL_SPEC
 #endif
@@ -1692,7 +1684,7 @@ static void d68040_fpu(void)
 	};
 
 	char mnemonic[40];
-	uint32 w2, src, dst_reg;
+	uint32_t w2, src, dst_reg;
 	LIMIT_CPU_TYPES(M68030_PLUS);
 	w2 = read_imm_16();
 
@@ -3134,22 +3126,22 @@ static void d68851_p000(void)
 
 static void d68851_pbcc16(void)
 {
-	uint32 temp_pc = g_cpu_pc;
+	uint32_t temp_pc = g_cpu_pc;
 
 	sprintf(g_dasm_str, "pb%s %x", g_mmucond[g_cpu_ir&0xf], temp_pc + make_int_16(read_imm_16()));
 }
 
 static void d68851_pbcc32(void)
 {
-	uint32 temp_pc = g_cpu_pc;
+	uint32_t temp_pc = g_cpu_pc;
 
 	sprintf(g_dasm_str, "pb%s %x", g_mmucond[g_cpu_ir&0xf], temp_pc + make_int_32(read_imm_32()));
 }
 
 static void d68851_pdbcc(void)
 {
-	uint32 temp_pc = g_cpu_pc;
-	uint16 modes = read_imm_16();
+	uint32_t temp_pc = g_cpu_pc;
+	uint16_t modes = read_imm_16();
 
 	sprintf(g_dasm_str, "pb%s %x", g_mmucond[modes&0xf], temp_pc + make_int_16(read_imm_16()));
 }
