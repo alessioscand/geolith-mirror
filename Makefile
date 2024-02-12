@@ -4,8 +4,6 @@ SOURCEDIR := $(abspath $(patsubst %/,%,$(dir $(abspath $(lastword \
 NAME := geolith
 JGNAME := $(NAME)
 
-CFLAGS ?= -O2
-
 SRCDIR := $(SOURCEDIR)/src
 
 INCLUDES = -I$(SRCDIR)
@@ -67,9 +65,9 @@ BUILD_MAIN = $(call COMPILE_C, $(FLAGS) $(INCLUDES))
 
 all: $(TARGET)
 
-include $(SOURCEDIR)/mk/rules.mk
-
 # Rules
 $(OBJDIR)/%.o: $(SRCDIR)/%.$(EXT) $(PREREQ)
 	$(call COMPILE_INFO,$(BUILD_MAIN))
 	@$(BUILD_MAIN)
+
+include $(SOURCEDIR)/mk/rules.mk
