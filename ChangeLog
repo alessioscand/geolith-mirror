@@ -1,3 +1,10 @@
+Version 0.2.1
+-------------
+ - Improve 68K emulator robustness
+ - Protect against loading more MVS-only games in AES mode
+ - Added script to rename .neo files to/from MAME format and canonical names
+ - Build improvements
+
 Version 0.2.0
 -------------
  - Remove kludge for Master of Shougi which was not truly required
