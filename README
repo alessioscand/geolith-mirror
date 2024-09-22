@@ -162,3 +162,7 @@ being entirely new, with all new code written under the BSD 3-Clause license.
 A special thanks goes out to Mathieu Peponas who both created the original
 GnGeo emulator, and also approved the distribution of this new work as a whole
 with new licensing. This resolves the "Ship of Theseus" question.
+
+Trivia
+------
+The first game ever completed on this emulator was Blazing Star.
