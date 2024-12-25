@@ -10,6 +10,7 @@ INCLUDES = -I$(SRCDIR)
 INCLUDES_JG = -I$(SRCDIR)
 
 LIBS = -lm
+LIBS_STATIC =
 
 LIBS_REQUIRES := miniz speexdsp
 
