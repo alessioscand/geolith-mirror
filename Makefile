@@ -9,6 +9,8 @@ SRCDIR := $(SOURCEDIR)/src
 INCLUDES = -I$(SRCDIR)
 INCLUDES_JG = -I$(SRCDIR)
 
+LINKER = $(CC)
+
 LIBS = -lm
 LIBS_STATIC =
 
@@ -31,7 +33,6 @@ LIBS += $(LIBS_SPEEXDSP) $(LIBS_MINIZ)
 
 EXT := c
 FLAGS := -std=c11 $(WARNINGS_DEF_C)
-LINKER := $(CC)
 
 CSRCS := m68k/m68kcpu.c \
 	m68k/m68kops.c \
