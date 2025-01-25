@@ -54,7 +54,7 @@ CSRCS := m68k/m68kcpu.c \
 JGSRCS := jg.c
 
 # List of object files
-OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o) $(OBJS_MINIZ) $(OBJS_SPEEXDSP))
+OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o)) $(OBJS_MINIZ) $(OBJS_SPEEXDSP)
 OBJS_JG := $(patsubst %,$(OBJDIR)/%,$(JGSRCS:.c=.o))
 
 # Core commands
