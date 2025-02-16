@@ -139,6 +139,12 @@ static jg_setting_t settings_geo[] = {
       "Hide N pixels of Overscan (Right)",
       2, 0, 4, 0
     },
+    { "adpcm_wrap", "ADPCM Accumulator Wrap",
+      "0 = Off, 1 = On",
+      "ADPCM Accumulator Wrap may be disabled to fix sound effects in buggy "
+      "games, for example Ganryu and Nightmare in the Dark. This is a hack!",
+      1, 0, 1, 0
+    },
 };
 
 enum {
@@ -152,6 +158,7 @@ enum {
     OVERSCAN_B,
     OVERSCAN_L,
     OVERSCAN_R,
+    ADPCM_WRAP,
 };
 
 static const char *defs_ngsys[4] = { "Coin1", "Coin2", "Service", "Test" };
@@ -429,6 +436,7 @@ int jg_init(void) {
     geo_log_set_callback(jg_cb_log);
     geo_set_region(settings_geo[REGION].val);
     geo_set_system(settings_geo[SYS].val);
+    geo_set_adpcm_wrap(settings_geo[ADPCM_WRAP].val);
     geo_mixer_set_rate(SAMPLERATE);
     geo_mixer_init();
     geo_params_video();
@@ -630,6 +638,7 @@ void jg_cheat_set(const char *code) {
 
 void jg_rehash(void) {
     geo_params_video();
+    geo_set_adpcm_wrap(settings_geo[ADPCM_WRAP].val);
 }
 
 void jg_data_push(uint32_t type, int port, const void *ptr, size_t size) {

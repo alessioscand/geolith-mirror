@@ -71,6 +71,24 @@ freeplay = 0
 settingmode = 0
 0 = Off, 1 = On
 
+aspect = 0
+0 = 1:1 PAR, 1 = 45:44 PAR, 2 = 4:3 DAR
+
+overscan_t = 2
+0 = 0, 1 = 4, 2 = 8, 3 = 12, 4 = 16
+
+overscan_b = 2
+0 = 0, 1 = 4, 2 = 8, 3 = 12, 4 = 16
+
+overscan_l = 2
+0 = 0, 1 = 4, 2 = 8, 3 = 12, 4 = 16
+
+overscan_r = 2
+0 = 0, 1 = 4, 2 = 8, 3 = 12, 4 = 16
+
+adpcm_wrap = 1
+0 = Off, 1 = On
+
 Auxiliary Files
 ---------------
 System ROM collections (BIOS et al) in the form of a .zip file may be loaded as
