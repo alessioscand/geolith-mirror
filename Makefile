@@ -16,7 +16,7 @@ LIBS_STATIC =
 
 LIBS_REQUIRES := miniz speexdsp
 
-DOCS := LICENSE README
+DOCS := ChangeLog LICENSE README
 
 # Object dirs
 MKDIRS := m68k ymfm z80
