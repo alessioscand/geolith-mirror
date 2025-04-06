@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022-2023 Rupert Carmichael
+Copyright (c) 2022-2025 Rupert Carmichael
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <libgen.h>
 
 #include <jg/jg.h>
+#if JG_VERSION_NUMBER > 10000
 #include <jg/jg_neogeo.h>
+#else
+#include "jg_neogeo_geo.h"
+#endif
 
 #include "geo.h"
 #include "geo_lspc.h"
@@ -159,18 +163,6 @@ enum {
     OVERSCAN_L,
     OVERSCAN_R,
     ADPCM_WRAP,
-};
-
-static const char *defs_ngsys[4] = { "Coin1", "Coin2", "Service", "Test" };
-
-static const char *defs_mahjong[21] = {
-    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
-    "Pon", "Chi", "Kan", "Reach", "Ron", "Select", "Start"
-};
-
-static const char *defs_vliner[11] = {
-    "Up", "Down", "Left", "Right", "Big", "Small", "D-Up", "Start",
-    "Operator", "ClearCredit", "HopperOut"
 };
 
 // Database flags for automatically setting inputs
@@ -503,11 +495,7 @@ int jg_game_load(void) {
     inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_JS);
     inputinfo[2] = jg_neogeo_inputinfo(2, JG_NEOGEO_UNCONNECTED);
     inputinfo[3] = jg_neogeo_inputinfo(3, JG_NEOGEO_UNCONNECTED);
-    //inputinfo[4] = jg_neogeo_inputinfo(2, JG_NEOGEO_SYS);
-    inputinfo[4] = (jg_inputinfo_t){
-        JG_INPUT_EXTERNAL, 4, "neogeosystem", "Neo Geo System",
-        defs_ngsys, 0, 4
-    };
+    inputinfo[4] = jg_neogeo_inputinfo(4, JG_NEOGEO_SYS);
 
     geo_input_set_callback(0, &geo_input_poll_js);
     geo_input_set_callback(1, &geo_input_poll_js);
@@ -519,13 +507,8 @@ int jg_game_load(void) {
     // Mahjong
     if ((settings_geo[INPUT].val == 2) ||
         ((dbflags & GEO_DB_MAHJONG) && (settings_geo[INPUT].val == 0))) {
-        // Set Mahjong mode
-        dipswitches |= 0x04;
-
-        inputinfo[0] = (jg_inputinfo_t){
-            JG_INPUT_CONTROLLER, 0, "neogeomahjong",
-            "Neo Geo Mahjong Controller", defs_mahjong, 0, 21
-        };
+        dipswitches |= 0x04; // Set Mahjong mode
+        inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_MAHJONG);
         inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_UNCONNECTED);
         geo_input_set_callback(0, &geo_input_poll_mahjong);
         geo_input_set_callback(1, &geo_input_poll_none);
@@ -539,10 +522,7 @@ int jg_game_load(void) {
         }
     }
     else if (dbflags & GEO_DB_VLINER) {
-        inputinfo[0] = (jg_inputinfo_t){
-            JG_INPUT_CONTROLLER, 0, "neogeovliner",
-            "V-Liner", defs_vliner, 0, 11
-        };
+        inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_VLINER);
         inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_UNCONNECTED);
         geo_input_set_callback(0, &geo_input_poll_vliner);
         geo_input_set_callback(1, &geo_input_poll_none);
@@ -556,18 +536,11 @@ int jg_game_load(void) {
         // Set Four Player mode
         dipswitches |= 0x02;
 
+        inputinfo[2] = jg_neogeo_inputinfo(2, JG_NEOGEO_JS);
+        inputinfo[3] = jg_neogeo_inputinfo(3, JG_NEOGEO_JS);
         geo_input_set_callback(0, &geo_input_poll_js_ftc1b);
         geo_input_set_callback(1, &geo_input_poll_js_ftc1b);
         geo_input_sys_set_callback(1, &geo_input_poll_stat_b_ftc1b);
-
-        inputinfo[2] = (jg_inputinfo_t){
-            JG_INPUT_CONTROLLER, 2, "neogeojs3", "Neo Geo Joystick",
-            defs_neogeojs, 0, NDEFS_NEOGEOJS
-        };
-        inputinfo[3] = (jg_inputinfo_t){
-            JG_INPUT_CONTROLLER, 3, "neogeojs4", "Neo Geo Joystick",
-            defs_neogeojs, 0, NDEFS_NEOGEOJS
-        };
     }
 
     jg_cb_frametime(FRAMERATE);
