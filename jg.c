@@ -96,7 +96,7 @@ static jg_setting_t settings_geo[] = {
       "0 = Auto, 1 = Neo Geo Joysticks, 2 = Mahjong, "
       "3 = 4-Player (AS/JP MVS)",
       "Select the desired input device(s)",
-      0, 0, 3, JG_SETTING_RESTART
+      0, 0, 3, JG_SETTING_INPUT
     },
     { "system", "Emulated System",
       "0 = AES (Console), 1 = MVS (Arcade), 2 = Universe BIOS",
@@ -390,6 +390,60 @@ static unsigned geo_input_poll_vliner(unsigned port) {
     return b;
 }
 
+static void geo_params_input(void) {
+    inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_JS);
+    inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_JS);
+    inputinfo[2] = jg_neogeo_inputinfo(2, JG_NEOGEO_UNCONNECTED);
+    inputinfo[3] = jg_neogeo_inputinfo(3, JG_NEOGEO_UNCONNECTED);
+    inputinfo[4] = jg_neogeo_inputinfo(4, JG_NEOGEO_SYS);
+
+    geo_input_set_callback(0, &geo_input_poll_js);
+    geo_input_set_callback(1, &geo_input_poll_js);
+    geo_input_sys_set_callback(0, &geo_input_poll_stat_a);
+    geo_input_sys_set_callback(1, &geo_input_poll_stat_b);
+    geo_input_sys_set_callback(2, &geo_input_poll_systype);
+    geo_input_sys_set_callback(3, &geo_input_poll_dipsw);
+
+    // Mahjong
+    if ((settings_geo[INPUT].val == 2) ||
+        ((dbflags & GEO_DB_MAHJONG) && (settings_geo[INPUT].val == 0))) {
+        dipswitches |= 0x04; // Set Mahjong mode
+        inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_MAHJONG);
+        inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_UNCONNECTED);
+        geo_input_set_callback(0, &geo_input_poll_mahjong);
+        geo_input_set_callback(1, &geo_input_poll_none);
+        geo_input_sys_set_callback(1, &geo_input_poll_stat_b_mahjong);
+    }
+    else if (dbflags & GEO_DB_IRRMAZE) {
+        if (settings_geo[SYS].val != SYSTEM_UNI) {
+            jg_cb_log(JG_LOG_WRN, "The Irritating Maze must be played using "
+                "the Universe BIOS with the \"Enable Joystick Play\" option "
+                "set.\n");
+        }
+    }
+    else if (dbflags & GEO_DB_VLINER) {
+        inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_VLINER);
+        inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_UNCONNECTED);
+        geo_input_set_callback(0, &geo_input_poll_vliner);
+        geo_input_set_callback(1, &geo_input_poll_none);
+        geo_input_sys_set_callback(0, &geo_input_poll_stat_a_vliner);
+        geo_input_sys_set_callback(1, &geo_input_poll_stat_b_vliner);
+        geo_input_sys_set_callback(4, &geo_input_poll_sys_vliner);
+    }
+    else if (settings_geo[INPUT].val == 3 &&
+        settings_geo[SYS].val == SYSTEM_MVS && (settings_geo[REGION].val ==
+        REGION_AS || settings_geo[REGION].val == REGION_JP)) {
+        // Set Four Player mode
+        dipswitches |= 0x02;
+
+        inputinfo[2] = jg_neogeo_inputinfo(2, JG_NEOGEO_JS);
+        inputinfo[3] = jg_neogeo_inputinfo(3, JG_NEOGEO_JS);
+        geo_input_set_callback(0, &geo_input_poll_js_ftc1b);
+        geo_input_set_callback(1, &geo_input_poll_js_ftc1b);
+        geo_input_sys_set_callback(1, &geo_input_poll_stat_b_ftc1b);
+    }
+}
+
 static void geo_params_video(void) {
     unsigned w = LSPC_WIDTH - ((settings_geo[OVERSCAN_L].val << 2) +
         (settings_geo[OVERSCAN_R].val << 2));
@@ -491,57 +545,7 @@ int jg_game_load(void) {
                 datatype[i], savename);
     }
 
-    inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_JS);
-    inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_JS);
-    inputinfo[2] = jg_neogeo_inputinfo(2, JG_NEOGEO_UNCONNECTED);
-    inputinfo[3] = jg_neogeo_inputinfo(3, JG_NEOGEO_UNCONNECTED);
-    inputinfo[4] = jg_neogeo_inputinfo(4, JG_NEOGEO_SYS);
-
-    geo_input_set_callback(0, &geo_input_poll_js);
-    geo_input_set_callback(1, &geo_input_poll_js);
-    geo_input_sys_set_callback(0, &geo_input_poll_stat_a);
-    geo_input_sys_set_callback(1, &geo_input_poll_stat_b);
-    geo_input_sys_set_callback(2, &geo_input_poll_systype);
-    geo_input_sys_set_callback(3, &geo_input_poll_dipsw);
-
-    // Mahjong
-    if ((settings_geo[INPUT].val == 2) ||
-        ((dbflags & GEO_DB_MAHJONG) && (settings_geo[INPUT].val == 0))) {
-        dipswitches |= 0x04; // Set Mahjong mode
-        inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_MAHJONG);
-        inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_UNCONNECTED);
-        geo_input_set_callback(0, &geo_input_poll_mahjong);
-        geo_input_set_callback(1, &geo_input_poll_none);
-        geo_input_sys_set_callback(1, &geo_input_poll_stat_b_mahjong);
-    }
-    else if (dbflags & GEO_DB_IRRMAZE) {
-        if (settings_geo[SYS].val != SYSTEM_UNI) {
-            jg_cb_log(JG_LOG_WRN, "The Irritating Maze must be played using "
-                "the Universe BIOS with the \"Enable Joystick Play\" option "
-                "set.\n");
-        }
-    }
-    else if (dbflags & GEO_DB_VLINER) {
-        inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_VLINER);
-        inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_UNCONNECTED);
-        geo_input_set_callback(0, &geo_input_poll_vliner);
-        geo_input_set_callback(1, &geo_input_poll_none);
-        geo_input_sys_set_callback(0, &geo_input_poll_stat_a_vliner);
-        geo_input_sys_set_callback(1, &geo_input_poll_stat_b_vliner);
-        geo_input_sys_set_callback(4, &geo_input_poll_sys_vliner);
-    }
-    else if (settings_geo[INPUT].val == 3 &&
-        settings_geo[SYS].val == SYSTEM_MVS && (settings_geo[REGION].val ==
-        REGION_AS || settings_geo[REGION].val == REGION_JP)) {
-        // Set Four Player mode
-        dipswitches |= 0x02;
-
-        inputinfo[2] = jg_neogeo_inputinfo(2, JG_NEOGEO_JS);
-        inputinfo[3] = jg_neogeo_inputinfo(3, JG_NEOGEO_JS);
-        geo_input_set_callback(0, &geo_input_poll_js_ftc1b);
-        geo_input_set_callback(1, &geo_input_poll_js_ftc1b);
-        geo_input_sys_set_callback(1, &geo_input_poll_stat_b_ftc1b);
-    }
+    geo_params_input();
 
     jg_cb_frametime(FRAMERATE);
 
@@ -610,6 +614,7 @@ void jg_cheat_set(const char *code) {
 }
 
 void jg_rehash(void) {
+    geo_params_input();
     geo_params_video();
     geo_set_adpcm_wrap(settings_geo[ADPCM_WRAP].val);
 }
