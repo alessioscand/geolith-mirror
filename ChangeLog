@@ -1,3 +1,11 @@
+Version 0.2.2
+-------------
+ - Ensure REG_SYSTYPE and REG_STATUS_A reflect true cartridge/coin slot number
+ - Fix audio clipping when mixed audio channels overflow the 16-bit value range
+ - Add ADPCM Accumulator Wrap setting to hotfix games with buggy audio code
+ - Fix bug when entering SNK vs Capcom Chaos bonus stage
+ - Build improvements
+
 Version 0.2.1
 -------------
  - Improve 68K emulator robustness
