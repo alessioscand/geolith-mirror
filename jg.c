@@ -118,6 +118,16 @@ static jg_setting_t settings_geo[] = {
       "Activate Hardware Settings Menu at Boot",
       0, 0, 1, 0
     },
+    { "memcard_inserted", "Memory Card",
+      "0 = Disabled, 1 = Enabled",
+      "Enable or Disable the Memory Card",
+      1, 0, 1, 0
+    },
+    { "memcard_wp", "Memory Card Write Protect",
+      "0 = Disabled, 1 = Enabled",
+      "Enable or Disable the Memory Card Write Protect pin",
+      0, 0, 1, 0
+    },
     { "aspect", "Aspect Ratio",
       "0 = 1:1 PAR, 1 = 45:44 PAR, 2 = 4:3 DAR",
       "Set the aspect ratio",
@@ -148,7 +158,7 @@ static jg_setting_t settings_geo[] = {
       "ADPCM Accumulator Wrap may be disabled to fix sound effects in buggy "
       "games, for example Ganryu and Nightmare in the Dark. This is a hack!",
       1, 0, 1, 0
-    },
+    }
 };
 
 enum {
@@ -157,12 +167,14 @@ enum {
     REGION,
     FREEPLAY,
     SETTINGMODE,
+    MEMCARD_INSERTED,
+    MEMCARD_WP,
     ASPECT,
     OVERSCAN_T,
     OVERSCAN_B,
     OVERSCAN_L,
     OVERSCAN_R,
-    ADPCM_WRAP,
+    ADPCM_WRAP
 };
 
 // Database flags for automatically setting inputs
@@ -190,6 +202,13 @@ static unsigned geo_input_poll_stat_a_vliner(void) {
 // P1/P2 Select/Start, Memcard status, AES/MVS setting
 static unsigned geo_input_poll_stat_b(void) {
     unsigned s = 0x0f;
+    if (settings_geo[MEMCARD_INSERTED].val) {
+        if (settings_geo[MEMCARD_WP].val) s |= 0x40;
+    }
+    else {
+        s |= 0x30;
+    }
+
     if (input_device[0]->button[4])
         s &= 0x0d;
     if (input_device[0]->button[5])
@@ -204,6 +223,12 @@ static unsigned geo_input_poll_stat_b(void) {
 // P1/P2 Start, P3/P4 Start, Memcard status, AES/MVS setting
 static unsigned geo_input_poll_stat_b_ftc1b(void) {
     unsigned s = 0x0f;
+    if (settings_geo[MEMCARD_INSERTED].val) {
+        if (settings_geo[MEMCARD_WP].val) s |= 0x40;
+    }
+    else {
+        s |= 0x30;
+    }
 
     if (geo_m68k_reg_poutput() & 0x01) { // Players 2/4 (P1-B, P2-B)
         if (input_device[1]->button[5])
@@ -222,6 +247,12 @@ static unsigned geo_input_poll_stat_b_ftc1b(void) {
 
 static unsigned geo_input_poll_stat_b_mahjong(void) {
     unsigned s = 0x0f;
+    if (settings_geo[MEMCARD_INSERTED].val) {
+        if (settings_geo[MEMCARD_WP].val) s |= 0x40;
+    }
+    else {
+        s |= 0x30;
+    }
 
     if (settings_geo[SYS].val == SYSTEM_AES) {
         if ((geo_m68k_reg_poutput() & 0x04))
@@ -237,7 +268,14 @@ static unsigned geo_input_poll_stat_b_mahjong(void) {
 }
 
 static unsigned geo_input_poll_stat_b_vliner(void) {
-    return 0x0f;
+    unsigned s = 0x0f;
+    if (settings_geo[MEMCARD_INSERTED].val) {
+        if (settings_geo[MEMCARD_WP].val) s |= 0x40;
+    }
+    else {
+        s |= 0x30;
+    }
+    return s;
 }
 
 // Test button, slot type

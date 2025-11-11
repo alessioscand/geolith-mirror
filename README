@@ -71,6 +71,12 @@ freeplay = 0
 settingmode = 0
 0 = Off, 1 = On
 
+memcard_inserted = 1
+0 = Disabled, 1 = Enabled
+
+memcard_wp = 0
+0 = Disabled, 1 = Enabled
+
 aspect = 0
 0 = 1:1 PAR, 1 = 45:44 PAR, 2 = 4:3 DAR
 
