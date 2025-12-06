@@ -77,6 +77,9 @@ memcard_inserted = 1
 memcard_wp = 0
 0 = Disabled, 1 = Enabled
 
+palette = 0
+0 = Resistor Network, 1 = Raw
+
 aspect = 0
 0 = 1:1 PAR, 1 = 45:44 PAR, 2 = 4:3 DAR
 
