@@ -128,6 +128,11 @@ static jg_setting_t settings_geo[] = {
       "Enable or Disable the Memory Card Write Protect pin",
       0, 0, 1, 0
     },
+    { "palette", "Palette",
+      "0 = Resistor Network, 1 = Raw",
+      "Select the palette to use",
+      0, 0, 1, 0
+    },
     { "aspect", "Aspect Ratio",
       "0 = 1:1 PAR, 1 = 45:44 PAR, 2 = 4:3 DAR",
       "Set the aspect ratio",
@@ -169,6 +174,7 @@ enum {
     SETTINGMODE,
     MEMCARD_INSERTED,
     MEMCARD_WP,
+    PALETTE,
     ASPECT,
     OVERSCAN_T,
     OVERSCAN_B,
@@ -498,6 +504,8 @@ static void geo_params_video(void) {
         case 1: vidinfo.aspect = (w * (45.0 / 44.0)) / (double)h; break;
         case 2: vidinfo.aspect = 4.0 / 3.0; break;
     }
+
+    geo_lspc_set_palette(settings_geo[PALETTE].val);
 }
 
 void jg_set_cb_audio(jg_cb_audio_t func) {
