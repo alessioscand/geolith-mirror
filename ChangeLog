@@ -1,3 +1,10 @@
+Version 0.3.0
+-------------
+ - Improve conversion of raw palette RAM values to 8-bit output values
+ - Fix palette RAM dark bit inversion
+ - Optimize LSPC performance
+ - Add new Resistor Network palette generator
+
 Version 0.2.2
 -------------
  - Ensure REG_SYSTYPE and REG_STATUS_A reflect true cartridge/coin slot number
