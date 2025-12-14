@@ -103,6 +103,11 @@ static jg_setting_t settings_geo[] = {
       "Select which type of system/BIOS to emulate",
       SYSTEM_AES, SYSTEM_AES, SYSTEM_UNI, JG_SETTING_RESTART
     },
+    { "unihw", "Universe BIOS Hardware",
+      "0 = AES (Console), 1 = MVS (Arcade)",
+      "Select which type of emulated hardware the Universe BIOS should detect",
+      SYSTEM_MVS, SYSTEM_AES, SYSTEM_MVS, JG_SETTING_RESTART
+    },
     { "region", "Region",
       "0 = US, 1 = JP, 2 = AS, 3 = EU",
       "Select the region",
@@ -169,6 +174,7 @@ static jg_setting_t settings_geo[] = {
 enum {
     INPUT,
     SYS,
+    UNIHW,
     REGION,
     FREEPLAY,
     SETTINGMODE,
@@ -189,15 +195,22 @@ static uint32_t dbflags = 0;
 // DIP Switches (Unconfigurable)
 static unsigned dipswitches = 0;
 
+// Values for coin slots 3 and 4 in REG_STATUS_A reads
+static unsigned coins34 = 0x00;
+
 // Coin Slots, Service Button, # of Slots
 static unsigned geo_input_poll_stat_a(void) {
     unsigned c = 0x07;
+
     if (input_device[4]->button[0]) // Coin 1
         c &= 0x06;
     if (input_device[4]->button[1]) // Coin 2
         c &= 0x05;
     if (input_device[4]->button[2]) // Service
         c &= 0x03;
+
+    c |= coins34;
+
     return c;
 }
 
@@ -564,6 +577,16 @@ int jg_game_load(void) {
 
         if (!geo_bios_load_file(biospath))
             geo_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
+    }
+
+    /* Set coin slot 3 and 4 bits for REG_STATUS_A reads depending on hardware.
+       Geolith never uses slots 3 and 4 when emulating MVS hardware, so these
+       bits need to be set high (they are active low).
+    */
+    if ((settings_geo[SYS].val == SYSTEM_MVS) ||
+        (settings_geo[SYS].val == SYSTEM_UNI &&
+         settings_geo[UNIHW].val == SYSTEM_MVS)) {
+        coins34 = 0x18;
     }
 
     // Load the NEO file
