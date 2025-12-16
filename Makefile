@@ -12,6 +12,8 @@ INCLUDES_JG = -I$(SRCDIR)
 LINKER = $(CC)
 
 LIBS = -lm
+
+FLAGS_STATIC =
 LIBS_STATIC =
 
 LIBS_REQUIRES := miniz speexdsp
