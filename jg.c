@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022-2025 Rupert Carmichael
+Copyright (c) 2022-2026 Rupert Carmichael
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #include "geo.h"
+#include "geo_cd.h"
+#include "geo_disc.h"
 #include "geo_lspc.h"
 #include "geo_m68k.h"
 #include "geo_mixer.h"
@@ -197,6 +199,8 @@ static unsigned dipswitches = 0;
 
 // Values for coin slots 3 and 4 in REG_STATUS_A reads
 static unsigned coins34 = 0x00;
+
+static unsigned cdmode = 0;
 
 // Coin Slots, Service Button, # of Slots
 static unsigned geo_input_poll_stat_a(void) {
@@ -540,7 +544,12 @@ void jg_set_cb_rumble(jg_cb_rumble_t func) {
 int jg_init(void) {
     geo_log_set_callback(jg_cb_log);
     geo_set_region(settings_geo[REGION].val);
-    geo_set_system(settings_geo[SYS].val);
+
+    if (cdmode)
+        geo_set_system(SYSTEM_CDZ);
+    else
+        geo_set_system(settings_geo[SYS].val);
+
     geo_set_adpcm_wrap(settings_geo[ADPCM_WRAP].val);
     geo_mixer_set_rate(SAMPLERATE);
     geo_mixer_init();
@@ -572,8 +581,16 @@ int jg_game_load(void) {
     }
     else {
         char biospath[512];
-        snprintf(biospath, sizeof(biospath), "%s/%s", pathinfo.bios,
-            settings_geo[SYS].val == SYSTEM_AES ? "aes.zip" : "neogeo.zip");
+        char *bfile;
+
+        if (cdmode)
+            bfile = "neocdz.zip";
+        else if (settings_geo[SYS].val == SYSTEM_AES)
+            bfile = "aes.zip";
+        else
+            bfile = "neogeo.zip";
+
+        snprintf(biospath, sizeof(biospath), "%s/%s", pathinfo.bios, bfile);
 
         if (!geo_bios_load_file(biospath))
             geo_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
@@ -589,9 +606,16 @@ int jg_game_load(void) {
         coins34 = 0x18;
     }
 
-    // Load the NEO file
-    geo_neo_load(gameinfo.data, gameinfo.size);
-    dbflags = geo_neo_flags();
+    if (cdmode) {
+        // Load the CD
+        geo_disc_open(gameinfo.path);
+        geo_m68k_postload();
+    }
+    else {
+        // Load the NEO file
+        geo_neo_load(gameinfo.data, gameinfo.size);
+        dbflags = geo_neo_flags();
+    }
 
     // Load saved data
     char savename[292];
@@ -679,7 +703,7 @@ void jg_cheat_clear(void) {
 }
 
 void jg_cheat_set(const char *code) {
-    if (code) { }
+    (void)code;
 }
 
 void jg_rehash(void) {
@@ -689,11 +713,12 @@ void jg_rehash(void) {
 }
 
 void jg_data_push(uint32_t type, int port, const void *ptr, size_t size) {
-    if (type || port || ptr || size) { }
+    (void)type; (void)port; (void)ptr; (void)size;
 }
 
 jg_coreinfo_t* jg_get_coreinfo(const char *sys) {
-    if (sys) { }
+    if (!strcmp(sys, "neogeocd"))
+        cdmode = 1;
     return &coreinfo;
 }
 

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022-2024 Rupert Carmichael
+Copyright (c) 2022-2026 Rupert Carmichael
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,17 @@ static uint8_t *mrom = NULL;
 static uint8_t nmi_enabled = 0;
 static uint8_t zram[SIZE_2K];
 static uint32_t zbank[4];
+
+// Neo Geo CD has flat 64K RAM
+static uint8_t geo_z80_cd_mem_rd(void *userdata, uint16_t addr) {
+    (void)userdata;
+    return mrom[addr];
+}
+
+static void geo_z80_cd_mem_wr(void *userdata, uint16_t addr, uint8_t data) {
+    (void)userdata;
+    mrom[addr] = data;
+}
 
 /* Z80 Memory Map
  * =====================================================================
@@ -223,8 +234,13 @@ void geo_z80_reset(void) {
     z80_reset(&z80ctx);
     nmi_enabled = 0;
 
-    // Set the M ROM based on system type - AES does not have SM1 ROM
-    geo_z80_set_mrom(geo_get_system() == SYSTEM_AES);
+    if (ngsys.cdmode) {
+        mrom = romdata->m;
+    }
+    else {
+        // Set the M ROM based on system type - AES does not have SM1 ROM
+        geo_z80_set_mrom(geo_get_system() == SYSTEM_AES);
+    }
 }
 
 // Initialize the Z80
@@ -273,6 +289,12 @@ void geo_z80_clear_irq(void) {
 
 void geo_z80_set_mrom(unsigned m) {
     mrom = m ? romdata->m : romdata->sm;
+}
+
+void geo_z80_set_cd_mode(void) {
+    mrom = romdata->m;
+    z80ctx.read_byte = &geo_z80_cd_mem_rd;
+    z80ctx.write_byte = &geo_z80_cd_mem_wr;
 }
 
 // Restore the Z80's state from external data

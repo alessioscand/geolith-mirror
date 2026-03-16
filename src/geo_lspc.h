@@ -51,6 +51,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define LSPC_FIXTILES_V     32
 #define LSPC_FIX_BOARD      0
 #define LSPC_FIX_CART       1
+#define LSPC_FIX_CD         2
 
 #define FIX_BANKSW_NONE 0
 #define FIX_BANKSW_LINE 1
@@ -91,6 +92,12 @@ void geo_lspc_set_fix_banksw(unsigned);
 void geo_lspc_set_fix(unsigned);
 void geo_lspc_set_sprlimit(unsigned);
 void geo_lspc_set_palette(unsigned);
+
+void geo_lspc_set_skip_render(unsigned);
+
+void geo_lspc_disblspr_wr(unsigned);
+void geo_lspc_disblfix_wr(unsigned);
+void geo_lspc_envideo_wr(unsigned);
 
 void geo_lspc_postload(void);
 
