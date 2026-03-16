@@ -381,6 +381,9 @@ void geo_reset(int hard) {
     geo_ymfm_reset(); // Reset the YM2610 to make sure everything is defaulted
     geo_lspc_init();
 
+    if (ngsys.cdmode)
+        geo_cd_reset();
+
     if (hard)
         geo_m68k_interrupt(IRQ_RESET);
 }
