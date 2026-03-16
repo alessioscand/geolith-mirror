@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ctype.h>
 
 #define DR_FLAC_IMPLEMENTATION
-#include <dr/dr_flac.h>
+#include "dr_flac.h"
 
 #include "geo.h"
 #include "geo_cue.h"
