@@ -62,6 +62,9 @@ input = 0
 system = 0
 0 = AES (Console), 1 = MVS (Arcade), 2 = Universe BIOS
 
+cdsystem = 0
+0 = Neo Geo CD, 1 = Neo Geo CDZ, 2 = Universe BIOS
+
 unihw = 1
 0 = AES (Console), 1 = MVS (Arcade)
 
@@ -161,7 +164,7 @@ maintainable, and free of regressions.
 Copyright
 ---------
 Geolith (BSD-3-Clause)
-  Copyright (c) 2022-2025 Rupert Carmichael
+  Copyright (c) 2022-2026 Rupert Carmichael
   See LICENSE
 
 Jolly Good Z80 (MIT)

@@ -100,10 +100,15 @@ static jg_setting_t settings_geo[] = {
       "Select the desired input device(s)",
       0, 0, 3, JG_SETTING_INPUT
     },
-    { "system", "Emulated System",
+    { "system", "Cartridge System",
       "0 = AES (Console), 1 = MVS (Arcade), 2 = Universe BIOS",
       "Select which type of system/BIOS to emulate",
       SYSTEM_AES, SYSTEM_AES, SYSTEM_UNI, JG_SETTING_RESTART
+    },
+    { "cdsystem", "CD System",
+      "0 = Neo Geo CD , 1 = Neo Geo CDZ, 2 = Universe BIOS",
+      "Select which type of system/BIOS to emulate",
+      1, 0, 2, JG_SETTING_RESTART
     },
     { "unihw", "Universe BIOS Hardware",
       "0 = AES (Console), 1 = MVS (Arcade)",
@@ -176,6 +181,7 @@ static jg_setting_t settings_geo[] = {
 enum {
     INPUT,
     SYS,
+    CDSYS,
     UNIHW,
     REGION,
     FREEPLAY,
@@ -546,7 +552,7 @@ int jg_init(void) {
     geo_set_region(settings_geo[REGION].val);
 
     if (cdmode)
-        geo_set_system(SYSTEM_CDZ);
+        geo_set_system(SYSTEM_CD + settings_geo[CDSYS].val);
     else
         geo_set_system(settings_geo[SYS].val);
 
@@ -583,8 +589,12 @@ int jg_game_load(void) {
         char biospath[512];
         char *bfile;
 
-        if (cdmode)
-            bfile = "neocdz.zip";
+        if (cdmode) {
+            if (settings_geo[CDSYS].val == 0) // Neo Geo CD
+                bfile = "neocd.zip";
+            else // Neo Geo CDZ or Universe BIOS
+                bfile = "neocdz.zip";
+        }
         else if (settings_geo[SYS].val == SYSTEM_AES)
             bfile = "aes.zip";
         else
