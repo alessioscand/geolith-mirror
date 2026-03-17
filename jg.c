@@ -604,6 +604,14 @@ int jg_game_load(void) {
 
         if (!geo_bios_load_file(biospath))
             geo_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
+
+        if (settings_geo[CDSYS].val == 0) {
+            // Neo Geo CD needs to load "000-lo.lo" from neocdz.zip
+            snprintf(biospath, sizeof(biospath),
+                "%s/neocdz.zip", pathinfo.bios);
+            if (!geo_bios_load_file_aux(biospath))
+                geo_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
+        }
     }
 
     /* Set coin slot 3 and 4 bits for REG_STATUS_A reads depending on hardware.
