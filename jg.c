@@ -670,6 +670,12 @@ int jg_game_unload(void) {
     // Clean up memory allocated for BIOS ROMs
     geo_bios_unload();
 
+    // Clean up CD related components
+    if (cdmode) {
+        geo_disc_close();
+        geo_cd_deinit();
+    }
+
     return 1;
 }
 
