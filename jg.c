@@ -627,7 +627,7 @@ int jg_game_load(void) {
     if (cdmode) {
         // Load the CD
         geo_disc_open(gameinfo.path);
-        geo_m68k_postload();
+        geo_cd_postload();
     }
     else {
         // Load the NEO file
