@@ -51,7 +51,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "version.h"
 
-#define SAMPLERATE 48000
+#define SAMPLERATE 44100
 #define FRAMERATE 60
 #define CHANNELS 2
 #define NUMINPUTS 5
@@ -563,6 +563,7 @@ int jg_init(void) {
 
     // Initialize the rest of the emulator
     geo_init();
+    geo_set_region(settings_geo[REGION].val);
 
     return 1;
 }
