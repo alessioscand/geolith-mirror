@@ -4,6 +4,8 @@ Geolith is a highly accurate emulator for the Neo Geo AES, MVS, CD, and CDZ.
 
 Cartridge systems support TerraOnion's .NEO file format only.
 
+Support for CD systems is experimental.
+
 BIOS files from a recent MAME set are required:
  - aes.zip for Neo Geo AES (Home Console)
  - neogeo.zip for Neo Geo MVS (Arcade) and Universe BIOS
