@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022-2024 Rupert Carmichael
+Copyright (c) 2022-2026 Rupert Carmichael
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define GEO_Z80_H
 
 int geo_z80_run(unsigned);
+void geo_z80_busreq(unsigned);
 void geo_z80_nmi(void);
 void geo_z80_assert_irq(unsigned);
 void geo_z80_clear_irq(void);
