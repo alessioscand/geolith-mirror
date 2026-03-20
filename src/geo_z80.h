@@ -36,6 +36,8 @@ void geo_z80_busreq(unsigned);
 void geo_z80_nmi(void);
 void geo_z80_assert_irq(unsigned);
 void geo_z80_clear_irq(void);
+void geo_z80_assert_reset(void);
+void geo_z80_clear_reset(void);
 void geo_z80_init(void);
 void geo_z80_reset(void);
 void geo_z80_set_mrom(unsigned);
