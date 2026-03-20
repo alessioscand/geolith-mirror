@@ -52,6 +52,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "version.h"
 
 #define SAMPLERATE 44100
+#define SAMPLERATE_ADJUSTED 44396 // Rate corrected for 60Hz vs ~59.19/59.60Hz
 #define FRAMERATE 60
 #define CHANNELS 2
 #define NUMINPUTS 5
@@ -557,7 +558,7 @@ int jg_init(void) {
         geo_set_system(settings_geo[SYS].val);
 
     geo_set_adpcm_wrap(settings_geo[ADPCM_WRAP].val);
-    geo_mixer_set_rate(SAMPLERATE);
+    geo_mixer_set_rate(SAMPLERATE_ADJUSTED);
     geo_mixer_init();
     geo_params_video();
 
