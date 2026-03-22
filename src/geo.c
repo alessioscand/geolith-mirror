@@ -51,6 +51,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MCYC_PER_LINE 1536
 #define MCYC_PER_FRAME (MCYC_PER_LINE * 264) // 405504
 
+#define SIZE_STATE_CART 485301
+#define SIZE_STATE_DISC 7835612
+
 // Log callback
 void (*geo_log)(int, const char *, ...);
 
@@ -64,7 +67,7 @@ ngsys_t ngsys;
 // ROM data
 static romdata_t romdata;
 
-static uint8_t state[485301]; // Maximum size
+static uint8_t *state = NULL;
 static size_t state_sz = 0;
 
 // Cycle counters
@@ -463,7 +466,16 @@ void geo_init(void) {
         geo_m68k_set_memmap_cd();
         geo_z80_set_cd_mode();
         geo_cd_init();
+        state = (uint8_t*)calloc(1, SIZE_STATE_DISC);
     }
+    else {
+        state = (uint8_t*)calloc(1, SIZE_STATE_CART);
+    }
+}
+
+void geo_deinit(void) {
+    if (state)
+        free(state);
 }
 
 int geo_state_load_raw(const void *sstate) {
@@ -501,6 +513,10 @@ int geo_state_load_raw(const void *sstate) {
     geo_rtc_state_load(st);
     geo_ymfm_state_load(st);
     geo_z80_state_load(st);
+
+    if (ngsys.cdmode)
+        geo_cd_state_load(st);
+
     return 1;
 }
 
@@ -573,6 +589,9 @@ const void* geo_state_save_raw(void) {
     geo_ymfm_state_save(state);
     geo_z80_state_save(state);
 
+    if (ngsys.cdmode)
+        geo_cd_state_save(state);
+
     return (const void*)state;
 }
 
@@ -609,6 +628,10 @@ size_t geo_state_size(void) {
 const void* geo_mem_ptr(unsigned type, size_t *sz) {
     switch (type) {
         case GEO_MEMTYPE_MAINRAM: {
+            if (ngsys.cdmode) {
+                if (sz) *sz = SIZE_2M;
+                return geo_m68k_ram_ptr(); // Return PRAM in CD mode
+            }
             if (sz) *sz = SIZE_64K;
             return geo_m68k_ram_ptr();
         }

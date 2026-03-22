@@ -571,6 +571,7 @@ int jg_init(void) {
 
 void jg_deinit(void) {
     geo_mixer_deinit();
+    geo_deinit();
 }
 
 void jg_reset(int hard) {
