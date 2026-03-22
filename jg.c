@@ -640,8 +640,9 @@ int jg_game_load(void) {
 
     // Load saved data
     char savename[292];
-    char *datatype[] = { "NVRAM", "Cartridge RAM", "Memory Card" };
-    char *fext[] = { "nv", "srm", "mcr" };
+    char *datatype[] = { "NVRAM", "Cartridge RAM", "Memory Card",
+            "CD Backup RAM" };
+    char *fext[] = { "nv", "srm", "mcr", "brm" };
 
     for (unsigned i = 0; i < GEO_SAVEDATA_MAX; ++i) {
         snprintf(savename, sizeof(savename),
@@ -669,8 +670,9 @@ int jg_game_load(void) {
 int jg_game_unload(void) {
     // Save NVRAM, Cartridge RAM, and Memory Card
     char savename[292];
-    char *datatype[] = { "NVRAM", "Cartridge RAM", "Memory Card" };
-    char *fext[] = { "nv", "srm", "mcr" };
+    char *datatype[] = { "NVRAM", "Cartridge RAM", "Memory Card",
+            "CD Backup RAM" };
+    char *fext[] = { "nv", "srm", "mcr", "brm" };
 
     for (unsigned i = 0; i < GEO_SAVEDATA_MAX; ++i) {
         snprintf(savename, sizeof(savename),
