@@ -28,9 +28,10 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <ctype.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <strings.h>
 
 #include "geo.h"
 #include "geo_disc.h"
@@ -52,12 +53,19 @@ static void (*fn_close)(void);
 
 static int detect_backend(const char *path) {
 #ifdef HAVE_CHDR
-    const char *ext = strrchr(path, '.');
-    if (!ext)
+    // Convert extension to lower case, then compare
+    const char *extptr = strrchr(path, '.');
+    if (!extptr)
         return 0;
-    if (!strcasecmp(ext, ".chd"))
+
+    char ext[5];
+    snprintf(ext, sizeof(ext), "%s", extptr);
+    for (size_t i = 0; i < strlen(extptr); ++i)
+        ext[i] = tolower(ext[i]);
+
+    if (!strcmp(ext, ".chd"))
         return 1;
-    if (!strcasecmp(ext, ".cue"))
+    if (!strcmp(ext, ".cue"))
         return 2;
     return 0;
 #else
