@@ -245,7 +245,6 @@ int geo_cue_open(const char *path) {
     char line[1024];
     int cur_file = -1;
     int cur_track = -1;
-    uint32_t cur_file_pos = 0;
     uint32_t cd_pos = 0;         // CD-level LBA position
     int pending_index00 = 0;     // Whether we got INDEX 00 before INDEX 01
     uint32_t index00_offset = 0; // File offset at INDEX 00
@@ -305,7 +304,6 @@ int geo_cue_open(const char *path) {
             }
 
             cur_file = num_files;
-            cur_file_pos = 0;
             num_files++;
         }
         else if (!strncasecmp(p, "TRACK ", 6)) {
@@ -402,8 +400,6 @@ int geo_cue_open(const char *path) {
                         t->start = cd_pos;
                     }
                 }
-
-                cur_file_pos = offset;
             }
         }
         else if (!strncasecmp(p, "PREGAP ", 7)) {
