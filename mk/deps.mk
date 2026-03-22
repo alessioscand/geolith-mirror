@@ -2,6 +2,10 @@ CFLAGS_JG = $(shell $(PKG_CONFIG) --cflags jg)
 
 CFLAGS_PTHREAD := -pthread
 
+PKGCONF_CHDR := libchdr
+CFLAGS_CHDR = $(shell $(PKG_CONFIG) --cflags $(PKGCONF_CHDR))
+LIBS_CHDR = $(shell $(PKG_CONFIG) --libs $(PKGCONF_CHDR))
+
 PKGCONF_EPOXY := epoxy
 CFLAGS_EPOXY = $(shell $(PKG_CONFIG) --cflags $(PKGCONF_EPOXY))
 LIBS_EPOXY = $(shell $(PKG_CONFIG) --libs $(PKGCONF_EPOXY))

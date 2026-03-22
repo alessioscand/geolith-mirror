@@ -23,6 +23,8 @@ DOCS := ChangeLog LICENSE README
 # Object dirs
 MKDIRS := m68k ymfm z80
 
+ENABLE_CHDR ?= 0
+
 override INSTALL_DATA := 0
 override INSTALL_EXAMPLE := 0
 override INSTALL_SHARED := 0
@@ -35,6 +37,7 @@ LIBS += $(LIBS_SPEEXDSP) $(LIBS_MINIZ)
 
 EXT := c
 FLAGS := -std=c11 $(WARNINGS_DEF_C)
+DEFS :=
 
 CSRCS := m68k/m68kcpu.c \
 	m68k/m68kops.c \
@@ -58,13 +61,20 @@ CSRCS := m68k/m68kcpu.c \
 
 JGSRCS := jg.c
 
+ifneq ($(ENABLE_CHDR), 0)
+	CSRCS += geo_chd.c
+	DEFS += -DHAVE_CHDR
+	INCLUDES += $(CFLAGS_CHDR)
+	LIBS += $(LIBS_CHDR)
+endif
+
 # List of object files
 OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o)) $(OBJS_MINIZ) $(OBJS_SPEEXDSP)
 OBJS_JG := $(patsubst %,$(OBJDIR)/%,$(JGSRCS:.c=.o))
 
 # Core commands
 BUILD_JG = $(call COMPILE_C, $(FLAGS) $(INCLUDES_JG) $(CFLAGS_JG))
-BUILD_MAIN = $(call COMPILE_C, $(FLAGS) $(INCLUDES))
+BUILD_MAIN = $(call COMPILE_C, $(FLAGS) $(DEFS) $(INCLUDES))
 
 -include config.mk
 
