@@ -66,8 +66,9 @@ input = 0
 system = 0
 0 = AES (Console), 1 = MVS (Arcade), 2 = Universe BIOS
 
-cdsystem = 1
-0 = Neo Geo CD, 1 = Neo Geo CDZ, 2 = Universe BIOS
+cdsystem = 2
+0 = Neo Geo CD (Front Loader) 1 = Neo Geo CD (Top Loader), 2 = Neo Geo CDZ,
+3 = Universe BIOS
 
 unihw = 1
 0 = AES (Console), 1 = MVS (Arcade)

@@ -107,9 +107,10 @@ static jg_setting_t settings_geo[] = {
       SYSTEM_AES, SYSTEM_AES, SYSTEM_UNI, JG_SETTING_RESTART
     },
     { "cdsystem", "CD System",
-      "0 = Neo Geo CD , 1 = Neo Geo CDZ, 2 = Universe BIOS",
+      "0 = Neo Geo CD (Front Loader), 1 = Neo Geo CD (Top Loader), "
+      "2 = Neo Geo CDZ, 3 = Universe BIOS",
       "Select which type of system/BIOS to emulate",
-      1, 0, 2, JG_SETTING_RESTART
+      2, 0, 3, JG_SETTING_RESTART
     },
     { "unihw", "Universe BIOS Hardware",
       "0 = AES (Console), 1 = MVS (Arcade)",
@@ -553,7 +554,7 @@ int jg_init(void) {
     geo_set_region(settings_geo[REGION].val);
 
     if (cdmode)
-        geo_set_system(SYSTEM_CD + settings_geo[CDSYS].val);
+        geo_set_system(SYSTEM_CDF + settings_geo[CDSYS].val);
     else
         geo_set_system(settings_geo[SYS].val);
 
@@ -593,7 +594,7 @@ int jg_game_load(void) {
         char *bfile;
 
         if (cdmode) {
-            if (settings_geo[CDSYS].val == 0) // Neo Geo CD
+            if (settings_geo[CDSYS].val < 2) // Neo Geo CD
                 bfile = "neocd.zip";
             else // Neo Geo CDZ or Universe BIOS
                 bfile = "neocdz.zip";
@@ -608,7 +609,7 @@ int jg_game_load(void) {
         if (!geo_bios_load_file(biospath))
             geo_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
 
-        if (settings_geo[CDSYS].val == 0) {
+        if (settings_geo[CDSYS].val < 2) {
             // Neo Geo CD needs to load "000-lo.lo" from neocdz.zip
             snprintf(biospath, sizeof(biospath),
                 "%s/neocdz.zip", pathinfo.bios);

@@ -334,10 +334,6 @@ static inline uint16_t read16(uint8_t *ptr, uint32_t addr) {
     return (ptr[addr] << 8) | ptr[addr + 1];
 }
 
-static inline void write08(uint8_t *ptr, uint32_t addr, uint8_t data) {
-    ptr[addr] = data;
-}
-
 static inline void write16(uint8_t *ptr, uint32_t addr, uint16_t data) {
     ptr[addr + 1] = data & 0xff;
     ptr[addr] = data >> 8;
@@ -1161,7 +1157,7 @@ static uint16_t cd_reg_read_16(uint32_t addr) {
             }
 
             unsigned mech = 0x0000; // 0 = Top Loader/CDZ, 1 = Front Loader
-            unsigned tray = ngsys.sys == SYSTEM_CD ? 0x1000 : 0x0000;
+            unsigned tray = ngsys.sys <= SYSTEM_CDT ? 0x1000 : 0x0000;
             return (uint16_t)(nat | mech | tray) | 0xc000;
         }
 
