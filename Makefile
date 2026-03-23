@@ -68,12 +68,17 @@ ifneq ($(ENABLE_CHDR), 0)
 	LIBS += $(LIBS_CHDR)
 endif
 
+# Expand these variables before compile
+FLAGS_JG := $(INCLUDES_JG) $(CFLAGS_JG)
+INCLUDES := $(INCLUDES)
+LIBS := $(LIBS)
+
 # List of object files
 OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o)) $(OBJS_MINIZ) $(OBJS_SPEEXDSP)
 OBJS_JG := $(patsubst %,$(OBJDIR)/%,$(JGSRCS:.c=.o))
 
 # Core commands
-BUILD_JG = $(call COMPILE_C, $(FLAGS) $(INCLUDES_JG) $(CFLAGS_JG))
+BUILD_JG = $(call COMPILE_C, $(FLAGS) $(FLAGS_JG))
 BUILD_MAIN = $(call COMPILE_C, $(FLAGS) $(DEFS) $(INCLUDES))
 
 -include config.mk
