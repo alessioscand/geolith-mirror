@@ -1,3 +1,11 @@
+Version ?.?.?
+-------------
+ - Fix coin slot return bits for AES and Universe BIOS
+ - Add Universe BIOS hardware type setting
+ - Add support for Neo Geo CD (heavy lifting done by rtissera)
+ - Add version to states
+ - Use full resolution clocks in YM2610
+
 Version 0.3.0
 -------------
  - Improve conversion of raw palette RAM values to 8-bit output values
