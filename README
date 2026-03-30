@@ -4,7 +4,7 @@ Geolith is a highly accurate emulator for the Neo Geo AES, MVS, CD, and CDZ.
 
 Cartridge systems support TerraOnion's .NEO file format only.
 
-Support for CD systems is experimental.
+CD systems support .bin/.cue and (optionally) .chd format disc images.
 
 BIOS files from a recent MAME set are required:
  - aes.zip for Neo Geo AES (Home Console)
@@ -131,8 +131,8 @@ Some early prototypes are not currently possible to emulate, pending new dumps
 or new information:
   Stakes Winner (early development board) - Missing data from SRAM chip
 
-Dedicated JAMMA PCB and Neo Geo CD systems are not currently supported.
-PAL mode is not currently supported.
+Dedicated JAMMA PCB systems are not currently supported. PAL mode is not
+currently supported.
 
 The special inputs for Irritating Maze are not yet supported. It is possible to
 play Irritating Maze using the Universe BIOS with a cheat enabled for joystick
