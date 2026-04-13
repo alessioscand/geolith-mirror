@@ -49,6 +49,7 @@ CSRCS := m68k/m68kcpu.c \
 	geo_cd.c \
 	geo_cue.c \
 	geo_disc.c \
+	geo_lc8951.c \
 	geo_lspc.c \
 	geo_m68k.c \
 	geo_memcard.c \
