@@ -208,7 +208,12 @@ static unsigned dipswitches = 0;
 // Values for coin slots 3 and 4 in REG_STATUS_A reads
 static unsigned coins34 = 0x00;
 
+// Neo Geo CD/CDZ mode
 static unsigned cdmode = 0;
+
+// Trackball relative values (Irritating Maze)
+static int16_t trackball_x = 0;
+static int16_t trackball_y = 0;
 
 // Coin Slots, Service Button, # of Slots
 static unsigned geo_input_poll_stat_a(void) {
@@ -459,6 +464,52 @@ static unsigned geo_input_poll_vliner(unsigned port) {
     return b;
 }
 
+// The Irritating Maze
+static unsigned geo_input_poll_irrmaze(unsigned port) {
+    unsigned b = 0xff;
+
+    if (port == 0) {
+        uint8_t output = geo_m68k_reg_poutput();
+        if (output & 0x01) {
+            int16_t axis = input_device[0]->axis[1];
+            if (axis < -32767) axis = -32767;
+            trackball_y -= (int8_t)(axis / 8192);
+            b = (uint8_t)trackball_y;
+        }
+        else {
+            int16_t axis = input_device[0]->axis[0];
+            if (axis < -32767) axis = -32767;
+            trackball_x -= (int8_t)(axis / 8192);
+            b = (uint8_t)trackball_x;
+        }
+
+        if (output & 0x20)
+            jg_cb_log(JG_LOG_SCR, "Get Blown by Air Jet");
+    }
+    else {
+        if (input_device[0]->button[0]) b &= ~0x10;
+        if (input_device[0]->button[1]) b &= ~0x20;
+        if (input_device[0]->button[2]) b &= ~0x40;
+        if (input_device[0]->button[3]) b &= ~0x80;
+    }
+
+    return b;
+}
+
+static unsigned geo_input_poll_stat_b_irrmaze(void) {
+    unsigned s = 0x0f;
+    if (settings_geo[MEMCARD_INSERTED].val) {
+        if (settings_geo[MEMCARD_WP].val) s |= 0x40;
+    }
+    else {
+        s |= 0x30;
+    }
+
+    if (input_device[0]->button[4])
+        s &= ~0x01;
+    return s;
+}
+
 static void geo_params_input(void) {
     inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_JS);
     inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_JS);
@@ -484,10 +535,16 @@ static void geo_params_input(void) {
         geo_input_sys_set_callback(1, &geo_input_poll_stat_b_mahjong);
     }
     else if (dbflags & GEO_DB_IRRMAZE) {
-        if (settings_geo[SYS].val != SYSTEM_UNI) {
-            jg_cb_log(JG_LOG_WRN, "The Irritating Maze must be played using "
-                "the Universe BIOS with the \"Enable Joystick Play\" option "
-                "set.\n");
+        if (settings_geo[SYS].val == SYSTEM_UNI) {
+            jg_cb_log(JG_LOG_WRN, "The Irritating Maze must be played with "
+                "the Universe BIOS \"Enable Joystick Play\" cheat set.\n");
+        }
+        else if (settings_geo[SYS].val == SYSTEM_MVS) {
+            inputinfo[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_IRRMAZE);
+            inputinfo[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_UNCONNECTED);
+            geo_input_set_callback(0, &geo_input_poll_irrmaze);
+            geo_input_set_callback(1, &geo_input_poll_irrmaze);
+            geo_input_sys_set_callback(1, &geo_input_poll_stat_b_irrmaze);
         }
     }
     else if (dbflags & GEO_DB_VLINER) {
@@ -637,6 +694,15 @@ int jg_game_load(void) {
         // Load the NEO file
         geo_neo_load(gameinfo.data, gameinfo.size);
         dbflags = geo_neo_flags();
+
+        // Special handling for Irritating Maze
+        if (dbflags & GEO_DB_IRRMAZE && settings_geo[SYS].val == SYSTEM_MVS) {
+            char biospath[512];
+            snprintf(biospath, sizeof(biospath),
+                "%s/irrmaze.zip", pathinfo.bios);
+            if (!geo_bios_load_file_aux(biospath))
+                geo_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
+        }
     }
 
     // Load saved data
@@ -704,6 +770,8 @@ int jg_game_unload(void) {
 }
 
 int jg_state_load(const char *filename) {
+    trackball_x = 0;
+    trackball_y = 0;
     return geo_state_load(filename);
 }
 

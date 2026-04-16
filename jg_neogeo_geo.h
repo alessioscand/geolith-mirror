@@ -28,7 +28,8 @@ enum jg_neogeo_input_type {
     JG_NEOGEO_JS,
     JG_NEOGEO_SYS,
     JG_NEOGEO_MAHJONG,
-    JG_NEOGEO_VLINER
+    JG_NEOGEO_VLINER,
+    JG_NEOGEO_IRRMAZE
 };
 
 static const char *jg_neogeo_input_name[] = {
@@ -36,7 +37,8 @@ static const char *jg_neogeo_input_name[] = {
     "Neo Geo Joystick",
     "Neo Geo System",
     "Neo Geo Mahjong Controller",
-    "V-Liner"
+    "V-Liner",
+    "Irritating Maze"
 };
 
 #define NDEFS_NEOGEOJS 10
@@ -59,6 +61,11 @@ static const char *defs_neogeomj[NDEFS_NEOGEOMJ] = {
 static const char *defs_neogeovliner[NDEFS_NEOGEOVLINER] = {
     "Up", "Down", "Left", "Right", "Big", "Small", "D-Up", "Start",
     "Operator", "ClearCredit", "HopperOut"
+};
+
+#define NDEFS_NEOGEOIRRMAZE 7
+static const char *defs_neogeoirrmaze[NDEFS_NEOGEOIRRMAZE] = {
+    "XAxis", "YAxis", "LeftA", "LeftB", "RightA", "RightB", "Start"
 };
 
 static jg_inputinfo_t jg_neogeo_inputinfo(int index, int type) {
@@ -103,6 +110,16 @@ static jg_inputinfo_t jg_neogeo_inputinfo(int index, int type) {
             ret.defs = defs_neogeovliner;
             ret.numaxes = 0;
             ret.numbuttons = NDEFS_NEOGEOVLINER;
+            return ret;
+        }
+        case JG_NEOGEO_IRRMAZE: {
+            ret.type = JG_INPUT_POINTER;
+            ret.index = index;
+            ret.name = "neogeoirrmaze";
+            ret.fname = jg_neogeo_input_name[type];
+            ret.defs = defs_neogeoirrmaze;
+            ret.numaxes = 2;
+            ret.numbuttons = NDEFS_NEOGEOIRRMAZE - 2;
             return ret;
         }
         default: {
