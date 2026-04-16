@@ -1888,7 +1888,7 @@ void geo_cd_clear_sector_decoded(void) {
 
 void geo_cd_postload(void) {
     // First, byteswap the BIOS
-    geo_m68k_postload();
+    geo_m68k_bios_bswap();
 
     // Detect BIOS family and apply patches
     if (romdata->b && romdata->bsz >= SIZE_512K) {
