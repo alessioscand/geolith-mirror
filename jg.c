@@ -212,8 +212,8 @@ static unsigned coins34 = 0x00;
 static unsigned cdmode = 0;
 
 // Trackball relative values (Irritating Maze)
-static int16_t trackball_x = 0;
-static int16_t trackball_y = 0;
+static int32_t trackball_x = 0;
+static int32_t trackball_y = 0;
 
 // Coin Slots, Service Button, # of Slots
 static unsigned geo_input_poll_stat_a(void) {
@@ -471,16 +471,12 @@ static unsigned geo_input_poll_irrmaze(unsigned port) {
     if (port == 0) {
         uint8_t output = geo_m68k_reg_poutput();
         if (output & 0x01) {
-            int16_t axis = input_device[0]->axis[1];
-            if (axis < -32767) axis = -32767;
-            trackball_y -= (int8_t)(axis / 8192);
-            b = (uint8_t)trackball_y;
+            trackball_y -= input_device[0]->axis[1];
+            b = (uint8_t)(trackball_y / 8192);
         }
         else {
-            int16_t axis = input_device[0]->axis[0];
-            if (axis < -32767) axis = -32767;
-            trackball_x -= (int8_t)(axis / 8192);
-            b = (uint8_t)trackball_x;
+            trackball_x -= input_device[0]->axis[0];;
+            b = (uint8_t)(trackball_x / 8192);
         }
 
         if (output & 0x20)
