@@ -1,10 +1,12 @@
-Version ?.?.?
+Version 0.4.0
 -------------
  - Fix coin slot return bits for AES and Universe BIOS
  - Add Universe BIOS hardware type setting
  - Add support for Neo Geo CD (heavy lifting done by rtissera)
  - Add version to states
  - Use full resolution clocks in YM2610
+ - Fix edge case when Timer IRQ enablement bit is set during VBLANK
+ - Add support for trackball input for The Irritating Maze
 
 Version 0.3.0
 -------------
