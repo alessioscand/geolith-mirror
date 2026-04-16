@@ -11,6 +11,7 @@ BIOS files from a recent MAME set are required:
  - neogeo.zip for Neo Geo MVS (Arcade) and Universe BIOS
  - neocd.zip and neocdz.zip for Neo Geo CD (both files required)
  - neocdz.zip for Neo Geo CDZ and CD Universe BIOS
+ - irrmaze.zip for The Irritating Maze in MVS mode
 
 This repository lives at https://gitlab.com/jgemu/geolith
 
@@ -58,6 +59,7 @@ Neo Geo Joystick
 Neo Geo Mahjong Controller
 Multiplayer Extension Board (NEO-FTC1B, 4 Player)
 V-Liner
+Trackball (The Irritating Maze)
 
 Settings
 --------
@@ -134,9 +136,9 @@ or new information:
 Dedicated JAMMA PCB systems are not currently supported. PAL mode is not
 currently supported.
 
-The special inputs for Irritating Maze are not yet supported. It is possible to
-play Irritating Maze using the Universe BIOS with a cheat enabled for joystick
-controls.
+The trackball input for The Irritating Maze is supported in MVS mode. It is
+possible to play Irritating Maze using the Universe BIOS with a cheat enabled
+for joystick controls.
 
 Accuracy/Caveats
 ----------------
