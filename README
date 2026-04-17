@@ -122,6 +122,9 @@ Compatibility
 Geolith is compatible with 100% of the commercially released Neo Geo AES and
 MVS libraries. Most games work in both modes, but some require MVS mode.
 
+Geolith is also compatible with 100% of the commercially released Neo Geo CD
+library.
+
 All bootlegs and hacks from the MAME set are compatible, the majority of which
 require being run in MVS mode. Other bootlegs and hacks not in the MAME set may
 be compatible if correctly converted to the .NEO format.
