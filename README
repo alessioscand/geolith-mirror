@@ -185,6 +185,10 @@ Jolly Good Z80 (MIT)
   Copyright (c) 2022 rofl0r
   See src/z80/LICENSE
 
+dr_flac (MIT-0)
+  Copyright (c) 2023 David Reid
+  see deps/dr/dr_flac.h (https://github.com/mackron/dr_libs/blob/master/dr_flac.h)
+
 miniz (MIT)
   Copyright 2013-2014 RAD Game Tools and Valve Software
   Copyright 2010-2014 Rich Geldreich and Tenacious Software LLC
