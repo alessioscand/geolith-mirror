@@ -1,3 +1,8 @@
+Version 0.4.1
+-------------
+ - Fix edge case related to pausing/resuming CD audio during gameplay
+ - Update miniz to fix a CVE
+
 Version 0.4.0
 -------------
  - Fix coin slot return bits for AES and Universe BIOS
