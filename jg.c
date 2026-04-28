@@ -39,6 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <jg/jg_neogeo.h>
 #else
 #include "jg_neogeo_geo.h"
+jg_inputinfo_t* jg_get_inputlist(size_t *num);
 #endif
 
 #include "geo.h"
@@ -56,6 +57,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define FRAMERATE 60
 #define CHANNELS 2
 #define NUMINPUTS 5
+#define TOTALINPUTS 8
 
 static jg_cb_audio_t jg_cb_audio;
 static jg_cb_frametime_t jg_cb_frametime;
@@ -91,6 +93,7 @@ static jg_pathinfo_t pathinfo;
 static jg_fileinfo_t gameinfo;
 static jg_fileinfo_t biosinfo;
 static jg_inputinfo_t inputinfo[NUMINPUTS];
+static jg_inputinfo_t inputlist[TOTALINPUTS];
 static jg_inputstate_t *input_device[NUMINPUTS];
 
 // Emulator settings
@@ -214,6 +217,9 @@ static unsigned cdmode = 0;
 // Trackball relative values (Irritating Maze)
 static int32_t trackball_x = 0;
 static int32_t trackball_y = 0;
+
+// Keep track of whether the input list has been built or not
+static int inputlist_built = 0;
 
 // Coin Slots, Service Button, # of Slots
 static unsigned geo_input_poll_stat_a(void) {
@@ -826,6 +832,22 @@ jg_audioinfo_t* jg_get_audioinfo(void) {
 
 jg_inputinfo_t* jg_get_inputinfo(int port) {
     return &inputinfo[port];
+}
+
+jg_inputinfo_t* jg_get_inputlist(size_t *num) {
+    if (!inputlist_built) {
+        inputlist[0] = jg_neogeo_inputinfo(0, JG_NEOGEO_JS);
+        inputlist[1] = jg_neogeo_inputinfo(1, JG_NEOGEO_JS);
+        inputlist[2] = jg_neogeo_inputinfo(2, JG_NEOGEO_JS);
+        inputlist[3] = jg_neogeo_inputinfo(3, JG_NEOGEO_JS);
+        inputlist[4] = jg_neogeo_inputinfo(0, JG_NEOGEO_SYS);
+        inputlist[5] = jg_neogeo_inputinfo(0, JG_NEOGEO_MAHJONG);
+        inputlist[6] = jg_neogeo_inputinfo(0, JG_NEOGEO_VLINER);
+        inputlist[7] = jg_neogeo_inputinfo(0, JG_NEOGEO_IRRMAZE);
+        inputlist_built = 1;
+    }
+    *num = TOTALINPUTS;
+    return inputlist;
 }
 
 jg_setting_t* jg_get_settings(size_t *numsettings) {
