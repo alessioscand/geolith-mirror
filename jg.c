@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #else
 #include "jg_neogeo_geo.h"
 jg_inputinfo_t* jg_get_inputlist(size_t *num);
+jg_setting_t* jg_get_dips(size_t *num);
 #endif
 
 #include "geo.h"
@@ -853,6 +854,14 @@ jg_inputinfo_t* jg_get_inputlist(size_t *num) {
 jg_setting_t* jg_get_settings(size_t *numsettings) {
     *numsettings = sizeof(settings_geo) / sizeof(jg_setting_t);
     return settings_geo;
+}
+
+jg_setting_t* jg_get_dips(size_t *num) {
+    /* Neo Geo MVS has DIP switches, but they are currently normal settings.
+       This way they are global instead of per-game.
+    */
+    *num = 0;
+    return NULL;
 }
 
 void jg_setup_video(void) {
