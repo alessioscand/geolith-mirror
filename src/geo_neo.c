@@ -47,8 +47,9 @@ static inline uint32_t read32le(uint8_t *ptr, uint32_t addr) {
 }
 
 int geo_neo_load(void *data, size_t size) {
+    (void)size;
     uint8_t *neodata = (uint8_t*)data; // Assign internal pointer to NEO data
-    if (size) { }
+    flags = 0; // Reset flags
 
     // Bytes 0-3 should be 'N' 'E' 'O' 1
     if (neodata[0] != 'N' || neodata[1] != 'E' ||
