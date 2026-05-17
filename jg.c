@@ -769,6 +769,11 @@ int jg_game_unload(void) {
         geo_cd_deinit();
     }
 
+    cdmode = 0;
+    coins34 = 0;
+    dbflags = 0;
+    dipswitches = 0;
+
     return 1;
 }
 
