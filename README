@@ -15,6 +15,21 @@ BIOS files from a recent MAME set are required:
 
 This repository lives at https://gitlab.com/jgemu/geolith
 
+ROM Set Support
+---------------
+This emulator was written against ROMs with checksums equal to those of the
+LunaGarlic set. It is recommended to use these checksums to verify your
+legally obtained dumps are correct. Check the included "rename-neo.sh" for
+more information.
+
+A note on the .NEO format: These are unencrypted, but also unpatched. This
+means the emulator is still required to emulate challenge-response,
+descrambling, and other protection mechanisms like real hardware -- they have
+not been patched out in the officially supported set. There is one exception
+to this rule, which is that "Super Bubble Pop" (sbp), which is an unlicensed
+title, is prepatched with the same patch done post-load in FinalBurn Neo and
+MAME to make it playable.
+
 Compiling
 ---------
 Make sure you have The Jolly Good API's header files installed. If you did
