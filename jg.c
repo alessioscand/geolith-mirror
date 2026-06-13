@@ -39,8 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <jg/jg_neogeo.h>
 #else
 #include "jg_neogeo_geo.h"
-jg_inputinfo_t* jg_get_inputlist(size_t *num);
-jg_setting_t* jg_get_dips(size_t *num);
+#include "jg_compat.h"
 #endif
 
 #include "geo.h"
@@ -201,6 +200,19 @@ enum {
     OVERSCAN_L,
     OVERSCAN_R,
     ADPCM_WRAP
+};
+
+static jg_biosinfo_t bioslist[] = {
+    { "aes.zip", "Neo Geo AES BIOS",
+      "ad9585c72130c56f04ae26aae87c289d", 1, 0 },
+    { "neogeo.zip", "Neo Geo MVS BIOS",
+      "00dad01abdbf8ea9e79ad2fe11bdb182", 1, 0 },
+    { "neocd.zip", "Neo Geo CD BIOS",
+      "006a881532f2caffc3fe9fb5593f2ed5", 1, 0 },
+    { "neocdz.zip", "Neo Geo CDZ BIOS",
+      "b31a246b69493c35194fe0bac120dc37", 1, 0 },
+    { "irrmaze.zip", "The Irritating Maze BIOS",
+      "0e369df30a70e45547cef9e4078dc511", 0, 0 },
 };
 
 // Database flags for automatically setting inputs
@@ -867,6 +879,11 @@ jg_setting_t* jg_get_dips(size_t *num) {
     */
     *num = 0;
     return NULL;
+}
+
+jg_biosinfo_t* jg_get_bioslist(size_t *num) {
+    *num = sizeof(bioslist) / sizeof(jg_biosinfo_t);
+    return bioslist;
 }
 
 void jg_setup_video(void) {
