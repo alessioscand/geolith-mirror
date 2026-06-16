@@ -64,6 +64,12 @@ static jg_cb_frametime_t jg_cb_frametime;
 static jg_cb_log_t jg_cb_log;
 static jg_cb_rumble_t jg_cb_rumble;
 
+#if JG_VERSION_NUMBER >= 10100
+static void *udata_audio;
+static void *udata_frametime;
+static void *udata_rumble;
+#endif
+
 static jg_coreinfo_t coreinfo = {
     "geolith", "Geolith", JG_VERSION, "neogeo", NUMINPUTS, 0
 };
@@ -605,6 +611,21 @@ static void geo_params_video(void) {
     geo_lspc_set_palette(settings_geo[PALETTE].val);
 }
 
+#if JG_VERSION_NUMBER >= 10100
+static void geo_cb_audio(size_t samps) {
+    jg_cb_audio(udata_audio, samps);
+}
+
+void jg_set_cb_audio(jg_cb_audio_t func, void *ud) {
+    jg_cb_audio = func;
+    udata_audio = ud;
+}
+
+void jg_set_cb_frametime(jg_cb_frametime_t func, void *ud) {
+    jg_cb_frametime = func;
+    udata_frametime = ud;
+}
+#else
 void jg_set_cb_audio(jg_cb_audio_t func) {
     jg_cb_audio = func;
 }
@@ -612,14 +633,22 @@ void jg_set_cb_audio(jg_cb_audio_t func) {
 void jg_set_cb_frametime(jg_cb_frametime_t func) {
     jg_cb_frametime = func;
 }
+#endif
 
 void jg_set_cb_log(jg_cb_log_t func) {
     jg_cb_log = func;
 }
 
+#if JG_VERSION_NUMBER >= 10100
+void jg_set_cb_rumble(jg_cb_rumble_t func, void *ud) {
+    jg_cb_rumble = func;
+    udata_rumble = ud;
+}
+#else
 void jg_set_cb_rumble(jg_cb_rumble_t func) {
     jg_cb_rumble = func;
 }
+#endif
 
 int jg_init(void) {
     geo_log_set_callback(jg_cb_log);
@@ -744,7 +773,11 @@ int jg_game_load(void) {
 
     geo_params_input();
 
+#if JG_VERSION_NUMBER >= 10100
+    jg_cb_frametime(udata_frametime, FRAMERATE);
+#else
     jg_cb_frametime(FRAMERATE);
+#endif
 
     return 1;
 }
@@ -905,7 +938,11 @@ void jg_setup_video(void) {
 
 void jg_setup_audio(void) {
     geo_mixer_set_buffer(audinfo.buf);
+#if JG_VERSION_NUMBER >= 10100
+    geo_mixer_set_callback(geo_cb_audio);
+#else
     geo_mixer_set_callback(jg_cb_audio);
+#endif
 }
 
 void jg_set_inputstate(jg_inputstate_t *ptr, int port) {
