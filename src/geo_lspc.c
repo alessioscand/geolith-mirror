@@ -521,6 +521,11 @@ void geo_lspc_init(void) {
     lspc.scanline = 0;
     lspc.cyc = 0;
 
+    // CD register copies
+    reg_disblspr = 0;
+    reg_disblfix = 0;
+    reg_envideo = 0;
+
     geo_lspc_shadow_wr(0);
 
     romdata = geo_romdata_ptr();
