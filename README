@@ -208,7 +208,7 @@ dr_flac (MIT-0)
 miniz (MIT)
   Copyright 2013-2014 RAD Game Tools and Valve Software
   Copyright 2010-2014 Rich Geldreich and Tenacious Software LLC
-  See deps/miniz/miniz.c (https://github.com/richgel999/miniz)
+  See deps/miniz/LICENSE (https://github.com/richgel999/miniz)
 
 Musashi (MIT)
   Copyright (c) 1998-2019 Karl Stenerud
