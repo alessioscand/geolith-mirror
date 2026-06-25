@@ -221,6 +221,15 @@ static jg_biosinfo_t bioslist[] = {
       "0e369df30a70e45547cef9e4078dc511", 0, 0 },
 };
 
+static jg_systeminfo_t systemlist[] = {
+    { "neogeo", "Neo Geo", "neo" },
+#ifdef HAVE_CHDR
+    { "neogeocd", "Neo Geo CD", "cue,chd" },
+#else
+    { "neogeocd", "Neo Geo CD", "cue" },
+#endif
+};
+
 // Database flags for automatically setting inputs
 static uint32_t dbflags = 0;
 
@@ -873,6 +882,11 @@ void jg_rehash(void) {
 
 void jg_data_push(uint32_t type, int port, const void *ptr, size_t size) {
     (void)type; (void)port; (void)ptr; (void)size;
+}
+
+jg_systeminfo_t* jg_get_systemlist(size_t *num) {
+    *num = sizeof(systemlist) / sizeof(jg_systeminfo_t);
+    return systemlist;
 }
 
 jg_coreinfo_t* jg_get_coreinfo(const char *sys) {
