@@ -28,6 +28,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -661,6 +662,34 @@ void jg_set_cb_rumble(jg_cb_rumble_t func) {
 
 int jg_init(void) {
     geo_log_set_callback(jg_cb_log);
+    return 1;
+}
+
+void jg_deinit(void) {
+}
+
+void jg_reset(int hard) {
+    geo_reset(hard);
+}
+
+void jg_exec_frame(void) {
+    geo_exec();
+}
+
+int jg_game_load(void) {
+    // Determine if this is a CD game based on file extension
+    const char *extptr = strrchr(gameinfo.path, '.');
+    if (extptr) {
+        // Convert extension to lower case
+        char ext[5];
+        snprintf(ext, sizeof(ext), "%s", extptr);
+        for (size_t i = 0; i < strlen(extptr); ++i)
+            ext[i] = tolower(ext[i]);
+
+        if (!strcmp(ext, ".cue") || !strcmp(ext, ".chd"))
+            cdmode = 1;
+    }
+
     geo_set_region(settings_geo[REGION].val);
 
     if (cdmode)
@@ -677,23 +706,6 @@ int jg_init(void) {
     geo_init();
     geo_set_region(settings_geo[REGION].val);
 
-    return 1;
-}
-
-void jg_deinit(void) {
-    geo_mixer_deinit();
-    geo_deinit();
-}
-
-void jg_reset(int hard) {
-    geo_reset(hard);
-}
-
-void jg_exec_frame(void) {
-    geo_exec();
-}
-
-int jg_game_load(void) {
     // Load the BIOS if necessary
     if (biosinfo.size) {
         if (!geo_bios_load_mem(biosinfo.data, biosinfo.size))
@@ -823,6 +835,9 @@ int jg_game_unload(void) {
         geo_cd_deinit();
     }
 
+    geo_mixer_deinit();
+    geo_deinit();
+
     cdmode = 0;
     coins34 = 0;
     dbflags = 0;
@@ -890,8 +905,7 @@ jg_systeminfo_t* jg_get_systemlist(size_t *num) {
 }
 
 jg_coreinfo_t* jg_get_coreinfo(const char *sys) {
-    if (!strcmp(sys, "neogeocd"))
-        cdmode = 1;
+    (void)sys;
     return &coreinfo;
 }
 
