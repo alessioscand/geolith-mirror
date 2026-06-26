@@ -54,8 +54,7 @@ int geo_neo_load(void *data, size_t size) {
     // Bytes 0-3 should be 'N' 'E' 'O' 1
     if (neodata[0] != 'N' || neodata[1] != 'E' ||
         neodata[2] != 'O' || neodata[3] != 0x01) {
-        geo_log(GEO_LOG_ERR, "Not a valid NEO ROM: %c %c %c %c\n",
-            neodata[0], neodata[1], neodata[2], neodata[3]);
+        geo_log(GEO_LOG_ERR, "Not a valid NEO ROM.\n");
         return 0;
     }
 
