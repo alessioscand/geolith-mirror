@@ -752,12 +752,14 @@ int jg_game_load(void) {
 
     if (cdmode) {
         // Load the CD
-        geo_disc_open(gameinfo.path);
+        if (!geo_disc_open(gameinfo.path))
+            return 0;
         geo_cd_postload();
     }
     else {
         // Load the NEO file
-        geo_neo_load(gameinfo.data, gameinfo.size);
+        if (!geo_neo_load(gameinfo.data, gameinfo.size))
+            return 0;
         dbflags = geo_neo_flags();
 
         // Special handling for Irritating Maze
