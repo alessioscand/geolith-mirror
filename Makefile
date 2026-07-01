@@ -77,8 +77,6 @@ OBJS_JG := $(patsubst %,$(OBJDIR)/%,$(JGSRCS:.c=.o))
 BUILD_JG = $(call COMPILE_C, $(FLAGS) $(INCLUDES_JG) $(CFLAGS_JG))
 BUILD_MAIN = $(call COMPILE_C, $(FLAGS) $(DEFS) $(INCLUDES))
 
-include $(SOURCEDIR)/mk/rules.mk
-
 .PHONY: $(PHONY)
 
 all: $(TARGET)
@@ -87,3 +85,5 @@ all: $(TARGET)
 $(OBJDIR)/%.o: $(SRCDIR)/%.$(EXT) $(PREREQ)
 	$(call COMPILE_INFO,$(BUILD_MAIN))
 	@$(BUILD_MAIN)
+
+include $(SOURCEDIR)/mk/rules.mk
