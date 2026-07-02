@@ -1,3 +1,8 @@
+Version 0.4.2
+-------------
+ - Fix LSPC state leak when switching from CD to cartridge based games
+ - Support for The Jolly Good API 2.0.0
+
 Version 0.4.1
 -------------
  - Fix edge case related to pausing/resuming CD audio during gameplay
