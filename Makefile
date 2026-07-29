@@ -54,6 +54,7 @@ CSRCS := m68k/m68kcpu.c \
 	geo_neo.c \
 	geo_rtc.c \
 	geo_serial.c \
+	geo_vfs.c \
 	geo_ymfm.c \
 	geo_z80.c
 
