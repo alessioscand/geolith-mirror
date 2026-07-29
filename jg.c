@@ -683,8 +683,8 @@ int jg_game_load(void) {
         // Convert extension to lower case
         char ext[5];
         snprintf(ext, sizeof(ext), "%s", extptr);
-        for (size_t i = 0; i < strlen(extptr); ++i)
-            ext[i] = tolower(ext[i]);
+        for (size_t i = 0; ext[i]; ++i)
+            ext[i] = tolower((unsigned char)ext[i]);
 
         if (!strcmp(ext, ".cue") || !strcmp(ext, ".chd"))
             cdmode = 1;
@@ -731,7 +731,7 @@ int jg_game_load(void) {
         if (!geo_bios_load_file(biospath))
             geo_log(JG_LOG_ERR, "Failed to load %s\n", biospath);
 
-        if (settings_geo[CDSYS].val < 2) {
+        if (cdmode && settings_geo[CDSYS].val < 2) {
             // Neo Geo CD needs to load "000-lo.lo" from neocdz.zip
             snprintf(biospath, sizeof(biospath),
                 "%s/neocdz.zip", pathinfo.bios);
