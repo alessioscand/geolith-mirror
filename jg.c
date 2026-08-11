@@ -187,6 +187,13 @@ static jg_setting_t settings_geo[] = {
       "ADPCM Accumulator Wrap may be disabled to fix sound effects in buggy "
       "games, for example Ganryu and Nightmare in the Dark. This is a hack!",
       1, 0, 1, 0
+    },
+    { "cd_dma_len_limit", "CD DMA Length Limit",
+      "0 = Off, 1 = On",
+      "Correct the BIOS upload pointers when a CD buffer DMA is larger than"
+      "one sector, fixing corrupted sound in Art of Fighting CD's bonus stage."
+      "This is a hack, and real hardware behaviour is unconfirmed.",
+      0, 0, 1, 0
     }
 };
 
@@ -206,7 +213,8 @@ enum {
     OVERSCAN_B,
     OVERSCAN_L,
     OVERSCAN_R,
-    ADPCM_WRAP
+    ADPCM_WRAP,
+    CD_DMA_LEN_LIMIT
 };
 
 static jg_biosinfo_t bioslist[] = {
@@ -754,6 +762,7 @@ int jg_game_load(void) {
         // Load the CD
         if (!geo_disc_open(gameinfo.path))
             return 0;
+        geo_cd_set_dma_len_limit(settings_geo[CD_DMA_LEN_LIMIT].val);
         geo_cd_postload();
     }
     else {
@@ -895,6 +904,8 @@ void jg_rehash(void) {
     geo_params_input();
     geo_params_video();
     geo_set_adpcm_wrap(settings_geo[ADPCM_WRAP].val);
+    if (cdmode)
+        geo_cd_set_dma_len_limit(settings_geo[CD_DMA_LEN_LIMIT].val);
 }
 
 void jg_data_push(uint32_t type, int port, const void *ptr, size_t size) {

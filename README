@@ -127,6 +127,9 @@ overscan_r = 2
 adpcm_wrap = 1
 0 = Off, 1 = On
 
+cd_dma_len_limit = 0
+0 = Off, 1 = On
+
 Auxiliary Files
 ---------------
 System ROM collections (BIOS et al) in the form of a .zip file may be loaded as
