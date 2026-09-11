@@ -1,3 +1,11 @@
+Version 0.5.0
+-------------
+ - Fix minor bugs in CD BIOS loading and extension detection
+ - Add geo_vfs for better handling of cross-platform file operations
+ - Update miniz to latest
+ - Add CD DMA length limit hotfix option
+ - Add support for unpatched sbp (Super Bubble Pop)
+
 Version 0.4.2
 -------------
  - Fix LSPC state leak when switching from CD to cartridge based games
