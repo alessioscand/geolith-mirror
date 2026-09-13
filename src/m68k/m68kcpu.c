@@ -141,7 +141,7 @@ const uint8_t m68ki_exception_cycle_table[5][256] =
 		 50, /*  3: Address Error                         (unemulated) */
 		 34, /*  4: Illegal Instruction                                */
 		 38, /*  5: Divide by Zero                                     */
-		 40, /*  6: CHK                                                */
+		 38, /*  6: CHK                                                */
 		 34, /*  7: TRAPV                                              */
 		 34, /*  8: Privilege Violation                                */
 		 34, /*  9: Trace                                              */
@@ -966,7 +966,7 @@ int m68k_execute(int num_cycles)
 		/* Main loop.  Keep going until we run out of clock cycles */
 		do
 		{
-			//int i;
+			int i;
 			/* Set tracing accodring to T1. (T0 is done inside instruction) */
 			m68ki_trace_t1(); /* auto-disable (see m68kcpu.h) */
 
@@ -980,10 +980,9 @@ int m68k_execute(int num_cycles)
 			REG_PPC = REG_PC;
 
 			/* Record previous D/A register state (in case of bus error) */
-			// https://github.com/kstenerud/Musashi/issues/72
-			/*for (i = 15; i >= 0; i--){
+			for (i = 15; i >= 0; i--){
 				REG_DA_SAVE[i] = REG_DA[i];
-			}*/
+			}
 
 			/* Read an instruction and call its handler */
 			REG_IR = m68ki_read_imm_16();
