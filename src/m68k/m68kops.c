@@ -26,6 +26,39 @@ static unsigned m68ki_muls_cycles(unsigned src)
 	return m68ki_mul_bits((src ^ (src << 1)) & 0xffff) << 1;
 }
 
+/* On the 68000 an unsigned divide that does not overflow takes 76 cycles
+ * plus the cost of its restoring division: for each of the first fifteen
+ * quotient bits, nothing if the bit shifted out of the dividend was set
+ * (the divisor is subtracted without a test), 2 if the test passed and
+ * the divisor was subtracted, 4 if it failed. Overflow costs 10.
+ */
+static unsigned m68ki_divu_cycles(unsigned dividend, unsigned divisor)
+{
+	unsigned hdivisor = divisor << 16;
+	unsigned cycles = 76;
+	unsigned i;
+
+	if((dividend >> 16) >= divisor)
+		return 10;
+
+	for(i = 0; i < 15; i++)
+	{
+		unsigned carry = dividend & 0x80000000;
+		dividend <<= 1;
+		if(carry)
+			dividend -= hdivisor;
+		else if(dividend >= hdivisor)
+		{
+			dividend -= hdivisor;
+			cycles += 2;
+		}
+		else
+			cycles += 4;
+	}
+
+	return cycles;
+}
+
 /* ======================================================================== */
 /* ========================= INSTRUCTION HANDLERS ========================= */
 /* ======================================================================== */
@@ -13066,6 +13099,9 @@ static void m68k_op_divu_16_d(void)
 
 	if(src != 0)
 	{
+		if(CPU_TYPE_IS_000(CPU_TYPE))
+			USE_CYCLES(m68ki_divu_cycles(*r_dst, src));
+
 		unsigned quotient = *r_dst / src;
 		unsigned remainder = *r_dst % src;
 
@@ -13092,6 +13128,9 @@ static void m68k_op_divu_16_ai(void)
 
 	if(src != 0)
 	{
+		if(CPU_TYPE_IS_000(CPU_TYPE))
+			USE_CYCLES(m68ki_divu_cycles(*r_dst, src));
+
 		unsigned quotient = *r_dst / src;
 		unsigned remainder = *r_dst % src;
 
@@ -13118,6 +13157,9 @@ static void m68k_op_divu_16_pi(void)
 
 	if(src != 0)
 	{
+		if(CPU_TYPE_IS_000(CPU_TYPE))
+			USE_CYCLES(m68ki_divu_cycles(*r_dst, src));
+
 		unsigned quotient = *r_dst / src;
 		unsigned remainder = *r_dst % src;
 
@@ -13144,6 +13186,9 @@ static void m68k_op_divu_16_pd(void)
 
 	if(src != 0)
 	{
+		if(CPU_TYPE_IS_000(CPU_TYPE))
+			USE_CYCLES(m68ki_divu_cycles(*r_dst, src));
+
 		unsigned quotient = *r_dst / src;
 		unsigned remainder = *r_dst % src;
 
@@ -13170,6 +13215,9 @@ static void m68k_op_divu_16_di(void)
 
 	if(src != 0)
 	{
+		if(CPU_TYPE_IS_000(CPU_TYPE))
+			USE_CYCLES(m68ki_divu_cycles(*r_dst, src));
+
 		unsigned quotient = *r_dst / src;
 		unsigned remainder = *r_dst % src;
 
@@ -13196,6 +13244,9 @@ static void m68k_op_divu_16_ix(void)
 
 	if(src != 0)
 	{
+		if(CPU_TYPE_IS_000(CPU_TYPE))
+			USE_CYCLES(m68ki_divu_cycles(*r_dst, src));
+
 		unsigned quotient = *r_dst / src;
 		unsigned remainder = *r_dst % src;
 
@@ -13222,6 +13273,9 @@ static void m68k_op_divu_16_aw(void)
 
 	if(src != 0)
 	{
+		if(CPU_TYPE_IS_000(CPU_TYPE))
+			USE_CYCLES(m68ki_divu_cycles(*r_dst, src));
+
 		unsigned quotient = *r_dst / src;
 		unsigned remainder = *r_dst % src;
 
@@ -13248,6 +13302,9 @@ static void m68k_op_divu_16_al(void)
 
 	if(src != 0)
 	{
+		if(CPU_TYPE_IS_000(CPU_TYPE))
+			USE_CYCLES(m68ki_divu_cycles(*r_dst, src));
+
 		unsigned quotient = *r_dst / src;
 		unsigned remainder = *r_dst % src;
 
@@ -13274,6 +13331,9 @@ static void m68k_op_divu_16_pcdi(void)
 
 	if(src != 0)
 	{
+		if(CPU_TYPE_IS_000(CPU_TYPE))
+			USE_CYCLES(m68ki_divu_cycles(*r_dst, src));
+
 		unsigned quotient = *r_dst / src;
 		unsigned remainder = *r_dst % src;
 
@@ -13300,6 +13360,9 @@ static void m68k_op_divu_16_pcix(void)
 
 	if(src != 0)
 	{
+		if(CPU_TYPE_IS_000(CPU_TYPE))
+			USE_CYCLES(m68ki_divu_cycles(*r_dst, src));
+
 		unsigned quotient = *r_dst / src;
 		unsigned remainder = *r_dst % src;
 
@@ -13326,6 +13389,9 @@ static void m68k_op_divu_16_i(void)
 
 	if(src != 0)
 	{
+		if(CPU_TYPE_IS_000(CPU_TYPE))
+			USE_CYCLES(m68ki_divu_cycles(*r_dst, src));
+
 		unsigned quotient = *r_dst / src;
 		unsigned remainder = *r_dst % src;
 
@@ -34975,12 +35041,12 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_or_32_er_pd         , 0xf1f8, 0x80a0, { 16,  16,   7,   7,   7}},
 	{m68k_op_or_32_er_di         , 0xf1f8, 0x80a8, { 18,  18,   7,   7,   7}},
 	{m68k_op_or_32_er_ix         , 0xf1f8, 0x80b0, { 20,  20,   9,   9,   9}},
-	{m68k_op_divu_16_d           , 0xf1f8, 0x80c0, {140, 108,  44,  44,  44}},
-	{m68k_op_divu_16_ai          , 0xf1f8, 0x80d0, {144, 112,  48,  48,  48}},
-	{m68k_op_divu_16_pi          , 0xf1f8, 0x80d8, {144, 112,  48,  48,  48}},
-	{m68k_op_divu_16_pd          , 0xf1f8, 0x80e0, {146, 114,  49,  49,  49}},
-	{m68k_op_divu_16_di          , 0xf1f8, 0x80e8, {148, 116,  49,  49,  49}},
-	{m68k_op_divu_16_ix          , 0xf1f8, 0x80f0, {150, 118,  51,  51,  51}},
+	{m68k_op_divu_16_d           , 0xf1f8, 0x80c0, {  0, 108,  44,  44,  44}},
+	{m68k_op_divu_16_ai          , 0xf1f8, 0x80d0, {  4, 112,  48,  48,  48}},
+	{m68k_op_divu_16_pi          , 0xf1f8, 0x80d8, {  4, 112,  48,  48,  48}},
+	{m68k_op_divu_16_pd          , 0xf1f8, 0x80e0, {  6, 114,  49,  49,  49}},
+	{m68k_op_divu_16_di          , 0xf1f8, 0x80e8, {  8, 116,  49,  49,  49}},
+	{m68k_op_divu_16_ix          , 0xf1f8, 0x80f0, { 10, 118,  51,  51,  51}},
 	{m68k_op_sbcd_8_rr           , 0xf1f8, 0x8100, {  6,   6,   4,   4,   4}},
 	{m68k_op_sbcd_8_mm           , 0xf1f8, 0x8108, { 18,  18,  16,  16,  16}},
 	{m68k_op_or_8_re_ai          , 0xf1f8, 0x8110, { 12,  12,   8,   8,   8}},
@@ -35281,7 +35347,7 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_btst_8_r_al         , 0xf1ff, 0x0139, { 16,  16,   8,   8,   8}},
 	{m68k_op_btst_8_r_pcdi       , 0xf1ff, 0x013a, { 12,  12,   9,   9,   9}},
 	{m68k_op_btst_8_r_pcix       , 0xf1ff, 0x013b, { 14,  14,  11,  11,  11}},
-	{m68k_op_btst_8_r_i          , 0xf1ff, 0x013c, {  8,   8,   6,   6,   6}},
+	{m68k_op_btst_8_r_i          , 0xf1ff, 0x013c, { 10,   8,   8,   8,   8}},
 	{m68k_op_bchg_8_r_pi7        , 0xf1ff, 0x015f, { 12,  12,   8,   8,   8}},
 	{m68k_op_bchg_8_r_pd7        , 0xf1ff, 0x0167, { 14,  14,   9,   9,   9}},
 	{m68k_op_bchg_8_r_aw         , 0xf1ff, 0x0178, { 16,  16,   8,   8,   8}},
@@ -35453,11 +35519,11 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_or_32_er_pcdi       , 0xf1ff, 0x80ba, { 18,  18,   7,   7,   7}},
 	{m68k_op_or_32_er_pcix       , 0xf1ff, 0x80bb, { 20,  20,   9,   9,   9}},
 	{m68k_op_or_32_er_i          , 0xf1ff, 0x80bc, { 16,  14,   6,   6,   6}},
-	{m68k_op_divu_16_aw          , 0xf1ff, 0x80f8, {148, 116,  48,  48,  48}},
-	{m68k_op_divu_16_al          , 0xf1ff, 0x80f9, {152, 120,  48,  48,  48}},
-	{m68k_op_divu_16_pcdi        , 0xf1ff, 0x80fa, {148, 116,  49,  49,  49}},
-	{m68k_op_divu_16_pcix        , 0xf1ff, 0x80fb, {150, 118,  51,  51,  51}},
-	{m68k_op_divu_16_i           , 0xf1ff, 0x80fc, {144, 112,  46,  46,  46}},
+	{m68k_op_divu_16_aw          , 0xf1ff, 0x80f8, {  8, 116,  48,  48,  48}},
+	{m68k_op_divu_16_al          , 0xf1ff, 0x80f9, { 12, 120,  48,  48,  48}},
+	{m68k_op_divu_16_pcdi        , 0xf1ff, 0x80fa, {  8, 116,  49,  49,  49}},
+	{m68k_op_divu_16_pcix        , 0xf1ff, 0x80fb, { 10, 118,  51,  51,  51}},
+	{m68k_op_divu_16_i           , 0xf1ff, 0x80fc, {  4, 112,  46,  46,  46}},
 	{m68k_op_sbcd_8_mm_ay7       , 0xf1ff, 0x810f, { 18,  18,  16,  16,  16}},
 	{m68k_op_or_8_re_pi7         , 0xf1ff, 0x811f, { 12,  12,   8,   8,   8}},
 	{m68k_op_or_8_re_pd7         , 0xf1ff, 0x8127, { 14,  14,   9,   9,   9}},
@@ -35984,11 +36050,11 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_tst_32_di           , 0xfff8, 0x4aa8, { 16,  16,   7,   7,   7}},
 	{m68k_op_tst_32_ix           , 0xfff8, 0x4ab0, { 18,  18,   9,   9,   9}},
 	{m68k_op_tas_8_d             , 0xfff8, 0x4ac0, {  4,   4,   4,   4,   4}},
-	{m68k_op_tas_8_ai            , 0xfff8, 0x4ad0, { 18,  18,  16,  16,  16}},
-	{m68k_op_tas_8_pi            , 0xfff8, 0x4ad8, { 18,  18,  16,  16,  16}},
-	{m68k_op_tas_8_pd            , 0xfff8, 0x4ae0, { 20,  20,  17,  17,  17}},
-	{m68k_op_tas_8_di            , 0xfff8, 0x4ae8, { 22,  22,  17,  17,  17}},
-	{m68k_op_tas_8_ix            , 0xfff8, 0x4af0, { 24,  24,  19,  19,  19}},
+	{m68k_op_tas_8_ai            , 0xfff8, 0x4ad0, { 14,  18,  16,  16,  16}},
+	{m68k_op_tas_8_pi            , 0xfff8, 0x4ad8, { 14,  18,  16,  16,  16}},
+	{m68k_op_tas_8_pd            , 0xfff8, 0x4ae0, { 16,  20,  17,  17,  17}},
+	{m68k_op_tas_8_di            , 0xfff8, 0x4ae8, { 18,  22,  17,  17,  17}},
+	{m68k_op_tas_8_ix            , 0xfff8, 0x4af0, { 20,  24,  19,  19,  19}},
 	{m68k_op_mull_32_d           , 0xfff8, 0x4c00, {  0,   0,  43,  43,  43}},
 	{m68k_op_mull_32_ai          , 0xfff8, 0x4c10, {  0,   0,  47,  47,  47}},
 	{m68k_op_mull_32_pi          , 0xfff8, 0x4c18, {  0,   0,  47,  47,  47}},
@@ -36447,10 +36513,10 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_tst_32_pcdi         , 0xffff, 0x4aba, {  0,   0,   7,   7,   7}},
 	{m68k_op_tst_32_pcix         , 0xffff, 0x4abb, {  0,   0,   9,   9,   9}},
 	{m68k_op_tst_32_i            , 0xffff, 0x4abc, {  0,   0,   6,   6,   6}},
-	{m68k_op_tas_8_pi7           , 0xffff, 0x4adf, { 18,  18,  16,  16,  16}},
-	{m68k_op_tas_8_pd7           , 0xffff, 0x4ae7, { 20,  20,  17,  17,  17}},
-	{m68k_op_tas_8_aw            , 0xffff, 0x4af8, { 22,  22,  16,  16,  16}},
-	{m68k_op_tas_8_al            , 0xffff, 0x4af9, { 26,  26,  16,  16,  16}},
+	{m68k_op_tas_8_pi7           , 0xffff, 0x4adf, { 14,  18,  16,  16,  16}},
+	{m68k_op_tas_8_pd7           , 0xffff, 0x4ae7, { 16,  20,  17,  17,  17}},
+	{m68k_op_tas_8_aw            , 0xffff, 0x4af8, { 18,  22,  16,  16,  16}},
+	{m68k_op_tas_8_al            , 0xffff, 0x4af9, { 22,  26,  16,  16,  16}},
 	{m68k_op_illegal             , 0xffff, 0x4afc, {  4,   4,   4,   4,   4}},
 	{m68k_op_mull_32_aw          , 0xffff, 0x4c38, {  0,   0,  47,  47,  47}},
 	{m68k_op_mull_32_al          , 0xffff, 0x4c39, {  0,   0,  47,  47,  47}},
