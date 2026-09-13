@@ -4,6 +4,28 @@ extern void m68040_fpu_op0(void);
 extern void m68040_fpu_op1(void);
 extern void m68881_mmu_ops(void);
 
+/* On the 68000 a multiply takes 38 cycles plus 2 per iteration of the
+ * adder: for MULU one per set bit of the source, for MULS one per 01 or
+ * 10 pair of the source shifted left by one (Yacht, verified in hardware).
+ */
+static unsigned m68ki_mul_bits(unsigned src)
+{
+	unsigned n = 0;
+	for(; src; src >>= 1)
+		n += src & 1;
+	return n;
+}
+
+static unsigned m68ki_mulu_cycles(unsigned src)
+{
+	return m68ki_mul_bits(src & 0xffff) << 1;
+}
+
+static unsigned m68ki_muls_cycles(unsigned src)
+{
+	return m68ki_mul_bits((src ^ (src << 1)) & 0xffff) << 1;
+}
+
 /* ======================================================================== */
 /* ========================= INSTRUCTION HANDLERS ========================= */
 /* ======================================================================== */
@@ -3435,8 +3457,6 @@ static void m68k_op_asr_8_s(void)
 	unsigned src = MASK_OUT_ABOVE_8(*r_dst);
 	unsigned res = src >> shift;
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	if(GET_MSB_8(src))
 		res |= m68ki_shift_8_table[shift];
@@ -3457,8 +3477,6 @@ static void m68k_op_asr_16_s(void)
 	unsigned src = MASK_OUT_ABOVE_16(*r_dst);
 	unsigned res = src >> shift;
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	if(GET_MSB_16(src))
 		res |= m68ki_shift_16_table[shift];
@@ -3479,8 +3497,6 @@ static void m68k_op_asr_32_s(void)
 	unsigned src = *r_dst;
 	unsigned res = src >> shift;
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	if(GET_MSB_32(src))
 		res |= m68ki_shift_32_table[shift];
@@ -3783,8 +3799,6 @@ static void m68k_op_asl_8_s(void)
 	unsigned src = MASK_OUT_ABOVE_8(*r_dst);
 	unsigned res = MASK_OUT_ABOVE_8(src << shift);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = MASK_OUT_BELOW_8(*r_dst) | res;
 
@@ -3803,8 +3817,6 @@ static void m68k_op_asl_16_s(void)
 	unsigned src = MASK_OUT_ABOVE_16(*r_dst);
 	unsigned res = MASK_OUT_ABOVE_16(src << shift);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = MASK_OUT_BELOW_16(*r_dst) | res;
 
@@ -3823,8 +3835,6 @@ static void m68k_op_asl_32_s(void)
 	unsigned src = *r_dst;
 	unsigned res = MASK_OUT_ABOVE_32(src << shift);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = res;
 
@@ -4834,6 +4844,9 @@ static void m68k_op_bchg_32_r_d(void)
 	unsigned* r_dst = &DY;
 	unsigned mask = 1 << (DX & 0x1f);
 
+	if(CPU_TYPE_IS_000(CPU_TYPE) && mask < 0x10000)
+		USE_CYCLES(-2); /* Low bits are two cycles faster on the 68000 */
+
 	FLAG_Z = *r_dst & mask;
 	*r_dst ^= mask;
 }
@@ -4942,6 +4955,9 @@ static void m68k_op_bchg_32_s_d(void)
 {
 	unsigned* r_dst = &DY;
 	unsigned mask = 1 << (OPER_I_8() & 0x1f);
+
+	if(CPU_TYPE_IS_000(CPU_TYPE) && mask < 0x10000)
+		USE_CYCLES(-2); /* Low bits are two cycles faster on the 68000 */
 
 	FLAG_Z = *r_dst & mask;
 	*r_dst ^= mask;
@@ -5052,6 +5068,9 @@ static void m68k_op_bclr_32_r_d(void)
 	unsigned* r_dst = &DY;
 	unsigned mask = 1 << (DX & 0x1f);
 
+	if(CPU_TYPE_IS_000(CPU_TYPE) && mask < 0x10000)
+		USE_CYCLES(-2); /* Low bits are two cycles faster on the 68000 */
+
 	FLAG_Z = *r_dst & mask;
 	*r_dst &= ~mask;
 }
@@ -5160,6 +5179,9 @@ static void m68k_op_bclr_32_s_d(void)
 {
 	unsigned* r_dst = &DY;
 	unsigned mask = 1 << (OPER_I_8() & 0x1f);
+
+	if(CPU_TYPE_IS_000(CPU_TYPE) && mask < 0x10000)
+		USE_CYCLES(-2); /* Low bits are two cycles faster on the 68000 */
 
 	FLAG_Z = *r_dst & mask;
 	*r_dst &= ~mask;
@@ -8120,6 +8142,9 @@ static void m68k_op_bset_32_r_d(void)
 	unsigned* r_dst = &DY;
 	unsigned mask = 1 << (DX & 0x1f);
 
+	if(CPU_TYPE_IS_000(CPU_TYPE) && mask < 0x10000)
+		USE_CYCLES(-2); /* Low bits are two cycles faster on the 68000 */
+
 	FLAG_Z = *r_dst & mask;
 	*r_dst |= mask;
 }
@@ -8228,6 +8253,9 @@ static void m68k_op_bset_32_s_d(void)
 {
 	unsigned* r_dst = &DY;
 	unsigned mask = 1 << (OPER_I_8() & 0x1f);
+
+	if(CPU_TYPE_IS_000(CPU_TYPE) && mask < 0x10000)
+		USE_CYCLES(-2); /* Low bits are two cycles faster on the 68000 */
 
 	FLAG_Z = *r_dst & mask;
 	*r_dst |= mask;
@@ -16691,8 +16719,6 @@ static void m68k_op_lsr_8_s(void)
 	unsigned src = MASK_OUT_ABOVE_8(*r_dst);
 	unsigned res = src >> shift;
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = MASK_OUT_BELOW_8(*r_dst) | res;
 
@@ -16710,8 +16736,6 @@ static void m68k_op_lsr_16_s(void)
 	unsigned src = MASK_OUT_ABOVE_16(*r_dst);
 	unsigned res = src >> shift;
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = MASK_OUT_BELOW_16(*r_dst) | res;
 
@@ -16729,8 +16753,6 @@ static void m68k_op_lsr_32_s(void)
 	unsigned src = *r_dst;
 	unsigned res = src >> shift;
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = res;
 
@@ -16963,8 +16985,6 @@ static void m68k_op_lsl_8_s(void)
 	unsigned src = MASK_OUT_ABOVE_8(*r_dst);
 	unsigned res = MASK_OUT_ABOVE_8(src << shift);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = MASK_OUT_BELOW_8(*r_dst) | res;
 
@@ -16982,8 +17002,6 @@ static void m68k_op_lsl_16_s(void)
 	unsigned src = MASK_OUT_ABOVE_16(*r_dst);
 	unsigned res = MASK_OUT_ABOVE_16(src << shift);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = MASK_OUT_BELOW_16(*r_dst) | res;
 
@@ -17001,8 +17019,6 @@ static void m68k_op_lsl_32_s(void)
 	unsigned src = *r_dst;
 	unsigned res = MASK_OUT_ABOVE_32(src << shift);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = res;
 
@@ -23967,7 +23983,11 @@ static void m68k_op_move16_32(void)
 static void m68k_op_muls_16_d(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(DY) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+	unsigned src = MASK_OUT_ABOVE_16(DY);
+	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(src) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_muls_cycles(src));
 
 	*r_dst = res;
 
@@ -23981,7 +24001,11 @@ static void m68k_op_muls_16_d(void)
 static void m68k_op_muls_16_ai(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(OPER_AY_AI_16()) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+	unsigned src = OPER_AY_AI_16();
+	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(src) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_muls_cycles(src));
 
 	*r_dst = res;
 
@@ -23995,7 +24019,11 @@ static void m68k_op_muls_16_ai(void)
 static void m68k_op_muls_16_pi(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(OPER_AY_PI_16()) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+	unsigned src = OPER_AY_PI_16();
+	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(src) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_muls_cycles(src));
 
 	*r_dst = res;
 
@@ -24009,7 +24037,11 @@ static void m68k_op_muls_16_pi(void)
 static void m68k_op_muls_16_pd(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(OPER_AY_PD_16()) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+	unsigned src = OPER_AY_PD_16();
+	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(src) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_muls_cycles(src));
 
 	*r_dst = res;
 
@@ -24023,7 +24055,11 @@ static void m68k_op_muls_16_pd(void)
 static void m68k_op_muls_16_di(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(OPER_AY_DI_16()) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+	unsigned src = OPER_AY_DI_16();
+	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(src) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_muls_cycles(src));
 
 	*r_dst = res;
 
@@ -24037,7 +24073,11 @@ static void m68k_op_muls_16_di(void)
 static void m68k_op_muls_16_ix(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(OPER_AY_IX_16()) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+	unsigned src = OPER_AY_IX_16();
+	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(src) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_muls_cycles(src));
 
 	*r_dst = res;
 
@@ -24051,7 +24091,11 @@ static void m68k_op_muls_16_ix(void)
 static void m68k_op_muls_16_aw(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(OPER_AW_16()) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+	unsigned src = OPER_AW_16();
+	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(src) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_muls_cycles(src));
 
 	*r_dst = res;
 
@@ -24065,7 +24109,11 @@ static void m68k_op_muls_16_aw(void)
 static void m68k_op_muls_16_al(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(OPER_AL_16()) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+	unsigned src = OPER_AL_16();
+	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(src) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_muls_cycles(src));
 
 	*r_dst = res;
 
@@ -24079,7 +24127,11 @@ static void m68k_op_muls_16_al(void)
 static void m68k_op_muls_16_pcdi(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(OPER_PCDI_16()) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+	unsigned src = OPER_PCDI_16();
+	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(src) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_muls_cycles(src));
 
 	*r_dst = res;
 
@@ -24093,7 +24145,11 @@ static void m68k_op_muls_16_pcdi(void)
 static void m68k_op_muls_16_pcix(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(OPER_PCIX_16()) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+	unsigned src = OPER_PCIX_16();
+	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(src) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_muls_cycles(src));
 
 	*r_dst = res;
 
@@ -24107,7 +24163,11 @@ static void m68k_op_muls_16_pcix(void)
 static void m68k_op_muls_16_i(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(OPER_I_16()) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+	unsigned src = OPER_I_16();
+	unsigned res = MASK_OUT_ABOVE_32(MAKE_INT_16(src) * MAKE_INT_16(MASK_OUT_ABOVE_16(*r_dst)));
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_muls_cycles(src));
 
 	*r_dst = res;
 
@@ -24121,7 +24181,11 @@ static void m68k_op_muls_16_i(void)
 static void m68k_op_mulu_16_d(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = MASK_OUT_ABOVE_16(DY) * MASK_OUT_ABOVE_16(*r_dst);
+	unsigned src = MASK_OUT_ABOVE_16(DY);
+	unsigned res = src * MASK_OUT_ABOVE_16(*r_dst);
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_mulu_cycles(src));
 
 	*r_dst = res;
 
@@ -24135,7 +24199,11 @@ static void m68k_op_mulu_16_d(void)
 static void m68k_op_mulu_16_ai(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = OPER_AY_AI_16() * MASK_OUT_ABOVE_16(*r_dst);
+	unsigned src = OPER_AY_AI_16();
+	unsigned res = src * MASK_OUT_ABOVE_16(*r_dst);
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_mulu_cycles(src));
 
 	*r_dst = res;
 
@@ -24149,7 +24217,11 @@ static void m68k_op_mulu_16_ai(void)
 static void m68k_op_mulu_16_pi(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = OPER_AY_PI_16() * MASK_OUT_ABOVE_16(*r_dst);
+	unsigned src = OPER_AY_PI_16();
+	unsigned res = src * MASK_OUT_ABOVE_16(*r_dst);
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_mulu_cycles(src));
 
 	*r_dst = res;
 
@@ -24163,7 +24235,11 @@ static void m68k_op_mulu_16_pi(void)
 static void m68k_op_mulu_16_pd(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = OPER_AY_PD_16() * MASK_OUT_ABOVE_16(*r_dst);
+	unsigned src = OPER_AY_PD_16();
+	unsigned res = src * MASK_OUT_ABOVE_16(*r_dst);
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_mulu_cycles(src));
 
 	*r_dst = res;
 
@@ -24177,7 +24253,11 @@ static void m68k_op_mulu_16_pd(void)
 static void m68k_op_mulu_16_di(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = OPER_AY_DI_16() * MASK_OUT_ABOVE_16(*r_dst);
+	unsigned src = OPER_AY_DI_16();
+	unsigned res = src * MASK_OUT_ABOVE_16(*r_dst);
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_mulu_cycles(src));
 
 	*r_dst = res;
 
@@ -24191,7 +24271,11 @@ static void m68k_op_mulu_16_di(void)
 static void m68k_op_mulu_16_ix(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = OPER_AY_IX_16() * MASK_OUT_ABOVE_16(*r_dst);
+	unsigned src = OPER_AY_IX_16();
+	unsigned res = src * MASK_OUT_ABOVE_16(*r_dst);
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_mulu_cycles(src));
 
 	*r_dst = res;
 
@@ -24205,7 +24289,11 @@ static void m68k_op_mulu_16_ix(void)
 static void m68k_op_mulu_16_aw(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = OPER_AW_16() * MASK_OUT_ABOVE_16(*r_dst);
+	unsigned src = OPER_AW_16();
+	unsigned res = src * MASK_OUT_ABOVE_16(*r_dst);
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_mulu_cycles(src));
 
 	*r_dst = res;
 
@@ -24219,7 +24307,11 @@ static void m68k_op_mulu_16_aw(void)
 static void m68k_op_mulu_16_al(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = OPER_AL_16() * MASK_OUT_ABOVE_16(*r_dst);
+	unsigned src = OPER_AL_16();
+	unsigned res = src * MASK_OUT_ABOVE_16(*r_dst);
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_mulu_cycles(src));
 
 	*r_dst = res;
 
@@ -24233,7 +24325,11 @@ static void m68k_op_mulu_16_al(void)
 static void m68k_op_mulu_16_pcdi(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = OPER_PCDI_16() * MASK_OUT_ABOVE_16(*r_dst);
+	unsigned src = OPER_PCDI_16();
+	unsigned res = src * MASK_OUT_ABOVE_16(*r_dst);
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_mulu_cycles(src));
 
 	*r_dst = res;
 
@@ -24247,7 +24343,11 @@ static void m68k_op_mulu_16_pcdi(void)
 static void m68k_op_mulu_16_pcix(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = OPER_PCIX_16() * MASK_OUT_ABOVE_16(*r_dst);
+	unsigned src = OPER_PCIX_16();
+	unsigned res = src * MASK_OUT_ABOVE_16(*r_dst);
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_mulu_cycles(src));
 
 	*r_dst = res;
 
@@ -24261,7 +24361,11 @@ static void m68k_op_mulu_16_pcix(void)
 static void m68k_op_mulu_16_i(void)
 {
 	unsigned* r_dst = &DX;
-	unsigned res = OPER_I_16() * MASK_OUT_ABOVE_16(*r_dst);
+	unsigned src = OPER_I_16();
+	unsigned res = src * MASK_OUT_ABOVE_16(*r_dst);
+
+	if(CPU_TYPE_IS_000(CPU_TYPE))
+		USE_CYCLES(m68ki_mulu_cycles(src));
 
 	*r_dst = res;
 
@@ -28446,8 +28550,6 @@ static void m68k_op_ror_8_s(void)
 	unsigned src = MASK_OUT_ABOVE_8(*r_dst);
 	unsigned res = ROR_8(src, shift);
 
-	if(orig_shift != 0)
-		USE_CYCLES(orig_shift<<CYC_SHIFT);
 
 	*r_dst = MASK_OUT_BELOW_8(*r_dst) | res;
 
@@ -28465,8 +28567,6 @@ static void m68k_op_ror_16_s(void)
 	unsigned src = MASK_OUT_ABOVE_16(*r_dst);
 	unsigned res = ROR_16(src, shift);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = MASK_OUT_BELOW_16(*r_dst) | res;
 
@@ -28484,8 +28584,6 @@ static void m68k_op_ror_32_s(void)
 	uint64_t src = *r_dst;
 	unsigned res = ROR_32(src, shift);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = res;
 
@@ -28690,8 +28788,6 @@ static void m68k_op_rol_8_s(void)
 	unsigned src = MASK_OUT_ABOVE_8(*r_dst);
 	unsigned res = ROL_8(src, shift);
 
-	if(orig_shift != 0)
-		USE_CYCLES(orig_shift<<CYC_SHIFT);
 
 	*r_dst = MASK_OUT_BELOW_8(*r_dst) | res;
 
@@ -28709,8 +28805,6 @@ static void m68k_op_rol_16_s(void)
 	unsigned src = MASK_OUT_ABOVE_16(*r_dst);
 	unsigned res = ROL_16(src, shift);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = MASK_OUT_BELOW_16(*r_dst) | res;
 
@@ -28728,8 +28822,6 @@ static void m68k_op_rol_32_s(void)
 	uint64_t src = *r_dst;
 	unsigned res = ROL_32(src, shift);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = res;
 
@@ -28950,8 +29042,6 @@ static void m68k_op_roxr_8_s(void)
 	unsigned src = MASK_OUT_ABOVE_8(*r_dst);
 	unsigned res = ROR_9(src | (XFLAG_AS_1() << 8), shift);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	FLAG_C = FLAG_X = res;
 	res = MASK_OUT_ABOVE_8(res);
@@ -28971,8 +29061,6 @@ static void m68k_op_roxr_16_s(void)
 	unsigned src = MASK_OUT_ABOVE_16(*r_dst);
 	unsigned res = ROR_17(src | (XFLAG_AS_1() << 16), shift);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	FLAG_C = FLAG_X = res >> 8;
 	res = MASK_OUT_ABOVE_16(res);
@@ -28994,8 +29082,6 @@ static void m68k_op_roxr_32_s(void)
 	uint64_t src   = *r_dst;
 	uint64_t res   = src | (((uint64_t)XFLAG_AS_1()) << 32);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	res = ROR_33_64(res, shift);
 
@@ -29016,8 +29102,6 @@ static void m68k_op_roxr_32_s(void)
 	unsigned res = MASK_OUT_ABOVE_32((ROR_33(src, shift) & ~(1 << (32 - shift))) | (XFLAG_AS_1() << (32 - shift)));
 	unsigned new_x_flag = src & (1 << (shift - 1));
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = res;
 
@@ -29276,8 +29360,6 @@ static void m68k_op_roxl_8_s(void)
 	unsigned src = MASK_OUT_ABOVE_8(*r_dst);
 	unsigned res = ROL_9(src | (XFLAG_AS_1() << 8), shift);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	FLAG_C = FLAG_X = res;
 	res = MASK_OUT_ABOVE_8(res);
@@ -29297,8 +29379,6 @@ static void m68k_op_roxl_16_s(void)
 	unsigned src = MASK_OUT_ABOVE_16(*r_dst);
 	unsigned res = ROL_17(src | (XFLAG_AS_1() << 16), shift);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	FLAG_C = FLAG_X = res >> 8;
 	res = MASK_OUT_ABOVE_16(res);
@@ -29320,8 +29400,6 @@ static void m68k_op_roxl_32_s(void)
 	uint64_t src   = *r_dst;
 	uint64_t res   = src | (((uint64_t)XFLAG_AS_1()) << 32);
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	res = ROL_33_64(res, shift);
 
@@ -29342,8 +29420,6 @@ static void m68k_op_roxl_32_s(void)
 	unsigned res = MASK_OUT_ABOVE_32((ROL_33(src, shift) & ~(1 << (shift - 1))) | (XFLAG_AS_1() << (shift - 1)));
 	unsigned new_x_flag = src & (1 << (32 - shift));
 
-	if(shift != 0)
-		USE_CYCLES(shift<<CYC_SHIFT);
 
 	*r_dst = res;
 
@@ -34848,7 +34924,7 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_addq_8_di           , 0xf1f8, 0x5028, { 16,  16,   9,   9,   9}},
 	{m68k_op_addq_8_ix           , 0xf1f8, 0x5030, { 18,  18,  11,  11,  11}},
 	{m68k_op_addq_16_d           , 0xf1f8, 0x5040, {  4,   4,   2,   2,   2}},
-	{m68k_op_addq_16_a           , 0xf1f8, 0x5048, {  4,   4,   2,   2,   2}},
+	{m68k_op_addq_16_a           , 0xf1f8, 0x5048, {  8,   4,   2,   2,   2}},
 	{m68k_op_addq_16_ai          , 0xf1f8, 0x5050, { 12,  12,   8,   8,   8}},
 	{m68k_op_addq_16_pi          , 0xf1f8, 0x5058, { 12,  12,   8,   8,   8}},
 	{m68k_op_addq_16_pd          , 0xf1f8, 0x5060, { 14,  14,   9,   9,   9}},
@@ -34893,7 +34969,7 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_or_16_er_pd         , 0xf1f8, 0x8060, { 10,  10,   7,   7,   7}},
 	{m68k_op_or_16_er_di         , 0xf1f8, 0x8068, { 12,  12,   7,   7,   7}},
 	{m68k_op_or_16_er_ix         , 0xf1f8, 0x8070, { 14,  14,   9,   9,   9}},
-	{m68k_op_or_32_er_d          , 0xf1f8, 0x8080, {  6,   6,   2,   2,   2}},
+	{m68k_op_or_32_er_d          , 0xf1f8, 0x8080, {  8,   6,   2,   2,   2}},
 	{m68k_op_or_32_er_ai         , 0xf1f8, 0x8090, { 14,  14,   6,   6,   6}},
 	{m68k_op_or_32_er_pi         , 0xf1f8, 0x8098, { 14,  14,   6,   6,   6}},
 	{m68k_op_or_32_er_pd         , 0xf1f8, 0x80a0, { 16,  16,   7,   7,   7}},
@@ -34945,8 +35021,8 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_sub_16_er_pd        , 0xf1f8, 0x9060, { 10,  10,   7,   7,   7}},
 	{m68k_op_sub_16_er_di        , 0xf1f8, 0x9068, { 12,  12,   7,   7,   7}},
 	{m68k_op_sub_16_er_ix        , 0xf1f8, 0x9070, { 14,  14,   9,   9,   9}},
-	{m68k_op_sub_32_er_d         , 0xf1f8, 0x9080, {  6,   6,   2,   2,   2}},
-	{m68k_op_sub_32_er_a         , 0xf1f8, 0x9088, {  6,   6,   2,   2,   2}},
+	{m68k_op_sub_32_er_d         , 0xf1f8, 0x9080, {  8,   6,   2,   2,   2}},
+	{m68k_op_sub_32_er_a         , 0xf1f8, 0x9088, {  8,   6,   2,   2,   2}},
 	{m68k_op_sub_32_er_ai        , 0xf1f8, 0x9090, { 14,  14,   6,   6,   6}},
 	{m68k_op_sub_32_er_pi        , 0xf1f8, 0x9098, { 14,  14,   6,   6,   6}},
 	{m68k_op_sub_32_er_pd        , 0xf1f8, 0x90a0, { 16,  16,   7,   7,   7}},
@@ -34980,8 +35056,8 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_sub_32_re_pd        , 0xf1f8, 0x91a0, { 22,  22,   9,   9,   9}},
 	{m68k_op_sub_32_re_di        , 0xf1f8, 0x91a8, { 24,  24,   9,   9,   9}},
 	{m68k_op_sub_32_re_ix        , 0xf1f8, 0x91b0, { 26,  26,  11,  11,  11}},
-	{m68k_op_suba_32_d           , 0xf1f8, 0x91c0, {  6,   6,   2,   2,   2}},
-	{m68k_op_suba_32_a           , 0xf1f8, 0x91c8, {  6,   6,   2,   2,   2}},
+	{m68k_op_suba_32_d           , 0xf1f8, 0x91c0, {  8,   6,   2,   2,   2}},
+	{m68k_op_suba_32_a           , 0xf1f8, 0x91c8, {  8,   6,   2,   2,   2}},
 	{m68k_op_suba_32_ai          , 0xf1f8, 0x91d0, { 14,  14,   6,   6,   6}},
 	{m68k_op_suba_32_pi          , 0xf1f8, 0x91d8, { 14,  14,   6,   6,   6}},
 	{m68k_op_suba_32_pd          , 0xf1f8, 0x91e0, { 16,  16,   7,   7,   7}},
@@ -35054,18 +35130,18 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_and_16_er_pd        , 0xf1f8, 0xc060, { 10,  10,   7,   7,   7}},
 	{m68k_op_and_16_er_di        , 0xf1f8, 0xc068, { 12,  12,   7,   7,   7}},
 	{m68k_op_and_16_er_ix        , 0xf1f8, 0xc070, { 14,  14,   9,   9,   9}},
-	{m68k_op_and_32_er_d         , 0xf1f8, 0xc080, {  6,   6,   2,   2,   2}},
+	{m68k_op_and_32_er_d         , 0xf1f8, 0xc080, {  8,   6,   2,   2,   2}},
 	{m68k_op_and_32_er_ai        , 0xf1f8, 0xc090, { 14,  14,   6,   6,   6}},
 	{m68k_op_and_32_er_pi        , 0xf1f8, 0xc098, { 14,  14,   6,   6,   6}},
 	{m68k_op_and_32_er_pd        , 0xf1f8, 0xc0a0, { 16,  16,   7,   7,   7}},
 	{m68k_op_and_32_er_di        , 0xf1f8, 0xc0a8, { 18,  18,   7,   7,   7}},
 	{m68k_op_and_32_er_ix        , 0xf1f8, 0xc0b0, { 20,  20,   9,   9,   9}},
-	{m68k_op_mulu_16_d           , 0xf1f8, 0xc0c0, { 54,  30,  27,  27,  27}},
-	{m68k_op_mulu_16_ai          , 0xf1f8, 0xc0d0, { 58,  34,  31,  31,  31}},
-	{m68k_op_mulu_16_pi          , 0xf1f8, 0xc0d8, { 58,  34,  31,  31,  31}},
-	{m68k_op_mulu_16_pd          , 0xf1f8, 0xc0e0, { 60,  36,  32,  32,  32}},
-	{m68k_op_mulu_16_di          , 0xf1f8, 0xc0e8, { 62,  38,  32,  32,  32}},
-	{m68k_op_mulu_16_ix          , 0xf1f8, 0xc0f0, { 64,  40,  34,  34,  34}},
+	{m68k_op_mulu_16_d           , 0xf1f8, 0xc0c0, { 38,  30,  27,  27,  27}},
+	{m68k_op_mulu_16_ai          , 0xf1f8, 0xc0d0, { 42,  34,  31,  31,  31}},
+	{m68k_op_mulu_16_pi          , 0xf1f8, 0xc0d8, { 42,  34,  31,  31,  31}},
+	{m68k_op_mulu_16_pd          , 0xf1f8, 0xc0e0, { 44,  36,  32,  32,  32}},
+	{m68k_op_mulu_16_di          , 0xf1f8, 0xc0e8, { 46,  38,  32,  32,  32}},
+	{m68k_op_mulu_16_ix          , 0xf1f8, 0xc0f0, { 48,  40,  34,  34,  34}},
 	{m68k_op_abcd_8_rr           , 0xf1f8, 0xc100, {  6,   6,   4,   4,   4}},
 	{m68k_op_abcd_8_mm           , 0xf1f8, 0xc108, { 18,  18,  16,  16,  16}},
 	{m68k_op_and_8_re_ai         , 0xf1f8, 0xc110, { 12,  12,   8,   8,   8}},
@@ -35086,12 +35162,12 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_and_32_re_pd        , 0xf1f8, 0xc1a0, { 22,  22,   9,   9,   9}},
 	{m68k_op_and_32_re_di        , 0xf1f8, 0xc1a8, { 24,  24,   9,   9,   9}},
 	{m68k_op_and_32_re_ix        , 0xf1f8, 0xc1b0, { 26,  26,  11,  11,  11}},
-	{m68k_op_muls_16_d           , 0xf1f8, 0xc1c0, { 54,  32,  27,  27,  27}},
-	{m68k_op_muls_16_ai          , 0xf1f8, 0xc1d0, { 58,  36,  31,  31,  31}},
-	{m68k_op_muls_16_pi          , 0xf1f8, 0xc1d8, { 58,  36,  31,  31,  31}},
-	{m68k_op_muls_16_pd          , 0xf1f8, 0xc1e0, { 60,  38,  32,  32,  32}},
-	{m68k_op_muls_16_di          , 0xf1f8, 0xc1e8, { 62,  40,  32,  32,  32}},
-	{m68k_op_muls_16_ix          , 0xf1f8, 0xc1f0, { 64,  42,  34,  34,  34}},
+	{m68k_op_muls_16_d           , 0xf1f8, 0xc1c0, { 38,  32,  27,  27,  27}},
+	{m68k_op_muls_16_ai          , 0xf1f8, 0xc1d0, { 42,  36,  31,  31,  31}},
+	{m68k_op_muls_16_pi          , 0xf1f8, 0xc1d8, { 42,  36,  31,  31,  31}},
+	{m68k_op_muls_16_pd          , 0xf1f8, 0xc1e0, { 44,  38,  32,  32,  32}},
+	{m68k_op_muls_16_di          , 0xf1f8, 0xc1e8, { 46,  40,  32,  32,  32}},
+	{m68k_op_muls_16_ix          , 0xf1f8, 0xc1f0, { 48,  42,  34,  34,  34}},
 	{m68k_op_add_8_er_d          , 0xf1f8, 0xd000, {  4,   4,   2,   2,   2}},
 	{m68k_op_add_8_er_ai         , 0xf1f8, 0xd010, {  8,   8,   6,   6,   6}},
 	{m68k_op_add_8_er_pi         , 0xf1f8, 0xd018, {  8,   8,   6,   6,   6}},
@@ -35105,8 +35181,8 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_add_16_er_pd        , 0xf1f8, 0xd060, { 10,  10,   7,   7,   7}},
 	{m68k_op_add_16_er_di        , 0xf1f8, 0xd068, { 12,  12,   7,   7,   7}},
 	{m68k_op_add_16_er_ix        , 0xf1f8, 0xd070, { 14,  14,   9,   9,   9}},
-	{m68k_op_add_32_er_d         , 0xf1f8, 0xd080, {  6,   6,   2,   2,   2}},
-	{m68k_op_add_32_er_a         , 0xf1f8, 0xd088, {  6,   6,   2,   2,   2}},
+	{m68k_op_add_32_er_d         , 0xf1f8, 0xd080, {  8,   6,   2,   2,   2}},
+	{m68k_op_add_32_er_a         , 0xf1f8, 0xd088, {  8,   6,   2,   2,   2}},
 	{m68k_op_add_32_er_ai        , 0xf1f8, 0xd090, { 14,  14,   6,   6,   6}},
 	{m68k_op_add_32_er_pi        , 0xf1f8, 0xd098, { 14,  14,   6,   6,   6}},
 	{m68k_op_add_32_er_pd        , 0xf1f8, 0xd0a0, { 16,  16,   7,   7,   7}},
@@ -35140,8 +35216,8 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_add_32_re_pd        , 0xf1f8, 0xd1a0, { 22,  22,   9,   9,   9}},
 	{m68k_op_add_32_re_di        , 0xf1f8, 0xd1a8, { 24,  24,   9,   9,   9}},
 	{m68k_op_add_32_re_ix        , 0xf1f8, 0xd1b0, { 26,  26,  11,  11,  11}},
-	{m68k_op_adda_32_d           , 0xf1f8, 0xd1c0, {  6,   6,   2,   2,   2}},
-	{m68k_op_adda_32_a           , 0xf1f8, 0xd1c8, {  6,   6,   2,   2,   2}},
+	{m68k_op_adda_32_d           , 0xf1f8, 0xd1c0, {  8,   6,   2,   2,   2}},
+	{m68k_op_adda_32_a           , 0xf1f8, 0xd1c8, {  8,   6,   2,   2,   2}},
 	{m68k_op_adda_32_ai          , 0xf1f8, 0xd1d0, { 14,  14,   6,   6,   6}},
 	{m68k_op_adda_32_pi          , 0xf1f8, 0xd1d8, { 14,  14,   6,   6,   6}},
 	{m68k_op_adda_32_pd          , 0xf1f8, 0xd1e0, { 16,  16,   7,   7,   7}},
@@ -35366,12 +35442,12 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_or_8_er_al          , 0xf1ff, 0x8039, { 16,  16,   6,   6,   6}},
 	{m68k_op_or_8_er_pcdi        , 0xf1ff, 0x803a, { 12,  12,   7,   7,   7}},
 	{m68k_op_or_8_er_pcix        , 0xf1ff, 0x803b, { 14,  14,   9,   9,   9}},
-	{m68k_op_or_8_er_i           , 0xf1ff, 0x803c, { 10,   8,   4,   4,   4}},
+	{m68k_op_or_8_er_i           , 0xf1ff, 0x803c, {  8,   8,   4,   4,   4}},
 	{m68k_op_or_16_er_aw         , 0xf1ff, 0x8078, { 12,  12,   6,   6,   6}},
 	{m68k_op_or_16_er_al         , 0xf1ff, 0x8079, { 16,  16,   6,   6,   6}},
 	{m68k_op_or_16_er_pcdi       , 0xf1ff, 0x807a, { 12,  12,   7,   7,   7}},
 	{m68k_op_or_16_er_pcix       , 0xf1ff, 0x807b, { 14,  14,   9,   9,   9}},
-	{m68k_op_or_16_er_i          , 0xf1ff, 0x807c, { 10,   8,   4,   4,   4}},
+	{m68k_op_or_16_er_i          , 0xf1ff, 0x807c, {  8,   8,   4,   4,   4}},
 	{m68k_op_or_32_er_aw         , 0xf1ff, 0x80b8, { 18,  18,   6,   6,   6}},
 	{m68k_op_or_32_er_al         , 0xf1ff, 0x80b9, { 22,  22,   6,   6,   6}},
 	{m68k_op_or_32_er_pcdi       , 0xf1ff, 0x80ba, { 18,  18,   7,   7,   7}},
@@ -35404,12 +35480,12 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_sub_8_er_al         , 0xf1ff, 0x9039, { 16,  16,   6,   6,   6}},
 	{m68k_op_sub_8_er_pcdi       , 0xf1ff, 0x903a, { 12,  12,   7,   7,   7}},
 	{m68k_op_sub_8_er_pcix       , 0xf1ff, 0x903b, { 14,  14,   9,   9,   9}},
-	{m68k_op_sub_8_er_i          , 0xf1ff, 0x903c, { 10,   8,   4,   4,   4}},
+	{m68k_op_sub_8_er_i          , 0xf1ff, 0x903c, {  8,   8,   4,   4,   4}},
 	{m68k_op_sub_16_er_aw        , 0xf1ff, 0x9078, { 12,  12,   6,   6,   6}},
 	{m68k_op_sub_16_er_al        , 0xf1ff, 0x9079, { 16,  16,   6,   6,   6}},
 	{m68k_op_sub_16_er_pcdi      , 0xf1ff, 0x907a, { 12,  12,   7,   7,   7}},
 	{m68k_op_sub_16_er_pcix      , 0xf1ff, 0x907b, { 14,  14,   9,   9,   9}},
-	{m68k_op_sub_16_er_i         , 0xf1ff, 0x907c, { 10,   8,   4,   4,   4}},
+	{m68k_op_sub_16_er_i         , 0xf1ff, 0x907c, {  8,   8,   4,   4,   4}},
 	{m68k_op_sub_32_er_aw        , 0xf1ff, 0x90b8, { 18,  18,   6,   6,   6}},
 	{m68k_op_sub_32_er_al        , 0xf1ff, 0x90b9, { 22,  22,   6,   6,   6}},
 	{m68k_op_sub_32_er_pcdi      , 0xf1ff, 0x90ba, { 18,  18,   7,   7,   7}},
@@ -35419,7 +35495,7 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_suba_16_al          , 0xf1ff, 0x90f9, { 20,  20,   6,   6,   6}},
 	{m68k_op_suba_16_pcdi        , 0xf1ff, 0x90fa, { 16,  16,   7,   7,   7}},
 	{m68k_op_suba_16_pcix        , 0xf1ff, 0x90fb, { 18,  18,   9,   9,   9}},
-	{m68k_op_suba_16_i           , 0xf1ff, 0x90fc, { 14,  12,   4,   4,   4}},
+	{m68k_op_suba_16_i           , 0xf1ff, 0x90fc, { 12,  12,   4,   4,   4}},
 	{m68k_op_subx_8_mm_ay7       , 0xf1ff, 0x910f, { 18,  18,  12,  12,  12}},
 	{m68k_op_sub_8_re_pi7        , 0xf1ff, 0x911f, { 12,  12,   8,   8,   8}},
 	{m68k_op_sub_8_re_pd7        , 0xf1ff, 0x9127, { 14,  14,   9,   9,   9}},
@@ -35476,22 +35552,22 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_and_8_er_al         , 0xf1ff, 0xc039, { 16,  16,   6,   6,   6}},
 	{m68k_op_and_8_er_pcdi       , 0xf1ff, 0xc03a, { 12,  12,   7,   7,   7}},
 	{m68k_op_and_8_er_pcix       , 0xf1ff, 0xc03b, { 14,  14,   9,   9,   9}},
-	{m68k_op_and_8_er_i          , 0xf1ff, 0xc03c, { 10,   8,   4,   4,   4}},
+	{m68k_op_and_8_er_i          , 0xf1ff, 0xc03c, {  8,   8,   4,   4,   4}},
 	{m68k_op_and_16_er_aw        , 0xf1ff, 0xc078, { 12,  12,   6,   6,   6}},
 	{m68k_op_and_16_er_al        , 0xf1ff, 0xc079, { 16,  16,   6,   6,   6}},
 	{m68k_op_and_16_er_pcdi      , 0xf1ff, 0xc07a, { 12,  12,   7,   7,   7}},
 	{m68k_op_and_16_er_pcix      , 0xf1ff, 0xc07b, { 14,  14,   9,   9,   9}},
-	{m68k_op_and_16_er_i         , 0xf1ff, 0xc07c, { 10,   8,   4,   4,   4}},
+	{m68k_op_and_16_er_i         , 0xf1ff, 0xc07c, {  8,   8,   4,   4,   4}},
 	{m68k_op_and_32_er_aw        , 0xf1ff, 0xc0b8, { 18,  18,   6,   6,   6}},
 	{m68k_op_and_32_er_al        , 0xf1ff, 0xc0b9, { 22,  22,   6,   6,   6}},
 	{m68k_op_and_32_er_pcdi      , 0xf1ff, 0xc0ba, { 18,  18,   7,   7,   7}},
 	{m68k_op_and_32_er_pcix      , 0xf1ff, 0xc0bb, { 20,  20,   9,   9,   9}},
 	{m68k_op_and_32_er_i         , 0xf1ff, 0xc0bc, { 16,  14,   6,   6,   6}},
-	{m68k_op_mulu_16_aw          , 0xf1ff, 0xc0f8, { 62,  38,  31,  31,  31}},
-	{m68k_op_mulu_16_al          , 0xf1ff, 0xc0f9, { 66,  42,  31,  31,  31}},
-	{m68k_op_mulu_16_pcdi        , 0xf1ff, 0xc0fa, { 62,  38,  32,  32,  32}},
-	{m68k_op_mulu_16_pcix        , 0xf1ff, 0xc0fb, { 64,  40,  34,  34,  34}},
-	{m68k_op_mulu_16_i           , 0xf1ff, 0xc0fc, { 58,  34,  29,  29,  29}},
+	{m68k_op_mulu_16_aw          , 0xf1ff, 0xc0f8, { 46,  38,  31,  31,  31}},
+	{m68k_op_mulu_16_al          , 0xf1ff, 0xc0f9, { 50,  42,  31,  31,  31}},
+	{m68k_op_mulu_16_pcdi        , 0xf1ff, 0xc0fa, { 46,  38,  32,  32,  32}},
+	{m68k_op_mulu_16_pcix        , 0xf1ff, 0xc0fb, { 48,  40,  34,  34,  34}},
+	{m68k_op_mulu_16_i           , 0xf1ff, 0xc0fc, { 42,  34,  29,  29,  29}},
 	{m68k_op_abcd_8_mm_ay7       , 0xf1ff, 0xc10f, { 18,  18,  16,  16,  16}},
 	{m68k_op_and_8_re_pi7        , 0xf1ff, 0xc11f, { 12,  12,   8,   8,   8}},
 	{m68k_op_and_8_re_pd7        , 0xf1ff, 0xc127, { 14,  14,   9,   9,   9}},
@@ -35501,23 +35577,23 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_and_16_re_al        , 0xf1ff, 0xc179, { 20,  20,   8,   8,   8}},
 	{m68k_op_and_32_re_aw        , 0xf1ff, 0xc1b8, { 24,  24,   8,   8,   8}},
 	{m68k_op_and_32_re_al        , 0xf1ff, 0xc1b9, { 28,  28,   8,   8,   8}},
-	{m68k_op_muls_16_aw          , 0xf1ff, 0xc1f8, { 62,  40,  31,  31,  31}},
-	{m68k_op_muls_16_al          , 0xf1ff, 0xc1f9, { 66,  44,  31,  31,  31}},
-	{m68k_op_muls_16_pcdi        , 0xf1ff, 0xc1fa, { 62,  40,  32,  32,  32}},
-	{m68k_op_muls_16_pcix        , 0xf1ff, 0xc1fb, { 64,  42,  34,  34,  34}},
-	{m68k_op_muls_16_i           , 0xf1ff, 0xc1fc, { 58,  36,  29,  29,  29}},
+	{m68k_op_muls_16_aw          , 0xf1ff, 0xc1f8, { 46,  40,  31,  31,  31}},
+	{m68k_op_muls_16_al          , 0xf1ff, 0xc1f9, { 50,  44,  31,  31,  31}},
+	{m68k_op_muls_16_pcdi        , 0xf1ff, 0xc1fa, { 46,  40,  32,  32,  32}},
+	{m68k_op_muls_16_pcix        , 0xf1ff, 0xc1fb, { 48,  42,  34,  34,  34}},
+	{m68k_op_muls_16_i           , 0xf1ff, 0xc1fc, { 42,  36,  29,  29,  29}},
 	{m68k_op_add_8_er_pi7        , 0xf1ff, 0xd01f, {  8,   8,   6,   6,   6}},
 	{m68k_op_add_8_er_pd7        , 0xf1ff, 0xd027, { 10,  10,   7,   7,   7}},
 	{m68k_op_add_8_er_aw         , 0xf1ff, 0xd038, { 12,  12,   6,   6,   6}},
 	{m68k_op_add_8_er_al         , 0xf1ff, 0xd039, { 16,  16,   6,   6,   6}},
 	{m68k_op_add_8_er_pcdi       , 0xf1ff, 0xd03a, { 12,  12,   7,   7,   7}},
 	{m68k_op_add_8_er_pcix       , 0xf1ff, 0xd03b, { 14,  14,   9,   9,   9}},
-	{m68k_op_add_8_er_i          , 0xf1ff, 0xd03c, { 10,   8,   4,   4,   4}},
+	{m68k_op_add_8_er_i          , 0xf1ff, 0xd03c, {  8,   8,   4,   4,   4}},
 	{m68k_op_add_16_er_aw        , 0xf1ff, 0xd078, { 12,  12,   6,   6,   6}},
 	{m68k_op_add_16_er_al        , 0xf1ff, 0xd079, { 16,  16,   6,   6,   6}},
 	{m68k_op_add_16_er_pcdi      , 0xf1ff, 0xd07a, { 12,  12,   7,   7,   7}},
 	{m68k_op_add_16_er_pcix      , 0xf1ff, 0xd07b, { 14,  14,   9,   9,   9}},
-	{m68k_op_add_16_er_i         , 0xf1ff, 0xd07c, { 10,   8,   4,   4,   4}},
+	{m68k_op_add_16_er_i         , 0xf1ff, 0xd07c, {  8,   8,   4,   4,   4}},
 	{m68k_op_add_32_er_aw        , 0xf1ff, 0xd0b8, { 18,  18,   6,   6,   6}},
 	{m68k_op_add_32_er_al        , 0xf1ff, 0xd0b9, { 22,  22,   6,   6,   6}},
 	{m68k_op_add_32_er_pcdi      , 0xf1ff, 0xd0ba, { 18,  18,   7,   7,   7}},
@@ -35527,7 +35603,7 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_adda_16_al          , 0xf1ff, 0xd0f9, { 20,  20,   6,   6,   6}},
 	{m68k_op_adda_16_pcdi        , 0xf1ff, 0xd0fa, { 16,  16,   7,   7,   7}},
 	{m68k_op_adda_16_pcix        , 0xf1ff, 0xd0fb, { 18,  18,   9,   9,   9}},
-	{m68k_op_adda_16_i           , 0xf1ff, 0xd0fc, { 14,  12,   4,   4,   4}},
+	{m68k_op_adda_16_i           , 0xf1ff, 0xd0fc, { 12,  12,   4,   4,   4}},
 	{m68k_op_addx_8_mm_ay7       , 0xf1ff, 0xd10f, { 18,  18,  12,  12,  12}},
 	{m68k_op_add_8_re_pi7        , 0xf1ff, 0xd11f, { 12,  12,   8,   8,   8}},
 	{m68k_op_add_8_re_pd7        , 0xf1ff, 0xd127, { 14,  14,   9,   9,   9}},
@@ -35575,7 +35651,7 @@ static const opcode_handler_struct m68k_opcode_handler_table[] =
 	{m68k_op_andi_16_pd          , 0xfff8, 0x0260, { 18,  18,   9,   9,   9}},
 	{m68k_op_andi_16_di          , 0xfff8, 0x0268, { 20,  20,   9,   9,   9}},
 	{m68k_op_andi_16_ix          , 0xfff8, 0x0270, { 22,  22,  11,  11,  11}},
-	{m68k_op_andi_32_d           , 0xfff8, 0x0280, { 14,  14,   2,   2,   2}},
+	{m68k_op_andi_32_d           , 0xfff8, 0x0280, { 16,  14,   2,   2,   2}},
 	{m68k_op_andi_32_ai          , 0xfff8, 0x0290, { 28,  28,   8,   8,   8}},
 	{m68k_op_andi_32_pi          , 0xfff8, 0x0298, { 28,  28,   8,   8,   8}},
 	{m68k_op_andi_32_pd          , 0xfff8, 0x02a0, { 30,  30,   9,   9,   9}},
