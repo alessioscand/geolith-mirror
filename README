@@ -31,7 +31,7 @@ title, is prepatched with the same patch done post-load in FinalBurn Neo and
 MAME to make it playable.
 
 This tool is recommended if you wish to convert a MAME romset:
-  https://github.com/carmiker/neoconv
+  https://github.com/carmiker/lithogen
 
 Compiling
 ---------
