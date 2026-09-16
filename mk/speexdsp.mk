@@ -9,7 +9,6 @@ endif
 ifneq ($(USE_VENDORED_SPEEXDSP), 0)
 	CFLAGS_SPEEXDSP := -I$(DEPDIR)
 	LIBS_SPEEXDSP :=  $(if $(findstring -lm,$(LIBS)),,-lm)
-	MKDIRS += deps/speex
 	SRCS_SPEEXDSP := deps/speex/resample.c
 	OBJS_SPEEXDSP := $(patsubst %,$(OBJDIR)/%,$(SRCS_SPEEXDSP:.c=.o))
 else

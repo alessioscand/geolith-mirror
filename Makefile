@@ -17,9 +17,6 @@ LIBS_REQUIRES := miniz speexdsp
 
 DOCS := ChangeLog LICENSE README
 
-# Object dirs
-MKDIRS := m68k ymfm z80
-
 ENABLE_CHDR ?= 0
 
 override INSTALL_DATA := 0

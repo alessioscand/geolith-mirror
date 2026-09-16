@@ -9,7 +9,6 @@ endif
 ifeq ($(USE_EXTERNAL_MINIZ), 0)
 	CFLAGS_MINIZ := -I$(DIR_MINIZ)
 	LIBS_MINIZ :=
-	MKDIRS += deps/miniz
 	SRCS_MINIZ := deps/miniz/miniz.c
 	OBJS_MINIZ := $(patsubst %,$(OBJDIR)/%,$(SRCS_MINIZ:.c=.o))
 else
