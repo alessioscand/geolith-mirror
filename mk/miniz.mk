@@ -31,7 +31,7 @@ endif
 
 BUILD_MINIZ = $(call COMPILE_C, $(FLAGS_MINIZ))
 
-$(OBJDIR)/deps/miniz/%.o: $(DIR_MINIZ)/%.c $(OBJDIR)/.tag
+$(OBJDIR)/deps/miniz/%.o: $(DIR_MINIZ)/%.c $(PREREQ)
 	$(call COMPILE_INFO,$(BUILD_MINIZ))
 	@$(BUILD_MINIZ)
 

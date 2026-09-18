@@ -34,7 +34,7 @@ endif
 
 BUILD_SPEEXDSP = $(call COMPILE_C, $(FLAGS_SPEEXDSP))
 
-$(OBJDIR)/deps/speex/%.o: $(DIR_SPEEXDSP)/%.c $(OBJDIR)/.tag
+$(OBJDIR)/deps/speex/%.o: $(DIR_SPEEXDSP)/%.c $(PREREQ)
 	$(call COMPILE_INFO,$(BUILD_SPEEXDSP))
 	@$(BUILD_SPEEXDSP)
 
