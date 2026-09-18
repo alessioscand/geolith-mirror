@@ -64,9 +64,7 @@ ifneq ($(ENABLE_CHDR), 0)
 	LIBS += $(LIBS_CHDR)
 endif
 
-# List of object files
-OBJS := $(patsubst %,$(OBJDIR)/%,$(CSRCS:.c=.o)) $(OBJS_MINIZ) $(OBJS_SPEEXDSP)
-OBJS_JG := $(patsubst %,$(OBJDIR)/%,$(JGSRCS:.c=.o))
+override OBJS += $(OBJS_MINIZ) $(OBJS_SPEEXDSP)
 
 # Core commands
 BUILD_JG = $(call COMPILE_C, $(FLAGS) $(DEFS) $(INCLUDES_JG) $(CFLAGS_JG))
