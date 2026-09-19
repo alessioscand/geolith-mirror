@@ -74,9 +74,4 @@ BUILD_MAIN = $(call COMPILE_C, $(FLAGS) $(DEFS) $(INCLUDES))
 
 all: $(TARGET)
 
-# Rules
-$(OBJDIR)/src/%.o: $(SRCDIR)/%.$(EXT) $(PREREQ)
-	$(call COMPILE_INFO,$(BUILD_MAIN))
-	@$(BUILD_MAIN)
-
 include $(SOURCEDIR)/mk/rules.mk
