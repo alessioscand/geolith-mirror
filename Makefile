@@ -33,32 +33,32 @@ EXT := c
 FLAGS := -std=c11 $(WARNINGS_DEF_C)
 DEFS :=
 
-CSRCS := m68k/m68kcpu.c \
-	m68k/m68kops.c \
-	ymfm/ymfm_adpcm.c \
-	ymfm/ymfm_opn.c \
-	ymfm/ymfm_ssg.c \
-	z80/z80.c \
-	geo.c \
-	geo_cd.c \
-	geo_cue.c \
-	geo_disc.c \
-	geo_lc8951.c \
-	geo_lspc.c \
-	geo_m68k.c \
-	geo_memcard.c \
-	geo_mixer.c \
-	geo_neo.c \
-	geo_rtc.c \
-	geo_serial.c \
-	geo_vfs.c \
-	geo_ymfm.c \
-	geo_z80.c
+CSRCS := src/m68k/m68kcpu.c \
+	src/m68k/m68kops.c \
+	src/ymfm/ymfm_adpcm.c \
+	src/ymfm/ymfm_opn.c \
+	src/ymfm/ymfm_ssg.c \
+	src/z80/z80.c \
+	src/geo.c \
+	src/geo_cd.c \
+	src/geo_cue.c \
+	src/geo_disc.c \
+	src/geo_lc8951.c \
+	src/geo_lspc.c \
+	src/geo_m68k.c \
+	src/geo_memcard.c \
+	src/geo_mixer.c \
+	src/geo_neo.c \
+	src/geo_rtc.c \
+	src/geo_serial.c \
+	src/geo_vfs.c \
+	src/geo_ymfm.c \
+	src/geo_z80.c
 
 JGSRCS := jg.c
 
 ifneq ($(ENABLE_CHDR), 0)
-	CSRCS += geo_chd.c
+	CSRCS += src/geo_chd.c
 	DEFS += -DHAVE_CHDR
 	INCLUDES += $(CFLAGS_CHDR)
 	LIBS += $(LIBS_CHDR)
@@ -75,7 +75,7 @@ BUILD_MAIN = $(call COMPILE_C, $(FLAGS) $(DEFS) $(INCLUDES))
 all: $(TARGET)
 
 # Rules
-$(OBJDIR)/%.o: $(SRCDIR)/%.$(EXT) $(PREREQ)
+$(OBJDIR)/src/%.o: $(SRCDIR)/%.$(EXT) $(PREREQ)
 	$(call COMPILE_INFO,$(BUILD_MAIN))
 	@$(BUILD_MAIN)
 
